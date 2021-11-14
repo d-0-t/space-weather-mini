@@ -1,0 +1,104 @@
+* {
+  color: white;
+}
+
+#header {
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  text-align: center;
+  background-color:rgb(27, 73, 49);
+  min-height: 50px;
+}
+#navLogo {
+  font-size: 2em;
+  padding-left: 10px;
+}
+
+@media (max-width: 720px) {
+  #header {
+    flex-direction: column;
+  }
+  #navLogo {
+    width: 100%;
+    padding-left: 0px;
+  }
+}
+
+.nava {
+  text-decoration: none;
+  color: white;
+}
+#nav > ul {
+  display: flex;
+  padding: 0;
+  margin: 0;
+}
+.nava > li,
+#nav > ul > li,
+#nav > ul > li > a {
+  display: flex;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  text-decoration: none;
+  list-style: none;
+  font-weight: bold;
+  height: 50px;
+  width: 100px;
+}
+.nava > li:hover,
+#nav > ul > li > a:hover {
+  background-color: rgb(36, 36, 36);
+  color: rgb(113, 255, 180);
+}
+#nav > ul > #forecasts,
+#nav > ul > #forecasts > a {
+  width: 200px;
+}
+.dropdown {
+  display: block;
+}
+.dropdown-content {
+  display: none;
+}
+.dropdown:hover .dropdown-content {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  /*left: -38px;*/
+  padding: 0;
+  margin-top: 297px;
+  z-index: 10;
+}
+.dropdown-content > a > li {
+  width: 200px;
+  height: 20px;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  list-style: none;
+  background-color: rgb(36, 36, 36);
+  border-bottom: 1px dashed rgb(116, 116, 116);
+}
+.dropdown-content > a:first-child {
+  border-top: 1px dashed rgb(116, 116, 116);
+}
+.dropdown-content > a > li:hover {
+  background-color: rgb(54, 54, 54);
+  color: rgb(113, 255, 180);
+  border-radius: 0;
+}
+
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Edge, Opera and Firefox */
+}

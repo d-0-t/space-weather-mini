@@ -1,0 +1,122 @@
+table {
+  border: 2px solid rgb(129, 129, 129);
+  border-collapse: collapse;
+}
+th, td {
+  height: 60px;
+  width: 100px;
+  text-align: center;
+  border: 1px solid rgb(129, 129, 129);  
+}
+td {
+  height: 20px;
+  text-shadow: 1px 1px 1px #000;
+}
+th {
+  color: rgb(191, 231, 210);
+  background-color: rgb(36, 36, 36);
+}
+th:first-child {
+  width: 125px;
+}
+tr:nth-child(2n) {
+  background-color: rgb(41, 41, 41);
+}
+tr:nth-child(2n+1) {
+  background-color: rgb(29, 29, 29);
+}
+tr[kp-value="0"], td[kp-value="0"] {
+  background-color: rgb(0, 0, 0);
+  color: rgb(117, 117, 117);
+}
+tr[kp-value="1"], td[kp-value="1"] {
+  background-color: rgb(0, 12, 82);
+  color: rgb(194, 194, 194);
+}
+tr[kp-value="2"], td[kp-value="2"] {
+  background-color: rgb(0, 47, 78);
+}
+tr[kp-value="3"], td[kp-value="3"] {
+  background-color: rgb(0, 128, 89);
+}
+tr[kp-value="4"], td[kp-value="4"] {
+  background-color: rgb(37, 187, 0);
+  font-weight: bold;
+}
+tr[kp-value="5"], td[kp-value="5"] {
+  background-color: rgb(187, 255, 0);
+  color: rgb(0, 39, 27);
+  text-shadow: 0px 0px 0px #000;
+  font-weight: bold;
+}
+tr[kp-value="6"], td[kp-value="6"] {
+  background-color: rgb(255, 217, 0);
+  color: rgb(54, 0, 0);
+  text-shadow: 0px 0px 0px #000;
+  font-weight: bold;
+}
+tr[kp-value="7"], td[kp-value="7"] {
+  background-color: rgb(255, 81, 0);
+  font-weight: bold;
+}
+tr[kp-value="8"], td[kp-value="8"] {
+  background-color: rgb(245, 0, 0);
+  font-weight: bold;
+}
+tr[kp-value="9"], td[kp-value="9"] {
+  background-color: rgb(255, 0, 234);
+  font-weight: bold;
+}
+#table27days > tbody > tr:hover,
+#table30days > tbody > tr:hover {
+  outline: 4px solid rgb(214, 214, 214);
+  font-weight: bold;
+}
+#table3days_radio > tbody > tr > td:hover,
+#table3days_srs > tbody > tr > td:hover,
+#table3days_kp > tbody > tr > td:hover {
+  font-weight: bold;
+  background-color: rgb(82, 82, 82);
+}
+
+
+#table30days > tbody > tr > td {
+  border: 1px solid rgb(0, 0, 0);
+}
+#table30days > tbody > tr > td:first-child,
+#table30days > tbody > tr > td:nth-child(9n+1),
+#table30days > tbody > tr > td:nth-child(9n+2),
+#table30days > tbody > tr > td[cellType="tableSubHeader"] {
+  border-right: 1px solid rgb(129, 129, 129);
+}
+#table30days > tbody > tr > td[cellType="tableSubHeader"] {
+  border-bottom: 1px solid rgb(129, 129, 129);
+}
+
+#table30days > thead > tr > th:first-child {
+  width: 90px;
+}
+#table30days > tbody > tr > td[cellType="tableBody"] {
+  font-size: 12px;
+  width: 15px;
+}
+#table30days > tbody > tr > td[cellType="tableBody"]:first-child {
+  font-weight: bold;
+}
+#table30days > tbody > tr:first-child {
+  font-size: 18px;
+  font-weight: bold;
+  width: 15px;
+}
+td[a-value] {
+  background-color: rgb(53, 53, 53);
+  color: rgb(230, 230, 230);
+  font-weight: bold;
+  text-shadow: 0px 0px 0px;
+  width: 15px;
+}
+td[cellType="tableSubHeader"] {
+  font-size: 14px;
+  width: 25px;
+  background-color: rgb(53, 53, 53);
+}
