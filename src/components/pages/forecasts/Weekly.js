@@ -22,6 +22,8 @@ class WeeklyReport extends React.Component {
       let issueDate = new Date(weeklyData[1]);
       issueDate = issueDate.toString();
 
+      //console.log(weeklyData);
+
       this.setState({
         data: weekly,
         weeklyReport: {
@@ -51,14 +53,13 @@ class WeeklyReport extends React.Component {
     }
     return (
       <div className="container">
+      <h2>{this.state.weeklyReport.title}</h2>
+      <p>
+        <b>Issued (UTC):</b> {this.state.weeklyReport.date}<br/>
+        <b>Issued (local):</b> {this.state.weeklyReport.dateLocal}<br/>
+        {this.state.weeklyReport.author}
+      </p>
       <div id="weekly-discussion">
-
-        <h2>{this.state.weeklyReport.title}</h2>
-        <p>
-          <b>Issued (UTC):</b> {this.state.weeklyReport.date}<br/>
-          <b>Issued (local):</b> {this.state.weeklyReport.dateLocal}<br/>
-          {this.state.weeklyReport.author}
-        </p>
         <article>
           <h3>{this.state.weeklyReport.info.forecast.title}</h3>
           <b>{this.state.weeklyReport.info.forecast.fromTo}</b><br/>

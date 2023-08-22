@@ -104,12 +104,14 @@ class Parser {
 
   WeeklyParser(weekly) {
     let split1 = [ ":Product: ",
-                  ":Issued: ",
-                  "<br/># ",
-                  "<br/>#<br/>#",
-                  "<br/>#<br/>" ];
-    let split2 = [ "<br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/><br/>" ];
+                   ":Issued: ",
+                   "<br/># ",
+                   "<br/>#<br/>#",
+                   "<br/>#<br/>" ];
+    let split2 = [ "Highlights of Solar and Geomagnetic Activity",
+                   "Forecast of Solar and Geomagnetic Activity" ];
     let split3 = [ "<br/>", "<br/><br/>" ];
+    
     let filteredString = this.Splitter(weekly, split1);
     // Remove empty/unwanted line(s)
     filteredString.shift();
@@ -120,12 +122,14 @@ class Parser {
     filteredString[2] = filteredString[2].split("<br/>").shift();
     filteredString.splice(3,1);
     filteredString[3] = this.Splitter(filteredString[3], split2);
+    filteredString[3].shift();
     filteredString[3][0] = this.Splitter(filteredString[3][0], split3);
     filteredString[3][1] = this.Splitter(filteredString[3][1], split3);
-    // Word wrap pre-formatted text but keep the "paragraphs"
+    filteredString[3][0][0] = split2[0];
+    filteredString[3][1][0] = split2[1];
     filteredString[3][0][2] = this.WordWrapper(filteredString[3][0][2]);
     filteredString[3][1][2] = this.WordWrapper(filteredString[3][1][2]);
-
+    
     return filteredString;
   }
 
@@ -400,7 +404,6 @@ class Parser {
     let htmlTableBody = htmlTableBodyConstructor(filteredString[3][1]);
 
     let htmlTable = '<table id="table30days">' + htmlTableHead + htmlTableBody + '</table>';
-    console.log(filteredString[3]);
 
     return [ filteredString, htmlTable ];
   }

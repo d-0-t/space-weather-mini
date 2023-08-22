@@ -1,3 +1,6 @@
+.marginedTable {
+  margin: 15px;
+}
 table {
   border: 2px solid rgb(129, 129, 129);
   border-collapse: collapse;

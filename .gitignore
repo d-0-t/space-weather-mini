@@ -12,6 +12,7 @@
 /build
 
 # misc
+.env
 .DS_Store
 .env.local
 .env.development.local
@@ -24,3 +25,7 @@ yarn-error.log*
 
 #myFiles
 tableMakerUnfinished.js
+/x_badgh_redirect_wontwork
+x_badgh_redirect_wontwork
+/x_redirects
+x_redirects

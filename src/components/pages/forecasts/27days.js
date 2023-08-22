@@ -22,7 +22,7 @@ class TwentySevenDays extends React.Component {
       let info27 = parser.TwentySevenDays(data27)[0];
       let issueDate = new Date(info27[1]);
       issueDate = issueDate.toString();
-      console.log(info27);
+      //console.log(info27);
       let htmlTable27 = parser.TwentySevenDays(data27)[1];
       this.setState({
         data: data27,
