@@ -1,32 +1,26 @@
+import { useCallback, useEffect, useState } from "react";
+
 import "../Pages.css";
 import "../Tables.css";
-import React from "react";
+
 import Parser from "../../parser/TxtParser";
 const parser = new Parser();
 
-class ThreeDaysReport extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      data: null,
-    };
-  }
-  componentDidMount() {
-    this.loadData();
-  }
-  loadData() {
+const ThreeDaysReport: React.FC = () => {
+  const [data, setData] = useState<any>();
+
+  const loadData = useCallback(() => {
     fetch("https://services.swpc.noaa.gov/text/3-day-forecast.txt")
       .then((r) => r.text())
-      .then((text) => {
-        let data3days = text.replace(/\n/g, "<br/>");
+      .then(async (text) => {
+        let data3days: any = text.replace(/\n/g, "<br/>");
         data3days = parser.ThreeDays(data3days);
 
-        let issueDate = new Date(data3days[0][1]);
+        let issueDate: any = new Date(data3days[0][1]);
         issueDate = issueDate.toString();
+        console.log(data, data3days);
 
-        //console.log(data3days);
-
-        this.setState({
+        setData({
           data: data3days,
           info: {
             title: data3days[0][0],
@@ -58,82 +52,94 @@ class ThreeDaysReport extends React.Component {
           },
         });
       });
-  }
-  render() {
-    if (!this.state.data) {
-      return <div />;
-    }
-    return (
-      <div className="container">
+    // eslint-disable-next-line
+  }, []);
+
+  useEffect(() => {
+    //console.log("loading data...");
+    loadData();
+  }, [loadData]);
+
+  // useEffect(() => {
+  //   //console.log("data was updated...");
+  //   if (data && descriptions && info && tables) setLoaded(true);
+  // }, [data, descriptions, info, tables]);
+  // if (!loaded) {
+  //   return <div />;
+  // }
+
+  return (
+    <div className="container">
+      {data && (
         <div id="3-days">
-          <h2>{this.state.info.title}</h2>
+          <h2>{data.info.title}</h2>
           <p>
-            <b>Issued (UTC):</b> {this.state.info.date}
+            <b>Issued (UTC):</b> {data.info.date}
             <br />
-            <b>Issued (local):</b> {this.state.info.dateLocal}
+            <b>Issued (local):</b> {data.info.dateLocal}
             <br />
-            {this.state.info.author}
+            {data.info.author}
           </p>
 
           <article>
-            <h3>{this.state.descriptions.geomagnetism.title}</h3>
+            <h3>{data.descriptions.geomagnetism.title}</h3>
             <div
               dangerouslySetInnerHTML={{
-                __html: this.state.descriptions.geomagnetism.details,
+                __html: data.descriptions.geomagnetism.details,
               }}
             />
             <div
               className="marginedTable"
-              dangerouslySetInnerHTML={{ __html: this.state.tables.table_kp }}
+              dangerouslySetInnerHTML={{ __html: data.tables.table_kp }}
             />
             <div
               dangerouslySetInnerHTML={{
-                __html: this.state.descriptions.geomagnetism.regionale,
+                __html: data.descriptions.geomagnetism.regionale,
               }}
             />
           </article>
 
           <article>
-            <h3>{this.state.descriptions.solarRadiation.title}</h3>
+            <h3>{data.descriptions.solarRadiation.title}</h3>
             <div
               dangerouslySetInnerHTML={{
-                __html: this.state.descriptions.solarRadiation.details,
+                __html: data.descriptions.solarRadiation.details,
               }}
             />
             <div
               className="marginedTable"
-              dangerouslySetInnerHTML={{ __html: this.state.tables.table_srs }}
+              dangerouslySetInnerHTML={{ __html: data.tables.table_srs }}
             />
             <div
               dangerouslySetInnerHTML={{
-                __html: this.state.descriptions.solarRadiation.regionale,
+                __html: data.descriptions.solarRadiation.regionale,
               }}
             />
           </article>
 
           <article>
-            <h3>{this.state.descriptions.radioBlackouts.title}</h3>
+            <h3>{data.descriptions.radioBlackouts.title}</h3>
             <div
               dangerouslySetInnerHTML={{
-                __html: this.state.descriptions.radioBlackouts.details,
+                __html: data.descriptions.radioBlackouts.details,
               }}
             />
             <div
               className="marginedTable"
               dangerouslySetInnerHTML={{
-                __html: this.state.tables.table_radio,
+                __html: data.tables.table_radio,
               }}
             />
             <div
               dangerouslySetInnerHTML={{
-                __html: this.state.descriptions.radioBlackouts.regionale,
+                __html: data.descriptions.radioBlackouts.regionale,
               }}
             />
           </article>
         </div>
-      </div>
-    );
-  }
-}
+      )}
+    </div>
+  );
+};
 
 export default ThreeDaysReport;
