@@ -51,6 +51,8 @@ const ThreeDaysReport: React.FC = () => {
             table_radio: data3days[3],
           },
         });
+
+        console.log(data);
       });
     // eslint-disable-next-line
   }, []);
