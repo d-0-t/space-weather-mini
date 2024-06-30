@@ -210,7 +210,6 @@ class Parser {
   }
 
   ThreeDays(three) {
-    console.log(three);
     let split1 = [
       ":Product: ",
       "<br/>:Issued: ",
