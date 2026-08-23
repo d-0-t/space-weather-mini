@@ -6,7 +6,7 @@ import { Routes, Route } from "react-router-dom";
 import ForecastDiscussion from "./pages/forecasts/Discussion";
 import GeoAlert from "./pages/forecasts/GeoAlert";
 import WeeklyReport from "./pages/forecasts/Weekly";
-import TwentySevenDays from "./pages/forecasts/27days";
+import TwentySevenDayOutlook from "./pages/forecasts/27-day-outlook";
 import ThreeDaysReport from "./pages/forecasts/3days";
 import DailyReport from "./pages/forecasts/Daily";
 
@@ -21,7 +21,7 @@ const App: React.FC = () => {
         <Route path={"daily"} element={<DailyReport />} />
         <Route path={"weekly"} element={<WeeklyReport />} />
         <Route path={"3days"} element={<ThreeDaysReport />} />
-        <Route path={"27days"} element={<TwentySevenDays />} />
+        <Route path={"27days"} element={<TwentySevenDayOutlook />} />
         <Route path={"geoalert"} element={<GeoAlert />} />
       </Route>
       <Route path={"about"} element={<About />} />

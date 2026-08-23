@@ -54,7 +54,11 @@ test("the weekly report page renders its data", async ({ page }) => {
 
 test("the 27-day outlook page renders its data", async ({ page }) => {
   await page.goto("/forecasts/27days");
-  await expect(page.getByRole("heading", { level: 3, name: "Table" })).toBeVisible({ timeout: dataTimeout });
+  const table = page.getByRole("table");
+  await expect(table).toBeVisible({ timeout: dataTimeout });
+  await expect(table.getByRole("row")).toHaveCount(28);
+  await expect(page.getByText("As of:")).toBeVisible();
+  await expect(page.getByRole("img", { name: /radio flux and a index trend/i })).toBeVisible();
 });
 
 test("the geophysical alert page renders", async ({ page }) => {

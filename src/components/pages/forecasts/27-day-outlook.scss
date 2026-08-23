@@ -1,0 +1,55 @@
+.twenty-seven-day-outlook {
+  &__panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    align-items: start;
+
+    @media (max-width: 900px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__chart {
+    --radio-flux-line: rgb(157, 255, 176);
+    --a-index-line: rgb(255, 217, 0);
+  }
+
+  &__line {
+    &--radio-flux {
+      stroke: var(--radio-flux-line);
+    }
+
+    &--a-index {
+      stroke: var(--a-index-line);
+    }
+  }
+
+  &__table {
+    margin: 15px 0;
+  }
+
+  &__row:hover {
+    outline: 4px solid rgb(214, 214, 214);
+    font-weight: bold;
+  }
+
+  &__refresh,
+  &__retry {
+    padding: 6px 12px;
+    background-color: rgb(27, 73, 49);
+    border: 1px solid rgb(191, 231, 210);
+
+    &:disabled {
+      opacity: 0.6;
+    }
+  }
+
+  &__status {
+    margin: 15px 0;
+
+    .twenty-seven-day-outlook__retry {
+      margin-top: 10px;
+    }
+  }
+}
