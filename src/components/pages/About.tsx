@@ -1,4 +1,4 @@
-import "./Pages.css";
+import "./Pages.scss";
 
 const About: React.FC = () => {
   return (

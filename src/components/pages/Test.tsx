@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
-import "./Pages.css";
-import "./Tables.css";
+import "./Pages.scss";
+import "./Tables.scss";
 import Parser from "../parser/JsonParser";
 
 const parser = new Parser();

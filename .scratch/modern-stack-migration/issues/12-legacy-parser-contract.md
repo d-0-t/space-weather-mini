@@ -10,3 +10,7 @@
 - [ ] The legacy parser file(s) are deleted
 - [ ] No `dangerouslySetInnerHTML` usage remains in the app
 - [ ] Full suite (typecheck, Vitest, Playwright with axe) passes after the deletion
+
+## Comments
+
+- Review finding (pre-existing): the legacy parser's `getCell` emits a malformed `class="valAtDate kp01"">` attribute; the new typed parsers must not reproduce it.

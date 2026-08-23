@@ -1,6 +1,6 @@
 import { Outlet } from "react-router-dom";
 
-import "./Pages.css";
+import "./Pages.scss";
 
 const Forecasts: React.FC = () => {
   return <Outlet />;

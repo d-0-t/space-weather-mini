@@ -1,6 +1,6 @@
 import VisualAuroras from "../../visualtabs/Auroras";
 import GeoAlert from "./GeoAlert";
-import "./Pages.css";
+import "./Pages.scss";
 
 const Forecasts: React.FC = () => {
   return (

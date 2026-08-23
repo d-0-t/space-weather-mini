@@ -1,4 +1,4 @@
-import '../pages/Pages.css' ;
+import '../pages/Pages.scss' ;
 
 function VisualAuroras() {
   return (

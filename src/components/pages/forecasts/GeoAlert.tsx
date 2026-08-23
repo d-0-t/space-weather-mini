@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-import "../Pages.css";
+import "../Pages.scss";
 import Parser from "../../parser/TxtParser";
 const parser = new Parser();
 

@@ -1,4 +1,4 @@
-import "./Pages.css";
+import "./Pages.scss";
 import GeoAlert from "./forecasts/GeoAlert";
 import ThreeDaysReport from "./forecasts/3days";
 import VisualAuroras from "../visualtabs/Auroras";

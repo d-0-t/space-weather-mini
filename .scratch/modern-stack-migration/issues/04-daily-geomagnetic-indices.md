@@ -11,3 +11,7 @@
 - [ ] A Kp history timeline chart renders beside the table with the same data
 - [ ] The Kp color classes are preserved; the broken graph image URL is corrected
 - [ ] Parser unit tests (real fixture), page smoke test, Playwright journey, and axe audit pass
+
+## Comments
+
+- Review finding (pre-existing): the estimated-planetary-K graph component labels itself "Estimated Planetary K-index (graph)" — per CONTEXT.md the avoided term "K-index" must become "Kp index" during this migration. (Also carries the broken `geospacegeospace` URL noted in the ticket body.)

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
-import "../Pages.css";
-import "../Tables.css";
+import "../Pages.scss";
+import "../Tables.scss";
 import Parser from "../../parser/TxtParser";
 import EstimatedPlanetKGraph from "../../visualtabs/EstPlanetK-Graph";
 const parser = new Parser();

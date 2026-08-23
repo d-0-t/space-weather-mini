@@ -1,5 +1,5 @@
-import '../Pages.css';
-import '../Tables.css';
+import '../pages/Pages.scss';
+import '../pages/Tables.scss';
 import React from 'react';
 
 class TwentySevenDays extends React.Component {
