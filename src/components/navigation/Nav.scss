@@ -10,7 +10,7 @@
   align-items: center;
   justify-content: space-between;
   text-align: center;
-  background-color:rgb(27, 73, 49);
+  background-color: rgb(27, 73, 49);
   min-height: 50px;
 }
 #navLogo {
@@ -75,30 +75,35 @@
   margin-top: 297px;
   z-index: 10;
 }
-.dropdown-content > a > li {
-  width: 200px;
-  height: 20px;
-  padding-top: 10px;
-  padding-bottom: 10px;
-  list-style: none;
-  background-color: rgb(36, 36, 36);
-  border-bottom: 1px dashed rgb(116, 116, 116);
-}
-.dropdown-content > a:first-child {
-  border-top: 1px dashed rgb(116, 116, 116);
-}
-.dropdown-content > a > li:hover {
-  background-color: rgb(54, 54, 54);
-  color: rgb(113, 255, 180);
-  border-radius: 0;
+.dropdown-content > a {
+  text-decoration: none;
+
+  &:first-child {
+    border-top: 1px dashed rgb(116, 116, 116);
+  }
+
+  & > li {
+    width: 200px;
+    height: 20px;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    list-style: none;
+    background-color: rgb(36, 36, 36);
+    border-bottom: 1px dashed rgb(116, 116, 116);
+
+    &:hover {
+      background-color: rgb(54, 54, 54);
+      color: rgb(113, 255, 180);
+      border-radius: 0;
+    }
+  }
 }
 
 .noselect {
   -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Safari */
-     -khtml-user-select: none; /* Konqueror HTML */
-       -moz-user-select: none; /* Old versions of Firefox */
-        -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; /* Non-prefixed version, currently
-                                  supported by Chrome, Edge, Opera and Firefox */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Old versions of Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
 }

@@ -5,7 +5,8 @@ const Footer: React.FC = () => {
     <div id="footer">
       This page has been created by{" "}
       <a href="https://github.com/d-0-t" rel="noreferrer" target="_blank">
-        Dot
+        <span className="sr-only">Dot</span>
+        <span aria-hidden="true">d0t</span>
       </a>
       . Data source:{" "}
       <a href="https://swpc.noaa.gov/" rel="noreferrer" target="_blank">

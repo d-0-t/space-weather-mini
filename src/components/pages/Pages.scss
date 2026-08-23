@@ -1,7 +1,7 @@
-a {
+a,
+a span {
   color: rgb(113, 255, 180);
   font-weight: 500;
-  text-decoration: none;
 }
 
 .container {
@@ -9,8 +9,10 @@ a {
   max-width: 800px;
 }
 
-h1, h2, h3 {
-  color:rgb(113, 255, 180);
+h1,
+h2,
+h3 {
+  color: rgb(113, 255, 180);
   padding-top: 10px;
 }
 
@@ -19,8 +21,7 @@ h3 {
 }
 
 article {
-  background: linear-gradient(rgb(27, 27, 27), 
-              rgb(8, 8, 8));
+  background: linear-gradient(rgb(27, 27, 27), rgb(8, 8, 8));
   border-radius: 15px;
   padding: 10px;
   padding-top: 0px;
@@ -28,9 +29,6 @@ article {
 
 #footer {
   color: rgb(161, 161, 161);
-}
-#footer > a {
-  color: rgb(212, 212, 212);
 }
 
 .aboutDataLinks {
@@ -50,7 +48,9 @@ article {
   font-style: italic;
 }
 
-#homeFlow, #forecastFlow, #homeFlow2 {
+#homeFlow,
+#forecastFlow,
+#homeFlow2 {
   min-width: 300px;
   display: flex;
   flex-direction: row;
@@ -61,7 +61,8 @@ article {
   max-width: 810px;
   flex-direction: column;
 }
-.homeMini, .forecastMini {
+.homeMini,
+.forecastMini {
   flex: 1 0 300px;
   border-radius: 30px;
   margin: 5px;
@@ -84,11 +85,13 @@ article {
   flex-wrap: wrap;
   justify-content: space-evenly;
 }
-#img-aurora-north, #img-aurora-south {
+#img-aurora-north,
+#img-aurora-south {
   flex: 1 0 200px;
   margin: 5px;
 }
-#img-aurora-north > img, #img-aurora-south > img {
+#img-aurora-north > img,
+#img-aurora-south > img {
   max-width: 100%;
   border: 3px solid rgb(75, 75, 75);
   border-radius: 5px;
