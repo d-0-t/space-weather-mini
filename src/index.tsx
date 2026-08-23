@@ -19,11 +19,16 @@ root.render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
+        <a href="#main-content" className="skip-link">
+          Skip to main content
+        </a>
         <Nav />
-        <center>
-          <App />
+        <div className="app-shell">
+          <main id="main-content" tabIndex={-1}>
+            <App />
+          </main>
           <Footer />
-        </center>
+        </div>
       </BrowserRouter>
     </QueryClientProvider>
   </React.StrictMode>

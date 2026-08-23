@@ -114,7 +114,7 @@ const Explainers: React.FC = () => {
   }, [location.hash]);
 
   return (
-    <main className="container explainers" id="explainers">
+    <div className="container explainers" id="explainers">
       <h1>Explainers</h1>
       <p className="explainers__intro">
         Plain-language definitions for every measure, phenomenon, and product
@@ -134,7 +134,7 @@ const Explainers: React.FC = () => {
           <p className="explainers__body">{entry.body}</p>
         </article>
       ))}
-    </main>
+    </div>
   );
 };
 

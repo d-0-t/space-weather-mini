@@ -2,7 +2,7 @@ import "../pages/Pages.scss";
 
 const Footer: React.FC = () => {
   return (
-    <div id="footer">
+    <footer>
       This page has been created by{" "}
       <a href="https://github.com/d-0-t" rel="noreferrer" target="_blank">
         <span className="sr-only">Dot</span>
@@ -13,7 +13,7 @@ const Footer: React.FC = () => {
         SWPC NOAA
       </a>
       .
-    </div>
+    </footer>
   );
 };
 

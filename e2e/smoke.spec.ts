@@ -6,10 +6,11 @@ test("the app boots with navigation chrome on every page", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1, name: "Home" })).toBeVisible();
   await expect(page.locator("#navLogo")).toHaveText("Space Weather Mini");
-  for (const label of ["Home", "Forecasts & Discussion", "About"]) {
+  for (const label of ["Home", "About", "Explainers"]) {
     await expect(page.getByRole("link", { name: label })).toBeVisible();
   }
-  await page.getByRole("link", { name: "Forecasts & Discussion" }).hover();
+  await expect(page.getByRole("button", { name: "Forecasts & Discussion" })).toBeVisible();
+  await page.getByRole("button", { name: "Forecasts & Discussion" }).click();
   for (const label of [
     "Geophysical Alert",
     "Daily Data",
@@ -20,6 +21,36 @@ test("the app boots with navigation chrome on every page", async ({ page }) => {
   ]) {
     await expect(page.getByRole("link", { name: label })).toBeVisible();
   }
+});
+
+test("the keyboard navigation opens the Forecasts submenu and Escape returns focus", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const trigger = page.getByRole("button", { name: "Forecasts & Discussion" });
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  const firstLink = page.getByRole("link", { name: "Geophysical Alert" });
+  await expect(firstLink).toBeVisible();
+  await page.keyboard.press("Tab");
+  await expect(firstLink).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  await expect(trigger).toBeFocused();
+});
+
+test("the skip link is the first focusable element and targets main", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const skipLink = page.getByRole("link", { name: /skip to main content/i });
+  await expect(skipLink).toHaveAttribute("href", "#main-content");
+  // Tab from address bar lands on skip link first
+  await page.keyboard.press("Tab");
+  await expect(skipLink).toBeFocused();
+  await skipLink.click();
+  await expect(page.locator("#main-content")).toBeFocused();
 });
 
 test("the about page renders", async ({ page }) => {

@@ -32,32 +32,59 @@
   text-decoration: none;
   color: white;
 }
+
+.nava:focus-visible,
+.dropdown__trigger:focus-visible {
+  outline: 3px solid rgb(113, 255, 180);
+  outline-offset: 2px;
+}
+
 #nav > ul {
   display: flex;
   padding: 0;
   margin: 0;
+  list-style: none;
 }
-.nava > li,
-#nav > ul > li,
-#nav > ul > li > a {
+
+#nav > ul > li {
   display: flex;
   text-align: center;
   align-items: center;
   justify-content: center;
   position: relative;
-  text-decoration: none;
   list-style: none;
   font-weight: bold;
   height: 50px;
   width: 100px;
 }
-.nava > li:hover,
-#nav > ul > li > a:hover {
+
+#nav > ul > li > a,
+#nav > ul > li > button.dropdown__trigger {
+  display: flex;
+  text-align: center;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  text-decoration: none;
+  color: white;
+  font-weight: bold;
+  font-size: inherit;
+  font-family: inherit;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+#nav > ul > li > a:hover,
+#nav > ul > li > button.dropdown__trigger:hover {
   background-color: rgb(36, 36, 36);
   color: rgb(113, 255, 180);
 }
+
 #nav > ul > #forecasts,
-#nav > ul > #forecasts > a {
+#nav > ul > #forecasts > button {
   width: 200px;
 }
 .dropdown {
@@ -65,38 +92,47 @@
 }
 .dropdown-content {
   display: none;
+  list-style: none;
 }
-.dropdown:hover .dropdown-content {
+.dropdown:hover .dropdown-content,
+.dropdown:focus-within .dropdown-content,
+.dropdown--open .dropdown-content {
   display: flex;
   flex-direction: column;
   position: absolute;
-  /*left: -38px;*/
   padding: 0;
   margin-top: 297px;
   z-index: 10;
 }
-.dropdown-content > a {
+.dropdown-content > li {
+  width: 200px;
+  list-style: none;
+  background-color: rgb(36, 36, 36);
+  border-bottom: 1px dashed rgb(116, 116, 116);
+}
+
+.dropdown-content > li:first-child {
+  border-top: 1px dashed rgb(116, 116, 116);
+}
+
+.dropdown-content > li > a {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 20px;
+  padding-top: 10px;
+  padding-bottom: 10px;
   text-decoration: none;
+  color: white;
+}
 
-  &:first-child {
-    border-top: 1px dashed rgb(116, 116, 116);
-  }
-
-  & > li {
-    width: 200px;
-    height: 20px;
-    padding-top: 10px;
-    padding-bottom: 10px;
-    list-style: none;
-    background-color: rgb(36, 36, 36);
-    border-bottom: 1px dashed rgb(116, 116, 116);
-
-    &:hover {
-      background-color: rgb(54, 54, 54);
-      color: rgb(113, 255, 180);
-      border-radius: 0;
-    }
-  }
+.dropdown-content > li > a:hover,
+.dropdown-content > li > a:focus-visible {
+  background-color: rgb(54, 54, 54);
+  color: rgb(113, 255, 180);
+  border-radius: 0;
+  outline-offset: -2px;
 }
 
 .noselect {
