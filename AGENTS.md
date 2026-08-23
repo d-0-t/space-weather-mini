@@ -13,3 +13,7 @@ Five canonical roles, labels equal to their names (`needs-triage`, `needs-info`,
 ### Domain docs
 
 Single-context — one root `CONTEXT.md` plus `docs/adr/`. See `docs/agents/domain.md`.
+
+### Coding standards
+
+TypeScript strict, SCSS + BEM, Vitest + Playwright, WCAG 2.1 AA, vocabulary per `CONTEXT.md`. See `docs/agents/coding-standards.md`.
