@@ -11,3 +11,4 @@
 - [ ] Animations respect `prefers-reduced-motion`
 - [ ] The shell (navigation + footer on every page) has correct landmarks and heading order
 - [ ] Shell-level axe audit passes
+- [ ] The navigation menu can be operated by keyboard and not just mouse hover (currently failing submenu of "Forecasts & Discussions").

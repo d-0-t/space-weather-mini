@@ -1,0 +1,48 @@
+:Product: Weekly Highlights and Forecasts
+:Issued: 2026 Aug 17 0058 UTC
+# Prepared by the US Dept. of Commerce, NOAA, Space Weather Prediction Center
+# Product description and SWPC contact on the Web
+# https://www.swpc.noaa.gov/content/subscription-services
+#
+#                Weekly Highlights and Forecasts
+#
+Highlights of Solar and Geomagnetic Activity
+10 - 16 August 2026
+
+Solar activity ranged from very low to low levels throughout the
+period. No R1 (Minor) or greater events were observed. The largest
+flare was a C8.2/Sn at 16/1928 UTC from Region 4506 (N12, L=215,
+class/area=Dao/100 on 16 Aug). An associated CME was observed in
+LASCO C2 imagery following the C8.2 flare, but analysis is ongoing
+in order to determine any Earth-directed component. Other activity
+included the lift-off of avlarge filament near S16E22 at 14/0332 UTC
+which produced a CME that is expected to arrive on 17-18 Aug. 
+
+No proton events were observed at geosynchronous orbit.
+
+The greater than 2 MeV electron flux at geosynchronous orbit was
+normal to moderate levels throughout the period. 
+
+Geomagnetic field activity was at quiet or quiet to unsettled levels
+throughout the period. 
+
+Forecast of Solar and Geomagnetic Activity
+17 August - 12 September 2026
+
+Solar activity is expected to range from very low to low levels
+throughout the outlook period, with a slight chance for an R1-R2
+(Minor-Moderate) event. 
+
+No proton events are expected at geosynchronous orbit.
+
+The greater than 2 MeV electron flux at geosynchronous orbit is
+expected to reach high levels on 19-20, 23-24, and 28 Aug. Normal to
+moderate levels are expected to prevail throughout the remainder of
+the outlook period. 
+
+Geomagnetic field activity is expected to reach active levels on
+17-18 Aug due to the anticipated arrival of a CME that left the Sun
+on 14 Aug. Active conditions are expected again on 21-22 Aug and 04
+Sep due to the influences of a CH HSS. Quiet and quiet to unsettled
+conditions are expected to prevail throughout the remainder of the
+outlook period. 

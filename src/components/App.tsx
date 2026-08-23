@@ -5,7 +5,7 @@ import About from "./pages/About";
 import { Routes, Route } from "react-router-dom";
 import ForecastDiscussion from "./pages/forecasts/forecast-discussion";
 import GeoAlert from "./pages/forecasts/GeoAlert";
-import WeeklyReport from "./pages/forecasts/Weekly";
+import WeeklyReport from "./pages/forecasts/weekly-report";
 import TwentySevenDayOutlook from "./pages/forecasts/27-day-outlook";
 import ThreeDayForecast from "./pages/forecasts/3-day-forecast";
 import DailyGeomagneticIndices from "./pages/forecasts/daily-geomagnetic-indices";
