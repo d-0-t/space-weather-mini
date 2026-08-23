@@ -6,7 +6,11 @@
 
 **Status:** ready-for-agent
 
-- [ ] The geophysical alert fetch returns a typed model (issued timestamp + observations and predictions) via a pure parser
-- [ ] The page renders with the user-facing label "Geophysical Alert Message"; internal naming follows the glossary
-- [ ] The issued time in UTC and local time, plus the product's author line
-- [ ] Parser unit tests (real fixture), page smoke test, Playwright journey, and axe audit pass
+- [x] The geophysical alert fetch returns a typed model (issued timestamp + observations and predictions) via a pure parser
+- [x] The page renders with the user-facing label "Geophysical Observations and Predictions"; internal naming follows the glossary
+- [x] The issued time in UTC and local time, plus the product's author line
+- [x] Parser unit tests (real fixture), page smoke test, Playwright journey, and axe audit pass
+
+## Comments
+
+- Implemented 2026-08-23. Light model per the spec: `issued` + `author` + three prose blocks (`message` for the solar indices paragraph, `observed` and `predicted` for the storm paragraphs), preserving NOAA's source line breaks (rendered with `pre-line`). The parser reuses `scanHeader`/`formatIssuedLocal` and validates that the last two paragraphs contain "observed" and "predicted" respectively, with descriptive errors for missing sections. The page follows the narrative pattern (no chart) — `h1` Geophysical Alert Message with `h2` Observations/Predictions, the message paragraph as introductory prose, issued UTC/local + author, plain error message, and `id="geo-alert"` preserved for the existing smoke journey. Playwright a11y audit and 12 Vitest tests (8 parser + 4 page) pass; `App.tsx` now routes `geoalert` to the typed page.

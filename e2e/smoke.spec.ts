@@ -74,5 +74,5 @@ test("the 27-day outlook page renders its data", async ({ page }) => {
 
 test("the geophysical alert page renders", async ({ page }) => {
   await page.goto("/forecasts/geoalert");
-  await expect(page.getByRole("heading", { level: 2, name: "Geophysical Observations and Predictions" })).toBeVisible({ timeout: dataTimeout });
+  await expect(page.getByRole("heading", { level: 1, name: "Geophysical Alert Message" })).toBeVisible({ timeout: dataTimeout });
 });

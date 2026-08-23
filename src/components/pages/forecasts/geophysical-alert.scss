@@ -1,0 +1,16 @@
+.geophysical-alert {
+  &__section {
+    margin-top: 24px;
+  }
+
+  // Narrative prose keeps NOAA's source line breaks; pre-line preserves
+  // newlines while still wrapping long lines at the viewport.
+  &__prose {
+    white-space: pre-line;
+    margin: 0 0 10px;
+  }
+
+  &__status {
+    margin: 15px 0;
+  }
+}
