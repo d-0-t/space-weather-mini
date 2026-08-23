@@ -53,10 +53,14 @@ describe("ThreeDayForecast page", () => {
     expect(within(r3Row).getAllByText("10%")).toHaveLength(3);
   });
 
-  it("shows the issued timestamp without a refresh control", async () => {
+  it("shows the issued details (UTC, local, author) without a refresh control", async () => {
     renderPage();
-    expect(await screen.findByText("2026 Aug 23 1230 UTC")).toBeInTheDocument();
-    expect(screen.getByText("As of:")).toBeInTheDocument();
+    expect(await screen.findByText(/2026 Aug 23 1230 UTC/)).toBeInTheDocument();
+    expect(screen.getByText("Issued (UTC):")).toBeInTheDocument();
+    expect(screen.getByText("Issued (local):")).toBeInTheDocument();
+    expect(
+      screen.getByText(/Prepared by the U.S. Dept. of Commerce/)
+    ).toBeInTheDocument();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 

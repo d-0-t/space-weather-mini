@@ -1,3 +1,5 @@
+import { matchPreparedBy } from "./product-header";
+
 export interface KpBreakdownRow {
   timeSlot: string;
   days: number[];
@@ -9,7 +11,7 @@ export interface ProbabilityRow {
 }
 
 export interface ThreeDayForecastSection {
-  details: string[];
+  details: string;
   rationale: string;
 }
 
@@ -23,6 +25,7 @@ export interface ProbabilitySection extends ThreeDayForecastSection {
 
 export interface ThreeDayForecast {
   issued: string;
+  author: string;
   days: string[];
   geomagneticActivity: GeomagneticActivitySection;
   solarRadiationStorm: ProbabilitySection;
@@ -44,15 +47,14 @@ const PROBABILITY_ROW_PATTERN = /%/;
 const DAY_TOKEN_PATTERN = /[A-Z][a-z]{2} \d{1,2}/g;
 
 interface ParsedSection {
-  details: string[];
+  details: string;
   rationale: string;
   dayHeader: string[];
   tableLines: string[];
 }
 
-// Splits a section's prose into paragraphs and normalizes wrapped lines.
-// The "Rationale: " prefix names the section's concluding prose, which is
-// dropped so the page renders the rationale as plain text.
+// The section's prose keeps NOAA's source line breaks — blank lines separate
+// paragraphs, single newlines are the fixed-width wrapping.
 function parseSection(
   lines: string[],
   tableTitlePattern: RegExp,
@@ -71,18 +73,12 @@ function parseSection(
     );
   }
 
-  const details = lines
-    .slice(0, titleIndex)
-    .join("\n")
-    .split(/\n\s*\n/)
-    .map((paragraph) => paragraph.replace(/\s+/g, " ").trim())
-    .filter(Boolean);
+  const details = lines.slice(0, titleIndex).join("\n").trim();
 
   const rationale = lines
     .slice(rationaleIndex)
-    .join(" ")
+    .join("\n")
     .replace(/^Rationale:\s*/, "")
-    .replace(/\s+/g, " ")
     .trim();
 
   // Table rows live between the table title and the Rationale line, so a
@@ -151,6 +147,7 @@ function parseProbabilityRows(tableLines: string[]): ProbabilityRow[] {
 
 export function parseThreeDayForecast(text: string): ThreeDayForecast {
   let issued = "";
+  let author = "";
   const sections: string[][] = [];
   let current: string[] | null = null;
 
@@ -161,7 +158,12 @@ export function parseThreeDayForecast(text: string): ThreeDayForecast {
       issued = issuedMatch[1].trim();
       continue;
     }
-    if (line.startsWith(":") || line.startsWith("#") || line === "") continue;
+    const authorMatch = matchPreparedBy(line);
+    if (authorMatch !== null) {
+      author = authorMatch;
+      continue;
+    }
+    if (line.startsWith(":") || line.startsWith("#")) continue;
     if (SECTION_HEADER_PATTERN.test(line)) {
       if (current !== null) sections.push(current);
       current = [];
@@ -174,6 +176,11 @@ export function parseThreeDayForecast(text: string): ThreeDayForecast {
   if (issued === "") {
     throw new Error(
       "parseThreeDayForecast: no :Issued: line found — the NOAA format may have changed"
+    );
+  }
+  if (author === "") {
+    throw new Error(
+      "parseThreeDayForecast: no Prepared by line found — the NOAA format may have changed"
     );
   }
   if (sections.length !== 3) {
@@ -200,6 +207,7 @@ export function parseThreeDayForecast(text: string): ThreeDayForecast {
 
   return {
     issued,
+    author,
     days: geomagnetic.dayHeader,
     geomagneticActivity: {
       details: geomagnetic.details,

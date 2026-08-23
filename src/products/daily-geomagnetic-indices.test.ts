@@ -6,9 +6,12 @@ import {
 import fixture from "./fixtures/daily-geomagnetic-indices.txt?raw";
 
 describe("parseDailyGeomagneticIndices", () => {
-  it("parses the issued timestamp from the NOAA fixture", () => {
+  it("parses the issued timestamp and the author from the NOAA fixture", () => {
     const indices = parseDailyGeomagneticIndices(fixture);
     expect(indices.issued).toBe("1830 UT 23 Aug 2026");
+    expect(indices.author).toBe(
+      "Prepared by the U.S. Dept. of Commerce, NOAA, Space Weather Prediction Center"
+    );
   });
 
   it("parses all 30 rows with typed per-station models", () => {

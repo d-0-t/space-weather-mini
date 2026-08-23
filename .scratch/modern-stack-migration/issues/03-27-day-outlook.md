@@ -1,6 +1,6 @@
 # 03 — 27-day outlook end-to-end
 
-**What to build:** the 27-day outlook page is the pioneer slice — it establishes the patterns every other product follows. A pure `string → Product` parser turns the NOAA text into a typed model of dates with Radio flux, planetary A index, and largest Kp index; TanStack Query fetches it (fetch on mount, "As of" timestamp, plain error message on failure); a semantic table shows the numbers; a Recharts line chart shows the radio-flux/A/Kp trend above it; the table remains the accessibility source of truth. Parser tests use a checked-in real NOAA fixture; the page has a smoke test and a Playwright journey with an axe audit.
+**What to build:** the 27-day outlook page is the pioneer slice — it establishes the patterns every other product follows. A pure `string → Product` parser turns the NOAA text into a typed model of dates with Radio flux, planetary A index, and largest Kp index; TanStack Query fetches it (fetch on mount, issued time in UTC and local time plus the author line, plain error message on failure); a semantic table shows the numbers; a Recharts line chart shows the radio-flux/A/Kp trend above it; the table remains the accessibility source of truth. Parser tests use a checked-in real NOAA fixture; the page has a smoke test and a Playwright journey with an axe audit.
 
 **Blocked by:** 01 — Toolchain migration
 
@@ -9,7 +9,7 @@
 - [x] Fetching the 27-day outlook returns a typed model (not HTML) via a pure parser
 - [x] The page shows a semantic table of all 27 rows with radio flux, A index, and Kp index
 - [x] A trend chart renders above the table showing the same data
-- [x] An "As of" timestamp
+- [x] The issued time in UTC and local time, plus the product's author line
 - [x] Parser unit tests (real fixture), page smoke test, Playwright journey, and axe audit pass
 
 ## Comments

@@ -18,7 +18,7 @@ The conventions every change to this repo must follow. Enforced by review, not t
 ## Data fetching
 
 - TanStack Query. Fetch on mount; **no manual refresh control and no polling** — NOAA products update on fixed schedules (most once a day), so fresh data arrives on the next page load.
-- Every product display shows an "As of" timestamp from the fetched data.
+- Every product display shows when its data was issued — the issued time in UTC and local time, plus the product's author line.
 - Fetch failures show a plain error message (no retry button); TanStack Query's built-in retries handle transient failures.
 
 ## Charts

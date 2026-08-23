@@ -1,3 +1,5 @@
+import { matchPreparedBy } from "./product-header";
+
 export interface StationDay {
   aIndex: number;
   kIndices: number[];
@@ -12,6 +14,7 @@ export interface DailyIndicesRow {
 
 export interface DailyGeomagneticIndices {
   issued: string;
+  author: string;
   rows: DailyIndicesRow[];
 }
 
@@ -29,6 +32,7 @@ function expandToken(token: string): string[] {
 
 export function parseDailyGeomagneticIndices(text: string): DailyGeomagneticIndices {
   let issued = "";
+  let author = "";
   const rows: DailyIndicesRow[] = [];
 
   for (const rawLine of text.split(/\r?\n/)) {
@@ -38,6 +42,11 @@ export function parseDailyGeomagneticIndices(text: string): DailyGeomagneticIndi
     const issuedMatch = line.match(/^:Issued: (.+)$/);
     if (issuedMatch) {
       issued = issuedMatch[1].trim();
+      continue;
+    }
+    const authorMatch = matchPreparedBy(line);
+    if (authorMatch !== null) {
+      author = authorMatch;
       continue;
     }
     if (line.startsWith(":") || line.startsWith("#")) continue;
@@ -77,8 +86,13 @@ export function parseDailyGeomagneticIndices(text: string): DailyGeomagneticIndi
       "parseDailyGeomagneticIndices: no :Issued: line found — the NOAA format may have changed"
     );
   }
+  if (author === "") {
+    throw new Error(
+      "parseDailyGeomagneticIndices: no Prepared by line found — the NOAA format may have changed"
+    );
+  }
 
-  return { issued, rows };
+  return { issued, author, rows };
 }
 
 // The day's largest Kp index for a station (ignores -1 "no data" placeholders).

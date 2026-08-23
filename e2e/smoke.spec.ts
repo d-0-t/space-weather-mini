@@ -42,7 +42,7 @@ test("the daily geomagnetic indices page renders its data table", async ({ page 
   const table = page.getByRole("table");
   await expect(table).toBeVisible({ timeout: dataTimeout });
   await expect(table.getByRole("row")).toHaveCount(32);
-  await expect(page.getByText("As of:")).toBeVisible();
+  await expect(page.getByText("Issued (UTC):")).toBeVisible();
   await expect(page.getByRole("img", { name: /largest daily kp index per station/i })).toBeVisible();
 });
 
@@ -51,7 +51,7 @@ test("the 3-day forecast page renders its data", async ({ page }) => {
   const table = page.getByRole("table");
   await expect(table.first()).toBeVisible({ timeout: dataTimeout });
   await expect(table).toHaveCount(3);
-  await expect(page.getByText("As of:")).toBeVisible();
+  await expect(page.getByText("Issued (UTC):")).toBeVisible();
   await expect(
     page.getByRole("img", { name: /kp index forecast by 3-hour interval/i })
   ).toBeVisible();
@@ -67,7 +67,7 @@ test("the 27-day outlook page renders its data", async ({ page }) => {
   const table = page.getByRole("table");
   await expect(table).toBeVisible({ timeout: dataTimeout });
   await expect(table.getByRole("row")).toHaveCount(28);
-  await expect(page.getByText("As of:")).toBeVisible();
+  await expect(page.getByText("Issued (UTC):")).toBeVisible();
   await expect(page.getByRole("img", { name: /radio flux, a index and kp index trend/i })).toBeVisible();
 });
 

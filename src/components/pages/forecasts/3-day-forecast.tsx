@@ -19,6 +19,7 @@ import {
   type ProbabilityRow,
   type ThreeDayForecast as ThreeDayForecastData,
 } from "../../../products/3-day-forecast";
+import { parseIssuedDate } from "../../../products/product-header";
 import { kpClass } from "../../../styles/kp-class";
 
 const fetchThreeDayForecast = async () => {
@@ -41,15 +42,13 @@ const toChartPoint = (forecast: ThreeDayForecastData) =>
 
 const SectionArticle: React.FC<{
   title: string;
-  details: string[];
+  details: string;
   rationale: string;
   children?: React.ReactNode;
 }> = ({ title, details, rationale, children }) => (
   <article className="three-day-forecast__section">
     <h2>{title}</h2>
-    {details.map((paragraph, i) => (
-      <p key={i}>{paragraph}</p>
-    ))}
+    <p className="three-day-forecast__details">{details}</p>
     {children}
     <p className="three-day-forecast__rationale">{rationale}</p>
   </article>
@@ -112,7 +111,11 @@ const ThreeDayForecast: React.FC = () => {
         <>
           <h1>3-Day Forecast</h1>
           <p>
-            <b>As of:</b> {data.issued}
+            <b>Issued (UTC):</b> {data.issued}
+            <br />
+            <b>Issued (local):</b> {parseIssuedDate(data.issued).toLocaleString()}
+            <br />
+            {data.author}
           </p>
 
           <SectionArticle

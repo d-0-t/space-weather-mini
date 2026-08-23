@@ -3,9 +3,12 @@ import { parse27DayOutlook } from "./27-day-outlook";
 import fixture from "./fixtures/27-day-outlook.txt?raw";
 
 describe("parse27DayOutlook", () => {
-  it("parses the issued timestamp from the NOAA fixture", () => {
+  it("parses the issued timestamp and the author from the NOAA fixture", () => {
     const outlook = parse27DayOutlook(fixture);
     expect(outlook.issued).toBe("2026 Aug 17 0058 UTC");
+    expect(outlook.author).toBe(
+      "Prepared by the US Dept. of Commerce, NOAA, Space Weather Prediction Center"
+    );
   });
 
   it("parses all 27 data rows with typed numeric values", () => {

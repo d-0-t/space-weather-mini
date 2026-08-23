@@ -21,6 +21,7 @@ import {
   parseDailyGeomagneticIndices,
   type DailyIndicesRow,
 } from "../../../products/daily-geomagnetic-indices";
+import { parseIssuedDate } from "../../../products/product-header";
 import { kpClass } from "../../../styles/kp-class";
 
 const fetchDailyGeomagneticIndices = async () => {
@@ -81,7 +82,11 @@ const DailyGeomagneticIndices: React.FC = () => {
         <>
           <h1>Daily Geomagnetic Indices</h1>
           <p>
-            <b>As of:</b> {data.issued}
+            <b>Issued (UTC):</b> {data.issued}
+            <br />
+            <b>Issued (local):</b> {parseIssuedDate(data.issued).toLocaleString()}
+            <br />
+            {data.author}
           </p>
           <article className="daily-geomagnetic-indices__panels">
             <div

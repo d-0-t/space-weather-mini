@@ -10,7 +10,7 @@
 - [x] The page shows the 30-day table with all stations and the estimated planetary column
 - [x] A Kp history timeline chart renders above the table with the same data (shape-distinct series per the chart standard)
 - [x] The Kp color classes are preserved; the broken graph image URL is corrected
-- [x] An "As of" timestamp
+- [x] The issued time in UTC and local time, plus the product's author line
 - [x] Parser unit tests (real fixture), page smoke test, Playwright journey, and axe audit pass
 
 ## Comments
