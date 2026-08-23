@@ -41,47 +41,6 @@ class Parser {
     ].join("");
   }
 
-  DiscussionParser(discussion) {
-    // Arrays of splitters on different levels
-    let split1 = [
-      ":Product: ",
-      "Solar Activity",
-      "Energetic Particle",
-      "Solar Wind",
-      "Geospace",
-    ];
-    let split2 = [".24 hr Summary...", ".Forecast..."];
-    let split3 = [":Issued: ", "<br/># "];
-    let split4 = ["<br/>", "#"];
-    let filteredString = this.Splitter(discussion, split1);
-    // Get rid of unwanted data cell, then do another split
-    filteredString.shift();
-    filteredString[0] = this.Splitter(filteredString[0], split3);
-    // Split details
-    for (let i = 0; i < filteredString[0].length; i++) {
-      filteredString[0][i] = filteredString[0][i]
-        .replaceAll(split4[0], "")
-        .replace(split4[1], "");
-    }
-    // Wrap and split sections
-    for (let i = 1; i < filteredString.length; i++) {
-      filteredString[i] = filteredString[i].replace(/<br\/>/g, " ");
-      filteredString[i] = this.Splitter(filteredString[i], split2);
-      filteredString[i].shift();
-      for (let j = 0; j < filteredString[i].length; j++) {
-        filteredString[i][j] = filteredString[i][j].replace("  ", "");
-
-        if (filteredString[i][j][0] === " ") {
-          filteredString[i][j] = this.FirstSpaceRemover(filteredString[i][j]);
-        }
-      }
-    }
-    // Fix date format
-    filteredString[0][1] = this.DateParser(filteredString[0][1]);
-
-    return filteredString;
-  }
-
   GeoAlertParser(geoAlert) {
     let split1 = [
       ":Product: ",

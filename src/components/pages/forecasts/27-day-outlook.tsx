@@ -19,7 +19,7 @@ import {
   parse27DayOutlook,
   TWENTY_SEVEN_DAY_OUTLOOK_URL,
 } from "../../../products/27-day-outlook";
-import { parseIssuedDate } from "../../../products/product-header";
+import { formatIssuedLocal } from "../../../products/product-header";
 import { kpClass } from "../../../styles/kp-class";
 
 const fetch27DayOutlook = async () => {
@@ -59,7 +59,7 @@ const TwentySevenDayOutlook: React.FC = () => {
           <p>
             <b>Issued (UTC):</b> {data.issued}
             <br />
-            <b>Issued (local):</b> {parseIssuedDate(data.issued).toLocaleString()}
+            <b>Issued (local):</b> {formatIssuedLocal(data.issued)}
             <br />
             {data.author}
           </p>

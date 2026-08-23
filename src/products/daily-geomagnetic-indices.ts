@@ -1,4 +1,4 @@
-import { matchPreparedBy } from "./product-header";
+import { scanHeader } from "./product-header";
 
 export interface StationDay {
   aIndex: number;
@@ -31,24 +31,23 @@ function expandToken(token: string): string[] {
 }
 
 export function parseDailyGeomagneticIndices(text: string): DailyGeomagneticIndices {
-  let issued = "";
-  let author = "";
+  const { issued, author } = scanHeader(text);
+  if (issued === "") {
+    throw new Error(
+      "parseDailyGeomagneticIndices: no :Issued: line found — the NOAA format may have changed"
+    );
+  }
+  if (author === "") {
+    throw new Error(
+      "parseDailyGeomagneticIndices: no Prepared by line found — the NOAA format may have changed"
+    );
+  }
+
   const rows: DailyIndicesRow[] = [];
 
   for (const rawLine of text.split(/\r?\n/)) {
     const line = rawLine.trim();
     if (line === "") continue;
-
-    const issuedMatch = line.match(/^:Issued: (.+)$/);
-    if (issuedMatch) {
-      issued = issuedMatch[1].trim();
-      continue;
-    }
-    const authorMatch = matchPreparedBy(line);
-    if (authorMatch !== null) {
-      author = authorMatch;
-      continue;
-    }
     if (line.startsWith(":") || line.startsWith("#")) continue;
 
     const tokens = line.split(/\s+/);
@@ -79,16 +78,6 @@ export function parseDailyGeomagneticIndices(text: string): DailyGeomagneticIndi
   if (rows.length === 0) {
     throw new Error(
       "parseDailyGeomagneticIndices: no data rows found — the NOAA format may have changed"
-    );
-  }
-  if (issued === "") {
-    throw new Error(
-      "parseDailyGeomagneticIndices: no :Issued: line found — the NOAA format may have changed"
-    );
-  }
-  if (author === "") {
-    throw new Error(
-      "parseDailyGeomagneticIndices: no Prepared by line found — the NOAA format may have changed"
     );
   }
 

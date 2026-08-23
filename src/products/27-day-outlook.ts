@@ -1,4 +1,4 @@
-import { matchPreparedBy } from "./product-header";
+import { scanHeader } from "./product-header";
 
 export interface DayOutlookRow {
   date: string;
@@ -20,21 +20,17 @@ export const TWENTY_SEVEN_DAY_OUTLOOK_URL =
 const ROW_PATTERN = /^(\d{4} \w{3} \d{2})\s+(\d+)\s+(\d+)\s+(\d+)$/;
 
 export function parse27DayOutlook(text: string): TwentySevenDayOutlook {
-  let issued = "";
-  let author = "";
+  const { issued, author } = scanHeader(text);
+  if (issued === "") {
+    throw new Error("parse27DayOutlook: no :Issued: line found — the NOAA format may have changed");
+  }
+  if (author === "") {
+    throw new Error("parse27DayOutlook: no Prepared by line found — the NOAA format may have changed");
+  }
+
   const rows: DayOutlookRow[] = [];
 
   for (const line of text.split(/\r?\n/)) {
-    const issuedMatch = line.match(/^:Issued: (.+)$/);
-    if (issuedMatch) {
-      issued = issuedMatch[1].trim();
-      continue;
-    }
-    const authorMatch = matchPreparedBy(line);
-    if (authorMatch !== null) {
-      author = authorMatch;
-      continue;
-    }
     if (line.startsWith(":") || line.startsWith("#") || line.trim() === "") {
       continue;
     }
@@ -51,12 +47,6 @@ export function parse27DayOutlook(text: string): TwentySevenDayOutlook {
 
   if (rows.length === 0) {
     throw new Error("parse27DayOutlook: no data rows found — the NOAA format may have changed");
-  }
-  if (issued === "") {
-    throw new Error("parse27DayOutlook: no :Issued: line found — the NOAA format may have changed");
-  }
-  if (author === "") {
-    throw new Error("parse27DayOutlook: no Prepared by line found — the NOAA format may have changed");
   }
 
   return { issued, author, rows };

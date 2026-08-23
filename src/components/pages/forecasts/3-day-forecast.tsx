@@ -19,7 +19,7 @@ import {
   type ProbabilityRow,
   type ThreeDayForecast as ThreeDayForecastData,
 } from "../../../products/3-day-forecast";
-import { parseIssuedDate } from "../../../products/product-header";
+import { formatIssuedLocal } from "../../../products/product-header";
 import { kpClass } from "../../../styles/kp-class";
 
 const fetchThreeDayForecast = async () => {
@@ -113,7 +113,7 @@ const ThreeDayForecast: React.FC = () => {
           <p>
             <b>Issued (UTC):</b> {data.issued}
             <br />
-            <b>Issued (local):</b> {parseIssuedDate(data.issued).toLocaleString()}
+            <b>Issued (local):</b> {formatIssuedLocal(data.issued)}
             <br />
             {data.author}
           </p>

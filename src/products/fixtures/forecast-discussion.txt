@@ -1,0 +1,56 @@
+:Product: Forecast Discussion
+:Issued: 2026 Aug 23 1230 UTC
+# Prepared by the U.S. Dept. of Commerce, NOAA, Space Weather Prediction Center
+#
+Solar Activity
+
+.24 hr Summary...
+Solar activity remained at low levels. Region 4513 (N04E32,
+Eai/beta-gamma) produced multiple C-flares, the largest being a C4.1/Sf
+at 23/0653 UTC, and remained stable throughout the period. Region 4517
+(N10E18, Cao/beta) exhibited minor growth, while Regions 4508 (N08,
+L=166) and 4511 (S09, L=148) decayed to plage.
+
+Other activity included an area of coronal dimming near S20E04 at
+22/2030 UTC, but no associated CME was detected in coronagraph imagery.
+At around 22/0030 UTC, a filament lifted off near N40E45, and produced a
+narrow CME that is well north of the Sun-Earth line. No Earth-directed
+CMEs were detected in available coronagraph imagery.
+
+.Forecast...
+Solar activity is expected to be at low levels, with a chance for
+M-flares (R1-R2/Minor-Moderate) and a slight chance for an X-flare
+(R3/Strong or greater) over 23-25 Aug.
+
+Energetic Particle
+
+.24 hr Summary...
+The greater than 2 MeV electron flux reached high levels. The greater
+than 10 MeV proton flux remained elevated, ranging from 2-5 pfu
+throughout the period.
+
+.Forecast...
+The greater than 2 MeV electron flux is expected to reach high levels on
+23-25 Aug. There is a chance for the greater than 10 MeV proton flux to
+reach S1 (Minor) levels on 23 Aug, and a slight chance on 24-25 Aug.
+
+Solar Wind
+
+.24 hr Summary...
+The solar wind environment remained at background levels. Total magnetic
+field strength ranged between 3-6 nT, and the Bz component varied +/-4
+nT. Solar wind speeds were steady between 400-460 km/s throughout the
+period. The phi angle was predominately negative.
+
+.Forecast...
+Background solar wind conditions are expected to prevail over 23-25 Aug.
+
+Geospace
+
+.24 hr Summary...
+The geomagnetic field was at quiet levels under an ambient solar wind
+environment.
+
+.Forecast...
+The geomagnetic field is expected to continue at mostly quiet levels
+over 23-25 Aug.

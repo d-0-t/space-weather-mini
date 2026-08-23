@@ -1,5 +1,6 @@
-// Shared header metadata of NOAA text products: the issued line and the
-// "Prepared by" author line. Formats vary per product, so matching is lenient.
+// Shared parsing helpers for NOAA text products: the header metadata (the
+// issued line and the "Prepared by" author line) and the local-time display
+// convention. Formats vary per product, so matching is lenient.
 
 const MONTHS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -40,9 +41,41 @@ export function parseIssuedDate(issued: string): Date {
   );
 }
 
+// Formats a product's issued line as the visitor's local time, naming the
+// timezone so the conversion is unambiguous.
+export function formatIssuedLocal(issued: string): string {
+  return parseIssuedDate(issued).toLocaleString(undefined, {
+    timeZoneName: "long",
+  });
+}
+
 // The author line, e.g. "# Prepared by the U.S. Dept. of Commerce, NOAA, ...".
 // The whitespace after "#" varies between products ("# " vs "#  ").
 export function matchPreparedBy(line: string): string | null {
   const match = line.match(/^#\s+(Prepared by .+)$/);
   return match ? match[1] : null;
+}
+
+// Scans a product's leading header lines (":Product:", ":Issued:", "# ...")
+// for the issued timestamp and the author line. The scan ends at the first
+// body line; body parsing is the caller's job.
+export function scanHeader(text: string): { issued: string; author: string } {
+  let issued = "";
+  let author = "";
+  for (const rawLine of text.split(/\r?\n/)) {
+    const line = rawLine.trimEnd();
+    const issuedMatch = line.match(/^:Issued: (.+)$/);
+    if (issuedMatch) {
+      issued = issuedMatch[1].trim();
+      continue;
+    }
+    const authorMatch = matchPreparedBy(line);
+    if (authorMatch !== null) {
+      author = authorMatch;
+      continue;
+    }
+    if (line.startsWith(":") || line.startsWith("#") || line === "") continue;
+    break;
+  }
+  return { issued, author };
 }

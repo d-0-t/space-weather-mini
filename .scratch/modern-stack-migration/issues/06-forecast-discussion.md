@@ -6,7 +6,11 @@
 
 **Status:** ready-for-agent
 
-- [ ] The forecast discussion fetch returns a typed model (issued timestamp + four sections) via a pure parser
-- [ ] The page renders all four sections with correct heading hierarchy; "Geospace" is used only for its section
-- [ ] The issued time in UTC and local time, plus the product's author line
-- [ ] Parser unit tests (real fixture), page smoke test, Playwright journey, and axe audit pass
+- [x] The forecast discussion fetch returns a typed model (issued timestamp + four sections) via a pure parser
+- [x] The page renders all four sections with correct heading hierarchy; "Geospace" is used only for its section
+- [x] The issued time in UTC and local time, plus the product's author line
+- [x] Parser unit tests (real fixture), page smoke test, Playwright journey, and axe audit pass
+
+## Comments
+
+- Implemented 2026-08-23. Light model per the spec: `issued` + `author` + four typed sections (`daySummary` + `forecast` prose), preserving NOAA's source line breaks (rendered with `pre-line`). The parser validates the four section titles, their `.24 hr Summary...`/`.Forecast...` markers, and rejects duplicate sections. Each section renders under "Forecast" then "Day Summary" headings (maintainer's chosen labels, matching the legacy page's order). The shared `scanHeader`/`formatIssuedLocal` helpers in `src/products/product-header.ts` now serve all four migrated products.

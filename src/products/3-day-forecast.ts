@@ -1,4 +1,4 @@
-import { matchPreparedBy } from "./product-header";
+import { scanHeader } from "./product-header";
 
 export interface KpBreakdownRow {
   timeSlot: string;
@@ -53,8 +53,8 @@ interface ParsedSection {
   tableLines: string[];
 }
 
-// The section's prose keeps NOAA's source line breaks — blank lines separate
-// paragraphs, single newlines are the fixed-width wrapping.
+// A section's prose keeps NOAA's source line breaks (blank lines separate
+// paragraphs) so the page can render it with pre-line.
 function parseSection(
   lines: string[],
   tableTitlePattern: RegExp,
@@ -146,23 +146,23 @@ function parseProbabilityRows(tableLines: string[]): ProbabilityRow[] {
 }
 
 export function parseThreeDayForecast(text: string): ThreeDayForecast {
-  let issued = "";
-  let author = "";
+  const { issued, author } = scanHeader(text);
+  if (issued === "") {
+    throw new Error(
+      "parseThreeDayForecast: no :Issued: line found — the NOAA format may have changed"
+    );
+  }
+  if (author === "") {
+    throw new Error(
+      "parseThreeDayForecast: no Prepared by line found — the NOAA format may have changed"
+    );
+  }
+
   const sections: string[][] = [];
   let current: string[] | null = null;
 
   for (const rawLine of text.split(/\r?\n/)) {
     const line = rawLine.trimEnd();
-    const issuedMatch = line.match(/^:Issued: (.+)$/);
-    if (issuedMatch) {
-      issued = issuedMatch[1].trim();
-      continue;
-    }
-    const authorMatch = matchPreparedBy(line);
-    if (authorMatch !== null) {
-      author = authorMatch;
-      continue;
-    }
     if (line.startsWith(":") || line.startsWith("#")) continue;
     if (SECTION_HEADER_PATTERN.test(line)) {
       if (current !== null) sections.push(current);

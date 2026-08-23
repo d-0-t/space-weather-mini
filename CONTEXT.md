@@ -72,6 +72,10 @@ An R1–R5 scale event of X-ray flares disrupting HF radio.
 
 ### Sections
 
+**Day summary**:
+The 24-hour activity summary at the start of each forecast discussion section.
+_Avoid_: 24 hr summary, daySummary (internal names only)
+
 **Rationale**:
 The concluding prose of each 3-day forecast section, explaining the forecast in the forecaster's words.
 _Avoid_: regional text, regionale (the product carries no per-region prose)

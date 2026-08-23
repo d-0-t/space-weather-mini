@@ -36,9 +36,12 @@ describe("parseDailyGeomagneticIndices", () => {
   });
 
   it("throws a descriptive error when no data rows are found", () => {
-    expect(() => parseDailyGeomagneticIndices(":Product: nothing here\n# comments\n")).toThrow(
-      /no data rows/
-    );
+    const headerOnly =
+      ":Product: Daily Geomagnetic Data          DGD.txt\n" +
+      ":Issued: 1830 UT 23 Aug 2026\n" +
+      "#  Prepared by the U.S. Dept. of Commerce, NOAA, Space Weather Prediction Center\n" +
+      "# comments\n";
+    expect(() => parseDailyGeomagneticIndices(headerOnly)).toThrow(/no data rows/);
   });
 
   it("throws a descriptive error when the issued line is missing", () => {

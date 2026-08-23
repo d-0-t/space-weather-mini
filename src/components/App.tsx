@@ -3,7 +3,7 @@ import Home from "./pages/Home";
 import Forecasts from "./pages/Forecasts";
 import About from "./pages/About";
 import { Routes, Route } from "react-router-dom";
-import ForecastDiscussion from "./pages/forecasts/Discussion";
+import ForecastDiscussion from "./pages/forecasts/forecast-discussion";
 import GeoAlert from "./pages/forecasts/GeoAlert";
 import WeeklyReport from "./pages/forecasts/Weekly";
 import TwentySevenDayOutlook from "./pages/forecasts/27-day-outlook";

@@ -27,9 +27,12 @@ describe("parse27DayOutlook", () => {
   });
 
   it("throws a descriptive error when no data rows are found", () => {
-    expect(() => parse27DayOutlook(":Product: nothing here\n# just comments\n")).toThrow(
-      /no data rows/
-    );
+    const headerOnly =
+      ":Product: 27-day Space Weather Outlook Table 27DO.txt\n" +
+      ":Issued: 2026 Aug 17 0058 UTC\n" +
+      "# Prepared by the US Dept. of Commerce, NOAA, Space Weather Prediction Center\n" +
+      "# just comments\n";
+    expect(() => parse27DayOutlook(headerOnly)).toThrow(/no data rows/);
   });
 
   it("throws a descriptive error when the issued line is missing", () => {

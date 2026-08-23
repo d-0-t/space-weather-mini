@@ -29,12 +29,13 @@ test("the about page renders", async ({ page }) => {
 
 test("the forecasts index renders the forecast discussion", async ({ page }) => {
   await page.goto("/forecasts");
-  await expect(page.getByRole("heading", { level: 2, name: "Forecast Discussion" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Forecast Discussion" })).toBeVisible({ timeout: dataTimeout });
 });
 
 test("the forecast discussion page renders", async ({ page }) => {
   await page.goto("/forecasts/discussion");
-  await expect(page.getByRole("heading", { level: 2, name: "Forecast Discussion" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Forecast Discussion" })).toBeVisible({ timeout: dataTimeout });
+  await expect(page.getByText("Issued (UTC):")).toBeVisible();
 });
 
 test("the daily geomagnetic indices page renders its data table", async ({ page }) => {
