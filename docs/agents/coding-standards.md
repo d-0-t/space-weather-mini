@@ -17,12 +17,17 @@ The conventions every change to this repo must follow. Enforced by review, not t
 
 ## Data fetching
 
-- TanStack Query. Fetch on mount; manual refresh affordance per product; no polling timers.
+- TanStack Query. Fetch on mount; **no manual refresh control and no polling** — NOAA products update on fixed schedules (most once a day), so fresh data arrives on the next page load.
 - Every product display shows an "As of" timestamp from the fetched data.
+- Fetch failures show a plain error message (no retry button); TanStack Query's built-in retries handle transient failures.
 
 ## Charts
 
-- Recharts, and only ever alongside the semantic table that carries the same data — the table is the source of truth for screen readers.
+- Recharts, always paired with the semantic table that carries the same data — the table is the source of truth for screen readers. The chart container gets `role="img"` plus an `aria-label` naming every series.
+- **No color-only encoding**: each series must differ by shape as well as color (Recharts `legendType` circle/square/triangle plus `Symbols` dot markers), so the chart stays legible without color.
+- Placement: full-width, stacked **above** the table (never side-by-side).
+- Series colors are distinct named colors set on the `<Line>` (`greenyellow`, `plum`, `cyan` are the established palette); the `.kp01`–`.kp9` token classes are for tables only.
+- Global Recharts theming for the dark background (axis/text fill, legend placement, tooltip background) lives in `index.scss`.
 
 ## Accessibility
 

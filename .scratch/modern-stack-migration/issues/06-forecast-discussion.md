@@ -8,5 +8,5 @@
 
 - [ ] The forecast discussion fetch returns a typed model (issued timestamp + four sections) via a pure parser
 - [ ] The page renders all four sections with correct heading hierarchy; "Geospace" is used only for its section
-- [ ] An "As of" timestamp and manual refresh are present
+- [ ] An "As of" timestamp
 - [ ] Parser unit tests (real fixture), page smoke test, Playwright journey, and axe audit pass

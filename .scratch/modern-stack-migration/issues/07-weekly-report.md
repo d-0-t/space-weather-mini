@@ -8,5 +8,5 @@
 
 - [ ] The weekly report fetch returns a typed model (issued timestamp + Highlights and Forecast sections) via a pure parser
 - [ ] The page renders both sections with correct heading hierarchy
-- [ ] An "As of" timestamp and manual refresh are present
+- [ ] An "As of" timestamp
 - [ ] Parser unit tests (real fixture), page smoke test, Playwright journey, and axe audit pass

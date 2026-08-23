@@ -8,6 +8,7 @@
 
 - [ ] The 3-day forecast fetch returns a typed model with three typed sections via a pure parser
 - [ ] Each section renders its details, probability table, and Regional text
-- [ ] Storm-probability bars render beside the tables with the same data
+- [ ] Storm-probability bars render above the tables with the same data (shape-distinct series per the chart standard)
 - [ ] Vocabulary matches CONTEXT.md: Geomagnetic activity, Solar radiation storm, Radio blackout, Regional text
+- [ ] An "As of" timestamp
 - [ ] Parser unit tests (real fixture), page smoke test, Playwright journey, and axe audit pass

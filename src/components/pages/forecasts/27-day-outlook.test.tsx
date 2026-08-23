@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { act } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import fixture from "../../../products/fixtures/27-day-outlook.txt?raw";
 import TwentySevenDayOutlook from "./27-day-outlook";
@@ -36,44 +36,40 @@ describe("TwentySevenDayOutlook page", () => {
     expect(within(table).getByRole("columnheader", { name: /Largest Kp Index/ })).toBeInTheDocument();
   });
 
-  it("shows the issued timestamp and a manual refresh control", async () => {
+  it("shows the issued timestamp without a refresh control", async () => {
     renderPage();
     expect(await screen.findByText("2026 Aug 17 0058 UTC")).toBeInTheDocument();
     expect(screen.getByText("As of:")).toBeInTheDocument();
-
-    const refresh = screen.getByRole("button", { name: /refresh/i });
-    mockFetch.mockClear();
-    await userEvent.click(refresh);
-    expect(mockFetch).toHaveBeenCalled();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
-  it("renders a chart with an accessible label alongside the table", async () => {
+  it("renders a chart with an accessible label above the table", async () => {
     renderPage();
-    await screen.findByRole("table");
-    expect(screen.getByRole("img", { name: /radio flux and a index trend/i })).toBeInTheDocument();
+    const table = await screen.findByRole("table");
+    const chart = screen.getByRole("img", { name: /radio flux, a index and kp index trend/i });
+    expect(chart).toBeInTheDocument();
+    expect(chart.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it("shows an error state with retry when the fetch fails", async () => {
+  it("shows a plain error message when the fetch fails", async () => {
     mockFetch.mockRejectedValue(new Error("network down"));
     renderPage();
     expect(await screen.findByText(/couldn't load the 27-day outlook/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /try again/i })).toBeInTheDocument();
+    expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
-  it("retries the fetch when the user clicks Try again", async () => {
-    mockFetch.mockRejectedValue(new Error("network down"));
-    renderPage();
-    const retry = await screen.findByRole("button", { name: /try again/i });
-    mockFetch.mockClear();
-    await userEvent.click(retry);
-    expect(mockFetch).toHaveBeenCalled();
-  });
-
-  it("keeps the last data visible and shows an inline notice when a refresh fails", async () => {
-    renderPage();
+  it("keeps the last data visible when a background refetch fails", async () => {
+    const client = queryClient();
+    render(
+      <QueryClientProvider client={client}>
+        <TwentySevenDayOutlook />
+      </QueryClientProvider>
+    );
     await screen.findByRole("table");
     mockFetch.mockRejectedValue(new Error("network down"));
-    await userEvent.click(screen.getByRole("button", { name: /refresh/i }));
+    await act(async () => {
+      await client.refetchQueries({ queryKey: ["27-day-outlook"] });
+    });
     expect(await screen.findByText(/couldn't refresh the 27-day outlook/i)).toBeInTheDocument();
     expect(screen.getByRole("table")).toBeInTheDocument();
   });

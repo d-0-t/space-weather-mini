@@ -5,6 +5,7 @@ import {
   Line,
   LineChart,
   ResponsiveContainer,
+  Symbols,
   Tooltip,
   XAxis,
   YAxis,
@@ -42,48 +43,26 @@ const TwentySevenDayOutlook: React.FC = () => {
         </p>
       )}
       {isError && !data && (
-        <div className="twenty-seven-day-outlook__status">
-          <p>Couldn't load the 27-day outlook. Please try again.</p>
-          <button
-            type="button"
-            className="twenty-seven-day-outlook__retry"
-            onClick={() => refetch()}
-          >
-            Try again
-          </button>
-        </div>
+        <p className="twenty-seven-day-outlook__status">
+          Couldn't load the 27-day outlook. Please check back later.
+        </p>
       )}
       {isError && data && (
-        <div className="twenty-seven-day-outlook__status">
-          <p>Couldn't refresh the 27-day outlook — showing the last data. Please try again.</p>
-          <button
-            type="button"
-            className="twenty-seven-day-outlook__retry"
-            onClick={() => refetch()}
-          >
-            Try again
-          </button>
-        </div>
+        <p className="twenty-seven-day-outlook__status">
+          Couldn't refresh the 27-day outlook — showing the last data.
+        </p>
       )}
       {data && (
         <>
           <h1>27-Day Outlook</h1>
           <p>
             <b>As of:</b> {data.issued}{" "}
-            <button
-              type="button"
-              className="twenty-seven-day-outlook__refresh"
-              onClick={() => refetch()}
-              disabled={isFetching}
-            >
-              {isFetching ? "Refreshing…" : "Refresh"}
-            </button>
           </p>
           <article className="twenty-seven-day-outlook__panels">
             <div
               className="twenty-seven-day-outlook__chart"
               role="img"
-              aria-label="Radio flux and A index trend for the next 27 days"
+              aria-label="Radio flux, A index and Kp index trend for the next 27 days"
             >
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={data.rows}>
@@ -98,6 +77,9 @@ const TwentySevenDayOutlook: React.FC = () => {
                     dataKey="radioFlux"
                     className="twenty-seven-day-outlook__line--radio-flux"
                     name="Radio Flux"
+                    strokeWidth={3}
+                    stroke="greenyellow"
+                    legendType="circle"
                   />
                   <Line
                     type="monotone"
@@ -105,6 +87,37 @@ const TwentySevenDayOutlook: React.FC = () => {
                     yAxisId="aIndex"
                     className="twenty-seven-day-outlook__line--a-index"
                     name="A Index"
+                    strokeWidth={2}
+                    stroke="plum"
+                    legendType="square"
+                    dot={({ cx, cy, stroke }) => (
+                      <Symbols
+                        cx={cx}
+                        cy={cy}
+                        type="square"
+                        size={64}
+                        fill={stroke}
+                      />
+                    )}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="kpIndex"
+                    yAxisId="kpIndex"
+                    className="twenty-seven-day-outlook__line--kp-index"
+                    name="Kp Index"
+                    strokeWidth={2}
+                    stroke="cyan"
+                    legendType="triangle"
+                    dot={({ cx, cy, stroke }) => (
+                      <Symbols
+                        cx={cx}
+                        cy={cy}
+                        type="triangle"
+                        size={64}
+                        fill={stroke}
+                      />
+                    )}
                   />
                 </LineChart>
               </ResponsiveContainer>

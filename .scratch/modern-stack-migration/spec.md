@@ -17,7 +17,7 @@ The app gains two new surfaces: a current-conditions dashboard at `/` and a plai
 1. As a visitor, I want the app to load quickly from a static host, so that I can check space weather conditions without signup or backend dependency.
 2. As a visitor, I want a dashboard at `/` showing today's Kp and A indices, the latest geophysical alert, the aurora forecast images, and per-product "as of" times, so that I can assess current conditions in one glance.
 3. As a visitor, I want each product page to show when its data was issued, so that I can judge how fresh the information is.
-4. As a visitor, I want to manually refresh a product's data, so that I can pull the newest NOAA update without reloading the page.
+4. As a visitor, I want each product to show when its data was issued, so that I can judge how fresh it is without a manual refresh control — NOAA products update on fixed schedules, and fresh data arrives on the next page load.
 5. As a visitor, I want the tabular products (27-day outlook, daily geomagnetic indices, 3-day forecast probabilities) as real semantic tables, so that I can read exact numbers.
 6. As a visitor, I want a chart next to each table (Kp history timeline, 27-day radio flux/A index trend, storm-probability bars), so that I can see trends the table hides.
 7. As a visitor, I want to open any product from the navigation the way I do today, so that the six NOAA products remain reachable at familiar routes.
@@ -44,7 +44,7 @@ The app gains two new surfaces: a current-conditions dashboard at `/` and a plai
 ## Implementation Decisions
 
 - **Toolchain**: migrate from Create React App to Vite (React plugin, dart-sass for SCSS). React 19, TypeScript `strict: true`, React Router v7 in library mode with the existing route paths preserved. The test runner becomes Vitest; Playwright is added for E2E. Migration is incremental: tooling and build first, then products one at a time, keeping the app deployable at each step.
-- **Data layer**: TanStack Query with one query key per product URL. Fetch on page mount; a manual refresh affordance per product; stale-while-revalidate on refocus is acceptable. No polling timers. Every product display shows an "As of" timestamp derived from the product's `issued` metadata. Errors render an understandable message with a retry action. Data continues to be fetched directly from NOAA SWPC — no proxy (ADR-0001).
+- **Data layer**: TanStack Query with one query key per product URL. Fetch on page mount only — no manual refresh and no polling (NOAA products update on fixed schedules, most once a day); stale-while-revalidate on refocus is acceptable. Every product display shows an "As of" timestamp derived from the product's `issued` metadata. Errors render a plain message (no retry button); TanStack's built-in retries handle transient failures. Data continues to be fetched directly from NOAA SWPC — no proxy (ADR-0001).
 - **Parser layer**: every product gets a pure `string → Product` parser. Tabular products — 27-day outlook, daily geomagnetic indices, 3-day forecast probabilities — get full structured models (typed rows, per-station index data, probability tables). Narrative products — forecast discussion, weekly report, geophysical alert — get light models: `issued` timestamp plus structured sections, prose preserved as text. Parsers never touch the DOM; rendering is separate.
 - **Rendering**: semantic HTML tables for all tabular products, styled with SCSS + BEM (`block__element--modifier`, e.g. `list__item__img`; nesting only within BEM structure). Recharts visualisations (Kp history timeline, 27-day radio flux/A index trend, storm-probability bars) render beside the tables carrying the same data — the table is the accessibility source of truth. The `.kp01`–`.kp9` color classes are preserved as the sole design-token mechanism; no inline hex in components.
 - **Page structure**: `/` becomes a current-conditions dashboard (today's Kp and A indices, latest geophysical alert, aurora forecast images, per-product as-of times). `/forecasts/*` keeps the six product pages. `/explainers` hosts the glossary of plain-language explanations; tooltips on key terms link into it. The orphaned forecast index, the test page, the unfinished table maker, and the Kp test table are deleted, not ported.
@@ -62,7 +62,7 @@ The app gains two new surfaces: a current-conditions dashboard at `/` and a plai
 ## Out of Scope
 
 - Threshold alerts / browser notifications (deferred — ADR-0001 keeps alerting local-only, and the feature was not selected).
-- Polling or push-based freshness (fetch on mount + manual refresh only).
+- Polling or push-based freshness (fetch on mount only).
 - Any backend, proxy, cache layer, or user accounts.
 - Historical data beyond what NOAA's products already provide (e.g. the 30-day daily indices table).
 - Editing or composing NOAA content, or localization.

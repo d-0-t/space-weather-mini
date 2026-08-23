@@ -8,5 +8,5 @@
 
 - [ ] The geophysical alert fetch returns a typed model (issued timestamp + observations and predictions) via a pure parser
 - [ ] The page renders with the user-facing label "Geophysical Alert Message"; internal naming follows the glossary
-- [ ] An "As of" timestamp and manual refresh are present
+- [ ] An "As of" timestamp
 - [ ] Parser unit tests (real fixture), page smoke test, Playwright journey, and axe audit pass

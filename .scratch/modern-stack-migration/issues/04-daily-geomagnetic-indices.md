@@ -8,8 +8,9 @@
 
 - [ ] The daily indices fetch returns a typed per-station model via a pure parser
 - [ ] The page shows the 30-day table with all stations and the estimated planetary column
-- [ ] A Kp history timeline chart renders beside the table with the same data
+- [ ] A Kp history timeline chart renders above the table with the same data (shape-distinct series per the chart standard)
 - [ ] The Kp color classes are preserved; the broken graph image URL is corrected
+- [ ] An "As of" timestamp
 - [ ] Parser unit tests (real fixture), page smoke test, Playwright journey, and axe audit pass
 
 ## Comments

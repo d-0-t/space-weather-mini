@@ -1,7 +1,7 @@
 .twenty-seven-day-outlook {
   &__panels {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 15px;
     align-items: start;
 
@@ -11,22 +11,14 @@
   }
 
   &__chart {
-    --radio-flux-line: rgb(157, 255, 176);
-    --a-index-line: rgb(255, 217, 0);
-  }
-
-  &__line {
-    &--radio-flux {
-      stroke: var(--radio-flux-line);
-    }
-
-    &--a-index {
-      stroke: var(--a-index-line);
-    }
+    position: relative;
+    margin-top: 16px;
+    width: 100%;
   }
 
   &__table {
     margin: 15px 0;
+    align-self: center;
   }
 
   &__row:hover {
@@ -34,22 +26,7 @@
     font-weight: bold;
   }
 
-  &__refresh,
-  &__retry {
-    padding: 6px 12px;
-    background-color: rgb(27, 73, 49);
-    border: 1px solid rgb(191, 231, 210);
-
-    &:disabled {
-      opacity: 0.6;
-    }
-  }
-
   &__status {
     margin: 15px 0;
-
-    .twenty-seven-day-outlook__retry {
-      margin-top: 10px;
-    }
   }
 }
