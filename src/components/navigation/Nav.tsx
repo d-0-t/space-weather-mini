@@ -22,7 +22,7 @@ const Nav: React.FC = () => {
                 <li>Daily Data</li>
               </Link>
               <Link to={"/forecasts/3days"}>
-                <li>3 Day Report</li>
+                <li>3-Day Forecast</li>
               </Link>
               <Link to={"/forecasts/weekly"}>
                 <li>Weekly Report</li>

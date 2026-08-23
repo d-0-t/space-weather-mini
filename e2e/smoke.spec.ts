@@ -13,7 +13,7 @@ test("the app boots with navigation chrome on every page", async ({ page }) => {
   for (const label of [
     "Geophysical Alert",
     "Daily Data",
-    "3 Day Report",
+    "3-Day Forecast",
     "Weekly Report",
     "27 Day Outlook",
     "Forecast Discussion",
@@ -48,7 +48,13 @@ test("the daily geomagnetic indices page renders its data table", async ({ page 
 
 test("the 3-day forecast page renders its data", async ({ page }) => {
   await page.goto("/forecasts/3days");
-  await expect(page.locator("[id='3-days']")).toBeVisible({ timeout: dataTimeout });
+  const table = page.getByRole("table");
+  await expect(table.first()).toBeVisible({ timeout: dataTimeout });
+  await expect(table).toHaveCount(3);
+  await expect(page.getByText("As of:")).toBeVisible();
+  await expect(
+    page.getByRole("img", { name: /kp index forecast by 3-hour interval/i })
+  ).toBeVisible();
 });
 
 test("the weekly report page renders its data", async ({ page }) => {

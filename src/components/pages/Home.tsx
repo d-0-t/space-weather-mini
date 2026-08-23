@@ -1,6 +1,6 @@
 import "./Pages.scss";
 import GeoAlert from "./forecasts/GeoAlert";
-import ThreeDaysReport from "./forecasts/3days";
+import ThreeDayForecast from "./forecasts/3-day-forecast";
 import VisualAuroras from "../visualtabs/Auroras";
 /*
 import TwentySevenDays from './forecasts/27days';
@@ -29,7 +29,7 @@ const Home: React.FC = () => {
           </div>
         </div>
         <div className="homeMini" id="the3DaysPage">
-          <ThreeDaysReport />
+          <ThreeDayForecast />
         </div>
       </div>
     </div>

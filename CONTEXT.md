@@ -15,7 +15,7 @@ NOAA's narrative forecast for the next 1–3 days, in four sections: Solar Activ
 _Avoid_: discussion.txt
 
 **3-day forecast**:
-NOAA's structured forecast of geomagnetic activity, solar radiation storms, and radio blackouts over the next three days; each section has a probability table and a regional text.
+NOAA's structured forecast of geomagnetic activity, solar radiation storms, and radio blackouts over the next three days; each section has a probability table and a rationale.
 _Avoid_: 3day, three day report
 
 **Weekly report**:
@@ -72,6 +72,6 @@ An R1–R5 scale event of X-ray flares disrupting HF radio.
 
 ### Sections
 
-**Regional text**:
-The prose at the end of each 3-day forecast section describing expected conditions for specific regions.
-_Avoid_: regionale, regional detail, regional report
+**Rationale**:
+The concluding prose of each 3-day forecast section, explaining the forecast in the forecaster's words.
+_Avoid_: regional text, regionale (the product carries no per-region prose)

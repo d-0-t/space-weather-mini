@@ -1,0 +1,25 @@
+.three-day-forecast {
+  &__section {
+    margin-top: 24px;
+  }
+
+  &__chart {
+    position: relative;
+    margin-top: 16px;
+    width: 100%;
+  }
+
+  &__table {
+    margin: 15px 0;
+    font-size: 0.85rem;
+    font-weight: 500;
+  }
+
+  &__rationale {
+    margin: 0 0 15px;
+  }
+
+  &__status {
+    margin: 15px 0;
+  }
+}
