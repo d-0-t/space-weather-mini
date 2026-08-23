@@ -8,7 +8,7 @@ import GeoAlert from "./pages/forecasts/GeoAlert";
 import WeeklyReport from "./pages/forecasts/Weekly";
 import TwentySevenDayOutlook from "./pages/forecasts/27-day-outlook";
 import ThreeDaysReport from "./pages/forecasts/3days";
-import DailyReport from "./pages/forecasts/Daily";
+import DailyGeomagneticIndices from "./pages/forecasts/daily-geomagnetic-indices";
 
 const App: React.FC = () => {
   return (
@@ -18,7 +18,7 @@ const App: React.FC = () => {
       <Route path={"forecasts"} element={<Forecasts />}>
         <Route index element={<ForecastDiscussion />} />
         <Route path={"discussion"} element={<ForecastDiscussion />} />
-        <Route path={"daily"} element={<DailyReport />} />
+        <Route path={"daily"} element={<DailyGeomagneticIndices />} />
         <Route path={"weekly"} element={<WeeklyReport />} />
         <Route path={"3days"} element={<ThreeDaysReport />} />
         <Route path={"27days"} element={<TwentySevenDayOutlook />} />

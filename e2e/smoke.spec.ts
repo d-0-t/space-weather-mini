@@ -39,7 +39,11 @@ test("the forecast discussion page renders", async ({ page }) => {
 
 test("the daily geomagnetic indices page renders its data table", async ({ page }) => {
   await page.goto("/forecasts/daily");
-  await expect(page.getByRole("heading", { level: 3, name: "Last 30 Days - Geomagnetic Data" })).toBeVisible({ timeout: dataTimeout });
+  const table = page.getByRole("table");
+  await expect(table).toBeVisible({ timeout: dataTimeout });
+  await expect(table.getByRole("row")).toHaveCount(32);
+  await expect(page.getByText("As of:")).toBeVisible();
+  await expect(page.getByRole("img", { name: /largest daily kp index per station/i })).toBeVisible();
 });
 
 test("the 3-day forecast page renders its data", async ({ page }) => {
