@@ -10,23 +10,6 @@ import TwentySevenDays from "./pages/forecasts/27days";
 import ThreeDaysReport from "./pages/forecasts/3days";
 import DailyReport from "./pages/forecasts/Daily";
 
-//let basePath = ""; //process.env.REACT_APP_PUBLIC_URL + "/";
-
-// const queryString = require("query-string");
-// var parsedURLQuery = queryString.parse(window.location.search);
-// let redirection;
-// if (parsedURLQuery.redirect !== undefined) {
-//   redirection = parsedURLQuery.redirect;
-//   if (
-//     "hasOwnProperty(redirection) &&
-//     //@ts-ignore
-//     window.location.pathname !== paths[redirection]
-//   ) {
-//     //@ts-ignore
-//     window.location.pathname = paths[redirection];
-//   }
-// }
-
 const App: React.FC = () => {
   return (
     <Routes>

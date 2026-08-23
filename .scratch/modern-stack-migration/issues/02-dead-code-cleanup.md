@@ -6,8 +6,12 @@
 
 **Status:** ready-for-agent
 
-- [ ] The test page and its route wiring are deleted
-- [ ] The unfinished table-builder and Kp test table files are deleted
-- [ ] The orphaned forecast index component is deleted
-- [ ] The JSON parser is deleted if nothing imports it after the test page goes
-- [ ] The app builds and all remaining routes render unchanged
+- [x] The test page and its route wiring are deleted
+- [x] The unfinished table-builder and Kp test table files are deleted
+- [x] The orphaned forecast index component is deleted
+- [x] The JSON parser is deleted if nothing imports it after the test page goes
+- [x] The app builds and all remaining routes render unchanged
+
+## Comments
+
+- Implemented 2026-08-23. Also removed the unused `query-string` dependency and the dead commented redirect block in the app shell (user-approved scope). Two-axis review: zero findings. Suite green before and after (typecheck, build, Vitest, 9 Playwright journeys).
