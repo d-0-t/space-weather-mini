@@ -9,6 +9,7 @@ import WeeklyReport from "./pages/forecasts/weekly-report";
 import TwentySevenDayOutlook from "./pages/forecasts/27-day-outlook";
 import ThreeDayForecast from "./pages/forecasts/3-day-forecast";
 import DailyGeomagneticIndices from "./pages/forecasts/daily-geomagnetic-indices";
+import Explainers from "./pages/explainers";
 
 const App: React.FC = () => {
   return (
@@ -25,6 +26,7 @@ const App: React.FC = () => {
         <Route path={"geoalert"} element={<GeophysicalAlert />} />
       </Route>
       <Route path={"about"} element={<About />} />
+      <Route path={"explainers"} element={<Explainers />} />
     </Routes>
   );
 };

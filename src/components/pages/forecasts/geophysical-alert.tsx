@@ -8,6 +8,7 @@ import {
   parseGeophysicalAlert,
 } from "../../../products/geophysical-alert";
 import { formatIssuedLocal } from "../../../products/product-header";
+import GlossaryTerm from "../../explainers/GlossaryTerm";
 
 const fetchGeophysicalAlert = async () => {
   const response = await fetch(GEOPHYSICAL_ALERT_URL);
@@ -49,6 +50,13 @@ const GeophysicalAlert: React.FC = () => {
             <b>Issued (local):</b> {formatIssuedLocal(data.issued)}
             <br />
             {data.author}
+          </p>
+          <p className="geophysical-alert__explainers">
+            Learn more: <GlossaryTerm termId="geophysical-alert">Geophysical alert</GlossaryTerm>
+            {" · "}
+            <GlossaryTerm termId="kp-index">Kp index</GlossaryTerm>
+            {" · "}
+            <GlossaryTerm termId="aurora-forecast">Aurora forecast</GlossaryTerm>
           </p>
 
           <article className="geophysical-alert__section">

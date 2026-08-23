@@ -21,6 +21,7 @@ import {
 } from "../../../products/3-day-forecast";
 import { formatIssuedLocal } from "../../../products/product-header";
 import { kpClass } from "../../../styles/kp-class";
+import GlossaryTerm from "../../explainers/GlossaryTerm";
 
 const fetchThreeDayForecast = async () => {
   const response = await fetch(THREE_DAY_FORECAST_URL);
@@ -116,6 +117,17 @@ const ThreeDayForecast: React.FC = () => {
             <b>Issued (local):</b> {formatIssuedLocal(data.issued)}
             <br />
             {data.author}
+          </p>
+          <p className="three-day-forecast__explainers">
+            Learn more: <GlossaryTerm termId="geomagnetic-activity">Geomagnetic activity</GlossaryTerm>
+            {" · "}
+            <GlossaryTerm termId="solar-radiation-storm">Solar radiation storm</GlossaryTerm>
+            {" · "}
+            <GlossaryTerm termId="radio-blackout">Radio blackout</GlossaryTerm>
+            {" · "}
+            <GlossaryTerm termId="kp-index">Kp index</GlossaryTerm>
+            {" · "}
+            <GlossaryTerm termId="rationale">Rationale</GlossaryTerm>
           </p>
 
           <SectionArticle

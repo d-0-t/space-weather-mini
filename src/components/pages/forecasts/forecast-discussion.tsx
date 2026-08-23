@@ -9,6 +9,7 @@ import {
   type DiscussionSection,
 } from "../../../products/forecast-discussion";
 import { formatIssuedLocal } from "../../../products/product-header";
+import GlossaryTerm from "../../explainers/GlossaryTerm";
 
 const fetchForecastDiscussion = async () => {
   const response = await fetch(FORECAST_DISCUSSION_URL);
@@ -63,6 +64,13 @@ const ForecastDiscussion: React.FC = () => {
             <b>Issued (local):</b> {formatIssuedLocal(data.issued)}
             <br />
             {data.author}
+          </p>
+          <p className="forecast-discussion__explainers">
+            Learn more: <GlossaryTerm termId="forecast-discussion">Forecast discussion</GlossaryTerm>
+            {" · "}
+            <GlossaryTerm termId="geospace">Geospace</GlossaryTerm>
+            {" · "}
+            <GlossaryTerm termId="day-summary">Day summary</GlossaryTerm>
           </p>
           <SectionArticle title="Solar Activity" section={data.solarActivity} />
           <SectionArticle

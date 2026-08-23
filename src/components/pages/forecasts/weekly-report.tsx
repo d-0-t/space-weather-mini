@@ -9,6 +9,7 @@ import {
   type WeeklySection,
 } from "../../../products/weekly-report";
 import { formatIssuedLocal } from "../../../products/product-header";
+import GlossaryTerm from "../../explainers/GlossaryTerm";
 
 const fetchWeeklyReport = async () => {
   const response = await fetch(WEEKLY_REPORT_URL);
@@ -58,6 +59,13 @@ const WeeklyReport: React.FC = () => {
             <b>Issued (local):</b> {formatIssuedLocal(data.issued)}
             <br />
             {data.author}
+          </p>
+          <p className="weekly-report__explainers">
+            Learn more: <GlossaryTerm termId="weekly-report">Weekly report</GlossaryTerm>
+            {" · "}
+            <GlossaryTerm termId="kp-index">Kp index</GlossaryTerm>
+            {" · "}
+            <GlossaryTerm termId="a-index">A index</GlossaryTerm>
           </p>
           <SectionArticle section={data.forecast} />
           <SectionArticle section={data.highlights} />

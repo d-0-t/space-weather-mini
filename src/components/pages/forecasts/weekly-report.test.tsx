@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MemoryRouter } from "react-router-dom";
 import fixture from "../../../products/fixtures/weekly-report.txt?raw";
 import WeeklyReport from "./weekly-report";
 
@@ -20,7 +21,9 @@ beforeEach(() => {
 const renderPage = () =>
   render(
     <QueryClientProvider client={queryClient()}>
-      <WeeklyReport />
+      <MemoryRouter>
+        <WeeklyReport />
+      </MemoryRouter>
     </QueryClientProvider>
   );
 

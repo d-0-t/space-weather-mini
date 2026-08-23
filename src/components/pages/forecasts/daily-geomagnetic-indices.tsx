@@ -23,6 +23,7 @@ import {
 } from "../../../products/daily-geomagnetic-indices";
 import { formatIssuedLocal } from "../../../products/product-header";
 import { kpClass } from "../../../styles/kp-class";
+import GlossaryTerm from "../../explainers/GlossaryTerm";
 
 const fetchDailyGeomagneticIndices = async () => {
   const response = await fetch(DAILY_GEOMAGNETIC_INDICES_URL);
@@ -87,6 +88,15 @@ const DailyGeomagneticIndices: React.FC = () => {
             <b>Issued (local):</b> {formatIssuedLocal(data.issued)}
             <br />
             {data.author}
+          </p>
+          <p className="daily-geomagnetic-indices__explainers">
+            Learn more: <GlossaryTerm termId="kp-index">Kp index</GlossaryTerm>
+            {" · "}
+            <GlossaryTerm termId="a-index">A index</GlossaryTerm>
+            {" · "}
+            <GlossaryTerm termId="geomagnetic-activity">Geomagnetic activity</GlossaryTerm>
+            {" · "}
+            <GlossaryTerm termId="daily-geomagnetic-indices">Daily geomagnetic indices</GlossaryTerm>
           </p>
           <article className="daily-geomagnetic-indices__panels">
             <div

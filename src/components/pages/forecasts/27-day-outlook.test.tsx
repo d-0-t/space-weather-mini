@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
 import { act } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MemoryRouter } from "react-router-dom";
 import fixture from "../../../products/fixtures/27-day-outlook.txt?raw";
 import TwentySevenDayOutlook from "./27-day-outlook";
 
@@ -21,7 +22,9 @@ beforeEach(() => {
 const renderPage = () =>
   render(
     <QueryClientProvider client={queryClient()}>
-      <TwentySevenDayOutlook />
+      <MemoryRouter>
+        <TwentySevenDayOutlook />
+      </MemoryRouter>
     </QueryClientProvider>
   );
 
@@ -66,7 +69,9 @@ describe("TwentySevenDayOutlook page", () => {
     const client = queryClient();
     render(
       <QueryClientProvider client={client}>
-        <TwentySevenDayOutlook />
+        <MemoryRouter>
+          <TwentySevenDayOutlook />
+        </MemoryRouter>
       </QueryClientProvider>
     );
     await screen.findByRole("table");

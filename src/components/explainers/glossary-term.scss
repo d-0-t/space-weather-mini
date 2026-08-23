@@ -1,0 +1,17 @@
+.glossary-term {
+  color: rgb(113, 255, 180);
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 3px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration-style: solid;
+    background-color: rgba(113, 255, 180, 0.15);
+    outline: 2px solid rgb(113, 255, 180);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+}

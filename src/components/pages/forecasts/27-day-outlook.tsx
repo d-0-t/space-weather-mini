@@ -21,6 +21,7 @@ import {
 } from "../../../products/27-day-outlook";
 import { formatIssuedLocal } from "../../../products/product-header";
 import { kpClass } from "../../../styles/kp-class";
+import GlossaryTerm from "../../explainers/GlossaryTerm";
 
 const fetch27DayOutlook = async () => {
   const response = await fetch(TWENTY_SEVEN_DAY_OUTLOOK_URL);
@@ -62,6 +63,15 @@ const TwentySevenDayOutlook: React.FC = () => {
             <b>Issued (local):</b> {formatIssuedLocal(data.issued)}
             <br />
             {data.author}
+          </p>
+          <p className="twenty-seven-day-outlook__explainers">
+            Learn more: <GlossaryTerm termId="radio-flux">Radio flux</GlossaryTerm>
+            {" · "}
+            <GlossaryTerm termId="a-index">A index</GlossaryTerm>
+            {" · "}
+            <GlossaryTerm termId="kp-index">Kp index</GlossaryTerm>
+            {" · "}
+            <GlossaryTerm termId="27-day-outlook">27-day outlook</GlossaryTerm>
           </p>
           <article className="twenty-seven-day-outlook__panels">
             <div

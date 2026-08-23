@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, within } from "@testing-library/react";
 import { act } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MemoryRouter } from "react-router-dom";
 import fixture from "../../../products/fixtures/3-day-forecast.txt?raw";
 import ThreeDayForecast from "./3-day-forecast";
 
@@ -21,7 +22,9 @@ beforeEach(() => {
 const renderPage = () =>
   render(
     <QueryClientProvider client={queryClient()}>
-      <ThreeDayForecast />
+      <MemoryRouter>
+        <ThreeDayForecast />
+      </MemoryRouter>
     </QueryClientProvider>
   );
 
