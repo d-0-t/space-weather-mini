@@ -61,4 +61,47 @@ describe("parseGeophysicalAlert", () => {
     );
     expect(() => parseGeophysicalAlert(noPredicted)).toThrow(/predicted/);
   });
+
+  it("parses the new Aug 2026 observed wording without 'observed' (past 24 hours)", () => {
+    const live = `:Product: Geophysical Alert Message wwv.txt
+:Issued: 2026 Aug 24 2110 UTC
+# Prepared by the US Dept. of Commerce, NOAA, Space Weather Prediction Center
+#
+#          Geophysical Alert Message
+#
+Solar-terrestrial indices for 24 August follow.
+Solar flux 143 and estimated planetary A-index 5.
+The estimated planetary K-index at 2100 UTC on 24 August was 1.33.
+
+Space weather for the past 24 hours has been minor.
+Radio blackouts reaching the R1 level occurred.
+
+No space weather storms are predicted for the next 24 hours.
+`;
+    const alert = parseGeophysicalAlert(live);
+    expect(alert.observed).toContain("past 24 hours");
+    expect(alert.observed).toContain("Radio blackouts");
+    expect(alert.predicted).toContain("predicted");
+    expect(alert.message).toContain("Solar flux 143");
+  });
+
+  it("strips stray HTML tags from geophysical alert paragraphs", () => {
+    const liveWithTags = `:Product: Geophysical Alert Message wwv.txt
+:Issued: 2026 Aug 24 2110 UTC
+# Prepared by the US Dept. of Commerce, NOAA, Space Weather Prediction Center
+#
+#          Geophysical Alert Message
+#
+Solar-terrestrial indices for 24 August follow.<o:p></o:p></span>
+Solar flux 143 and estimated planetary A-index 5.
+
+Space weather for the past 24 hours has been minor.<o:p></o:p></span>
+
+No space weather storms are predicted for the next 24 hours.<o:p></o:p></span>
+`;
+    const alert = parseGeophysicalAlert(liveWithTags);
+    expect(alert.message).not.toContain("<o:p>");
+    expect(alert.observed).not.toContain("<");
+    expect(alert.predicted).not.toContain("<");
+  });
 });

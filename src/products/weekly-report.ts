@@ -26,6 +26,10 @@ export const WEEKLY_REPORT_URL =
 const HIGHLIGHTS_TITLE = "Highlights of Solar and Geomagnetic Activity";
 const FORECAST_TITLE = "Forecast of Solar and Geomagnetic Activity";
 
+function stripHtmlTags(text: string): string {
+  return text.replace(/<[^>]*>/g, "");
+}
+
 function extractSection(
   lines: string[],
   title: string,
@@ -45,11 +49,11 @@ function extractSection(
       `parseWeeklyReport: ${title} has no date range — the NOAA format may have changed`
     );
   }
-  const dateRange = lines[dateRangeIndex].trim();
+  const dateRange = stripHtmlTags(lines[dateRangeIndex].trim()).trim();
 
   const end = nextTitleIndex ?? lines.length;
   const bodyLines = lines.slice(dateRangeIndex + 1, end);
-  const body = bodyLines.join("\n").trim();
+  const body = stripHtmlTags(bodyLines.join("\n")).trim();
   if (body === "") {
     throw new Error(
       `parseWeeklyReport: ${title} has empty prose — the NOAA format may have changed`

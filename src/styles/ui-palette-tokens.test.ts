@@ -18,14 +18,15 @@ const glossaryScss = readFileSync(
 
 describe("UI palette color tokens (ticket 01)", () => {
   it("exposes the eight raw palette colors as CSS custom properties on :root in the global stylesheet", () => {
-    expect(indexScss).toContain("--color-white: #FFFFFF");
-    expect(indexScss).toContain("--color-black: #000000");
-    expect(indexScss).toContain("--color-deep-indigo: #1C1455");
-    expect(indexScss).toContain("--color-primary-violet: #7A16A5");
-    expect(indexScss).toContain("--color-light-purple: #9934C0");
-    expect(indexScss).toContain("--color-dark-green: #3B9C55");
-    expect(indexScss).toContain("--color-medium-green: #66C562");
-    expect(indexScss).toContain("--color-light-lime: #A0E35F");
+    const lower = indexScss.toLowerCase();
+    expect(lower).toContain("--color-white: #ffffff");
+    expect(lower).toContain("--color-black: #000000");
+    expect(lower).toContain("--color-deep-indigo: #1c1455");
+    expect(lower).toContain("--color-primary-violet: #7a16a5");
+    expect(lower).toContain("--color-light-purple: #9934c0");
+    expect(lower).toContain("--color-dark-green: #3b9c55");
+    expect(lower).toContain("--color-medium-green: #66c562");
+    expect(lower).toContain("--color-light-lime: #a0e35f");
   });
 
   it("exposes semantic aliases and a reusable gradient token on :root", () => {
@@ -75,12 +76,12 @@ describe("UI palette color tokens (ticket 01)", () => {
     expect(navScss).not.toContain("rgb(36, 36, 36)");
     expect(navScss).not.toContain("rgb(116, 116, 116)");
     expect(navScss).not.toContain("rgb(54, 54, 54)");
-    // new tokens: top hover still light-purple, submenu base deep-indigo, hover primary-violet
-    expect(navScss).toContain("var(--color-light-purple)");
+    // manual adjustments: header uses gradient-header, submenu base deep-indigo, hover primary-violet, top hover accent-strong
+    expect(navScss).toContain("var(--color-deep-indigo)");
     expect(navScss).toContain("var(--color-primary-violet)");
     expect(navScss).toContain("var(--color-dark-green)");
-    expect(navScss).toContain("var(--color-deep-indigo)");
-    // submenu hover should be white text, not lime
+    expect(navScss).toContain("var(--color-accent-strong)");
     expect(navScss).toContain("var(--color-white)");
+    expect(navScss).toContain("var(--gradient-header)");
   });
 });

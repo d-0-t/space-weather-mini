@@ -67,4 +67,44 @@ describe("parseWeeklyReport", () => {
     const noAuthor = fixture.replace(/# Prepared by.*\n/, "");
     expect(() => parseWeeklyReport(noAuthor)).toThrow(/no Prepared by line/);
   });
+
+  it("strips stray HTML tags like <o:p> and </span> emitted by NOAA since Aug 2026", () => {
+    const withTags = fixture.replace(
+      "Geomagnetic field activity was at quiet or quiet to unsettled levels\nthroughout the period.",
+      "Geomagnetic field activity was at quiet or quiet to unsettled levels\nthroughout the period.<o:p></o:p></span> "
+    );
+    const report = parseWeeklyReport(withTags);
+    expect(report.highlights.body).not.toContain("<o:p>");
+    expect(report.highlights.body).not.toContain("</span>");
+    expect(report.highlights.body).not.toContain("<");
+    // still contains the original prose
+    expect(report.highlights.body).toContain(
+      "Geomagnetic field activity was at quiet"
+    );
+  });
+
+  it("parses live Aug 2026 weekly with tagged highlights (regression for reported highlight bug)", () => {
+    const live = `:Product: Weekly Highlights and Forecasts
+:Issued: 2026 Aug 24 1801 UTC
+# Prepared by the US Dept. of Commerce, NOAA, Space Weather Prediction Center
+#
+#                Weekly Highlights and Forecasts
+#
+Highlights of Solar and Geomagnetic Activity
+17 - 23 August 2026
+
+Solar activity reached moderate levels on 19, 20 and 21 Aug and was
+at low levels on 17, 18, 22, and 23 Aug. Region 4513 (N04, L=50,
+class/area Ekc/260 on 22 Aug) was the main contributor.<o:p></o:p></span> 
+
+Forecast of Solar and Geomagnetic Activity
+24 August - 19 September 2026
+
+Solar activity is expected to be at low levels.
+`;
+    const report = parseWeeklyReport(live);
+    expect(report.highlights.dateRange).toBe("17 - 23 August 2026");
+    expect(report.highlights.body).not.toContain("<o:p>");
+    expect(report.highlights.body).toContain("Solar activity reached moderate");
+  });
 });

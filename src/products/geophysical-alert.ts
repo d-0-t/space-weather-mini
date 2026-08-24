@@ -50,15 +50,19 @@ export function parseGeophysicalAlert(text: string): GeophysicalAlert {
     );
   }
 
+  // Strip stray HTML tags that NOAA has emitted since Aug 2026 (e.g. <o:p></o:p></span>)
+  // before paragraph splitting, but preserve line breaks.
+  const stripHtmlTags = (input: string): string =>
+    input.replace(/<[^>]*>/g, "");
+
   // Preserve source line breaks within paragraphs but split on blank lines.
-  const bodyText = lines
-    .slice(bodyStart)
-    .join("\n")
-    .trim();
+  const bodyText = stripHtmlTags(
+    lines.slice(bodyStart).join("\n").trim(),
+  );
 
   const paragraphs = bodyText
     .split(/\n\s*\n/)
-    .map((paragraph) => paragraph.trim())
+    .map((paragraph) => stripHtmlTags(paragraph).trim())
     .filter((paragraph) => paragraph !== "");
 
   if (paragraphs.length < 2) {
@@ -71,12 +75,12 @@ export function parseGeophysicalAlert(text: string): GeophysicalAlert {
   const observed = paragraphs[paragraphs.length - 2];
   const message = paragraphs.slice(0, -2).join("\n\n").trim();
 
-  if (!/predicted/i.test(predicted)) {
+  if (!/predicted|next 24 hours/i.test(predicted)) {
     throw new Error(
       "parseGeophysicalAlert: predicted paragraph not found — the NOAA format may have changed"
     );
   }
-  if (!/observed/i.test(observed)) {
+  if (!/observed|past 24 hours/i.test(observed)) {
     throw new Error(
       "parseGeophysicalAlert: observed paragraph not found — the NOAA format may have changed"
     );
