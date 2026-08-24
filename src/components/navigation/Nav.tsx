@@ -15,9 +15,7 @@ const Nav: React.FC = () => {
   const triggerRef = useRef<HTMLButtonElement>(null);
   const submenuId = "forecasts-submenu";
 
-  const handleKeyDown: React.KeyboardEventHandler<HTMLLIElement> = (
-    event,
-  ) => {
+  const handleKeyDown: React.KeyboardEventHandler<HTMLLIElement> = (event) => {
     if (event.key === "Escape" && isOpen) {
       setIsOpen(false);
       event.stopPropagation();
@@ -34,9 +32,16 @@ const Nav: React.FC = () => {
   };
 
   return (
-    <header id="header" className="noselect">
-      <div id="navLogo">Space Weather Mini</div>
-      <nav id="nav" aria-label="Primary">
+    <header className="header">
+      <div className="header__left">
+        <img
+          src="/assets/aurora.png"
+          className="header__left__logo"
+          alt="App logo with aurora bird"
+        />
+        <h1 className="header__left__title">Space Weather Mini</h1>
+      </div>
+      <nav aria-label="Primary">
         <ul>
           <li>
             <Link to={"/"} className="nava" id="forecasts-url">
@@ -44,8 +49,7 @@ const Nav: React.FC = () => {
             </Link>
           </li>
           <li
-            className={`dropdown${isOpen ? " dropdown--open" : ""}`}
-            id="forecasts"
+            className={`forecasts dropdown${isOpen ? " dropdown--open" : ""}`}
             onBlur={handleBlur}
             onKeyDown={handleKeyDown}
           >

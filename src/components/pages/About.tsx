@@ -35,9 +35,7 @@ const About: React.FC = () => {
         </p>
         <p>
           Developing and executing said plans will probably take a while due to
-          my busy life,
-          <br />
-          but I hope I can make it work. :-)
+          my busy life, but I hope I can make it work. :-)
         </p>
         <p>
           Before that, I wanted to render an actual site for the data and its

@@ -21,6 +21,8 @@ h3 {
 }
 
 article {
+  display: flex;
+  flex-direction: column;
   background: linear-gradient(rgb(27, 27, 27), rgb(8, 8, 8));
   border-radius: 15px;
   padding: 10px;

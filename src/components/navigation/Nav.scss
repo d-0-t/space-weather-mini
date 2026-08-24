@@ -2,7 +2,7 @@
   color: white;
 }
 
-#header {
+.header {
   margin: 0;
   padding: 0;
   display: flex;
@@ -10,21 +10,36 @@
   align-items: center;
   justify-content: space-between;
   text-align: center;
-  background-color: rgb(27, 73, 49);
+  background-color: #1e1958;
   min-height: 50px;
-}
-#navLogo {
-  font-size: 2em;
-  padding-left: 10px;
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+
+    &__logo {
+      width: 4rem;
+      height: 4rem;
+    }
+
+    &__title {
+      color: white;
+      padding: 0;
+      margin: 0;
+      font-weight: 500;
+    }
+  }
 }
 
 @media (max-width: 720px) {
-  #header {
+  .header {
     flex-direction: column;
-  }
-  #navLogo {
-    width: 100%;
-    padding-left: 0px;
+
+    &__title {
+      width: 100%;
+      padding-left: 0px;
+    }
   }
 }
 
@@ -39,14 +54,14 @@
   outline-offset: 2px;
 }
 
-#nav > ul {
+nav > ul {
   display: flex;
   padding: 0;
   margin: 0;
   list-style: none;
 }
 
-#nav > ul > li {
+nav > ul > li {
   display: flex;
   text-align: center;
   align-items: center;
@@ -58,8 +73,8 @@
   width: 100px;
 }
 
-#nav > ul > li > a,
-#nav > ul > li > button.dropdown__trigger {
+nav > ul > li > a,
+nav > ul > li > button.dropdown__trigger {
   display: flex;
   text-align: center;
   align-items: center;
@@ -77,14 +92,14 @@
   padding: 0;
 }
 
-#nav > ul > li > a:hover,
-#nav > ul > li > button.dropdown__trigger:hover {
-  background-color: rgb(36, 36, 36);
-  color: rgb(113, 255, 180);
+nav > ul > li > a:hover,
+nav > ul > li > button.dropdown__trigger:hover {
+  background-color: rgb(83, 1, 146);
+  color: rgb(255, 241, 254);
 }
 
-#nav > ul > #forecasts,
-#nav > ul > #forecasts > button {
+nav > ul > .forecasts,
+nav > ul > .forecasts > button {
   width: 200px;
 }
 .dropdown {
@@ -101,7 +116,6 @@
   flex-direction: column;
   position: absolute;
   padding: 0;
-  margin-top: 297px;
   z-index: 10;
 }
 .dropdown-content > li {
