@@ -121,7 +121,7 @@ nav > ul > .forecasts > button {
 .dropdown-content > li {
   width: 200px;
   list-style: none;
-  background-color: var(--color-primary-violet);
+  background-color: var(--color-deep-indigo);
   border-bottom: 1px dashed var(--color-dark-green);
 }
 
@@ -143,8 +143,8 @@ nav > ul > .forecasts > button {
 
 .dropdown-content > li > a:hover,
 .dropdown-content > li > a:focus-visible {
-  background-color: var(--color-light-purple);
-  color: var(--color-accent-strong);
+  background-color: var(--color-primary-violet);
+  color: var(--color-white);
   border-radius: 0;
   outline-offset: -2px;
 }

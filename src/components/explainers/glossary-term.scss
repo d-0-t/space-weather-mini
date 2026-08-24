@@ -1,5 +1,5 @@
 .glossary-term {
-  color: var(--color-accent);
+  color: var(--color-accent-strong);
   text-decoration: underline;
   text-decoration-style: dotted;
   text-underline-offset: 3px;
@@ -11,7 +11,7 @@
     text-decoration-style: solid;
     background-color: color-mix(
       in srgb,
-      var(--color-accent) 15%,
+      var(--color-accent-strong) 15%,
       transparent
     );
     outline: 2px solid var(--color-accent-strong);

@@ -38,18 +38,19 @@ describe("UI palette color tokens (ticket 01)", () => {
     expect(indexScss).toContain(
       "--color-accent-strong: var(--color-light-lime)",
     );
-    // gradient token for cards — violet → indigo
+    // gradient token for cards — muted violet → indigo (toned down per feedback)
     expect(indexScss).toContain("--gradient-card:");
     expect(indexScss).toContain("var(--color-primary-violet)");
     expect(indexScss).toContain("var(--color-deep-indigo)");
+    expect(indexScss).toContain("color-mix");
   });
 
-  it("uses Medium Green accent for links, headings, and glossary terms (no old mint)", () => {
+  it("uses Light Lime strong accent for links, headings, and glossary terms (no old mint) — brighter per feedback", () => {
     // Pages.scss should no longer contain the old mint
     expect(pagesScss).not.toContain("rgb(113, 255, 180)");
-    expect(pagesScss).toContain("var(--color-accent)");
-    // glossary-term should use accent
-    expect(glossaryScss).toContain("var(--color-accent)");
+    expect(pagesScss).toContain("var(--color-accent-strong)");
+    // glossary-term should use strong accent
+    expect(glossaryScss).toContain("var(--color-accent-strong)");
     expect(glossaryScss).not.toContain("rgb(113, 255, 180)");
   });
 
@@ -68,15 +69,18 @@ describe("UI palette color tokens (ticket 01)", () => {
     expect(navScss).not.toContain("#1e1958");
   });
 
-  it("renders navigation hover and dropdowns on palette tokens (no old purples/grays)", () => {
+  it("renders navigation hover and dropdowns on palette tokens (no old purples/grays) — submenu dark indigo, purple only on hover", () => {
     // old hover purples/grays should be gone
     expect(navScss).not.toContain("rgb(83, 1, 146)");
     expect(navScss).not.toContain("rgb(36, 36, 36)");
     expect(navScss).not.toContain("rgb(116, 116, 116)");
     expect(navScss).not.toContain("rgb(54, 54, 54)");
-    // new tokens
+    // new tokens: top hover still light-purple, submenu base deep-indigo, hover primary-violet
     expect(navScss).toContain("var(--color-light-purple)");
     expect(navScss).toContain("var(--color-primary-violet)");
     expect(navScss).toContain("var(--color-dark-green)");
+    expect(navScss).toContain("var(--color-deep-indigo)");
+    // submenu hover should be white text, not lime
+    expect(navScss).toContain("var(--color-white)");
   });
 });

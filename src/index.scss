@@ -19,7 +19,7 @@
   --color-border-muted: var(--color-dark-green);
   --gradient-card: linear-gradient(
     180deg,
-    var(--color-primary-violet),
+    color-mix(in srgb, var(--color-primary-violet) 38%, black),
     var(--color-deep-indigo)
   );
 }
