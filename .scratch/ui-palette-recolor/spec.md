@@ -8,7 +8,7 @@ The app works, but its UI color is scattered across dozens of hardcoded `rgb(...
 
 ## Solution
 
-Introduce the aurora-bird **UI palette** as the app-wide color system and expose it once as **color tokens** on `:root`, then recolor the entire non-data UI through those tokens in a single atomic change. Page background stays Black, text stays White, the header stays Deep Indigo flat, **surfaces** (cards, dropdowns) use violet tones with a reusable violet gradient (Primary Dark Violet → Deep Indigo) and Lighter Purple Highlights for hover, and **accents** use Medium Green Midtones for links/headings/glossary terms and Light Lime Highlights for focus outlines and the skip link. Dark Green Shadows/Bases replaces gray borders. Warm grays for zebra striping become indigo-tinted alpha via `color-mix`. The Kp index presentation classes and the A-index `a-value` cells are explicitly frozen — every other color goes through a token. The app remains strictly single dark theme.
+Introduce the aurora-bird **UI palette** as the app-wide color system and expose it once as **color tokens** on `:root`, then recolor the entire non-data UI through those tokens in a single atomic change. Page background stays Black, text stays White, the header uses a muted indigo–violet gradient (`--gradient-header`) with a dark-green outset border, **surfaces** (cards) use a muted violet gradient (`--gradient-card` via `color-mix` — 10% Primary Dark Violet into black → 75% Deep Indigo) and dropdowns use Deep Indigo base with Primary Dark Violet hover, and **accents** use Light Lime Highlights (strong accent) for links/headings/glossary terms and also for focus outlines and the skip link. Dark Green Shadows/Bases (and its 33% transparent variant) replaces gray borders. Warm grays for zebra striping become indigo-tinted alpha via `color-mix`. The Kp index presentation classes and the A-index `a-value` cells are explicitly frozen — every other color goes through a token. The app remains strictly single dark theme.
 
 ## User Stories
 
@@ -42,16 +42,16 @@ Introduce the aurora-bird **UI palette** as the app-wide color system and expose
 
 - **UI palette (raw) — eight colors from the bird**: White #FFFFFF, Black #000000, Deep Indigo #1C1455, Primary Dark Violet #7A16A5, Lighter Purple Highlights #9934C0, Dark Green Shadows/Bases #3B9C55, Medium Green Midtones #66C562, Light Lime Highlights #A0E35F. These are the only raw values; everything else aliases them.
 
-- **Color token layer on `:root` in the global stylesheet**: raw tokens (`--color-white`, `--color-deep-indigo`, etc.) plus semantic aliases (`--color-bg-page`, `--color-text-primary`, `--color-text-inverse`, `--color-bg-header`, `--color-bg-surface`, `--color-bg-surface-strong`, `--color-accent`, `--color-accent-strong`, `--color-border-muted`) and one reusable gradient token (`--gradient-card: linear-gradient(180deg, var(--color-primary-violet), var(--color-deep-indigo))`). Components never use raw hex or rgb directly.
+- **Color token layer on `:root` in the global stylesheet**: raw tokens (`--color-white`, `--color-deep-indigo`, etc. — lowercase hex per manual palette) plus semantic aliases (`--color-bg-page`, `--color-text-primary`, `--color-text-inverse`, `--color-bg-header`, `--color-bg-surface`, `--color-bg-surface-strong`, `--color-accent`, `--color-accent-strong`, `--color-border-muted`, `--color-border-muted-transparent: color-mix(in srgb, var(--color-border-muted) 33%, transparent)`) and two reusable gradients (`--gradient-card: linear-gradient(180deg, color-mix(in srgb, var(--color-primary-violet) 10%, black), color-mix(in srgb, var(--color-deep-indigo) 75%, black))` and `--gradient-header: linear-gradient(30deg, color-mix(in srgb, var(--color-deep-indigo) 100%, black) 20%, color-mix(in srgb, var(--color-primary-violet) 33%, black) 100%)`). Components never use raw hex or rgb directly.
 
 - **Single dark theme — no light variant**: page background is Black, text is White, header is flat Deep Indigo. A light theme is explicitly out of scope; the ADR records the night-sky rationale verbatim. Adding a light theme later requires a new ADR.
 
-- **Semantic mapping (settled in grilling)**:
+- **Semantic mapping (settled in grilling, updated per user feedback Aug 2026)**:
   - Page chrome: background Black, text White.
-  - Header: flat Deep Indigo (the existing header hue is tuned to the exact token).
-  - Surfaces: Primary Dark Violet base, Lighter Purple Highlights for hover/active/dropdown highlight, Deep Indigo for gradient end stop. Card/article backgrounds use the gradient token; header stays flat; nav hover uses flat lighter purple (no gradient on hover).
-  - Accents: Medium Green for links, headings, and glossary terms (calmer for reading); Light Lime for all focus outlines, the skip link, and focus-visible states (maximum pop, ~13:1 on Black).
-  - Borders and subtle dividers: Dark Green (muted), replacing all neutral grays.
+  - Header: indigo–violet gradient (`--gradient-header`) with 4rem height and 0.2rem outset Dark Green bottom border.
+  - Surfaces: Cards use muted `--gradient-card` (10% violet) for a less saturated wash; dropdowns use Deep Indigo base, Primary Dark Violet on hover with White text; top-nav hover uses Light Lime strong accent text only (no background) per manual polish.
+  - Accents: Light Lime (strong accent) for links, headings, and glossary terms (brighter per feedback, ~13:1 on Black); same Light Lime for all focus outlines, the skip link, and focus-visible states.
+  - Borders and subtle dividers: Dark Green and its transparent variant (`--color-border-muted-transparent`) for card and homeMini borders, replacing all neutral grays.
   - Zebra striping: `color-mix(in srgb, var(--color-deep-indigo) 12%, black)` and `18%` for alternating rows, preserving the dark page but warming the gray.
 
 - **Gray elimination**: every hardcoded gray outside the frozen data selectors is remapped. That includes table borders, header cell backgrounds, alternating row backgrounds, hover grays on tables, nav dropdown backgrounds and dashed dividers, card borders, aurora image borders, footer muted text treatment, and chart axis/tooltip fills that are UI chrome rather than data encoding. No plain `rgb(129,129,129)` etc. remains outside the two frozen selectors.
