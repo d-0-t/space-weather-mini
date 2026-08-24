@@ -79,3 +79,21 @@ _Avoid_: 24 hr summary, daySummary (internal names only)
 **Rationale**:
 The concluding prose of each 3-day forecast section, explaining the forecast in the forecaster's words.
 _Avoid_: regional text, regionale (the product carries no per-region prose)
+
+### Presentation
+
+**UI palette**:
+The eight-color system for all non-data UI derived from the aurora bird: White, Black, Deep Indigo, Primary Dark Violet, Lighter Purple Highlights, Dark Green Shadows/Bases, Medium Green Midtones, and Light Lime Highlights.
+_Avoid_: theme colors, brand palette
+
+**Color token**:
+A named alias for a raw palette color or its semantic role (background, surface, accent, border) used throughout the UI.
+_Avoid_: CSS variable, SCSS variable, hex code
+
+**Surface**:
+A violet/indigo container background (header, card, dropdown) distinct from the page background.
+_Avoid_: panel, container, box
+
+**Accent**:
+A green highlight used for links, headings, glossary terms, or focus outlines.
+_Avoid_: highlight, brand color, lime
