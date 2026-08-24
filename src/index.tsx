@@ -27,11 +27,11 @@ root.render(
           <main id="main-content" tabIndex={-1}>
             <App />
           </main>
-          <Footer />
+          {/* <Footer /> */}
         </div>
       </BrowserRouter>
     </QueryClientProvider>
-  </React.StrictMode>
+  </React.StrictMode>,
 );
 
 reportWebVitals(console.log);

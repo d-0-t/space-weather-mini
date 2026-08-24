@@ -19,7 +19,7 @@ test("the app boots with navigation chrome on every page", async ({ page }) => {
     "27 Day Outlook",
     "Forecast Discussion",
   ]) {
-    await expect(page.getByRole("link", { name: label })).toBeVisible();
+    await expect(page.getByRole("navigation").getByRole("link", { name: label, exact: true })).toBeVisible();
   }
 });
 
@@ -31,7 +31,7 @@ test("the keyboard navigation opens the Forecasts submenu and Escape returns foc
   await trigger.focus();
   await page.keyboard.press("Enter");
   await expect(trigger).toHaveAttribute("aria-expanded", "true");
-  const firstLink = page.getByRole("link", { name: "Geophysical Alert" });
+  const firstLink = page.getByRole("navigation").getByRole("link", { name: "Geophysical Alert", exact: true });
   await expect(firstLink).toBeVisible();
   await page.keyboard.press("Tab");
   await expect(firstLink).toBeFocused();

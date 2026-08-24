@@ -4,6 +4,8 @@
 table {
   border: 2px solid rgb(129, 129, 129);
   border-collapse: collapse;
+
+  align-self: center;
 }
 th,
 td {
@@ -102,14 +104,14 @@ tr:nth-child(2n + 1) {
   width: 90px;
 }
 #table30days > tbody > tr > td[cellType="tableBody"] {
-  font-size: 12px;
+  font-size: 0.6rem;
   width: 15px;
 }
 #table30days > tbody > tr > td[cellType="tableBody"]:first-child {
   font-weight: bold;
 }
 #table30days > tbody > tr:first-child {
-  font-size: 18px;
+  font-size: 1.2rem;
   font-weight: bold;
   width: 15px;
 }
@@ -121,7 +123,7 @@ td[a-value] {
   width: 15px;
 }
 td[cellType="tableSubHeader"] {
-  font-size: 14px;
+  font-size: 0.8rem;
   width: 25px;
   background-color: rgb(53, 53, 53);
 }

@@ -29,6 +29,7 @@ article {
 
 footer {
   color: rgb(161, 161, 161);
+  margin: 1rem;
 }
 
 .aboutDataLinks {
@@ -41,58 +42,46 @@ footer {
 }
 
 .pageIntroduction {
-  font-size: 20px;
+  font-size: 1.2rem;
 }
 .highIntro {
   font-weight: bold;
   font-style: italic;
 }
 
-#homeFlow,
-#forecastFlow,
-#homeFlow2 {
+.home-wrapper {
+  padding: 0 2rem;
+}
+
+.homeFlow,
+.homeFlow2 {
   min-width: 300px;
   display: flex;
   flex-direction: row;
   justify-content: center;
   flex-wrap: wrap;
 }
-#forecastFlow {
-  max-width: 810px;
-  flex-direction: column;
-}
-.homeMini,
-.forecastMini {
+.homeMini {
   flex: 1 0 300px;
   border-radius: 30px;
   margin: 5px;
   border: 2px solid rgb(26, 26, 26);
   align-content: flex-start;
 }
-.forecastMini {
-  flex: 1 1 150px;
-}
-#the27DaysPage {
-  min-width: 410px;
-}
-#dailyDataPage {
-  min-width: 600px;
-}
 
-#auroraImages {
+.aurora-images {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   justify-content: space-evenly;
-}
-#img-aurora-north,
-#img-aurora-south {
-  flex: 1 0 200px;
-  margin: 5px;
-}
-#img-aurora-north > img,
-#img-aurora-south > img {
-  max-width: 100%;
-  border: 3px solid rgb(75, 75, 75);
-  border-radius: 5px;
+
+  a {
+    flex: 1 0 200px;
+    margin: 5px;
+    img {
+      max-width: 100%;
+      border: 3px solid rgb(75, 75, 75);
+      border-radius: 5px;
+    }
+  }
 }

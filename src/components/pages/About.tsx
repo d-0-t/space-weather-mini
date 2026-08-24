@@ -13,11 +13,15 @@ const About: React.FC = () => {
           and interests than I could count.
         </p>
         <p>
-          You can find my GitHub page{" "}
-          <a href="https://github.com/d-0-t" rel="noreferrer" target="_blank">
-            here
+          You can find my other projects on my{" "}
+          <a
+            href="https://github.com/d-0-t"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            GitHub page
           </a>
-          , where you can find my other projects.
+          .
         </p>
 
         <h3>The future plans for the site (alert service)</h3>
@@ -52,7 +56,7 @@ const About: React.FC = () => {
           <li>
             <a
               href="https://services.swpc.noaa.gov/text/"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               target="_blank"
             >
               SWPC NOAA text library (full)
@@ -61,7 +65,7 @@ const About: React.FC = () => {
           <li>
             <a
               href="https://services.swpc.noaa.gov/text/27-day-outlook.txt"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               target="_blank"
             >
               SWPC NOAA 27 Day Outlook
@@ -70,7 +74,7 @@ const About: React.FC = () => {
           <li>
             <a
               href="https://services.swpc.noaa.gov/text/3-day-forecast.txt"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               target="_blank"
             >
               SWPC NOAA 3 Day Forecast
@@ -79,7 +83,7 @@ const About: React.FC = () => {
           <li>
             <a
               href="https://services.swpc.noaa.gov/text/weekly.txt"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               target="_blank"
             >
               SWPC NOAA Weekly
@@ -88,7 +92,7 @@ const About: React.FC = () => {
           <li>
             <a
               href="https://services.swpc.noaa.gov/text/daily-geomagnetic-indices.txt"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               target="_blank"
             >
               SWPC NOAA Daily Geomagnetic Indices
@@ -97,7 +101,7 @@ const About: React.FC = () => {
           <li>
             <a
               href="https://services.swpc.noaa.gov/text/discussion.txt"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               target="_blank"
             >
               SWPC NOAA Discussion
@@ -106,7 +110,7 @@ const About: React.FC = () => {
           <li>
             <a
               href="https://services.swpc.noaa.gov/text/wwv.txt"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               target="_blank"
             >
               SWPC NOAA Geophysical Alert Message
@@ -118,7 +122,7 @@ const About: React.FC = () => {
           <li>
             <a
               href="https://www.swpc.noaa.gov/products/planetary-k-index"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               target="_blank"
             >
               SWPC NOAA Planetary K-index Graph (3 days)
@@ -127,7 +131,7 @@ const About: React.FC = () => {
           <li>
             <a
               href="https://www.swpc.noaa.gov/products/aurora-30-minute-forecast"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               target="_blank"
             >
               SWPC NOAA Aurora - 30 minute forecast
@@ -136,7 +140,7 @@ const About: React.FC = () => {
           <li>
             <a
               href="https://www.swpc.noaa.gov/content/space-weather-glossary"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               target="_blank"
             >
               SWPC NOAA Glossary and Terminology

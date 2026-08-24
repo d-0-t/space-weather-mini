@@ -1,15 +1,11 @@
 import "./Pages.scss";
-import GeoAlert from "./forecasts/GeoAlert";
 import ThreeDayForecast from "./forecasts/3-day-forecast";
 import VisualAuroras from "../visualtabs/Auroras";
-/*
-import TwentySevenDays from './forecasts/27days';
-<div className="homeMini" id="the27DaysPage"><TwentySevenDays /></div>
-*/
+import GeophysicalAlert from "./forecasts/geophysical-alert";
 
 const Home: React.FC = () => {
   return (
-    <div id="container_home">
+    <div className="home-wrapper">
       <h1>Home</h1>
       <div className="pageIntroduction">
         <p>Welcome to the mini space weather forecast page!</p>
@@ -19,18 +15,12 @@ const Home: React.FC = () => {
           more details.
         </p>
       </div>
-      <div id="homeFlow">
-        <div id="homeFlow2" className="homeMini">
-          <div id="visual-aurora">
-            <VisualAuroras />
-          </div>
-          <div id="geoAlertPage">
-            <GeoAlert />
-          </div>
+      <div className="homeFlow">
+        <div className="homeFlow2 homeMini">
+          <VisualAuroras />
+          <GeophysicalAlert />
         </div>
-        <div className="homeMini" id="the3DaysPage">
-          <ThreeDayForecast />
-        </div>
+        <ThreeDayForecast />
       </div>
     </div>
   );
