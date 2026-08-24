@@ -1,6 +1,32 @@
+:root {
+  --color-white: #FFFFFF;
+  --color-black: #000000;
+  --color-deep-indigo: #1C1455;
+  --color-primary-violet: #7A16A5;
+  --color-light-purple: #9934C0;
+  --color-dark-green: #3B9C55;
+  --color-medium-green: #66C562;
+  --color-light-lime: #A0E35F;
+
+  --color-bg-page: var(--color-black);
+  --color-text-primary: var(--color-white);
+  --color-text-inverse: var(--color-black);
+  --color-bg-header: var(--color-deep-indigo);
+  --color-bg-surface: var(--color-primary-violet);
+  --color-bg-surface-strong: var(--color-light-purple);
+  --color-accent: var(--color-medium-green);
+  --color-accent-strong: var(--color-light-lime);
+  --color-border-muted: var(--color-dark-green);
+  --gradient-card: linear-gradient(
+    180deg,
+    var(--color-primary-violet),
+    var(--color-deep-indigo)
+  );
+}
+
 html,
 body {
-  background-color: black;
+  background-color: var(--color-bg-page);
 }
 
 body {
@@ -49,8 +75,8 @@ code {
   left: 0;
   z-index: 100;
   padding: 8px 16px;
-  background: white;
-  color: black;
+  background: var(--color-white);
+  color: var(--color-text-inverse);
   font-weight: bold;
   text-decoration: none;
   transform: translateY(-100%);
@@ -61,7 +87,7 @@ code {
 }
 
 .skip-link:focus-visible {
-  outline: 3px solid rgb(113, 255, 180);
+  outline: 3px solid var(--color-accent-strong);
   outline-offset: 2px;
 }
 
@@ -72,7 +98,7 @@ button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 3px solid rgb(113, 255, 180);
+  outline: 3px solid var(--color-accent-strong);
   outline-offset: 2px;
 }
 
@@ -94,7 +120,7 @@ textarea:focus-visible {
 }
 
 #main-content:focus-visible {
-  outline: 3px solid rgb(113, 255, 180);
+  outline: 3px solid var(--color-accent-strong);
   outline-offset: -3px;
 }
 

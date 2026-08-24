@@ -1,6 +1,6 @@
 a,
 a span {
-  color: rgb(113, 255, 180);
+  color: var(--color-accent);
   font-weight: 500;
 }
 
@@ -12,7 +12,7 @@ a span {
 h1,
 h2,
 h3 {
-  color: rgb(113, 255, 180);
+  color: var(--color-accent);
   padding-top: 10px;
 }
 
@@ -23,14 +23,14 @@ h3 {
 article {
   display: flex;
   flex-direction: column;
-  background: linear-gradient(rgb(27, 27, 27), rgb(8, 8, 8));
+  background: var(--gradient-card);
   border-radius: 15px;
   padding: 10px;
   padding-top: 0px;
 }
 
 footer {
-  color: rgb(161, 161, 161);
+  color: color-mix(in srgb, var(--color-white) 65%, transparent);
   margin: 1rem;
 }
 
@@ -39,7 +39,7 @@ footer {
 }
 .aboutDataLinksTitle {
   text-align: left;
-  color: #fff;
+  color: var(--color-white);
   font-style: italic;
 }
 
@@ -67,7 +67,7 @@ footer {
   flex: 1 0 300px;
   border-radius: 30px;
   margin: 5px;
-  border: 2px solid rgb(26, 26, 26);
+  border: 2px solid var(--color-border-muted);
   align-content: flex-start;
 }
 
@@ -82,7 +82,7 @@ footer {
     margin: 5px;
     img {
       max-width: 100%;
-      border: 3px solid rgb(75, 75, 75);
+      border: 3px solid var(--color-border-muted);
       border-radius: 5px;
     }
   }

@@ -1,5 +1,5 @@
 * {
-  color: white;
+  color: var(--color-text-primary);
 }
 
 .header {
@@ -10,7 +10,7 @@
   align-items: center;
   justify-content: space-between;
   text-align: center;
-  background-color: #1e1958;
+  background-color: var(--color-bg-header);
   min-height: 50px;
 
   &__left {
@@ -24,7 +24,7 @@
     }
 
     &__title {
-      color: white;
+      color: var(--color-text-primary);
       padding: 0;
       margin: 0;
       font-weight: 500;
@@ -45,12 +45,12 @@
 
 .nava {
   text-decoration: none;
-  color: white;
+  color: var(--color-text-primary);
 }
 
 .nava:focus-visible,
 .dropdown__trigger:focus-visible {
-  outline: 3px solid rgb(113, 255, 180);
+  outline: 3px solid var(--color-accent-strong);
   outline-offset: 2px;
 }
 
@@ -82,7 +82,7 @@ nav > ul > li > button.dropdown__trigger {
   width: 100%;
   height: 100%;
   text-decoration: none;
-  color: white;
+  color: var(--color-text-primary);
   font-weight: bold;
   font-size: inherit;
   font-family: inherit;
@@ -94,8 +94,8 @@ nav > ul > li > button.dropdown__trigger {
 
 nav > ul > li > a:hover,
 nav > ul > li > button.dropdown__trigger:hover {
-  background-color: rgb(83, 1, 146);
-  color: rgb(255, 241, 254);
+  background-color: var(--color-light-purple);
+  color: var(--color-text-primary);
 }
 
 nav > ul > .forecasts,
@@ -121,12 +121,12 @@ nav > ul > .forecasts > button {
 .dropdown-content > li {
   width: 200px;
   list-style: none;
-  background-color: rgb(36, 36, 36);
-  border-bottom: 1px dashed rgb(116, 116, 116);
+  background-color: var(--color-primary-violet);
+  border-bottom: 1px dashed var(--color-dark-green);
 }
 
 .dropdown-content > li:first-child {
-  border-top: 1px dashed rgb(116, 116, 116);
+  border-top: 1px dashed var(--color-dark-green);
 }
 
 .dropdown-content > li > a {
@@ -138,13 +138,13 @@ nav > ul > .forecasts > button {
   padding-top: 10px;
   padding-bottom: 10px;
   text-decoration: none;
-  color: white;
+  color: var(--color-text-primary);
 }
 
 .dropdown-content > li > a:hover,
 .dropdown-content > li > a:focus-visible {
-  background-color: rgb(54, 54, 54);
-  color: rgb(113, 255, 180);
+  background-color: var(--color-light-purple);
+  color: var(--color-accent-strong);
   border-radius: 0;
   outline-offset: -2px;
 }
