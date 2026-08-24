@@ -1,12 +1,12 @@
 :root {
-  --color-white: #FFFFFF;
+  --color-white: #ffffff;
   --color-black: #000000;
-  --color-deep-indigo: #1C1455;
-  --color-primary-violet: #7A16A5;
-  --color-light-purple: #9934C0;
-  --color-dark-green: #3B9C55;
-  --color-medium-green: #66C562;
-  --color-light-lime: #A0E35F;
+  --color-deep-indigo: #1c1455;
+  --color-primary-violet: #7a16a5;
+  --color-light-purple: #9934c0;
+  --color-dark-green: #3b9c55;
+  --color-medium-green: #66c562;
+  --color-light-lime: #a0e35f;
 
   --color-bg-page: var(--color-black);
   --color-text-primary: var(--color-white);
@@ -17,10 +17,20 @@
   --color-accent: var(--color-medium-green);
   --color-accent-strong: var(--color-light-lime);
   --color-border-muted: var(--color-dark-green);
+  --color-border-muted-transparent: color-mix(
+    in srgb,
+    var(--color-border-muted) 33%,
+    rgba(0, 0, 0, 0)
+  );
   --gradient-card: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--color-primary-violet) 38%, black),
-    var(--color-deep-indigo)
+    color-mix(in srgb, var(--color-primary-violet) 10%, black),
+    color-mix(in srgb, var(--color-deep-indigo) 75%, black)
+  );
+  --gradient-header: linear-gradient(
+    30deg,
+    color-mix(in srgb, var(--color-deep-indigo) 100%, black) 20%,
+    color-mix(in srgb, var(--color-primary-violet) 33%, black) 100%
   );
 }
 

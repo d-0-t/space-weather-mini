@@ -11,7 +11,9 @@
   justify-content: space-between;
   text-align: center;
   background-color: var(--color-bg-header);
-  min-height: 50px;
+  background: var(--gradient-header);
+  min-height: 4rem;
+  border-bottom: 0.2rem outset var(--color-dark-green);
 
   &__left {
     display: flex;
@@ -94,8 +96,8 @@ nav > ul > li > button.dropdown__trigger {
 
 nav > ul > li > a:hover,
 nav > ul > li > button.dropdown__trigger:hover {
-  background-color: var(--color-light-purple);
-  color: var(--color-text-primary);
+  //background-color: var(--color-primary-violet);
+  color: var(--color-accent-strong);
 }
 
 nav > ul > .forecasts,

@@ -20,7 +20,9 @@ const Home: React.FC = () => {
           <VisualAuroras />
           <GeophysicalAlert />
         </div>
-        <ThreeDayForecast />
+        <div className="homeMini">
+          <ThreeDayForecast />
+        </div>
       </div>
     </div>
   );
