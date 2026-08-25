@@ -48,21 +48,51 @@ _Avoid_: geomagnetism; geospace when geomagnetic is meant
 The OVATION 30-minute aurora images for the north and south polar regions.
 _Avoid_: aurora images, aurora map
 
+**Solar wind**:
+The stream of charged particles from the Sun, measured by speed, density, and the interplanetary magnetic field.
+_Avoid_: solar storm (when the ambient wind is meant)
+
+**Interplanetary magnetic field (IMF)**:
+The Sun's magnetic field carried by the solar wind; its magnitude is Bt and its north-south component is Bz.
+_Avoid_: magnetic field (without IMF/Bt/Bz qualifier)
+
+**Bz (GSM)**:
+The north-south component of the interplanetary magnetic field in GSM coordinates; southward (negative) Bz enables reconnection and aurora.
+_Avoid_: Bz without GSM, southward Bz as a synonym for storm
+
+**Hemispheric power**:
+Total auroral particle power over a hemisphere in gigawatts, estimated from OVATION.
+_Avoid_: aurora power, HPI without GW unit
+
 ### Measures
 
 **Kp index**:
 The planetary geomagnetic activity index on a 0–9 scale (0 quiet, 9 extreme storm). The `kp01`–`kp9` CSS classes are its presentation, not its name.
 _Avoid_: K-index, Kp value
 
+**Planetary K-index (live)**:
+The JSON feed of observed and forecast Kp values (`noaa-planetary-k-index` and `noaa-planetary-k-index-forecast`), distinct from the archival 30-day table.
+_Avoid_: Kp forecast (without live/archival qualifier)
+
 **A index**:
 The daily planetary geomagnetic index derived from Kp.
 _Avoid_: Ap index (when the daily planetary A index is meant)
+
+**Dst index**:
+The hourly disturbance storm time index of equatorial magnetic disturbance; negative values indicate ring-current enhancement.
+_Avoid_: Dst value, storm index (without Dst)
 
 **Radio flux**:
 Solar radio flux at 10.7 cm wavelength, a solar activity proxy.
 _Avoid_: solar flux, SFU
 
 ### Storm scales
+
+**NOAA scale**:
+The unified G/R/S scale system for geomagnetic, solar radiation, and radio blackout storms.
+
+**Geomagnetic storm**:
+A G1–G5 scale event of geomagnetic disturbance, keyed to the Kp index (G1 at Kp 5 through G5 at Kp 9).
 
 **Solar radiation storm**:
 An S1–S5 scale event of elevated energetic particles.

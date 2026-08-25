@@ -18,8 +18,8 @@ The conventions every change to this repo must follow. Enforced by review, not t
 
 ## Data fetching
 
-- TanStack Query. Fetch on mount; **no manual refresh control and no polling** — NOAA products update on fixed schedules (most once a day), so fresh data arrives on the next page load.
-- Every product display shows when its data was issued — the issued time in UTC and local time, plus the product's author line.
+- TanStack Query. Fetch on mount; **no manual refresh control**. Text products (forecast discussion, 3-day forecast, weekly report, 27-day outlook, daily geomagnetic indices, geophysical alert) do not poll — they update on fixed schedules (most once a day) so fresh data arrives on the next page load. Real-time JSON products flagged `live: true` (planetary K-index, NOAA Scales, alerts, solar wind/IMF Bz/Bt, hemispheric power, Dst, magnetometers) may use `refetchInterval` per product — see ADR 0003 — with `refetchIntervalInBackground: false`.
+- Every product display shows when its data was issued — the issued time in UTC and local time, plus the product's author line. Live products also show a `Updated X ago` age.
 - Fetch failures show a plain error message (no retry button); TanStack Query's built-in retries handle transient failures.
 
 ## Charts
