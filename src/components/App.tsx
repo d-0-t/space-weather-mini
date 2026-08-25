@@ -1,5 +1,5 @@
 import "./App.scss";
-import Home from "./pages/Home";
+import Home from "./pages/home/Home";
 import Forecasts from "./pages/Forecasts";
 import About from "./pages/About";
 import { Routes, Route } from "react-router-dom";

@@ -13,10 +13,10 @@ const renderNav = () =>
   );
 
 describe("Nav keyboard accessibility", () => {
-  it("exposes the Forecasts & Discussion submenu as an accessible menu via a button with aria-expanded", async () => {
+  it("exposes the Details submenu as an accessible menu via a button with aria-expanded", async () => {
     renderNav();
     const trigger = screen.getByRole("button", {
-      name: /forecasts & discussion/i,
+      name: /^details$/i,
     });
     expect(trigger).toHaveAttribute("aria-haspopup", "true");
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
@@ -27,7 +27,7 @@ describe("Nav keyboard accessibility", () => {
     const user = userEvent.setup();
     renderNav();
     const trigger = screen.getByRole("button", {
-      name: /forecasts & discussion/i,
+      name: /^details$/i,
     });
     const submenuId = trigger.getAttribute("aria-controls")!;
     const submenu = document.getElementById(submenuId)!;

@@ -3,7 +3,7 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 
-import threeDayFixture from "../../products/fixtures/3-day-forecast.txt?raw";
+import threeDayFixture from "../../../products/fixtures/3-day-forecast.txt?raw";
 import Home from "./Home";
 
 const queryClient = () =>

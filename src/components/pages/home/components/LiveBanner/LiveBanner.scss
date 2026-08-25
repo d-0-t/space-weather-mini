@@ -1,0 +1,18 @@
+.live-banner {
+  &__pills {
+    line-height: 1.6;
+  }
+
+  &__freshness {
+    font-size: 0.9rem;
+    color: color-mix(in srgb, var(--color-white) 75%, transparent);
+  }
+
+  &__explain {
+    margin-top: 8px;
+  }
+
+  &__details {
+    margin-top: 12px;
+  }
+}

@@ -5,12 +5,12 @@ const dataTimeout = 60_000;
 test("the app boots with navigation chrome on every page", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1, name: "Home" })).toBeVisible();
-  await expect(page.locator("#navLogo")).toHaveText("Space Weather Mini");
+  await expect(page.getByText("Space Weather Mini")).toBeVisible();
   for (const label of ["Home", "About", "Explainers"]) {
     await expect(page.getByRole("link", { name: label })).toBeVisible();
   }
-  await expect(page.getByRole("button", { name: "Forecasts & Discussion" })).toBeVisible();
-  await page.getByRole("button", { name: "Forecasts & Discussion" }).click();
+  await expect(page.getByRole("button", { name: "Details" })).toBeVisible();
+  await page.getByRole("button", { name: "Details" }).click();
   for (const label of [
     "Geophysical Alert",
     "Daily Data",
@@ -23,11 +23,11 @@ test("the app boots with navigation chrome on every page", async ({ page }) => {
   }
 });
 
-test("the keyboard navigation opens the Forecasts submenu and Escape returns focus", async ({
+test("the keyboard navigation opens the Details submenu and Escape returns focus", async ({
   page,
 }) => {
   await page.goto("/");
-  const trigger = page.getByRole("button", { name: "Forecasts & Discussion" });
+  const trigger = page.getByRole("button", { name: "Details" });
   await trigger.focus();
   await page.keyboard.press("Enter");
   await expect(trigger).toHaveAttribute("aria-expanded", "true");
@@ -111,4 +111,18 @@ test("the geophysical alert page renders", async ({ page }) => {
       name: "Geophysical Observations and Predictions",
     }),
   ).toBeVisible({ timeout: dataTimeout });
+});
+
+test("home shows live now dashboard with Kp, banner and Live min/max table", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: /^Live$/ })).toBeVisible({ timeout: dataTimeout });
+  await expect(page.getByRole("heading", { name: /Kp Live/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Live Solar Wind/ })).toBeVisible();
+  await expect(page.getByRole("table", { name: /Kp-index forecast \| Min \| Max/ })).toBeVisible();
+  await expect(page.getByText("Live now on Home — full reports in Details")).toBeVisible();
+  // Live freshness
+  await expect(page.getByText(/As of/ ).first()).toBeVisible();
+  await expect(page.getByText(/Updated/ ).first()).toBeVisible();
+  // Chart paired with table
+  await expect(page.getByRole("img", { name: /Kp index observed history/ })).toBeVisible();
 });

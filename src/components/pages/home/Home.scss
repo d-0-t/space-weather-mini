@@ -1,0 +1,27 @@
+.home {
+  padding: 0 2rem;
+}
+
+.home__flow {
+  min-width: 300px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.home__flow--secondary {
+  min-width: 300px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.home__card {
+  flex: 1 0 300px;
+  border-radius: 30px;
+  margin: 5px;
+  border: 2px dashed var(--color-border-muted-transparent);
+  align-content: flex-start;
+}

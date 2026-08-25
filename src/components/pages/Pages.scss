@@ -51,26 +51,6 @@ footer {
   font-style: italic;
 }
 
-.home-wrapper {
-  padding: 0 2rem;
-}
-
-.homeFlow,
-.homeFlow2 {
-  min-width: 300px;
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-.homeMini {
-  flex: 1 0 300px;
-  border-radius: 30px;
-  margin: 5px;
-  border: 2px dashed var(--color-border-muted-transparent);
-  align-content: flex-start;
-}
-
 .aurora-images {
   display: flex;
   flex-direction: row;

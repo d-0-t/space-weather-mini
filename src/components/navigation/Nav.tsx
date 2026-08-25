@@ -62,12 +62,12 @@ const Nav: React.FC = () => {
               aria-controls={submenuId}
               onClick={() => setIsOpen((value) => !value)}
             >
-              Forecasts &amp; Discussion
+              Details
             </button>
             <ul
               className="dropdown-content"
               id={submenuId}
-              aria-label="Forecasts & Discussion submenu"
+              aria-label="Details submenu"
             >
               <li>
                 <Link to={"/forecasts/geoalert"}>Geophysical Alert</Link>

@@ -4,6 +4,12 @@
 table {
   border: 2px solid var(--color-border-muted-transparent);
   border-collapse: collapse;
+
+  caption {
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    font-size: 1.2rem;
+  }
 }
 th,
 td {
@@ -16,11 +22,6 @@ td {
 td {
   height: 20px;
   color: var(--color-white);
-  text-shadow:
-    1px 1px 0px #000,
-    -1px -1px 0px #000,
-    1px -1px 0px #000,
-    -1px 1px 0px #000;
   font-weight: 500;
 }
 th {
@@ -34,6 +35,19 @@ tr:nth-child(2n) {
 }
 tr:nth-child(2n + 1) {
   background-color: color-mix(in srgb, var(--color-deep-indigo) 30%, black);
+}
+
+.kp01,
+.kp12,
+.kp23,
+.kp34,
+.kp45,
+.kp56,
+.kp67,
+.kp78,
+.kp89,
+.kp9 {
+  text-shadow: var(--text-stroke-black);
 }
 
 .kp01 {

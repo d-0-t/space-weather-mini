@@ -32,6 +32,9 @@
     color-mix(in srgb, var(--color-deep-indigo) 100%, black) 20%,
     color-mix(in srgb, var(--color-primary-violet) 33%, black) 100%
   );
+
+  --text-stroke-black:
+    1px 1px 0px #000, -1px -1px 0px #000, 1px -1px 0px #000, -1px 1px 0px #000;
 }
 
 html,

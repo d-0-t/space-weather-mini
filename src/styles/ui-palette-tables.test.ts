@@ -21,16 +21,16 @@ const indicesScss = normalize(
 );
 
 // Frozen data-encoding selectors — byte-identical contract. These are the only
-// places raw rgb(...) is allowed. Copied verbatim from the pre-recolor file
-// so the test fails loudly if anyone tokenizes or hue-shifts them.
+// places raw rgb(...) is allowed. Copied verbatim from the post-recolor file
+// (user's manual 75%/30% palette) so the test fails loudly if anyone tokenizes or hue-shifts them.
 const FROZEN_KP = [
   `.kp01 {
   background-color: rgb(0, 0, 0) !important;
-  color: rgb(179, 179, 179) !important;
+  color: rgb(162, 162, 162) !important;
 }`,
   `.kp12 {
   background-color: rgb(0, 12, 82) !important;
-  color: rgb(194, 194, 194) !important;
+  color: rgb(207, 190, 208) !important;
 }`,
   `.kp23 {
   background-color: rgb(0, 47, 78) !important;
@@ -40,38 +40,31 @@ const FROZEN_KP = [
 }`,
   `.kp45 {
   background-color: rgb(37, 187, 0) !important;
-  font-weight: bold !important;
 }`,
   `.kp56 {
   background-color: rgb(187, 255, 0) !important;
   color: rgb(0, 39, 27) !important;
-  text-shadow: 0px 0px 0px #000 !important;
-  font-weight: bold !important;
+  text-shadow: none;
 }`,
-  `.kp68 {
-  background-color: rgb(255, 217, 0) !important;
-  color: rgb(54, 0, 0) !important;
-  text-shadow: 0px 0px 0px #000 !important;
-  font-weight: bold !important;
+  `.kp67 {
+  background-color: rgb(255, 166, 0) !important;
+  color: rgb(36, 33, 33) !important;
+  text-shadow: none;
 }`,
   `.kp78 {
-  background-color: rgb(255, 81, 0) !important;
-  font-weight: bold !important;
+  background-color: rgb(255, 102, 0) !important;
 }`,
   `.kp89 {
   background-color: rgb(245, 0, 0) !important;
-  font-weight: bold !important;
 }`,
   `.kp9 {
   background-color: rgb(255, 0, 234) !important;
-  font-weight: bold !important;
 }`,
 ];
 
 const FROZEN_A_VALUE = `td[a-value] {
   background-color: rgb(53, 53, 53);
   color: rgb(230, 230, 230);
-  font-weight: bold;
   text-shadow: 0px 0px 0px;
   width: 15px;
 }`;
@@ -103,18 +96,18 @@ describe("UI palette tabular chrome (ticket 02)", () => {
     expect(chrome).not.toContain("rgb(53, 53, 53)");
     expect(chrome).not.toContain("rgb(191, 231, 210)");
 
-    // Must use palette tokens for chrome
-    expect(tablesScss).toContain("var(--color-border-muted)");
+    // Must use palette tokens for chrome (transparent variant is allowed)
+    expect(tablesScss).toContain("var(--color-border-muted");
     // header / subheader backgrounds via token or color-mix with deep-indigo
     expect(tablesScss).toMatch(/var\(--color-(deep-indigo|border-muted|bg-surface)/);
   });
 
-  it("renders alternating row stripes via indigo-tinted color-mix 12% and 18%", () => {
+  it("renders alternating row stripes via indigo-tinted color-mix 75% and 30%", () => {
     expect(tablesScss).toContain(
-      "color-mix(in srgb, var(--color-deep-indigo) 12%, black)",
+      "color-mix(in srgb, var(--color-deep-indigo) 75%, black)",
     );
     expect(tablesScss).toContain(
-      "color-mix(in srgb, var(--color-deep-indigo) 18%, black)",
+      "color-mix(in srgb, var(--color-deep-indigo) 30%, black)",
     );
     const chrome = stripFrozen(tablesScss);
     expect(chrome).not.toContain("rgb(41, 41, 41)");
