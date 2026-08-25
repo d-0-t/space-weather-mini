@@ -51,7 +51,7 @@ describe("Home", () => {
 
   it("renders the aurora forecast images", () => {
     renderHome();
-    expect(screen.getByAltText(/Aurora Forecast.*NORTH POLE/)).toBeInTheDocument();
-    expect(screen.getByAltText(/Aurora Forecast.*SOUTH POLE/)).toBeInTheDocument();
+    expect(screen.getByAltText(/Aurora Forecast.*North Pole/i)).toBeInTheDocument();
+    expect(screen.getByAltText(/Aurora Forecast.*South Pole/i)).toBeInTheDocument();
   });
 });

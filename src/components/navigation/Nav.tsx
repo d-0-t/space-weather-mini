@@ -39,7 +39,7 @@ const Nav: React.FC = () => {
           className="header__left__logo"
           alt="App logo with aurora bird"
         />
-        <h1 className="header__left__title">Space Weather Mini</h1>
+        <div className="header__left__title">Space Weather Mini</div>
       </div>
       <nav aria-label="Primary">
         <ul>
