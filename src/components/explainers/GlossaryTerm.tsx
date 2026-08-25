@@ -4,7 +4,7 @@ import "./glossary-term.scss";
 interface GlossaryTermProps {
   /** Anchor id of the explainer entry, e.g. "kp-index". */
   termId: string;
-  /** Visible label — must match the CONTEXT.md term verbatim. */
+  /** Visible label – must match the CONTEXT.md term verbatim. */
   children: React.ReactNode;
 }
 

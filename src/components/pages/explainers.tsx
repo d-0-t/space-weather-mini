@@ -18,7 +18,7 @@ const ENTRIES: ExplainerEntry[] = [
   {
     id: "kp-index",
     title: "Kp index",
-    body: "The Kp index is the planetary geomagnetic activity index on a 0–9 scale (0 quiet, 9 extreme storm). It summarises how disturbed Earth’s magnetic field is at mid-latitudes, derived from ground magnetometers around the world. In the app the kp01–kp9 colour classes are only the presentation — the name is always “Kp index”.",
+    body: "The Kp index is the planetary geomagnetic activity index on a 0–9 scale (0 quiet, 9 extreme storm). It summarises how disturbed Earth’s magnetic field is at mid-latitudes, derived from ground magnetometers around the world. In the app the kp01–kp9 colour classes are only the presentation – the name is always “Kp index”.",
   },
   {
     id: "a-index",
@@ -38,7 +38,7 @@ const ENTRIES: ExplainerEntry[] = [
   {
     id: "geospace",
     title: "Geospace",
-    body: "Geospace is the near-Earth space environment — magnetosphere, ionosphere, radiation belts. It is also the name of the fourth section of the forecast discussion; the word is never used as a synonym for geomagnetic activity.",
+    body: "Geospace is the near-Earth space environment – magnetosphere, ionosphere, radiation belts. It is also the name of the fourth section of the forecast discussion; the word is never used as a synonym for geomagnetic activity.",
   },
   {
     id: "solar-radiation-storm",
@@ -88,7 +88,7 @@ const ENTRIES: ExplainerEntry[] = [
   {
     id: "geophysical-alert",
     title: "Geophysical alert",
-    body: "The geophysical alert — labelled “Geophysical Alert Message” in the interface, named geophysical-alert in code — is NOAA’s alert message covering solar X-ray, energetic-particle, and geomagnetic conditions, with observations and predictions. It is the freshest, most frequently updated product.",
+    body: "The geophysical alert – labelled “Geophysical Alert Message” in the interface, named geophysical-alert in code – is NOAA’s alert message covering solar X-ray, energetic-particle, and geomagnetic conditions, with observations and predictions. It is the freshest, most frequently updated product.",
   },
   {
     id: "day-summary",

@@ -51,7 +51,7 @@ const TwentySevenDayOutlook: React.FC = () => {
       )}
       {isError && data && (
         <p className="twenty-seven-day-outlook__status">
-          Couldn't refresh the 27-day outlook — showing the last data.
+          Couldn't refresh the 27-day outlook – showing the last data.
         </p>
       )}
       {data && (
@@ -65,7 +65,8 @@ const TwentySevenDayOutlook: React.FC = () => {
             {data.author}
           </p>
           <p className="twenty-seven-day-outlook__explainers">
-            Learn more: <GlossaryTerm termId="radio-flux">Radio flux</GlossaryTerm>
+            Learn more:{" "}
+            <GlossaryTerm termId="radio-flux">Radio flux</GlossaryTerm>
             {" · "}
             <GlossaryTerm termId="a-index">A index</GlossaryTerm>
             {" · "}

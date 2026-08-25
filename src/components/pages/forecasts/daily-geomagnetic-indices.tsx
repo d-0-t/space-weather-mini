@@ -75,7 +75,7 @@ const DailyGeomagneticIndices: React.FC = () => {
       )}
       {isError && data && (
         <p className="daily-geomagnetic-indices__status">
-          Couldn't refresh the daily geomagnetic indices — showing the last
+          Couldn't refresh the daily geomagnetic indices – showing the last
           data.
         </p>
       )}

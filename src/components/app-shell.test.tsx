@@ -25,7 +25,7 @@ const createFetchMock = () =>
 
 /**
  * Helper that renders the shell the way index.tsx composes it after the
- * accessibility fix: skip link, header/nav, main, footer — no <center>.
+ * accessibility fix: skip link, header/nav, main, footer – no <center>.
  * Mirrors src/index.tsx:17-27.
  */
 const renderShell = (initialRoute = "/") => {
@@ -51,7 +51,9 @@ const renderShell = (initialRoute = "/") => {
 describe("App shell accessibility", () => {
   it("renders a skip link as the first focusable element targeting main content", async () => {
     renderShell();
-    const skipLink = screen.getByRole("link", { name: /skip to main content/i });
+    const skipLink = screen.getByRole("link", {
+      name: /skip to main content/i,
+    });
     expect(skipLink).toBeInTheDocument();
     expect(skipLink.getAttribute("href")).toBe("#main-content");
     // It must be the first focusable element in DOM order
@@ -64,35 +66,39 @@ describe("App shell accessibility", () => {
   it("exposes the header banner, primary navigation, main, and contentinfo landmarks", async () => {
     renderShell();
     expect(screen.getByRole("banner")).toBeInTheDocument();
-    expect(screen.getByRole("navigation", { name: /primary/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("navigation", { name: /primary/i }),
+    ).toBeInTheDocument();
     expect(screen.getByRole("main")).toBeInTheDocument();
     expect(screen.getByRole("contentinfo")).toBeInTheDocument();
     expect(screen.getByRole("main").getAttribute("id")).toBe("main-content");
   });
 
-  it("keeps correct heading order — one h1 per page inside main", async () => {
+  it("keeps correct heading order – one h1 per page inside main", async () => {
     renderShell("/");
     const main = screen.getByRole("main");
     expect(main).toBeInTheDocument();
     // h1 must be inside main, not outside landmarks
     expect(main.querySelector("h1")).not.toBeNull();
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
-    expect(screen.getByRole("heading", { level: 1, name: "Home" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Home" }),
+    ).toBeInTheDocument();
   });
 
   it("has no deprecated center element wrapping the shell", async () => {
     renderShell();
-    // index.tsx currently wraps App and Footer in <center> — must be removed
+    // index.tsx currently wraps App and Footer in <center> – must be removed
     // The test renders the real shell composition, so this will be non-null until fixed.
     // We assert the production DOM should have zero <center> elements.
     // To reproduce the bug, we mount the actual index composition here:
     // Our renderShell mimics the buggy index.tsx with a center wrapper added below.
     const hasCenterInShell = document.querySelector("center") !== null;
     // Before the fix this helper intentionally adds a <center> to mirror index.tsx
-    // — after the fix the real shell will have no center and this assertion passes.
+    // – after the fix the real shell will have no center and this assertion passes.
     // We check via a direct DOM probe of the rendered container's closest shell.
     // For now, assert failure is reproduced by checking the live document.
-    // This placeholder will be inverted after the fix — see implementation.
+    // This placeholder will be inverted after the fix – see implementation.
     expect(hasCenterInShell).toBe(false);
   });
 });

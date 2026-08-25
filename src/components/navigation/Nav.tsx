@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import "./Nav.scss";
 
 /**
- * Primary navigation — header banner with nav landmark.
+ * Primary navigation – header banner with nav landmark.
  * The Forecasts & Discussion item is a disclosure button that
  * controls the submenu via aria-expanded; the submenu opens
  * on hover, on focus-within, and when the button is activated

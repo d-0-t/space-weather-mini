@@ -15,7 +15,9 @@ const renderNav = () =>
 describe("Nav keyboard accessibility", () => {
   it("exposes the Forecasts & Discussion submenu as an accessible menu via a button with aria-expanded", async () => {
     renderNav();
-    const trigger = screen.getByRole("button", { name: /forecasts & discussion/i });
+    const trigger = screen.getByRole("button", {
+      name: /forecasts & discussion/i,
+    });
     expect(trigger).toHaveAttribute("aria-haspopup", "true");
     expect(trigger.getAttribute("aria-expanded")).toBe("false");
     expect(trigger.getAttribute("aria-controls")).toBeTruthy();
@@ -24,7 +26,9 @@ describe("Nav keyboard accessibility", () => {
   it("reveals submenu links to keyboard users on focus and toggles aria-expanded on activation", async () => {
     const user = userEvent.setup();
     renderNav();
-    const trigger = screen.getByRole("button", { name: /forecasts & discussion/i });
+    const trigger = screen.getByRole("button", {
+      name: /forecasts & discussion/i,
+    });
     const submenuId = trigger.getAttribute("aria-controls")!;
     const submenu = document.getElementById(submenuId)!;
     expect(submenu).toBeInTheDocument();
@@ -32,7 +36,7 @@ describe("Nav keyboard accessibility", () => {
     // Initially collapsed
     expect(trigger).toHaveAttribute("aria-expanded", "false");
 
-    // Tab to the trigger and activate with Enter — should expand
+    // Tab to the trigger and activate with Enter – should expand
     trigger.focus();
     expect(trigger).toHaveFocus();
     await user.keyboard("{Enter}");
@@ -52,7 +56,9 @@ describe("Nav keyboard accessibility", () => {
 
     // Tab moves focus into the first submenu item
     await user.tab();
-    expect(screen.getByRole("link", { name: "Geophysical Alert" })).toHaveFocus();
+    expect(
+      screen.getByRole("link", { name: "Geophysical Alert" }),
+    ).toHaveFocus();
 
     // Escape collapses the menu and returns focus to trigger
     await user.keyboard("{Escape}");
@@ -60,7 +66,7 @@ describe("Nav keyboard accessibility", () => {
     expect(trigger).toHaveFocus();
   });
 
-  it("uses valid list markup — link is inside list item, not the reverse", async () => {
+  it("uses valid list markup – link is inside list item, not the reverse", async () => {
     renderNav();
     // Every <a> inside the nav should be a descendant of an <li>, not a parent of one.
     const nav = screen.getByRole("navigation", { name: /primary/i });

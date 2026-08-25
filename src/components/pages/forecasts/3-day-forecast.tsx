@@ -38,7 +38,7 @@ const toChartPoint = (forecast: ThreeDayForecastData) =>
     forecast.geomagneticActivity.kpBreakdown.map((row) => ({
       label: `${day} ${row.timeSlot}`,
       kp: row.days[i],
-    }))
+    })),
   );
 
 const SectionArticle: React.FC<{
@@ -105,7 +105,7 @@ const ThreeDayForecast: React.FC = () => {
       )}
       {isError && data && (
         <p className="three-day-forecast__status">
-          Couldn't refresh the 3-day forecast — showing the last data.
+          Couldn't refresh the 3-day forecast – showing the last data.
         </p>
       )}
       {data && (
@@ -119,9 +119,14 @@ const ThreeDayForecast: React.FC = () => {
             {data.author}
           </p>
           <p className="three-day-forecast__explainers">
-            Learn more: <GlossaryTerm termId="geomagnetic-activity">Geomagnetic activity</GlossaryTerm>
+            Learn more:{" "}
+            <GlossaryTerm termId="geomagnetic-activity">
+              Geomagnetic activity
+            </GlossaryTerm>
             {" · "}
-            <GlossaryTerm termId="solar-radiation-storm">Solar radiation storm</GlossaryTerm>
+            <GlossaryTerm termId="solar-radiation-storm">
+              Solar radiation storm
+            </GlossaryTerm>
             {" · "}
             <GlossaryTerm termId="radio-blackout">Radio blackout</GlossaryTerm>
             {" · "}

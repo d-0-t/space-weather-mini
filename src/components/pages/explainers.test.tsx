@@ -20,7 +20,7 @@ describe("Explainers page", () => {
 
   it("lists one plain-language explanation per concept with vocabulary matching CONTEXT.md", async () => {
     renderPage();
-    // Core measures and phenomena — headings must use the exact CONTEXT.md terms
+    // Core measures and phenomena – headings must use the exact CONTEXT.md terms
     for (const name of [
       "Kp index",
       "A index",
@@ -35,7 +35,7 @@ describe("Explainers page", () => {
         screen.getByRole("heading", { level: 2, name }),
       ).toBeInTheDocument();
     }
-    // Product types — each product the app displays gets an entry
+    // Product types – each product the app displays gets an entry
     for (const name of [
       "Space weather product",
       "Forecast discussion",
@@ -93,6 +93,8 @@ describe("Explainers page", () => {
     renderPage();
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     // At least the 15 product/measure headings above
-    expect(screen.getAllByRole("heading", { level: 2 }).length).toBeGreaterThanOrEqual(15);
+    expect(
+      screen.getAllByRole("heading", { level: 2 }).length,
+    ).toBeGreaterThanOrEqual(15);
   });
 });

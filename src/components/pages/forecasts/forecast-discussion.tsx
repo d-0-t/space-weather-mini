@@ -52,7 +52,7 @@ const ForecastDiscussion: React.FC = () => {
       )}
       {isError && data && (
         <p className="forecast-discussion__status">
-          Couldn't refresh the forecast discussion — showing the last data.
+          Couldn't refresh the forecast discussion – showing the last data.
         </p>
       )}
       {data && (
@@ -66,7 +66,10 @@ const ForecastDiscussion: React.FC = () => {
             {data.author}
           </p>
           <p className="forecast-discussion__explainers">
-            Learn more: <GlossaryTerm termId="forecast-discussion">Forecast discussion</GlossaryTerm>
+            Learn more:{" "}
+            <GlossaryTerm termId="forecast-discussion">
+              Forecast discussion
+            </GlossaryTerm>
             {" · "}
             <GlossaryTerm termId="geospace">Geospace</GlossaryTerm>
             {" · "}

@@ -38,7 +38,7 @@ const GeophysicalAlert: React.FC = () => {
       )}
       {isError && data && (
         <p className="geophysical-alert__status">
-          Couldn&apos;t refresh the geophysical alert — showing the last data.
+          Couldn&apos;t refresh the geophysical alert – showing the last data.
         </p>
       )}
       {data && (
@@ -52,11 +52,16 @@ const GeophysicalAlert: React.FC = () => {
             {data.author}
           </p>
           <p className="geophysical-alert__explainers">
-            Learn more: <GlossaryTerm termId="geophysical-alert">Geophysical alert</GlossaryTerm>
+            Learn more:{" "}
+            <GlossaryTerm termId="geophysical-alert">
+              Geophysical alert
+            </GlossaryTerm>
             {" · "}
             <GlossaryTerm termId="kp-index">Kp index</GlossaryTerm>
             {" · "}
-            <GlossaryTerm termId="aurora-forecast">Aurora forecast</GlossaryTerm>
+            <GlossaryTerm termId="aurora-forecast">
+              Aurora forecast
+            </GlossaryTerm>
           </p>
 
           <article className="geophysical-alert__section">

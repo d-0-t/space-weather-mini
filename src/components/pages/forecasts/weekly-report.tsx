@@ -47,7 +47,7 @@ const WeeklyReport: React.FC = () => {
       )}
       {isError && data && (
         <p className="weekly-report__status">
-          Couldn't refresh the weekly report — showing the last data.
+          Couldn't refresh the weekly report – showing the last data.
         </p>
       )}
       {data && (
@@ -61,7 +61,8 @@ const WeeklyReport: React.FC = () => {
             {data.author}
           </p>
           <p className="weekly-report__explainers">
-            Learn more: <GlossaryTerm termId="weekly-report">Weekly report</GlossaryTerm>
+            Learn more:{" "}
+            <GlossaryTerm termId="weekly-report">Weekly report</GlossaryTerm>
             {" · "}
             <GlossaryTerm termId="kp-index">Kp index</GlossaryTerm>
             {" · "}
