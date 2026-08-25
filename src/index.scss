@@ -57,13 +57,13 @@ code {
   width: unset !important;
 }
 .recharts-text {
-  fill: rgb(220, 204, 204);
+  fill: var(--color-white);
 }
 .recharts-legend-wrapper {
   position: relative !important;
 }
 .recharts-default-tooltip {
-  background-color: black !important;
+  background-color: var(--color-black) !important;
 }
 
 .sr-only {

@@ -22,10 +22,14 @@ const ROW_PATTERN = /^(\d{4} \w{3} \d{2})\s+(\d+)\s+(\d+)\s+(\d+)$/;
 export function parse27DayOutlook(text: string): TwentySevenDayOutlook {
   const { issued, author } = scanHeader(text);
   if (issued === "") {
-    throw new Error("parse27DayOutlook: no :Issued: line found — the NOAA format may have changed");
+    throw new Error(
+      "parse27DayOutlook: no :Issued: line found — the NOAA format may have changed",
+    );
   }
   if (author === "") {
-    throw new Error("parse27DayOutlook: no Prepared by line found — the NOAA format may have changed");
+    throw new Error(
+      "parse27DayOutlook: no Prepared by line found — the NOAA format may have changed",
+    );
   }
 
   const rows: DayOutlookRow[] = [];
@@ -46,7 +50,9 @@ export function parse27DayOutlook(text: string): TwentySevenDayOutlook {
   }
 
   if (rows.length === 0) {
-    throw new Error("parse27DayOutlook: no data rows found — the NOAA format may have changed");
+    throw new Error(
+      "parse27DayOutlook: no data rows found — the NOAA format may have changed",
+    );
   }
 
   return { issued, author, rows };

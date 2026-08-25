@@ -48,7 +48,7 @@ const StationColumns: React.FC<{
   <>
     <td>{row[station].aIndex}</td>
     {row[station].kIndices.map((k, i) => (
-      <td key={i} className={k === -1 ? undefined : kpClass(k)}>
+      <td key={i} className={kpClass(k)}>
         {toFixed !== undefined ? Number(k).toFixed(toFixed) : k}
       </td>
     ))}
@@ -94,9 +94,13 @@ const DailyGeomagneticIndices: React.FC = () => {
             {" · "}
             <GlossaryTerm termId="a-index">A index</GlossaryTerm>
             {" · "}
-            <GlossaryTerm termId="geomagnetic-activity">Geomagnetic activity</GlossaryTerm>
+            <GlossaryTerm termId="geomagnetic-activity">
+              Geomagnetic activity
+            </GlossaryTerm>
             {" · "}
-            <GlossaryTerm termId="daily-geomagnetic-indices">Daily geomagnetic indices</GlossaryTerm>
+            <GlossaryTerm termId="daily-geomagnetic-indices">
+              Daily geomagnetic indices
+            </GlossaryTerm>
           </p>
           <article className="daily-geomagnetic-indices__panels">
             <div
