@@ -80,6 +80,24 @@ const About: React.FC = () => {
           </li>
           <li>
             <a
+              href="https://services.swpc.noaa.gov/text/3-day-geomag-forecast.txt"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              SWPC NOAA 3-Day Geomag Forecast
+            </a>{" "}
+          </li>
+          <li>
+            <a
+              href="https://services.swpc.noaa.gov/text/3-day-solar-geomag-predictions.txt"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              SWPC NOAA 3-Day Solar-Geomag Predictions
+            </a>{" "}
+          </li>
+          <li>
+            <a
               href="https://services.swpc.noaa.gov/text/weekly.txt"
               rel="noopener noreferrer"
               target="_blank"
@@ -114,7 +132,26 @@ const About: React.FC = () => {
               SWPC NOAA Geophysical Alert Message
             </a>
           </li>
+          <li>
+            <a
+              href="https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              SWPC NOAA Planetary K-index (observed) – JSON
+            </a>
+          </li>
+          <li>
+            <a
+              href="https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              SWPC NOAA Planetary K-index Forecast – JSON
+            </a>
+          </li>
         </ul>
+
         <h3 className="aboutDataLinksTitle">Useful / related links:</h3>
         <ul className="aboutDataLinks">
           <li>

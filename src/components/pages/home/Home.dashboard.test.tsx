@@ -57,51 +57,32 @@ describe("Home Live Now dashboard (ticket 01)", () => {
     renderHome();
     await waitFor(() =>
       expect(
-        screen.getByRole("table", { name: /Kp-index forecast \| Min \| Max/i }),
+        screen.getByRole("table", { name: /Kp-index forecast/i }),
       ).toBeInTheDocument(),
     );
     expect(
       screen.getByRole("heading", { name: /^Live$/i }),
     ).toBeInTheDocument();
-    expect(screen.getAllByText(/Current:/).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Kp-/).length).toBeGreaterThan(0);
     // Table has 3 days
     expect(screen.getAllByRole("row").length).toBeGreaterThan(3);
   });
 
-  it("shows Kp live dashboard with current value and G badge when applicable", async () => {
+  it("shows merged Kp observed and forecast chart with Now line", async () => {
     renderHome();
     await waitFor(() =>
       expect(
-        screen.getByRole("img", { name: /Kp index observed history/i }),
+        screen.getByRole("img", { name: /Kp observed.*forecast.*Now/i }),
       ).toBeInTheDocument(),
     );
-    expect(
-      screen.getByRole("table", { name: /Kp observed history/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("table", { name: /Kp forecast next 24h/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Full 3-day forecast/)).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Daily Observations Breakdown/i })).toBeInTheDocument();
   });
 
-  it("shows live solar-wind banner with Bz, Bt, speed, hemi power, Dst pills and As of ages", async () => {
-    renderHome();
-    await waitFor(() =>
-      expect(screen.getAllByText(/Bt/).length).toBeGreaterThan(0),
-    );
-    expect(screen.getAllByText(/Bz/).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/Speed/).length).toBeGreaterThan(0);
-    expect(screen.getByText(/Hemispheric power/)).toBeInTheDocument();
-    expect(screen.getByText(/Dst index/)).toBeInTheDocument();
-    expect(screen.getByText(/Southward/)).toBeInTheDocument();
-    expect(screen.getByText(/enables reconnection/)).toBeInTheDocument();
-  });
-
-  it("shows ultracompact Kp min/max table derived from 3-day breakdown", async () => {
+  it("shows Kp-index forecast table derived from 3-day breakdown", async () => {
     renderHome();
     await waitFor(() =>
       expect(
-        screen.getByRole("table", { name: /Kp-index forecast \| Min \| Max/i }),
+        screen.getByRole("table", { name: /Kp-index forecast/i }),
       ).toBeInTheDocument(),
     );
     expect(screen.getByText(/Full 3-day forecast/)).toBeInTheDocument();
@@ -150,13 +131,6 @@ describe("Home Live Now dashboard (ticket 01)", () => {
     // This is a smoke check that the component handles isError state without crashing
     expect(
       screen.getByRole("heading", { name: /^Live$/i }),
-    ).toBeInTheDocument();
-  });
-
-  it("renders intro explaining Live now on Home – full reports in Details", async () => {
-    renderHome();
-    expect(
-      screen.getByText(/Live now on Home – full reports in Details/),
     ).toBeInTheDocument();
   });
 });

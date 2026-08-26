@@ -90,8 +90,8 @@ describe("UI palette final sweep — ticket 03 contract", () => {
     expect(homeScss).toContain("border: 2px dashed var(--color-border-muted-transparent)");
     // Footer muted text via token (color-mix with white)
     expect(pagesScss).toMatch(/footer\s*\{[^}]*color\s*:\s*color-mix\(in srgb, var\(--color-white\)/);
-    // Tables text-shadow is the user's multi-shadow with #000 (allowed as chrome, not tokenized per manual)
-    expect(tablesScss).toMatch(/text-shadow:\s*1px 1px 0px #000/);
+    // Tables text-shadow is the user's var(--text-stroke-black) (allowed as chrome, not raw)
+    expect(tablesScss).toMatch(/text-shadow:\s*var\(--text-stroke-black\)/);
   });
 
   it("contract invariant: only surviving raw rgb(...) / #... outside node_modules are frozen .kp01-.kp9 and td[a-value] (and :root token definitions)", () => {
@@ -116,19 +116,24 @@ describe("UI palette final sweep — ticket 03 contract", () => {
       let content = normalize(readFileSync(file, "utf8"));
       // Remove :root block (tokens) — allow raw # there
       content = content.replace(/:root\s*\{[\s\S]*?\}/g, "");
-      // Remove frozen blocks
+      // Remove frozen blocks — use global replace to handle grouped selector + individual blocks
       for (const pat of frozenPatterns) {
-        content = content.replace(pat, "");
+        content = content.replace(new RegExp(pat.source, "g"), "");
       }
-      // Allow the user's Tables.scss multi-shadow #000 chrome (not tokenized per manual)
+      // Allow the user's Tables.scss multi-shadow #000 chrome (not tokenized per manual) and grouped text-shadow var
       content = content.replace(/text-shadow:\s*1px 1px 0px #000[\s\S]*?;/g, "");
       content = content.replace(/text-shadow:\s*0px 0px 0px;/g, "");
+      content = content.replace(/text-shadow:\s*var\(--text-stroke-black\);/g, "");
       // Now no raw rgb( or #hex should remain
       // Allow comments? Strip comments first to avoid false positives from URLs
       const withoutComments = content.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
       const hasRgb = /rgb\s*\(/i.test(withoutComments);
       const hasHex = /#[0-9a-fA-F]{3,6}\b/.test(withoutComments);
       if (hasRgb || hasHex) {
+        // Debug: log the remaining raw for diagnosis
+        const rgbMatch = withoutComments.match(/rgb\s*\([^)]+\)/i);
+        const hexMatch = withoutComments.match(/#[0-9a-fA-F]{3,6}\b/);
+        console.log("RAW REMAINING in", file, "rgb:", rgbMatch, "hex:", hexMatch, withoutComments.slice(0, 2000));
         // Provide file context on failure
         expect(
           `${file.replace(resolve(__dirname, ".."), "src")} still has raw color after stripping :root and frozen: ${withoutComments.slice(0, 200)}`,

@@ -20,15 +20,32 @@
       font-size: 0.85rem;
     }
   }
+
+  &__chart {
+    margin: 0.75rem 0 1rem;
+  }
+
+  &__day {
+    line-height: 1.15;
+    text-align: center;
+    white-space: nowrap;
+    font-weight: 500;
+  }
 }
 
 .kp-bar {
   display: flex;
-  //gap: 2px;
   margin: 8px 0 12px;
-  //height: 14px;
 
   --border-width: 0.4rem;
+
+  &::after {
+    content: "";
+    width: var(--border-width);
+    height: 100%;
+    background-color: var(--color-border-muted);
+    opacity: 0.5;
+  }
 
   &__start,
   &__stop {
@@ -52,10 +69,6 @@
     &--empty {
       border-color: var(--color-border-muted);
       opacity: 0.5;
-
-      &:last-of-type {
-        border-right: var(--border-width) solid var(--color-border-muted);
-      }
     }
   }
 }

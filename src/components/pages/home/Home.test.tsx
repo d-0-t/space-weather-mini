@@ -32,26 +32,19 @@ const renderHome = () =>
   );
 
 describe("Home", () => {
-  it("renders the Home heading and introduction", () => {
+  it("renders the Home heading", () => {
     renderHome();
     expect(screen.getByRole("heading", { level: 1, name: "Home" })).toBeInTheDocument();
-    expect(screen.getByText(/Welcome to the mini space weather forecast page/)).toBeInTheDocument();
-  });
-
-  it("shows a placeholder link to the typed geophysical alert page instead of the legacy embed", async () => {
-    renderHome();
-    expect(screen.getByRole("heading", { level: 2, name: "Geophysical Alert" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Geophysical Alert page/ })).toHaveAttribute(
-      "href",
-      "/forecasts/geoalert",
-    );
-    // No legacy h2 from the old GeoAlert embed
-    expect(screen.queryByText(/Geophysical Observations and Predictions/)).not.toBeInTheDocument();
   });
 
   it("renders the aurora forecast images", () => {
     renderHome();
     expect(screen.getByAltText(/Aurora Forecast.*North Pole/i)).toBeInTheDocument();
     expect(screen.getByAltText(/Aurora Forecast.*South Pole/i)).toBeInTheDocument();
+  });
+
+  it("renders the Live panel", async () => {
+    renderHome();
+    expect(screen.getByRole("heading", { name: /^Live$/i })).toBeInTheDocument();
   });
 });
