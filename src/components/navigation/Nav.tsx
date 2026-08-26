@@ -1,7 +1,10 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
 import "./Nav.scss";
+
+const ASTRO_MODE_KEY = "astro-mode";
+const ASTRO_FILTER = "sepia(1) saturate(4.5) hue-rotate(-39deg)";
 
 /**
  * Primary navigation – header banner with nav landmark.
@@ -12,8 +15,21 @@ import "./Nav.scss";
  */
 const Nav: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isAstro, setIsAstro] = useState(
+    () => localStorage.getItem(ASTRO_MODE_KEY) === "on",
+  );
   const triggerRef = useRef<HTMLButtonElement>(null);
   const submenuId = "forecasts-submenu";
+
+  useEffect(() => {
+    document.body.style.filter = isAstro ? ASTRO_FILTER : "";
+  }, [isAstro]);
+
+  const toggleAstro = () => {
+    const next = !isAstro;
+    setIsAstro(next);
+    localStorage.setItem(ASTRO_MODE_KEY, next ? "on" : "off");
+  };
 
   const handleKeyDown: React.KeyboardEventHandler<HTMLLIElement> = (event) => {
     if (event.key === "Escape" && isOpen) {
@@ -98,6 +114,18 @@ const Nav: React.FC = () => {
             <Link to={"/explainers"} className="nava">
               Explainers
             </Link>
+          </li>
+          <li>
+            <button
+              type="button"
+              className="btn--astro-toggle"
+              title="Astro mode"
+              aria-pressed={isAstro}
+              onClick={toggleAstro}
+            >
+              <span aria-hidden="true">🌙</span>
+              <span className="sr-only">Astro mode</span>
+            </button>
           </li>
         </ul>
       </nav>

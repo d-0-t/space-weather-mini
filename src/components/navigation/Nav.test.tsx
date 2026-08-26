@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 
 import Nav from "./Nav";
@@ -81,5 +81,45 @@ describe("Nav keyboard accessibility", () => {
     for (const li of Array.from(listItems)) {
       expect(li.closest("a")).toBeNull();
     }
+  });
+});
+
+describe("Astro mode toggle", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    document.body.style.filter = "";
+  });
+
+  it("shows an icon button labelled Astro mode with a tooltip title", () => {
+    renderNav();
+    const button = screen.getByRole("button", { name: "Astro mode" });
+    expect(button).toHaveAttribute("title", "Astro mode");
+    expect(button).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("toggles the body filter and persists the choice", async () => {
+    const user = userEvent.setup();
+    renderNav();
+    const button = screen.getByRole("button", { name: "Astro mode" });
+    await user.click(button);
+    expect(button).toHaveAttribute("aria-pressed", "true");
+    expect(document.body.style.filter).toBe(
+      "sepia(1) saturate(4.5) hue-rotate(-39deg)",
+    );
+    expect(localStorage.getItem("astro-mode")).toBe("on");
+    await user.click(button);
+    expect(button).toHaveAttribute("aria-pressed", "false");
+    expect(document.body.style.filter).toBe("");
+    expect(localStorage.getItem("astro-mode")).toBe("off");
+  });
+
+  it("restores Astro mode from localStorage on mount", () => {
+    localStorage.setItem("astro-mode", "on");
+    renderNav();
+    const button = screen.getByRole("button", { name: "Astro mode" });
+    expect(button).toHaveAttribute("aria-pressed", "true");
+    expect(document.body.style.filter).toBe(
+      "sepia(1) saturate(4.5) hue-rotate(-39deg)",
+    );
   });
 });

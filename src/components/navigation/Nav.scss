@@ -155,3 +155,17 @@ nav > ul > .forecasts > button {
   -ms-user-select: none; /* Internet Explorer/Edge */
   user-select: none; /* Non-prefixed version, currently supported by Chrome, Edge, Opera and Firefox */
 }
+
+.btn--astro-toggle {
+  cursor: pointer;
+  background-color: var(--color-black);
+  border: 2px solid var(--color-border-muted-transparent);
+  min-height: 44px;
+  min-width: 44px;
+  border-radius: 1rem;
+
+  &:hover {
+    border: 2px solid var(--color-border-muted);
+    background-color: var(--color-deep-indigo);
+  }
+}
