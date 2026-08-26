@@ -116,7 +116,10 @@ function parseSection(
 
 function parseKpRows(tableLines: string[]): KpBreakdownRow[] {
   return tableLines.map((line) => {
-    const tokens = line.split(/\s+/);
+    // NOAA annotates storm levels inline, e.g. "5.67 (G2)" / "4.67 (G1)".
+    // Strip those before tokenising so quiet and stormy days share shape.
+    const cleaned = line.replace(/\s*\(G\d+\)/g, "");
+    const tokens = cleaned.trim().split(/\s+/);
     if (tokens.length !== 4) {
       throw new Error(
         "parseThreeDayForecast: unexpected Kp row shape — the NOAA format may have changed"

@@ -75,7 +75,7 @@ describe("Home Live Now dashboard (ticket 01)", () => {
       ).toBeInTheDocument(),
     );
     expect(screen.getByText(/Full 3-day forecast/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Daily Observations Breakdown/i })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Daily observations/i })).toBeInTheDocument();
   });
 
   it("shows Kp-index forecast table derived from 3-day breakdown", async () => {
