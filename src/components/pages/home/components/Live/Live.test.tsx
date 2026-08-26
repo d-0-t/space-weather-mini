@@ -49,6 +49,30 @@ describe("Live", () => {
     expect(document.querySelector(".live__current")).toBeInTheDocument();
   });
 
+  it("renders from planetary JSON even when the 3-day text product fails", async () => {
+    mockFetch.mockImplementation((url: string) => {
+      const u = typeof url === "string" ? url : "";
+      if (u.includes("3-day-forecast.txt")) {
+        return Promise.resolve({
+          ok: false,
+          status: 500,
+          text: async () => "",
+        } as Response);
+      }
+      if (u.includes("noaa-planetary-k-index-forecast.json"))
+        return Promise.resolve({ ok: true, text: async () => kpForecastFixture });
+      if (u.includes("noaa-planetary-k-index.json"))
+        return Promise.resolve({ ok: true, text: async () => kpObservedFixture });
+      return Promise.resolve({ ok: true, text: async () => "" });
+    });
+    renderLive();
+    await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
+    expect(screen.getByRole("heading", { name: /^Live$/i })).toBeInTheDocument();
+    expect(screen.getByRole("table", { name: /Kp-index forecast/i })).toBeInTheDocument();
+    // Slot label is derived from the observed time_tag (12:00 UTC), not the text product
+    expect(screen.getByText("12:00 - 15:00 UTC")).toBeInTheDocument();
+  });
+
   it("renders min/max table with weekday labels and Kp values", async () => {
     renderLive();
     await waitFor(() => expect(screen.getByRole("table", { name: /Kp-index forecast/i })).toBeInTheDocument());

@@ -24,7 +24,6 @@ import {
   parsePlanetaryKIndexForecast,
   NOAA_PLANETARY_K_INDEX_FORECAST_URL,
 } from "../../../../../products/noaa-planetary-k-index";
-import { deriveMinMaxKp } from "../../../../../products/derive-kp-minmax";
 import { formatAge } from "../../../../../products/live-helpers";
 
 import "./Live.scss";
@@ -185,7 +184,7 @@ const fetchKpForecast = async () => {
 
 /** Live – current observed Kp + min/max per day + merged observed/forecast chart */
 const Live: React.FC = () => {
-  const { data, isPending, isError } = useQuery({
+  const { data } = useQuery({
     queryKey: ["3-day-forecast"],
     queryFn: fetchThreeDay,
   });
@@ -206,10 +205,9 @@ const Live: React.FC = () => {
     gcTime: 10 * 60 * 1000,
   });
 
-  if (
-    (isPending && !data) ||
-    (observedQuery.isPending && !observedQuery.data)
-  ) {
+  // The live panel renders from the planetary JSON endpoints alone; the
+  // 3-day text product is only an optional fallback for the min/max table.
+  if (observedQuery.isPending && !observedQuery.data) {
     return (
       <article aria-busy="true">
         <h2>Live</h2>
@@ -217,7 +215,7 @@ const Live: React.FC = () => {
       </article>
     );
   }
-  if ((isError && !data) || (observedQuery.isError && !observedQuery.data)) {
+  if (observedQuery.isError && !observedQuery.data) {
     return (
       <article>
         <h2>Live</h2>
@@ -225,39 +223,27 @@ const Live: React.FC = () => {
       </article>
     );
   }
-  if (!data || !observedQuery.data) return null;
+  if (!observedQuery.data) return null;
 
-  const nowHour = new Date().getUTCHours();
-  const slotIndex = Math.floor(nowHour / 3);
-  let dayIndex = 0;
-  const now = new Date();
-  for (let i = 0; i < data.days.length; i++) {
-    const dayLabel = data.days[i];
-    const withYear = `${dayLabel} ${now.getUTCFullYear()}`;
-    const d = new Date(withYear + " UTC");
-    if (
-      !isNaN(d.getTime()) &&
-      d.getUTCDate() === now.getUTCDate() &&
-      d.getUTCMonth() === now.getUTCMonth()
-    ) {
-      dayIndex = i;
-      break;
-    }
-  }
   const observed = observedQuery.data;
   const forecast = forecastQuery.data;
   const latestObserved = observed[observed.length - 1];
   const currentKp = latestObserved.Kp;
   const currentKpRounded = Math.floor(currentKp);
-  const currentSlot =
-    data.geomagneticActivity.kpBreakdown[slotIndex]?.timeSlot ?? "";
-  // Mini table from planetary JSON forecast (UTC) – contains Aug28 already,
-  // while 3-day-forecast.txt lags (Aug25-27). Group Kp by UTC calendar day for
-  // today/tomorrow/dayAfter (UTC) so "today" is never missing.
+  // Current 3h window label derived from the latest observed time_tag, so a
+  // 3-day text failure never blanks the panel.
+  const observedTime = new Date(`${latestObserved.time_tag}Z`);
+  const slotStart = Number.isNaN(observedTime.getTime())
+    ? NaN
+    : Math.floor(observedTime.getUTCHours() / 3) * 3;
+  const currentSlot = Number.isNaN(slotStart)
+    ? ""
+    : `${String(slotStart).padStart(2, "0")}-${String(slotStart + 3).padStart(2, "0")}UT`;
+  // Mini table groups planetary JSON observed+forecast by UTC calendar day for
+  // today/tomorrow/dayAfter (UTC) so "today" is never missing; the 3-day text
+  // breakdown fills any day the JSON has no bucket for yet.
   const rows = (() => {
-    if (!forecast || !observed) {
-      return deriveMinMaxKp(data.days, data.geomagneticActivity.kpBreakdown);
-    }
+    const now = new Date();
     const todayUTC = new Date(
       Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
     );
@@ -282,7 +268,7 @@ const Live: React.FC = () => {
         )
           values.push(p.Kp);
       }
-      for (const p of forecast) {
+      for (const p of forecast ?? []) {
         if (p.observed === "observed") continue; // include estimated + predicted for today gap (Aug26 estimated)
         const t = new Date(`${p.time_tag}Z`);
         if (
@@ -293,7 +279,7 @@ const Live: React.FC = () => {
           values.push(p.kp);
       }
       // Fallback to 3-day text breakdown when planetary has no bucket yet
-      if (values.length === 0) {
+      if (values.length === 0 && data) {
         const idx = data.days.indexOf(dayLabel);
         if (idx !== -1) {
           const breakdownVals = data.geomagneticActivity.kpBreakdown.map(
