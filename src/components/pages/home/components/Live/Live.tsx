@@ -443,25 +443,6 @@ const Live: React.FC = () => {
           </LineChart>
         </ResponsiveContainer>
       </div>
-      <table className="sr-only">
-        <caption>Kp observed and forecast merged</caption>
-        <thead>
-          <tr>
-            <th scope="col">Time</th>
-            <th scope="col">Observed Kp</th>
-            <th scope="col">Forecast Kp</th>
-          </tr>
-        </thead>
-        <tbody>
-          {mergedData.map((d) => (
-            <tr key={d.time}>
-              <td>{d.label.replace("\n", " ")}</td>
-              <td>{d.observed ?? "—"}</td>
-              <td>{d.forecast ?? "—"}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
       <table>
         <caption>Kp-index forecast (UTC)</caption>
         <thead>
@@ -501,12 +482,10 @@ const Live: React.FC = () => {
           })}
         </tbody>
       </table>
-      <p>
+      <div className="live__links">
         <Link to="/forecasts/3days">Full 3-day forecast →</Link>
-      </p>
-      <p>
         <Link to="/forecasts/daily">Daily observations →</Link>
-      </p>
+      </div>
     </article>
   );
 };
