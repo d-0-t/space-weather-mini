@@ -164,6 +164,52 @@ export const KpBar: React.FC<{ kp: number }> = ({ kp }) => {
   );
 };
 
+export interface MoonPhase {
+  emoji: string;
+  name: string;
+}
+
+const MOON_PHASES: MoonPhase[] = [
+  { emoji: "🌑", name: "New moon" },
+  { emoji: "🌒", name: "Waxing crescent" },
+  { emoji: "🌓", name: "First quarter" },
+  { emoji: "🌔", name: "Waxing gibbous" },
+  { emoji: "🌕", name: "Full moon" },
+  { emoji: "🌖", name: "Waning gibbous" },
+  { emoji: "🌗", name: "Last quarter" },
+  { emoji: "🌘", name: "Waning crescent" },
+];
+
+const SYNODIC_MONTH_DAYS = 29.530588853;
+// Known new moon reference: 2000-01-06 18:14 UTC (Meeus)
+const NEW_MOON_REF_UTC = Date.UTC(2000, 0, 6, 18, 14);
+
+/** Current moon phase from a date, as an emoji + name pair. */
+export function getMoonPhase(date: Date = new Date()): MoonPhase {
+  const daysSince = (date.getTime() - NEW_MOON_REF_UTC) / 86_400_000;
+  const fraction = (((daysSince / SYNODIC_MONTH_DAYS) % 1) + 1) % 1;
+  const index = Math.floor(fraction * 8) % 8;
+  return MOON_PHASES[index];
+}
+
+/** Emoji-only moon badge – labelled via title + sr-only span. */
+const MoonPhaseBadge: React.FC = () => {
+  const phase = getMoonPhase();
+  return (
+    <span className="live__moon" title={`Current Moon phase: ${phase.name}`}>
+      <span aria-hidden="true">{phase.emoji}</span>
+      <span className="sr-only">{`Current Moon phase: ${phase.name}`}</span>
+    </span>
+  );
+};
+
+const LiveHeader: React.FC = () => (
+  <div className="live__header">
+    <h2>Live</h2>
+    <MoonPhaseBadge />
+  </div>
+);
+
 const fetchThreeDay = async () => {
   const response = await fetch(THREE_DAY_FORECAST_URL);
   if (!response.ok) throw new Error(`NOAA returned ${response.status}`);
@@ -210,7 +256,7 @@ const Live: React.FC = () => {
   if (observedQuery.isPending && !observedQuery.data) {
     return (
       <article aria-busy="true">
-        <h2>Live</h2>
+        <LiveHeader />
         <p>Loading Kp forecast…</p>
       </article>
     );
@@ -218,7 +264,7 @@ const Live: React.FC = () => {
   if (observedQuery.isError && !observedQuery.data) {
     return (
       <article>
-        <h2>Live</h2>
+        <LiveHeader />
         <p>Couldn&apos;t load Kp forecast. Please check back later.</p>
       </article>
     );
@@ -324,7 +370,7 @@ const Live: React.FC = () => {
 
   return (
     <article className="live">
-      <h2>Live</h2>
+      <LiveHeader />
       <div className="live__current">
         <span className="live__current__time">
           {formatTimeSlot(currentSlot)}

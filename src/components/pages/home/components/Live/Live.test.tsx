@@ -108,4 +108,35 @@ describe("Live", () => {
     // Dot removal is verified by Live.tsx using dot={false} and activeDot={false}
     // Background shading for observed/forecast uses ReferenceArea with tokens
   });
+
+  it("computes moon phase for known dates", async () => {
+    const { getMoonPhase } = await import("./Live");
+    const ref = Date.UTC(2000, 0, 6, 18, 14); // known new moon
+    expect(getMoonPhase(new Date(ref)).name).toBe("New moon");
+    expect(getMoonPhase(new Date(ref + 7 * 86_400_000)).name).toBe(
+      "Waxing crescent",
+    );
+    expect(getMoonPhase(new Date(ref + 15 * 86_400_000)).name).toBe("Full moon");
+    expect(getMoonPhase(new Date(ref + 21 * 86_400_000)).name).toBe(
+      "Waning gibbous",
+    );
+    expect(getMoonPhase(new Date(ref + 26 * 86_400_000)).name).toBe(
+      "Waning crescent",
+    );
+  });
+
+  it("shows the current moon phase emoji in the Live header with title and sr-only label", async () => {
+    renderLive();
+    await waitFor(() =>
+      expect(document.querySelector(".kp-bar")).toBeInTheDocument(),
+    );
+    const moon = document.querySelector(".live__moon");
+    expect(moon).not.toBeNull();
+    // Fake system time is 2026-08-26T12:00Z → Waxing gibbous
+    expect(moon!.getAttribute("title")).toBe(
+      "Current Moon phase: Waxing gibbous",
+    );
+    expect(screen.getByText("Current Moon phase: Waxing gibbous")).toBeInTheDocument();
+    expect(moon!.querySelector("[aria-hidden='true']")!.textContent).toBe("🌔");
+  });
 });

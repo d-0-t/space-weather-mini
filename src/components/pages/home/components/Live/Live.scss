@@ -12,6 +12,21 @@
   background-size: 50%;
   background-blend-mode: screen;
 
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  &__moon {
+    cursor: help;
+    font-size: 4rem;
+    line-height: 1rem;
+    user-select: none;
+    margin-right: -1rem;
+  }
+
   &__current {
     display: flex;
     flex-direction: column;
