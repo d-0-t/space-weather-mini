@@ -11,6 +11,9 @@ import magFixture from "../../../products/fixtures/solar-wind-mag-field.json?raw
 import speedFixture from "../../../products/fixtures/solar-wind-speed.json?raw";
 import hemiFixture from "../../../products/fixtures/hemi-power.txt?raw";
 import dstFixture from "../../../products/fixtures/kyoto-dst.json?raw";
+import rtswWindFixture from "../../../products/fixtures/rtsw-wind-1m.json?raw";
+import rtswMagFixture from "../../../products/fixtures/rtsw-mag-1m.json?raw";
+import boulderFixture from "../../../products/fixtures/boulder-k-index-1m.json?raw";
 import Home from "./Home";
 
 const queryClient = () =>
@@ -36,6 +39,12 @@ beforeEach(() => {
       return Promise.resolve({ ok: true, text: async () => hemiFixture });
     if (u.includes("kyoto-dst.json"))
       return Promise.resolve({ ok: true, text: async () => dstFixture });
+    if (u.includes("rtsw_wind_1m.json"))
+      return Promise.resolve({ ok: true, text: async () => rtswWindFixture });
+    if (u.includes("rtsw_mag_1m.json"))
+      return Promise.resolve({ ok: true, text: async () => rtswMagFixture });
+    if (u.includes("boulder_k_index_1m.json"))
+      return Promise.resolve({ ok: true, text: async () => boulderFixture });
     if (u.includes("3-day-forecast.txt"))
       return Promise.resolve({ ok: true, text: async () => threeDayFixture });
     return Promise.resolve({ ok: true, text: async () => "" });
@@ -95,6 +104,20 @@ describe("Home Live Now dashboard (ticket 01)", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByAltText(/Aurora Forecast.*South Pole/i),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the Space Weather Now mini charts between Live and the aurora images", async () => {
+    renderHome();
+    await waitFor(() =>
+      expect(screen.getByText("Solar wind")).toBeInTheDocument(),
+    );
+    expect(
+      screen.getByRole("heading", { name: /Space Weather Now/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Kiruna magnetometer")).toBeInTheDocument();
+    expect(
+      screen.getByRole("img", { name: /kiruna magnetogram/i }),
     ).toBeInTheDocument();
   });
 

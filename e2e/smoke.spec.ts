@@ -113,16 +113,27 @@ test("the geophysical alert page renders", async ({ page }) => {
   ).toBeVisible({ timeout: dataTimeout });
 });
 
-test("home shows live now dashboard with Kp, banner and Live min/max table", async ({ page }) => {
+test("home shows live now dashboard with Kp, mini charts and Live min/max table", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: /^Live$/ })).toBeVisible({ timeout: dataTimeout });
-  await expect(page.getByRole("heading", { name: /Kp Live/ })).toBeVisible();
-  await expect(page.getByRole("heading", { name: /Live Solar Wind/ })).toBeVisible();
-  await expect(page.getByRole("table", { name: /Kp-index forecast \| Min \| Max/ })).toBeVisible();
-  await expect(page.getByText("Live now on Home — full reports in Details")).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Space Weather Now/ })).toBeVisible();
+  await expect(page.getByRole("table", { name: /Kp-index forecast/ })).toBeVisible();
   // Live freshness
-  await expect(page.getByText(/As of/ ).first()).toBeVisible();
   await expect(page.getByText(/Updated/ ).first()).toBeVisible();
-  // Chart paired with table
-  await expect(page.getByRole("img", { name: /Kp index observed history/ })).toBeVisible();
+  // Charts paired with tables
+  await expect(page.getByRole("img", { name: /Kp observed.*forecast.*Now/ })).toBeVisible();
+  await expect(page.getByRole("img", { name: /Solar wind speed, last 3 hours/ })).toBeVisible();
+  await expect(page.getByRole("img", { name: /Kiruna magnetogram/i })).toBeVisible();
+  // Mini charts carry a vertical axis; the four L1 charts carry a Now line
+  await expect(page.locator(".space-weather-now .recharts-yAxis")).toHaveCount(7);
+  await expect(page.locator(".space-weather-now .recharts-reference-line-line")).toHaveCount(4);
+  await expect(
+    page.locator(".space-weather-now .recharts-reference-line-line").first(),
+  ).toHaveAttribute("x", /^\d+\.?\d*$/);
+  // Now lines are labelled like in the Live panel
+  await expect(
+    page.locator(".space-weather-now").getByText("Now", { exact: true }).first(),
+  ).toBeVisible();
+  // Propagation-delay explainer
+  await expect(page.getByText(/We are \d+ minutes behind .*data, based on solar wind speed/)).toBeVisible();
 });
