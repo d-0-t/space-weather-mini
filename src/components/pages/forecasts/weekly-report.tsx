@@ -10,6 +10,8 @@ import {
 } from "../../../products/weekly-report";
 import { formatIssuedLocal } from "../../../products/product-header";
 import GlossaryTerm from "../../explainers/GlossaryTerm";
+import { SOURCES } from "../../../components/sources";
+import { SourceAttribution } from "../../../components/sources";
 
 const fetchWeeklyReport = async () => {
   const response = await fetch(WEEKLY_REPORT_URL);
@@ -72,6 +74,7 @@ const WeeklyReport: React.FC = () => {
           <SectionArticle section={data.highlights} />
         </>
       )}
+      <SourceAttribution source={SOURCES.noaaSwpc} />
     </div>
   );
 };

@@ -22,6 +22,8 @@ import {
 import { formatIssuedLocal } from "../../../products/product-header";
 import { kpClass } from "../../../styles/kp-class";
 import GlossaryTerm from "../../explainers/GlossaryTerm";
+import { SOURCES } from "../../../components/sources";
+import { SourceAttribution } from "../../../components/sources";
 
 const fetch27DayOutlook = async () => {
   const response = await fetch(TWENTY_SEVEN_DAY_OUTLOOK_URL);
@@ -162,6 +164,7 @@ const TwentySevenDayOutlook: React.FC = () => {
           </article>
         </>
       )}
+      <SourceAttribution source={SOURCES.noaaSwpc} />
     </div>
   );
 };

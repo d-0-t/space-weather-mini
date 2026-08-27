@@ -115,27 +115,49 @@ describe("Home Live Now dashboard (ticket 01)", () => {
       name: /Aurora Forecast.*North Pole/i,
     });
     const dialogs = document.querySelectorAll("dialog.image-modal");
-    // One per image: Kiruna, aurora north, aurora south
-    expect(dialogs.length).toBe(3);
-    expect((dialogs[1] as HTMLDialogElement).open).toBe(false);
+    // One per media: Kiruna, predicted solar wind video, aurora north, aurora south
+    expect(dialogs.length).toBe(4);
+    expect((dialogs[2] as HTMLDialogElement).open).toBe(false);
     await user.click(northTile);
-    expect((dialogs[1] as HTMLDialogElement).open).toBe(true);
+    expect((dialogs[2] as HTMLDialogElement).open).toBe(true);
     await user.keyboard("{Escape}");
-    expect((dialogs[1] as HTMLDialogElement).open).toBe(false);
+    expect((dialogs[2] as HTMLDialogElement).open).toBe(false);
   });
 
-  it("shows the Space Weather Now mini charts between Live and the aurora images", async () => {
+  it("shows the Solar Wind and Magnetosphere mini charts between Live and the aurora images", async () => {
     renderHome();
-    await waitFor(() =>
-      expect(screen.getByText("Solar wind")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText("Speed")).toBeInTheDocument());
     expect(
-      screen.getByRole("heading", { name: /Space Weather Now/ }),
+      screen.getByRole("heading", { name: /Solar Wind/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /Magnetosphere/ }),
     ).toBeInTheDocument();
     expect(screen.getByText("Kiruna magnetometer")).toBeInTheDocument();
     expect(
       screen.getByRole("img", { name: /kiruna magnetogram/i }),
     ).toBeInTheDocument();
+  });
+
+  it("attributes the live panels to their data sources", async () => {
+    renderHome();
+    await waitFor(() => expect(screen.getByText("Speed")).toBeInTheDocument());
+    // Single-source panels carry a panel footer: Solar Wind and Live
+    const noaaLinks = screen.getAllByRole("link", { name: /^NOAA\/SWPC$/ });
+    expect(noaaLinks.length).toBe(5); // Solar Wind + Live footers, hemi + Boulder cards, aurora images
+    // Four point at the SWPC root; the aurora one at its product page
+    expect(
+      noaaLinks.filter(
+        (link) =>
+          link.getAttribute("href") === "https://www.swpc.noaa.gov/",
+      ),
+    ).toHaveLength(4);
+    // Mixed-source panel: per-card attributions
+    expect(
+      screen.getByRole("link", { name: "WDC for Geomagnetism, Kyoto" }),
+    ).toBeInTheDocument();
+    const irfLinks = screen.getAllByRole("link", { name: /^IRF$/ });
+    expect(irfLinks.length).toBe(2); // Kiruna magnetogram + predicted solar wind
   });
 
   it("shows the predicted solar wind video panel with IRF source", async () => {
@@ -146,12 +168,14 @@ describe("Home Live Now dashboard (ticket 01)", () => {
     const video = document.querySelector("video")!;
     expect(video).toBeInTheDocument();
     expect(video.getAttribute("src")).toContain("swpc_enlil.mp4");
+    const irfLinks = screen.getAllByRole("link", { name: /^IRF$/ });
     expect(
-      screen.getByRole("link", { name: /^IRF$/ }),
-    ).toHaveAttribute(
-      "href",
-      "https://spaceweather.irf.se/forecast/enlil/",
-    );
+      irfLinks.some(
+        (link) =>
+          link.getAttribute("href") ===
+          "https://spaceweather.irf.se/forecast/enlil/",
+      ),
+    ).toBe(true);
   });
 
   it("shows stale-cache warning when live fetch fails but cached data exists", async () => {

@@ -116,7 +116,8 @@ test("the geophysical alert page renders", async ({ page }) => {
 test("home shows live now dashboard with Kp, mini charts and Live min/max table", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: /^Live$/ })).toBeVisible({ timeout: dataTimeout });
-  await expect(page.getByRole("heading", { name: /Space Weather Now/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Solar Wind/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Magnetosphere/ })).toBeVisible();
   await expect(page.getByRole("table", { name: /Kp-index forecast/ })).toBeVisible();
   // Live freshness
   await expect(page.getByText(/Updated/ ).first()).toBeVisible();
@@ -125,20 +126,24 @@ test("home shows live now dashboard with Kp, mini charts and Live min/max table"
   await expect(page.getByRole("img", { name: /Solar wind speed.*2 hours before Now/ })).toBeVisible();
   await expect(page.getByRole("img", { name: /Kiruna magnetogram/i })).toBeVisible();
   // Mini charts carry a vertical axis; the four L1 charts carry a Now line
-  await expect(page.locator(".space-weather-now .recharts-yAxis")).toHaveCount(7);
-  await expect(page.locator(".space-weather-now .recharts-reference-line-line")).toHaveCount(4);
+  await expect(page.locator(".live-panel .recharts-yAxis")).toHaveCount(7);
+  // Solar Wind: 4 Now lines (one per L1 chart); Magnetosphere: 1 (hemi mirror zero)
+  await expect(page.locator(".solar-wind .recharts-reference-line-line")).toHaveCount(4);
+  await expect(page.locator(".magnetosphere .recharts-reference-line-line")).toHaveCount(1);
   await expect(
-    page.locator(".space-weather-now .recharts-reference-line-line").first(),
+    page.locator(".solar-wind .recharts-reference-line-line").first(),
   ).toHaveAttribute("x", /^\d+\.?\d*$/);
   // Now lines are labelled like in the Live panel
   await expect(
-    page.locator(".space-weather-now").getByText("Now", { exact: true }).first(),
+    page.locator(".solar-wind").getByText("Now", { exact: true }).first(),
   ).toBeVisible();
   // Propagation-delay explainer
   await expect(page.getByText(/We are \d+ minutes behind .*data, based on solar wind speed/)).toBeVisible();
   // Native collapsible "?" help on every card
-  await expect(page.locator(".space-weather-now .space-weather-now__help").first()).toBeVisible();
-  await page.locator(".space-weather-now .space-weather-now__help").first().locator("summary").click();
+  await expect(page.locator(".live-panel .live-panel__help").first()).toBeVisible();
+  await page.locator(".live-panel .live-panel__help").first().locator("summary").click();
   await expect(page.getByText(/< 400 km\/s/)).toBeVisible();
   await expect(page.getByText("About solar wind")).toBeAttached();
+  // Source attributions at the bottom of the panels
+  await expect(page.getByRole("link", { name: "NOAA/SWPC" }).first()).toBeVisible();
 });

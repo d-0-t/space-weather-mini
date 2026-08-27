@@ -1,4 +1,4 @@
-.space-weather-now {
+.live-panel {
   &__grid {
     display: flex;
     flex-wrap: wrap;
@@ -12,7 +12,8 @@
   &__card {
     display: flex;
     flex: 1 1 320px;
-    min-width: 320px;
+    // 320px floor on wide screens; full-width on narrow (mobile) ones
+    min-width: min(320px, 100%);
     max-width: 480px;
     max-height: fit-content;
     box-sizing: border-box;
@@ -71,7 +72,7 @@
     }
 
     // Overlay popover – never reflows the card
-    .space-weather-now__popover {
+    .live-panel__popover {
       position: absolute;
       top: calc(100% + 6px);
       right: 0;
@@ -90,7 +91,7 @@
       }
     }
 
-    .space-weather-now__scale {
+    .live-panel__scale {
       list-style: none;
 
       li {
@@ -151,7 +152,6 @@
   &__fresh {
     margin: 0;
     font-size: 0.8rem;
-    color: var(--color-accent);
   }
 
   &__warning {
@@ -165,7 +165,7 @@
     gap: 0.5rem;
 
     // Width-only tile: matches the card max width, keeps its natural aspect
-    .space-weather-now__image-tile {
+    .live-panel__image-tile {
       display: block;
       width: 100%;
       max-width: 480px;

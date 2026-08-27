@@ -5,7 +5,6 @@ import { MemoryRouter } from "react-router-dom";
 
 import App from "./App";
 import Nav from "./navigation/Nav";
-import Footer from "./footer/Footer";
 import geoAlertFixture from "../products/fixtures/geophysical-alert.txt?raw";
 import threeDayFixture from "../products/fixtures/3-day-forecast.txt?raw";
 
@@ -24,9 +23,8 @@ const createFetchMock = () =>
   });
 
 /**
- * Helper that renders the shell the way index.tsx composes it after the
- * accessibility fix: skip link, header/nav, main, footer – no <center>.
- * Mirrors src/index.tsx:17-27.
+ * Helper that renders the shell the way index.tsx composes it: skip link,
+ * header/nav, main – no footer. Mirrors src/index.tsx.
  */
 const renderShell = (initialRoute = "/") => {
   vi.stubGlobal("fetch", createFetchMock());
@@ -41,7 +39,6 @@ const renderShell = (initialRoute = "/") => {
           <main id="main-content" tabIndex={-1}>
             <App />
           </main>
-          <Footer />
         </div>
       </MemoryRouter>
     </QueryClientProvider>,
@@ -63,14 +60,13 @@ describe("App shell accessibility", () => {
     expect(focusable[0]).toBe(skipLink);
   });
 
-  it("exposes the header banner, primary navigation, main, and contentinfo landmarks", async () => {
+  it("exposes the header banner, primary navigation and main landmarks", async () => {
     renderShell();
     expect(screen.getByRole("banner")).toBeInTheDocument();
     expect(
       screen.getByRole("navigation", { name: /primary/i }),
     ).toBeInTheDocument();
     expect(screen.getByRole("main")).toBeInTheDocument();
-    expect(screen.getByRole("contentinfo")).toBeInTheDocument();
     expect(screen.getByRole("main").getAttribute("id")).toBe("main-content");
   });
 

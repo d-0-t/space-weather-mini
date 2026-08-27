@@ -22,6 +22,8 @@ import {
 import { formatIssuedLocal } from "../../../products/product-header";
 import { kpClass } from "../../../styles/kp-class";
 import GlossaryTerm from "../../explainers/GlossaryTerm";
+import { SOURCES } from "../../../components/sources";
+import { SourceAttribution } from "../../../components/sources";
 
 const fetchThreeDayForecast = async () => {
   const response = await fetch(THREE_DAY_FORECAST_URL);
@@ -213,6 +215,7 @@ const ThreeDayForecast: React.FC = () => {
           </SectionArticle>
         </>
       )}
+      <SourceAttribution source={SOURCES.noaaSwpc} />
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 
 import FullSizeModal from "../../../../FullSizeModal";
+import { SourceAttribution } from "../../../../sources";
 
 import "./PredictedSolarWind.scss";
 
@@ -39,19 +40,15 @@ const PredictedSolarWind: React.FC = () => (
       </FullSizeModal>
       <figcaption>
         Visualization of the predicted solar wind speed over the coming days.
-        The Space Weather Now panel shows the wind arriving at Earth right now;
-        the{" "}
+        The Solar Wind panel shows the wind arriving at Earth right now; the{" "}
         <Link to="/forecasts/27days">27-day outlook</Link> and{" "}
         <Link to="/forecasts/3days">3-day forecast</Link> panels give the
         numbers behind this video.
       </figcaption>
     </figure>
-    <p className="predicted-solar-wind__source">
-      Source:{" "}
-      <a href={ENLIL_SOURCE_URL} target="_blank" rel="noopener noreferrer">
-        IRF
-      </a>
-    </p>
+    <SourceAttribution
+      source={{ label: "IRF", href: ENLIL_SOURCE_URL }}
+    />
   </article>
 );
 

@@ -25,6 +25,8 @@ import {
   NOAA_PLANETARY_K_INDEX_FORECAST_URL,
 } from "../../../../../products/noaa-planetary-k-index";
 import { formatAge } from "../../../../../products/live-helpers";
+import { SOURCES } from "../../../../sources";
+import { SourceAttribution } from "../../../../sources";
 
 import "./Live.scss";
 
@@ -532,6 +534,7 @@ const Live: React.FC = () => {
         <Link to="/forecasts/3days">Full 3-day forecast →</Link>
         <Link to="/forecasts/daily">Daily observations →</Link>
       </div>
+      <SourceAttribution source={SOURCES.noaaSwpc} />
     </article>
   );
 };

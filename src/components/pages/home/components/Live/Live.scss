@@ -5,8 +5,8 @@
     url("/assets/stars-transparent.png"),
     linear-gradient(
       0deg,
-      color-mix(in srgb, rgb(252, 190, 82) 15%, black) 0%,
-      color-mix(in srgb, rgb(255, 81, 0) 15%, black) 5%,
+      color-mix(in srgb, var(--color-gold) 15%, black) 0%,
+      color-mix(in srgb, var(--color-orange) 15%, black) 5%,
       color-mix(in srgb, var(--color-deep-indigo) 33%, black) 20%,
       color-mix(in srgb, var(--color-primary-violet) 5%, black)
     );
@@ -23,8 +23,7 @@
 
   &__moon {
     cursor: help;
-    font-size: 4rem;
-    line-height: 1rem;
+    font-size: 3rem;
     user-select: none;
     margin-right: -1rem;
   }

@@ -10,6 +10,8 @@ import {
 } from "../../../products/forecast-discussion";
 import { formatIssuedLocal } from "../../../products/product-header";
 import GlossaryTerm from "../../explainers/GlossaryTerm";
+import { SOURCES } from "../../../components/sources";
+import { SourceAttribution } from "../../../components/sources";
 
 const fetchForecastDiscussion = async () => {
   const response = await fetch(FORECAST_DISCUSSION_URL);
@@ -84,6 +86,7 @@ const ForecastDiscussion: React.FC = () => {
           <SectionArticle title="Geospace" section={data.geospace} />
         </>
       )}
+      <SourceAttribution source={SOURCES.noaaSwpc} />
     </div>
   );
 };

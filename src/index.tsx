@@ -6,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./index.scss";
 import App from "./components/App";
 import Nav from "./components/navigation/Nav";
-import Footer from "./components/footer/Footer";
 import reportWebVitals from "./reportWebVitals";
 
 const container = document.getElementById("root");
@@ -27,7 +26,6 @@ root.render(
           <main id="main-content" tabIndex={-1}>
             <App />
           </main>
-          <Footer />
         </div>
       </BrowserRouter>
     </QueryClientProvider>

@@ -46,108 +46,38 @@ const About: React.FC = () => {
       <article>
         <h2>Data &amp; Sources</h2>
         <p>
-          I used NASA's Space Weather data, parsed from their public
-          directories. They are freely available for you here:
+          I used NOAA SWPC&apos;s space weather data, parsed from their public
+          endpoints, plus live feeds from the Swedish Institute of Space
+          Physics and the World Data Center for Geomagnetism in Kyoto. All data
+          is freely available from its source:
         </p>
-        <h3 className="aboutDataLinksTitle">Resources used:</h3>
+        <h3 className="aboutDataLinksTitle">Sources:</h3>
         <ul className="aboutDataLinks">
           <li>
             <a
-              href="https://services.swpc.noaa.gov/text/"
+              href="https://www.swpc.noaa.gov/"
               rel="noopener noreferrer"
               target="_blank"
             >
-              SWPC NOAA text library (full)
+              NOAA/SWPC
             </a>
           </li>
           <li>
             <a
-              href="https://services.swpc.noaa.gov/text/27-day-outlook.txt"
+              href="https://spaceweather.irf.se/"
               rel="noopener noreferrer"
               target="_blank"
             >
-              SWPC NOAA 27 Day Outlook
+              Swedish space weather center (IRF)
             </a>
           </li>
           <li>
             <a
-              href="https://services.swpc.noaa.gov/text/3-day-forecast.txt"
+              href="https://wdc.kugi.kyoto-u.ac.jp/"
               rel="noopener noreferrer"
               target="_blank"
             >
-              SWPC NOAA 3 Day Forecast
-            </a>
-          </li>
-          <li>
-            <a
-              href="https://services.swpc.noaa.gov/text/3-day-geomag-forecast.txt"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              SWPC NOAA 3-Day Geomag Forecast
-            </a>{" "}
-          </li>
-          <li>
-            <a
-              href="https://services.swpc.noaa.gov/text/3-day-solar-geomag-predictions.txt"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              SWPC NOAA 3-Day Solar-Geomag Predictions
-            </a>{" "}
-          </li>
-          <li>
-            <a
-              href="https://services.swpc.noaa.gov/text/weekly.txt"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              SWPC NOAA Weekly
-            </a>
-          </li>
-          <li>
-            <a
-              href="https://services.swpc.noaa.gov/text/daily-geomagnetic-indices.txt"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              SWPC NOAA Daily Geomagnetic Indices
-            </a>
-          </li>
-          <li>
-            <a
-              href="https://services.swpc.noaa.gov/text/discussion.txt"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              SWPC NOAA Discussion
-            </a>
-          </li>
-          <li>
-            <a
-              href="https://services.swpc.noaa.gov/text/wwv.txt"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              SWPC NOAA Geophysical Alert Message
-            </a>
-          </li>
-          <li>
-            <a
-              href="https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              SWPC NOAA Planetary K-index (observed) – JSON
-            </a>
-          </li>
-          <li>
-            <a
-              href="https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              SWPC NOAA Planetary K-index Forecast – JSON
+              WDC for Geomagnetism, Kyoto
             </a>
           </li>
         </ul>

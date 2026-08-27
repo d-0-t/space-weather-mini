@@ -24,6 +24,8 @@ import {
 import { formatIssuedLocal } from "../../../products/product-header";
 import { kpClass } from "../../../styles/kp-class";
 import GlossaryTerm from "../../explainers/GlossaryTerm";
+import { SOURCES } from "../../../components/sources";
+import { SourceAttribution } from "../../../components/sources";
 
 const fetchDailyGeomagneticIndices = async () => {
   const response = await fetch(DAILY_GEOMAGNETIC_INDICES_URL);
@@ -208,6 +210,7 @@ const DailyGeomagneticIndices: React.FC = () => {
           </article>
         </>
       )}
+      <SourceAttribution source={SOURCES.noaaSwpc} />
     </div>
   );
 };

@@ -9,6 +9,8 @@ import {
 } from "../../../products/geophysical-alert";
 import { formatIssuedLocal } from "../../../products/product-header";
 import GlossaryTerm from "../../explainers/GlossaryTerm";
+import { SOURCES } from "../../../components/sources";
+import { SourceAttribution } from "../../../components/sources";
 
 const fetchGeophysicalAlert = async () => {
   const response = await fetch(GEOPHYSICAL_ALERT_URL);
@@ -78,6 +80,7 @@ const GeophysicalAlert: React.FC = () => {
           </article>
         </>
       )}
+      <SourceAttribution source={SOURCES.noaaSwpc} />
     </div>
   );
 };

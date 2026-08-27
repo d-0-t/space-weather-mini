@@ -1,5 +1,6 @@
 import "../pages/Pages.scss";
 import FullSizeModal from "../FullSizeModal";
+import { SourceAttribution } from "../sources";
 
 const AURORA_IMAGE_URLS = {
   north: "https://services.swpc.noaa.gov/images/animations/ovation/north/latest.jpg",
@@ -33,12 +34,12 @@ function VisualAuroras() {
             <img alt={auroraAlt("South")} src={AURORA_IMAGE_URLS.south} />
           </FullSizeModal>
         </div>
-        <p>
-          Source:{" "}
-          <a href="https://www.swpc.noaa.gov/products/aurora-30-minute-forecast">
-            SWPC NOAA
-          </a>
-        </p>
+        <SourceAttribution
+          source={{
+            label: "NOAA/SWPC",
+            href: "https://www.swpc.noaa.gov/products/aurora-30-minute-forecast",
+          }}
+        />
       </article>
     </div>
   );

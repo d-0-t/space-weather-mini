@@ -2,7 +2,8 @@ import "../Pages.scss";
 import "./Home.scss";
 import VisualAuroras from "../../visualtabs/Auroras";
 import Live from "./components/Live/Live";
-import SpaceWeatherNow from "./components/SpaceWeatherNow/SpaceWeatherNow";
+import SolarWind from "./components/SolarWind/SolarWind";
+import Magnetosphere from "./components/Magnetosphere/Magnetosphere";
 import PredictedSolarWind from "./components/PredictedSolarWind/PredictedSolarWind";
 
 const Home: React.FC = () => {
@@ -11,9 +12,10 @@ const Home: React.FC = () => {
       <h1>Home</h1>
       <div className="home__flow">
         <Live />
-        <SpaceWeatherNow />
-        <PredictedSolarWind />
         <VisualAuroras />
+        <SolarWind />
+        <Magnetosphere />
+        <PredictedSolarWind />
       </div>
     </div>
   );

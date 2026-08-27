@@ -12,6 +12,7 @@ const tablesScss = read("../components/pages/Tables.scss");
 const pagesScss = read("../components/pages/Pages.scss");
 const homeScss = read("../components/pages/home/Home.scss");
 const navScss = read("../components/navigation/Nav.scss");
+const sourcesScss = read("../components/sources.scss");
 
 // Helper to walk src for scss files
 function allScssFiles(dir: string = resolve(__dirname, "..")): string[] {
@@ -76,7 +77,7 @@ describe("UI palette final sweep – ticket 03 contract", () => {
     expect(hasGlobalStarInNav).toBe(false);
   });
 
-  it("recolors remaining chrome via tokens: app shell, Recharts axis/tooltip, aurora image and home mini-card borders, footer muted text", () => {
+  it("recolors remaining chrome via tokens: app shell, Recharts axis/tooltip, aurora image and home mini-card borders, source attribution", () => {
     // Recharts axis text fill must be via token, not hardcoded rgb(220, 204, 204)
     expect(indexScss).not.toContain("rgb(220, 204, 204)");
     expect(indexScss).toContain(".recharts-text");
@@ -88,8 +89,8 @@ describe("UI palette final sweep – ticket 03 contract", () => {
     expect(pagesScss).toContain("border: 3px solid var(--color-border-muted)");
     // Home mini-card borders already via token (now in home/Home.scss per atomic design)
     expect(homeScss).toContain("border: 2px dashed var(--color-border-muted-transparent)");
-    // Footer muted text via token (color-mix with white)
-    expect(pagesScss).toMatch(/footer\s*\{[^}]*color\s*:\s*color-mix\(in srgb, var\(--color-white\)/);
+    // Source attribution lines (panel/page footers) use the accent token
+    expect(sourcesScss).toMatch(/\.source-attribution\s*\{[^}]*color\s*:\s*var\(--color-accent\)/);
     // Tables text-shadow is the user's var(--text-stroke-black) (allowed as chrome, not raw)
     expect(tablesScss).toMatch(/text-shadow:\s*var\(--text-stroke-black\)/);
   });
