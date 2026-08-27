@@ -1,0 +1,39 @@
+.kp-bar {
+  display: flex;
+  margin: 8px 0 12px;
+
+  --border-width: 0.4rem;
+
+  &::after {
+    content: "";
+    width: var(--border-width);
+    height: 2.6rem;
+    background-color: var(--color-border-muted);
+    opacity: 0.5;
+  }
+
+  &__start,
+  &__stop {
+    width: var(--border-width);
+    height: 2.6rem;
+    background-color: var(--color-accent);
+  }
+
+  &__segment {
+    box-sizing: border-box;
+    text-align: center;
+    font-weight: 600;
+    padding: 4px;
+    flex: 1;
+
+    background: color-mix(in srgb, var(--color-deep-indigo) 15%, black);
+    border: var(--border-width) solid var(--color-accent);
+    border-right: 0;
+    border-left: 0;
+
+    &--empty {
+      border-color: var(--color-border-muted);
+      opacity: 0.5;
+    }
+  }
+}

@@ -37,17 +37,19 @@ tr:nth-child(2n + 1) {
   background-color: color-mix(in srgb, var(--color-deep-indigo) 30%, black);
 }
 
-.kp01,
-.kp12,
-.kp23,
 .kp34,
 .kp45,
-.kp56,
-.kp67,
 .kp78,
 .kp89,
 .kp9 {
   text-shadow: var(--text-stroke-black);
+}
+.kp01,
+.kp12,
+.kp23,
+.kp56,
+.kp67 {
+  text-shadow: none;
 }
 
 .kp01 {
@@ -70,12 +72,10 @@ tr:nth-child(2n + 1) {
 .kp56 {
   background-color: rgb(187, 255, 0) !important;
   color: rgb(0, 39, 27) !important;
-  text-shadow: none;
 }
 .kp67 {
   background-color: rgb(255, 166, 0) !important;
   color: rgb(36, 33, 33) !important;
-  text-shadow: none;
 }
 .kp78 {
   background-color: rgb(255, 102, 0) !important;

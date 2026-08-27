@@ -1,0 +1,79 @@
+.aurora-now {
+  height: fit-content;
+
+  background-image:
+    url("/assets/stars-transparent.png"),
+    linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--color-gold) 15%, black) 0%,
+      color-mix(in srgb, var(--color-orange) 15%, black) 5%,
+      color-mix(in srgb, var(--color-deep-indigo) 33%, black) 20%,
+      color-mix(in srgb, var(--color-primary-violet) 5%, black)
+    );
+  background-repeat: repeat;
+  background-size: 50%;
+  background-blend-mode: screen;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  &__moon {
+    cursor: help;
+    font-size: 3rem;
+    user-select: none;
+    margin-right: -1rem;
+  }
+
+  &__current {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1rem;
+    text-align: center;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+
+    &__kp {
+      font-size: 3rem;
+      border-radius: 10rem;
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      border: 3px dotted white;
+    }
+    &__time {
+      font-size: 0.85rem;
+    }
+  }
+}
+
+.aurora-images {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+
+  // Width-only tiles: cap at the card max width, keep the natural aspect
+  .aurora-images__tile {
+    flex: 1 0 200px;
+    max-width: 480px;
+    box-sizing: border-box;
+    margin: 5px;
+    padding: 0;
+    display: block;
+    border: 3px solid var(--color-border-muted);
+    border-radius: 5px;
+    background: var(--color-black);
+    cursor: pointer;
+
+    img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+  }
+}

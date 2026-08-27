@@ -44,12 +44,10 @@ const FROZEN_KP = [
   `.kp56 {
   background-color: rgb(187, 255, 0) !important;
   color: rgb(0, 39, 27) !important;
-  text-shadow: none;
 }`,
   `.kp67 {
   background-color: rgb(255, 166, 0) !important;
   color: rgb(36, 33, 33) !important;
-  text-shadow: none;
 }`,
   `.kp78 {
   background-color: rgb(255, 102, 0) !important;

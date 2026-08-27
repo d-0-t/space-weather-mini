@@ -14,7 +14,7 @@
     flex: 1 1 320px;
     // 320px floor on wide screens; full-width on narrow (mobile) ones
     min-width: min(320px, 100%);
-    max-width: 480px;
+    //max-width: 480px;
     max-height: fit-content;
     box-sizing: border-box;
     flex-direction: column;

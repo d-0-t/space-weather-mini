@@ -85,10 +85,12 @@ describe("UI palette final sweep – ticket 03 contract", () => {
     // Tooltip background must be via token, not keyword black/rgb
     expect(indexScss).not.toMatch(/\.recharts-default-tooltip\s*\{[^}]*background-color\s*:\s*black/);
     expect(indexScss).toMatch(/\.recharts-default-tooltip\s*\{[^}]*background-color\s*:\s*var\(--color-/);
-    // Aurora image borders already via token (Pages.scss)
-    expect(pagesScss).toContain("border: 3px solid var(--color-border-muted)");
-    // Home mini-card borders already via token (now in home/Home.scss per atomic design)
-    expect(homeScss).toContain("border: 2px dashed var(--color-border-muted-transparent)");
+    // Aurora image borders already via token (AuroraNow.scss)
+    const auroraNowScss = read("../components/pages/home/components/AuroraNow/AuroraNow.scss");
+    expect(auroraNowScss).toContain("border: 3px solid var(--color-border-muted)");
+    // Home mini-card borders already via token (live-panels.scss)
+    const livePanelsScss = read("../components/pages/home/components/live-panels/live-panels.scss");
+    expect(livePanelsScss).toContain("border: 1px solid var(--color-border-muted)");
     // Source attribution lines (panel/page footers) use the accent token
     expect(sourcesScss).toMatch(/\.source-attribution\s*\{[^}]*color\s*:\s*var\(--color-accent\)/);
     // Tables text-shadow is the user's var(--text-stroke-black) (allowed as chrome, not raw)

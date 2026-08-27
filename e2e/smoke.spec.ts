@@ -113,9 +113,10 @@ test("the geophysical alert page renders", async ({ page }) => {
   ).toBeVisible({ timeout: dataTimeout });
 });
 
-test("home shows live now dashboard with Kp, mini charts and Live min/max table", async ({ page }) => {
+test("home shows live now dashboard with Kp, mini charts and Kp min/max table", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /^Live$/ })).toBeVisible({ timeout: dataTimeout });
+  await expect(page.getByRole("heading", { name: /^Aurora Now$/ })).toBeVisible({ timeout: dataTimeout });
+  await expect(page.getByRole("heading", { name: /^Forecast$/ })).toBeVisible();
   await expect(page.getByRole("heading", { name: /Solar Wind/ })).toBeVisible();
   await expect(page.getByRole("heading", { name: /Magnetosphere/ })).toBeVisible();
   await expect(page.getByRole("table", { name: /Kp-index forecast/ })).toBeVisible();
@@ -133,7 +134,7 @@ test("home shows live now dashboard with Kp, mini charts and Live min/max table"
   await expect(
     page.locator(".solar-wind .recharts-reference-line-line").first(),
   ).toHaveAttribute("x", /^\d+\.?\d*$/);
-  // Now lines are labelled like in the Live panel
+  // Now lines are labelled like in the Forecast panel
   await expect(
     page.locator(".solar-wind").getByText("Now", { exact: true }).first(),
   ).toBeVisible();

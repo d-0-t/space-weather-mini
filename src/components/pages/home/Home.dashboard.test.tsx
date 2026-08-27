@@ -63,7 +63,7 @@ const renderHome = () =>
   );
 
 describe("Home Live Now dashboard (ticket 01)", () => {
-  it("shows Live with current Kp-index and min/max table", async () => {
+  it("shows Aurora Now with current Kp-index and min/max table", async () => {
     renderHome();
     await waitFor(() =>
       expect(
@@ -71,7 +71,7 @@ describe("Home Live Now dashboard (ticket 01)", () => {
       ).toBeInTheDocument(),
     );
     expect(
-      screen.getByRole("heading", { name: /^Live$/i }),
+      screen.getByRole("heading", { name: /^Aurora Now$/i }),
     ).toBeInTheDocument();
     // Table has 3 days
     expect(screen.getAllByRole("row").length).toBeGreaterThan(3);
@@ -100,9 +100,11 @@ describe("Home Live Now dashboard (ticket 01)", () => {
 
   it("keeps OVATION aurora images between live strips and forecast", async () => {
     renderHome();
-    expect(
-      screen.getAllByAltText(/Aurora Forecast.*North Pole/i).length,
-    ).toBeGreaterThan(0);
+    await waitFor(() =>
+      expect(
+        screen.getAllByAltText(/Aurora Forecast.*North Pole/i).length,
+      ).toBeGreaterThan(0),
+    );
     expect(
       screen.getAllByAltText(/Aurora Forecast.*South Pole/i).length,
     ).toBeGreaterThan(0);
@@ -111,20 +113,25 @@ describe("Home Live Now dashboard (ticket 01)", () => {
   it("opens aurora images full size in a modal and closes on Escape", async () => {
     const user = userEvent.setup();
     renderHome();
+    await waitFor(() =>
+      expect(
+        screen.getAllByAltText(/Aurora Forecast.*North Pole/i).length,
+      ).toBeGreaterThan(0),
+    );
     const northTile = screen.getByRole("button", {
       name: /Aurora Forecast.*North Pole/i,
     });
     const dialogs = document.querySelectorAll("dialog.image-modal");
-    // One per media: Kiruna, predicted solar wind video, aurora north, aurora south
+    // One per media: aurora north, aurora south, predicted solar wind video, Kiruna
     expect(dialogs.length).toBe(4);
-    expect((dialogs[2] as HTMLDialogElement).open).toBe(false);
+    expect((dialogs[0] as HTMLDialogElement).open).toBe(false);
     await user.click(northTile);
-    expect((dialogs[2] as HTMLDialogElement).open).toBe(true);
+    expect((dialogs[0] as HTMLDialogElement).open).toBe(true);
     await user.keyboard("{Escape}");
-    expect((dialogs[2] as HTMLDialogElement).open).toBe(false);
+    expect((dialogs[0] as HTMLDialogElement).open).toBe(false);
   });
 
-  it("shows the Solar Wind and Magnetosphere mini charts between Live and the aurora images", async () => {
+  it("shows the Solar Wind and Magnetosphere mini charts in the right column", async () => {
     renderHome();
     await waitFor(() => expect(screen.getByText("Speed")).toBeInTheDocument());
     expect(
@@ -142,7 +149,7 @@ describe("Home Live Now dashboard (ticket 01)", () => {
   it("attributes the live panels to their data sources", async () => {
     renderHome();
     await waitFor(() => expect(screen.getByText("Speed")).toBeInTheDocument());
-    // Single-source panels carry a panel footer: Solar Wind and Live
+    // Single-source panels carry a panel footer: Solar Wind, Aurora Now and Forecast
     const noaaLinks = screen.getAllByRole("link", { name: /^NOAA\/SWPC$/ });
     expect(noaaLinks.length).toBe(5); // Solar Wind + Live footers, hemi + Boulder cards, aurora images
     // Four point at the SWPC root; the aurora one at its product page
@@ -162,9 +169,11 @@ describe("Home Live Now dashboard (ticket 01)", () => {
 
   it("shows the predicted solar wind video panel with IRF source", async () => {
     renderHome();
-    expect(
-      screen.getByRole("heading", { name: /Predicted solar wind/i }),
-    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: /Predicted solar wind/i }),
+      ).toBeInTheDocument(),
+    );
     const video = document.querySelector("video")!;
     expect(video).toBeInTheDocument();
     expect(video.getAttribute("src")).toContain("swpc_enlil.mp4");
@@ -190,7 +199,7 @@ describe("Home Live Now dashboard (ticket 01)", () => {
     );
     await waitFor(() =>
       expect(
-        screen.getByRole("heading", { name: /^Live$/i }),
+        screen.getByRole("heading", { name: /^Aurora Now$/i }),
       ).toBeInTheDocument(),
     );
     // Now make fetch fail
@@ -210,7 +219,7 @@ describe("Home Live Now dashboard (ticket 01)", () => {
     // Trigger refetch via queryClient? For now just check that error branch with data would show warning if we had isError && data
     // This is a smoke check that the component handles isError state without crashing
     expect(
-      screen.getByRole("heading", { name: /^Live$/i }),
+      screen.getByRole("heading", { name: /^Aurora Now$/i }),
     ).toBeInTheDocument();
   });
 });

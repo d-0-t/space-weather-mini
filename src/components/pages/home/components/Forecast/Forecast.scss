@@ -1,0 +1,67 @@
+.forecast {
+  &__chart {
+    margin: 0.75rem 0 0;
+  }
+
+  &__day {
+    line-height: 1.15;
+    text-align: center;
+    white-space: nowrap;
+    font-weight: 500;
+  }
+
+  &__figure {
+    margin: 0;
+  }
+
+  // Width-only preview tile: capped at the card max width, natural aspect
+  &__video-tile {
+    display: block;
+    width: 100%;
+    max-width: 480px;
+    box-sizing: border-box;
+    margin: 0 auto;
+    padding: 0;
+    border: 1px solid var(--color-border-muted);
+    border-radius: 8px;
+    background: var(--color-black);
+    cursor: pointer;
+    overflow: hidden;
+
+    video {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+  }
+
+  &__figure figcaption {
+    margin: 0.5rem 0 0;
+    line-height: 1.4;
+  }
+
+  &__links {
+    display: flex;
+    flex-wrap: wrap;
+    width: fit-content;
+    gap: 0.25rem;
+    margin-top: 1rem;
+
+    & > * {
+      display: flex;
+      align-items: center;
+      min-height: 44px;
+      padding: 4px;
+      border-radius: 8px;
+      background-color: color-mix(
+        in srgb,
+        var(--color-deep-indigo) 30%,
+        rgba(0, 0, 0, 0.508)
+      );
+    }
+  }
+}
+
+.mini-table-heading {
+  margin-top: 0;
+}

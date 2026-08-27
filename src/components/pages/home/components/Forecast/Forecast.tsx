@@ -12,78 +12,23 @@ import {
   YAxis,
 } from "recharts";
 
-import {
-  parseThreeDayForecast,
-  THREE_DAY_FORECAST_URL,
-} from "../../../../../products/3-day-forecast";
-import {
-  parsePlanetaryKIndex,
-  NOAA_PLANETARY_K_INDEX_URL,
-} from "../../../../../products/noaa-planetary-k-index";
-import {
-  parsePlanetaryKIndexForecast,
-  NOAA_PLANETARY_K_INDEX_FORECAST_URL,
-} from "../../../../../products/noaa-planetary-k-index";
-import { formatAge } from "../../../../../products/live-helpers";
+import FullSizeModal from "../../../../FullSizeModal";
 import { SOURCES } from "../../../../sources";
 import { SourceAttribution } from "../../../../sources";
+import {
+  MONTHS_SHORT,
+  fetchKpForecast,
+  fetchKpObserved,
+  fetchThreeDay,
+  formatChartLabel,
+  formatDayLabel,
+  formatKp,
+} from "../kp-panel/kp-panel";
 
-import "./Live.scss";
+import "./Forecast.scss";
 
-const MONTHS_SHORT = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-
-/** Formats "Aug 25" → "Tuesday\n25/08" (weekday and short date on two lines) */
-export function formatDayLabel(dayLabel: string): string {
-  const [monStr, dayStr] = dayLabel.split(" ");
-  const monthIndex = MONTHS_SHORT.indexOf(monStr);
-  if (monthIndex === -1) return dayLabel;
-  const now = new Date();
-  const d = new Date(
-    Date.UTC(now.getUTCFullYear(), monthIndex, Number(dayStr)),
-  );
-  if (isNaN(d.getTime())) return dayLabel;
-  const weekday = d.toLocaleDateString("en-US", {
-    weekday: "long",
-    timeZone: "UTC",
-  });
-  const dd = String(d.getUTCDate()).padStart(2, "0");
-  const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
-  return `${weekday}\n${dd}/${mm}`;
-}
-
-/** Formats ISO "2026-08-18T00:00:00" → "Aug 18\n00:00" for chart XAxis (two lines) */
-export function formatChartLabel(timeTag: string): string {
-  const iso =
-    timeTag.endsWith("Z") || timeTag.includes("+") ? timeTag : `${timeTag}Z`;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) {
-    const sliced = timeTag.slice(5, 16); // "08-18T00:00"
-    const [datePart, timePart] = sliced.split("T");
-    if (!datePart || !timePart) return sliced.replace("T", "\n");
-    const [mm, dd] = datePart.split("-");
-    const monthIdx = Number(mm) - 1;
-    const mon = MONTHS_SHORT[monthIdx] ?? mm;
-    return `${mon} ${dd}\n${timePart}`;
-  }
-  const mon = MONTHS_SHORT[d.getUTCMonth()];
-  const day = String(d.getUTCDate());
-  const hh = String(d.getUTCHours()).padStart(2, "0");
-  const mins = String(d.getUTCMinutes()).padStart(2, "0");
-  return `${mon} ${day}\n${hh}:${mins}`;
-}
+const ENLIL_VIDEO_URL = "https://spaceweather.irf.se/data/swpc_enlil.mp4";
+const ENLIL_SOURCE_URL = "https://spaceweather.irf.se/forecast/enlil/";
 
 /** Two-line tick for chart: "Aug 18\n00:00" → two tspans */
 const KpChartTick = (props: {
@@ -118,120 +63,11 @@ const KpChartTick = (props: {
   );
 };
 
-export function formatKp(kp: number): string {
-  return `Kp${kp}`;
-}
-
-export function formatTimeSlot(slot: string): string {
-  return slot.replace("-", ":00 - ").replace("UT", ":00 UTC");
-}
-
-const KP_SEGMENT_CLASSES = [
-  "kp01",
-  "kp12",
-  "kp23",
-  "kp34",
-  "kp45",
-  "kp56",
-  "kp67",
-  "kp78",
-  "kp89",
-  "kp9",
-] as const;
-
-export const KpBar: React.FC<{ kp: number }> = ({ kp }) => {
-  const filled = Math.min(9, kp);
-  return (
-    <div className="kp-bar" role="img" aria-label={`Kp ${kp} on a scale of 0 to 9`}>
-      <span className="sr-only">
-        {`Kp ${kp} on scale 0 to 9, ${filled} of 9 segments colored`}
-      </span>
-      <span aria-hidden="true" className="kp-bar__start" />
-      {KP_SEGMENT_CLASSES.map((cls, i) => {
-        const nextIsNotFilled = i + 1 > filled;
-        const isFilled = i <= filled;
-        const stopNow = (nextIsNotFilled && isFilled) || (isFilled && i >= 9);
-        return (
-          <span key={cls} style={{ display: "contents" }}>
-            <span
-              className={`kp-bar__segment ${isFilled ? cls : "kp-bar__segment--empty"}`}
-            >
-              {i}
-            </span>
-            {stopNow ? <span className="kp-bar__stop" /> : null}
-          </span>
-        );
-      })}
-    </div>
-  );
-};
-
-export interface MoonPhase {
-  emoji: string;
-  name: string;
-}
-
-const MOON_PHASES: MoonPhase[] = [
-  { emoji: "🌑", name: "New moon" },
-  { emoji: "🌒", name: "Waxing crescent" },
-  { emoji: "🌓", name: "First quarter" },
-  { emoji: "🌔", name: "Waxing gibbous" },
-  { emoji: "🌕", name: "Full moon" },
-  { emoji: "🌖", name: "Waning gibbous" },
-  { emoji: "🌗", name: "Last quarter" },
-  { emoji: "🌘", name: "Waning crescent" },
-];
-
-const SYNODIC_MONTH_DAYS = 29.530588853;
-// Known new moon reference: 2000-01-06 18:14 UTC (Meeus)
-const NEW_MOON_REF_UTC = Date.UTC(2000, 0, 6, 18, 14);
-
-/** Current moon phase from a date, as an emoji + name pair. */
-export function getMoonPhase(date: Date = new Date()): MoonPhase {
-  const daysSince = (date.getTime() - NEW_MOON_REF_UTC) / 86_400_000;
-  const fraction = (((daysSince / SYNODIC_MONTH_DAYS) % 1) + 1) % 1;
-  const index = Math.floor(fraction * 8) % 8;
-  return MOON_PHASES[index];
-}
-
-/** Emoji-only moon badge – labelled via title + sr-only span. */
-const MoonPhaseBadge: React.FC = () => {
-  const phase = getMoonPhase();
-  return (
-    <span className="live__moon" title={`Current Moon phase: ${phase.name}`}>
-      <span aria-hidden="true">{phase.emoji}</span>
-      <span className="sr-only">{`Current Moon phase: ${phase.name}`}</span>
-    </span>
-  );
-};
-
-const LiveHeader: React.FC = () => (
-  <div className="live__header">
-    <h2>Live</h2>
-    <MoonPhaseBadge />
-  </div>
-);
-
-const fetchThreeDay = async () => {
-  const response = await fetch(THREE_DAY_FORECAST_URL);
-  if (!response.ok) throw new Error(`NOAA returned ${response.status}`);
-  return parseThreeDayForecast(await response.text());
-};
-
-const fetchKpObserved = async () => {
-  const response = await fetch(NOAA_PLANETARY_K_INDEX_URL);
-  if (!response.ok) throw new Error(`NOAA returned ${response.status}`);
-  return parsePlanetaryKIndex(await response.text());
-};
-
-const fetchKpForecast = async () => {
-  const response = await fetch(NOAA_PLANETARY_K_INDEX_FORECAST_URL);
-  if (!response.ok) throw new Error(`NOAA returned ${response.status}`);
-  return parsePlanetaryKIndexForecast(await response.text());
-};
-
-/** Live – current observed Kp + min/max per day + merged observed/forecast chart */
-const Live: React.FC = () => {
+/**
+ * Forecast – observed + forecast Kp chart, the 3-day min/max table, the
+ * IRF ENLIL predicted solar wind video and links to the full forecast pages.
+ */
+const Forecast: React.FC = () => {
   const { data } = useQuery({
     queryKey: ["3-day-forecast"],
     queryFn: fetchThreeDay,
@@ -253,20 +89,20 @@ const Live: React.FC = () => {
     gcTime: 10 * 60 * 1000,
   });
 
-  // The live panel renders from the planetary JSON endpoints alone; the
+  // The forecast panel renders from the planetary JSON endpoints alone; the
   // 3-day text product is only an optional fallback for the min/max table.
   if (observedQuery.isPending && !observedQuery.data) {
     return (
-      <article aria-busy="true">
-        <LiveHeader />
+      <article className="forecast" aria-busy="true">
+        <h2>Forecast</h2>
         <p>Loading Kp forecast…</p>
       </article>
     );
   }
   if (observedQuery.isError && !observedQuery.data) {
     return (
-      <article>
-        <LiveHeader />
+      <article className="forecast">
+        <h2>Forecast</h2>
         <p>Couldn&apos;t load Kp forecast. Please check back later.</p>
       </article>
     );
@@ -275,18 +111,7 @@ const Live: React.FC = () => {
 
   const observed = observedQuery.data;
   const forecast = forecastQuery.data;
-  const latestObserved = observed[observed.length - 1];
-  const currentKp = latestObserved.Kp;
-  const currentKpRounded = Math.floor(currentKp);
-  // Current 3h window label derived from the latest observed time_tag, so a
-  // 3-day text failure never blanks the panel.
-  const observedTime = new Date(`${latestObserved.time_tag}Z`);
-  const slotStart = Number.isNaN(observedTime.getTime())
-    ? NaN
-    : Math.floor(observedTime.getUTCHours() / 3) * 3;
-  const currentSlot = Number.isNaN(slotStart)
-    ? ""
-    : `${String(slotStart).padStart(2, "0")}-${String(slotStart + 3).padStart(2, "0")}UT`;
+
   // Mini table groups planetary JSON observed+forecast by UTC calendar day for
   // today/tomorrow/dayAfter (UTC) so "today" is never missing; the 3-day text
   // breakdown fills any day the JSON has no bucket for yet.
@@ -365,34 +190,18 @@ const Live: React.FC = () => {
   const mergedData = [...observedChartData, ...forecastChartData].sort((a, b) =>
     a.time.localeCompare(b.time),
   );
+  const latestObserved = observed[observed.length - 1];
   const nowLabel = formatChartLabel(latestObserved.time_tag);
-  const age = formatAge(latestObserved.time_tag);
   const firstLabel = mergedData[0]?.label;
   const lastLabel = mergedData[mergedData.length - 1]?.label;
 
   return (
-    <article className="live">
-      <LiveHeader />
-      <div className="live__current">
-        <span className="live__current__time">
-          {formatTimeSlot(currentSlot)}
-        </span>
-        <span
-          className={`live__current__kp kp${currentKpRounded >= 9 ? "9" : currentKpRounded + "" + (currentKpRounded + 1)}`}
-        >
-          {formatKp(currentKp)}
-        </span>
-      </div>
-      <KpBar kp={currentKpRounded} />
-      {observedQuery.isError && observed ? (
-        <p aria-live="polite">
-          ⚠ Live data unavailable – showing {age}-old cache
-        </p>
-      ) : null}
+    <article className="forecast">
+      <h2>Forecast</h2>
       <div
         role="img"
         aria-label={`Kp observed (green circles) and forecast (plum triangles) merged, vertical Now at ${nowLabel.replace("\n", " ")}`}
-        className="live__chart"
+        className="forecast__chart"
       >
         <ResponsiveContainer width="100%" height={220}>
           <LineChart data={mergedData} margin={{ bottom: 20 }}>
@@ -491,8 +300,9 @@ const Live: React.FC = () => {
           </LineChart>
         </ResponsiveContainer>
       </div>
+      <h3 className="mini-table-heading">3-Day Kp-index forecast</h3>
       <table>
-        <caption>Kp-index forecast (UTC)</caption>
+        <caption className="sr-only">3-Day Kp-index forecast</caption>
         <thead>
           <tr>
             <th scope="col">Day</th>
@@ -506,7 +316,7 @@ const Live: React.FC = () => {
             const parts = label.split("\n");
             return (
               <tr key={r.day}>
-                <th scope="row" className="live__day">
+                <th scope="row" className="forecast__day">
                   {parts[0]}
                   {parts[1] ? (
                     <>
@@ -530,13 +340,44 @@ const Live: React.FC = () => {
           })}
         </tbody>
       </table>
-      <div className="live__links">
+      <SourceAttribution source={SOURCES.noaaSwpc} />
+      <h3>Predicted solar wind</h3>
+      <figure className="forecast__figure">
+        <FullSizeModal
+          label="Predicted solar wind video, full size"
+          triggerClassName="forecast__video-tile"
+          trigger={
+            <video
+              aria-hidden="true"
+              muted
+              preload="metadata"
+              src={ENLIL_VIDEO_URL}
+            />
+          }
+        >
+          <video controls preload="metadata" src={ENLIL_VIDEO_URL}>
+            <p>
+              Your browser can&apos;t play this video – see the{" "}
+              <Link to="/forecasts/27days">27-day outlook</Link> and the{" "}
+              <Link to="/forecasts/3days">3-day forecast</Link> panels instead.
+            </p>
+          </video>
+        </FullSizeModal>
+        <figcaption>
+          Visualization of the predicted solar wind speed over the coming days.
+          The Solar Wind panel shows the wind arriving at Earth right now; the{" "}
+          <Link to="/forecasts/27days">27-day outlook</Link> and{" "}
+          <Link to="/forecasts/3days">3-day forecast</Link> panels give the
+          numbers behind this video.
+        </figcaption>
+      </figure>
+      <SourceAttribution source={{ label: "IRF", href: ENLIL_SOURCE_URL }} />
+      <div className="forecast__links">
         <Link to="/forecasts/3days">Full 3-day forecast →</Link>
         <Link to="/forecasts/daily">Daily observations →</Link>
       </div>
-      <SourceAttribution source={SOURCES.noaaSwpc} />
     </article>
   );
 };
 
-export default Live;
+export default Forecast;
