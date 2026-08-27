@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import {
   CartesianGrid,
   Line,
@@ -424,6 +424,21 @@ export const ChartHelp: React.FC<{ content: ChartHelpContent }> = ({ content }) 
       detailsRef.current.querySelector("summary")?.focus();
     }
   };
+  // A click outside the trigger or the popover closes it
+  useEffect(() => {
+    const el = detailsRef.current;
+    if (!el) return;
+    const onPointerDown = (event: PointerEvent) => {
+      // Only the primary (left) button closes – right-clicking outside the
+      // popover (e.g. to inspect its content) must not dismiss it
+      if (event.button !== 0) return;
+      if (el.open && !el.contains(event.target as Node)) {
+        el.open = false;
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, []);
   return (
     <details
       ref={detailsRef}

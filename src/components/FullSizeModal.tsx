@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 interface FullSizeModalProps {
   /** Accessible name for the trigger button and the dialog */
@@ -15,7 +15,7 @@ interface FullSizeModalProps {
  * Full-size viewer built on the native <dialog>: a trigger tile button and a
  * modal that fits the viewport. Escape closes it (native), as does the X
  * button pinned to the viewport's top-right corner so it never covers the
- * media.
+ * media, and a click on the backdrop outside the dialog box.
  */
 const FullSizeModal: React.FC<FullSizeModalProps> = ({
   label,
@@ -24,6 +24,30 @@ const FullSizeModal: React.FC<FullSizeModalProps> = ({
   children,
 }) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
+
+  // A click on the backdrop (outside the dialog box) closes the modal. The
+  // dialog box is centered with auto margins, so the dimmed area around it is
+  // outside its bounding rect. Pointerdown is used so keyboard activation of
+  // the media controls (which synthesizes clicks at 0,0) never closes it.
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const onPointerDown = (event: PointerEvent) => {
+      if (!dialog.open) return;
+      // Only the primary (left) button closes – right-clicking the backdrop
+      // (e.g. to inspect the close button) must not dismiss the modal
+      if (event.button !== 0) return;
+      const rect = dialog.getBoundingClientRect();
+      const x = event.clientX;
+      const y = event.clientY;
+      if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+        dialog.close();
+      }
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, []);
+
   return (
     <>
       <button

@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -143,6 +143,11 @@ describe("Magnetosphere", () => {
         .querySelector("ul")!
         .compareDocumentPosition(popover.querySelector("p")!),
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
+    // A click outside the popover closes it; a click inside keeps it open
+    fireEvent.pointerDown(boulderHelp, { clientX: 0, clientY: 0 });
+    expect(boulderHelp.open).toBe(true);
+    fireEvent.pointerDown(document, { clientX: 0, clientY: 0 });
+    expect(boulderHelp.open).toBe(false);
   });
 
   it("shows the Kiruna magnetogram image and the NOAA Boulder chart as separate cards", async () => {
