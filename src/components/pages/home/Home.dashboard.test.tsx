@@ -121,6 +121,22 @@ describe("Home Live Now dashboard (ticket 01)", () => {
     ).toBeInTheDocument();
   });
 
+  it("shows the predicted solar wind video panel with IRF source", async () => {
+    renderHome();
+    expect(
+      screen.getByRole("heading", { name: /Predicted solar wind/i }),
+    ).toBeInTheDocument();
+    const video = document.querySelector("video")!;
+    expect(video).toBeInTheDocument();
+    expect(video.getAttribute("src")).toContain("swpc_enlil.mp4");
+    expect(
+      screen.getByRole("link", { name: /^IRF$/ }),
+    ).toHaveAttribute(
+      "href",
+      "https://spaceweather.irf.se/forecast/enlil/",
+    );
+  });
+
   it("shows stale-cache warning when live fetch fails but cached data exists", async () => {
     // First render with good data to populate cache, then fail
     const client = queryClient();

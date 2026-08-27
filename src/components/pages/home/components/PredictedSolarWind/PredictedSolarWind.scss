@@ -1,0 +1,26 @@
+.predicted-solar-wind {
+  &__figure {
+    margin: 0;
+  }
+
+  video {
+    display: block;
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+    border: 1px solid var(--color-border-muted);
+    border-radius: 8px;
+    background: var(--color-black);
+  }
+
+  &__source {
+    margin: 0.5rem 0 0;
+    font-size: 0.85rem;
+  }
+}
+
+.predicted-solar-wind__figure figcaption {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
