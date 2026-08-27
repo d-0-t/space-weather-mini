@@ -208,6 +208,7 @@ const Magnetosphere: React.FC = () => {
               ["30-50 GW", "strong"],
               ["50+ GW", "very strong"],
             ],
+            text: "Hemispheric power – the total energy, in gigawatts, the solar wind deposits into the auroral zone of each hemisphere. Higher numbers mean brighter, more widespread aurora.",
           }}
           asOf={latestHemi ? latestHemi.observationTime : "–"}
           updated={
@@ -243,7 +244,7 @@ const Magnetosphere: React.FC = () => {
           source={SOURCES.noaaSwpc}
         />
         <SparklineCard
-          title="Dst (Kyoto)"
+          title="Disturbance Storm Time index"
           unit="nT"
           help={{
             label: "About Dst",
@@ -253,6 +254,7 @@ const Magnetosphere: React.FC = () => {
               ["−100 to −200 nT", "strong storm"],
               ["< −200 nT", "severe storm"],
             ],
+            text: "Disturbance Storm Time index – how much the ring current has weakened Earth's magnetic field at the equator, in nanotesla. Negative values mean a geomagnetic storm is underway; deeper values mean stronger storms.",
           }}
           value={latestDst ? String(latestDst.dst) : "–"}
           note="nT"

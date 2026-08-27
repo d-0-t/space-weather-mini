@@ -138,6 +138,7 @@ const SolarWind: React.FC = () => {
               ["700 km/s", "high"],
               ["900 km/s", "very high"],
             ],
+            text: "Solar wind speed – how fast the stream of charged particles from the Sun flows past Earth. Faster wind, especially 500+ km/s, compresses Earth's magnetic field and can trigger aurora.",
           }}
           asOf={speed.timeTag ?? "–"}
           updated={speed.timeTag ? formatAge(speed.timeTag) : "–"}
@@ -161,6 +162,7 @@ const SolarWind: React.FC = () => {
               ["40+ p/cm³", "high"],
               ["60+ p/cm³", "very high"],
             ],
+            text: "Particle density – how many protons per cubic centimetre the solar wind carries. Denser wind pushes harder against Earth's magnetic field, and combined with high speed it makes storms more likely.",
           }}
           asOf={density.timeTag ?? "–"}
           updated={density.timeTag ? formatAge(density.timeTag) : "–"}

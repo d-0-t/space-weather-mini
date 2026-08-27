@@ -48,7 +48,7 @@ describe("Magnetosphere", () => {
     );
     for (const title of [
       "Hemispheric power",
-      "Dst (Kyoto)",
+      "Disturbance Storm Time index",
       "Kiruna magnetometer",
       "NOAA magnetometer (Boulder)",
     ]) {
@@ -216,7 +216,9 @@ describe("Magnetosphere", () => {
       "https://spaceweather.irf.se/",
     );
     // Each source line sits inside its own card
-    const dstCard = screen.getByText("Dst (Kyoto)").closest("section")!;
+    const dstCard = screen
+      .getByText("Disturbance Storm Time index")
+      .closest("section")!;
     expect(dstCard.textContent).toMatch(/Source: WDC for Geomagnetism, Kyoto/);
     const kirunaCard = screen.getByText("Kiruna magnetometer").closest("section")!;
     expect(kirunaCard.textContent).toMatch(/Source: IRF/);
