@@ -4,26 +4,33 @@ import { Link } from "react-router-dom";
 import "./Nav.scss";
 
 const ASTRO_MODE_KEY = "astro-mode";
-const ASTRO_FILTER = "sepia(1) saturate(4.5) hue-rotate(-39deg)";
+const ASTRO_FILTER =
+  "sepia(1) saturate(5) hue-rotate(-39deg) contrast(1.1) brightness(0.9)";
 
 /**
  * Primary navigation – header banner with nav landmark.
- * The Forecasts & Discussion item is a disclosure button that
- * controls the submenu via aria-expanded; the submenu opens
- * on hover, on focus-within, and when the button is activated
- * (Enter/Space). Escape closes it and returns focus to the trigger.
+ * On wide screens the links sit in a horizontal bar; on narrow
+ * screens a hamburger button (aria-expanded/aria-controls) reveals
+ * the same list as a full-screen panel.
+ * The Forecasts & Discussion item is a collapsible disclosure
+ * (aria-expanded) that opens on activation only – no hover.
+ * Escape closes it and returns focus to the trigger.
  */
 const Nav: React.FC = () => {
+  const [menuOpen, setMenuOpen] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [isAstro, setIsAstro] = useState(
     () => localStorage.getItem(ASTRO_MODE_KEY) === "on",
   );
   const triggerRef = useRef<HTMLButtonElement>(null);
+  const hamburgerRef = useRef<HTMLButtonElement>(null);
+  const menuId = "primary-menu";
   const submenuId = "forecasts-submenu";
 
   useEffect(() => {
     document.body.style.filter = isAstro ? ASTRO_FILTER : "";
-  }, [isAstro]);
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+  }, [isAstro, menuOpen]);
 
   const toggleAstro = () => {
     const next = !isAstro;
@@ -35,7 +42,13 @@ const Nav: React.FC = () => {
     if (event.key === "Escape" && isOpen) {
       setIsOpen(false);
       event.stopPropagation();
-      triggerRef.current?.focus();
+      if (menuOpen) {
+        // Inside the mobile panel: one Escape closes everything
+        setMenuOpen(false);
+        hamburgerRef.current?.focus();
+      } else {
+        triggerRef.current?.focus();
+      }
     }
   };
 
@@ -44,6 +57,22 @@ const Nav: React.FC = () => {
     const next = event.relatedTarget as HTMLElement | null;
     if (!next || !event.currentTarget.contains(next)) {
       setIsOpen(false);
+    }
+  };
+
+  const handleNavKeyDown: React.KeyboardEventHandler<HTMLElement> = (event) => {
+    if (event.key === "Escape" && menuOpen) {
+      setMenuOpen(false);
+      hamburgerRef.current?.focus();
+    }
+  };
+
+  const handleMenuClick: React.MouseEventHandler<HTMLUListElement> = (
+    event,
+  ) => {
+    // Navigation links close the mobile panel; the Details trigger keeps it open
+    if ((event.target as HTMLElement).closest("a")) {
+      setMenuOpen(false);
     }
   };
 
@@ -57,8 +86,26 @@ const Nav: React.FC = () => {
         />
         <div className="header__left__title">Space Weather Mini</div>
       </div>
-      <nav aria-label="Primary">
-        <ul>
+      <nav
+        aria-label="Primary"
+        className={`header__nav${menuOpen ? " header__nav--open" : ""}`}
+        onKeyDown={handleNavKeyDown}
+      >
+        <button
+          ref={hamburgerRef}
+          type="button"
+          className="header__hamburger"
+          aria-expanded={menuOpen}
+          aria-controls={menuId}
+          title={menuOpen ? "Close menu" : "Open menu"}
+          onClick={() => setMenuOpen((value) => !value)}
+        >
+          <span className="header__hamburger__bar" aria-hidden="true" />
+          <span className="sr-only">
+            {menuOpen ? "Close menu" : "Open menu"}
+          </span>
+        </button>
+        <ul id={menuId} className="header__menu" onClick={handleMenuClick}>
           <li>
             <Link to={"/"} className="nava" id="forecasts-url">
               Home

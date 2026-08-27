@@ -84,6 +84,53 @@ describe("Nav keyboard accessibility", () => {
   });
 });
 
+describe("Mobile menu (hamburger)", () => {
+  it("exposes a hamburger toggle that controls the menu list via aria-expanded", () => {
+    renderNav();
+    const toggle = screen.getByRole("button", { name: /open menu/i });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    const menuId = toggle.getAttribute("aria-controls");
+    expect(menuId).toBeTruthy();
+    const menu = document.getElementById(menuId!);
+    expect(menu).toBeInTheDocument();
+    expect(menu).toContainElement(
+      screen.getByRole("link", { name: "About" }),
+    );
+  });
+
+  it("opens the menu on activation, reflects state in aria-expanded, and closes on Escape", async () => {
+    const user = userEvent.setup();
+    renderNav();
+    const toggle = screen.getByRole("button", { name: /open menu/i });
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(toggle).toHaveAccessibleName("Close menu");
+    await user.keyboard("{Escape}");
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(toggle).toHaveFocus();
+  });
+
+  it("closes the menu when a navigation link is activated", async () => {
+    const user = userEvent.setup();
+    renderNav();
+    const toggle = screen.getByRole("button", { name: /open menu/i });
+    await user.click(toggle);
+    await user.click(screen.getByRole("link", { name: "About" }));
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("keeps the menu open when the Details disclosure is activated", async () => {
+    const user = userEvent.setup();
+    renderNav();
+    const toggle = screen.getByRole("button", { name: /open menu/i });
+    await user.click(toggle);
+    await user.click(
+      screen.getByRole("button", { name: /^details$/i }),
+    );
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+  });
+});
+
 describe("Astro mode toggle", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -104,7 +151,7 @@ describe("Astro mode toggle", () => {
     await user.click(button);
     expect(button).toHaveAttribute("aria-pressed", "true");
     expect(document.body.style.filter).toBe(
-      "sepia(1) saturate(4.5) hue-rotate(-39deg)",
+      "sepia(1) saturate(5) hue-rotate(-39deg) contrast(1.1) brightness(0.9)",
     );
     expect(localStorage.getItem("astro-mode")).toBe("on");
     await user.click(button);
@@ -119,7 +166,7 @@ describe("Astro mode toggle", () => {
     const button = screen.getByRole("button", { name: "Astro mode" });
     expect(button).toHaveAttribute("aria-pressed", "true");
     expect(document.body.style.filter).toBe(
-      "sepia(1) saturate(4.5) hue-rotate(-39deg)",
+      "sepia(1) saturate(5) hue-rotate(-39deg) contrast(1.1) brightness(0.9)",
     );
   });
 });
