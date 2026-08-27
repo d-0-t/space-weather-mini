@@ -8,7 +8,7 @@ test("home fits a mobile viewport without horizontal overflow", async ({
   page,
 }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Home" })).toBeVisible({
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({
     timeout: 60_000,
   });
   // The header nav must not push the page wider than the viewport
@@ -22,7 +22,7 @@ test("collapses the nav into a hamburger that opens a full-screen panel", async 
   page,
 }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Home" })).toBeVisible({
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({
     timeout: 60_000,
   });
 
@@ -52,7 +52,7 @@ test("Details opens inline inside the panel and Escape closes everything", async
   page,
 }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Home" })).toBeVisible({
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({
     timeout: 60_000,
   });
   const toggle = page.getByRole("button", { name: /menu/i });

@@ -26,6 +26,7 @@ import {
   latestValue,
   smoothPoints,
 } from "../live-panels/live-panels";
+import CollapsiblePanel from "../CollapsiblePanel/CollapsiblePanel";
 
 const KIRUNA_MAGNETOGRAM_URL =
   "https://spaceweather.irf.se/data/irf-kir-mag.png";
@@ -174,7 +175,10 @@ const Magnetosphere: React.FC = () => {
 
   return (
     <article className="live-panel magnetosphere">
-      <h2>Magnetosphere</h2>
+      <CollapsiblePanel
+        heading={<h2>Magnetosphere</h2>}
+        bodyId="magnetosphere-panel-body"
+      >
       <div className="live-panel__grid">
         <SparklineCard
           title="Hemispheric power"
@@ -276,6 +280,7 @@ const Magnetosphere: React.FC = () => {
         <KirunaMagnetogramCard />
         <BoulderMagnetometerCard />
       </div>
+      </CollapsiblePanel>
     </article>
   );
 };

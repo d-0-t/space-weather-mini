@@ -78,7 +78,7 @@ describe("App shell accessibility", () => {
     expect(main.querySelector("h1")).not.toBeNull();
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
     expect(
-      screen.getByRole("heading", { level: 1, name: "Home" }),
+      screen.getByRole("heading", { level: 1, name: "Dashboard" }),
     ).toBeInTheDocument();
   });
 

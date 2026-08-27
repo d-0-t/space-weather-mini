@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 
@@ -43,9 +44,9 @@ const renderHome = () =>
   );
 
 describe("Home", () => {
-  it("renders the Home heading", () => {
+  it("renders the Dashboard heading", () => {
     renderHome();
-    expect(screen.getByRole("heading", { level: 1, name: "Home" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: "Dashboard" })).toBeInTheDocument();
   });
 
   it("renders the aurora forecast images", async () => {
@@ -70,5 +71,44 @@ describe("Home", () => {
     expect(
       screen.getByRole("heading", { name: /^Forecast$/i }),
     ).toBeInTheDocument();
+  });
+
+  it("collapses and expands panels via the chevron toggle", async () => {
+    const user = userEvent.setup();
+    renderHome();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("img", { name: /Aurora Forecast.*North Pole/i }),
+      ).toBeInTheDocument(),
+    );
+    const toggle = screen.getByRole("button", { name: /^Aurora Now$/i });
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(
+      screen.queryByRole("img", { name: /Aurora Forecast.*North Pole/i }),
+    ).not.toBeInTheDocument();
+
+    await user.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(
+      screen.getByRole("img", { name: /Aurora Forecast.*North Pole/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("collapses a panel on Escape and keeps focus on the toggle", async () => {
+    const user = userEvent.setup();
+    renderHome();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: /^Forecast$/i }),
+      ).toBeInTheDocument(),
+    );
+    const toggle = screen.getByRole("button", { name: /^Forecast$/i });
+    toggle.focus();
+    await user.keyboard("{Escape}");
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(toggle).toHaveFocus();
   });
 });

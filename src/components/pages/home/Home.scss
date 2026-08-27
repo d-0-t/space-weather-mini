@@ -1,29 +1,32 @@
 .home {
   padding: 0 2rem;
-}
 
-// Two columns: Aurora Now + Forecast on the left, Solar Wind + Magnetosphere
-// on the right. On narrow viewports the grid collapses to one column, so the
-// right-column panels wrap around and come after the left-column ones.
-.home__flow {
-  min-width: 300px;
-  max-width: 1200px;
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  align-items: start;
-  gap: 1rem;
-
-  &__col {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    min-width: 0;
+  article {
+    padding: 0;
+    margin-bottom: unset;
   }
-}
 
-@media (max-width: 900px) {
-  .home__flow {
-    grid-template-columns: 1fr;
+  // Two columns: Aurora Now + Forecast on the left, Solar Wind + Magnetosphere
+  // on the right. On narrow viewports the grid collapses to one column, so the
+  // right-column panels wrap around and come after the left-column ones.
+  &__flow {
+    min-width: 300px;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+    gap: 1rem;
+
+    &__col {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      min-width: 0;
+    }
+
+    @media (max-width: 810px) {
+      grid-template-columns: 1fr;
+    }
   }
 }

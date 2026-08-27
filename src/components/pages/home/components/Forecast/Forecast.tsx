@@ -23,6 +23,7 @@ import {
   enrichWithMoon,
   moonTooltipFormatter,
 } from "../../../../moon/moon-chart";
+import CollapsiblePanel from "../CollapsiblePanel/CollapsiblePanel";
 import {
   MONTHS_SHORT,
   fetchKpForecast,
@@ -102,16 +103,18 @@ const Forecast: React.FC = () => {
   if (observedQuery.isPending && !observedQuery.data) {
     return (
       <article className="forecast" aria-busy="true">
-        <h2>Forecast</h2>
-        <p>Loading Kp forecast…</p>
+        <CollapsiblePanel heading={<h2>Forecast</h2>} bodyId="forecast-panel-body">
+          <p>Loading Kp forecast…</p>
+        </CollapsiblePanel>
       </article>
     );
   }
   if (observedQuery.isError && !observedQuery.data) {
     return (
       <article className="forecast">
-        <h2>Forecast</h2>
-        <p>Couldn&apos;t load Kp forecast. Please check back later.</p>
+        <CollapsiblePanel heading={<h2>Forecast</h2>} bodyId="forecast-panel-body">
+          <p>Couldn&apos;t load Kp forecast. Please check back later.</p>
+        </CollapsiblePanel>
       </article>
     );
   }
@@ -207,7 +210,7 @@ const Forecast: React.FC = () => {
 
   return (
     <article className="forecast">
-      <h2>Forecast</h2>
+      <CollapsiblePanel heading={<h2>Forecast</h2>} bodyId="forecast-panel-body">
       <div
         role="img"
         aria-label={`Kp observed (green circles) and forecast (plum squares) merged, vertical Now at ${nowLabel.replace("\n", " ")}; Moon illumination (blue, right axis, percent)`}
@@ -421,6 +424,7 @@ const Forecast: React.FC = () => {
         <Link to="/forecasts/3days">Full 3-day forecast →</Link>
         <Link to="/forecasts/daily">Daily observations →</Link>
       </div>
+      </CollapsiblePanel>
     </article>
   );
 };

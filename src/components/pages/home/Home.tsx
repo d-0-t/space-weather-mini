@@ -8,7 +8,7 @@ import Magnetosphere from "./components/Magnetosphere/Magnetosphere";
 const Home: React.FC = () => {
   return (
     <div className="home">
-      <h1>Home</h1>
+      <h1>Dashboard</h1>
       <div className="home__flow">
         <div className="home__flow__col">
           <AuroraNow />

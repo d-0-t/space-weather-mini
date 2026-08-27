@@ -4,9 +4,9 @@ const dataTimeout = 60_000;
 
 test("the app boots with navigation chrome on every page", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { level: 1, name: "Home" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
   await expect(page.getByText("Space Weather Mini")).toBeVisible();
-  for (const label of ["Home", "About", "Explainers"]) {
+  for (const label of ["Dashboard", "About", "Explainers"]) {
     await expect(page.getByRole("link", { name: label })).toBeVisible();
   }
   await expect(page.getByRole("button", { name: "Details" })).toBeVisible();
@@ -51,6 +51,49 @@ test("the skip link is the first focusable element and targets main", async ({
   await expect(skipLink).toBeFocused();
   await skipLink.click();
   await expect(page.locator("#main-content")).toBeFocused();
+});
+
+test("aurora ovals sit side by side at half width, never stacked", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(
+    page
+      .getByRole("img", { name: /Aurora Forecast.*North Pole/i })
+      .first(),
+  ).toBeVisible({ timeout: dataTimeout });
+  const tiles = page.locator(".aurora-images__tile");
+  await expect(tiles).toHaveCount(2);
+  const [north, south] = await tiles.evaluateAll((els) =>
+    els.map((el) => {
+      const r = el.getBoundingClientRect();
+      return { x: r.x, y: r.y, w: r.width };
+    }),
+  );
+  // Same row, equal halves of the container, adjacent – never wrapped
+  expect(north.y).toBe(south.y);
+  expect(Math.abs(north.w - south.w)).toBeLessThanOrEqual(2);
+  const container = await page.locator(".aurora-images").boundingBox();
+  expect(container).not.toBeNull();
+  expect(north.w + south.w).toBeGreaterThan(container!.width - 6);
+  expect(south.x).toBeGreaterThanOrEqual(north.x + north.w - 2);
+});
+
+test("home panels collapse and expand via their chevron toggle", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const toggle = page.getByRole("button", { name: "Solar Wind", exact: true });
+  const chart = page.getByRole("img", {
+    name: /Solar wind speed.*2 hours before Now/i,
+  });
+  await expect(chart).toBeVisible({ timeout: dataTimeout });
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await expect(chart).toBeHidden();
+  await toggle.click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  await expect(chart).toBeVisible();
 });
 
 test("the about page renders", async ({ page }) => {

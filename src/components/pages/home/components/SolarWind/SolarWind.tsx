@@ -20,6 +20,7 @@ import {
   transitMinutes,
   valueAt,
 } from "../live-panels/live-panels";
+import CollapsiblePanel from "../CollapsiblePanel/CollapsiblePanel";
 
 const fetchWind = async () => {
   const response = await fetch(RTSW_WIND_URL);
@@ -58,16 +59,18 @@ const SolarWind: React.FC = () => {
   if (windQuery.isPending && !wind) {
     return (
       <article className="live-panel solar-wind" aria-busy="true">
-        <h2>Solar Wind</h2>
-        <p>Loading solar wind…</p>
+        <CollapsiblePanel heading={<h2>Solar Wind</h2>} bodyId="solar-wind-panel-body">
+          <p>Loading solar wind…</p>
+        </CollapsiblePanel>
       </article>
     );
   }
   if ((windQuery.isError && !wind) || (magQuery.isError && !mag)) {
     return (
       <article className="live-panel solar-wind">
-        <h2>Solar Wind</h2>
-        <p>Couldn&apos;t load space weather. Please check back later.</p>
+        <CollapsiblePanel heading={<h2>Solar Wind</h2>} bodyId="solar-wind-panel-body">
+          <p>Couldn&apos;t load space weather. Please check back later.</p>
+        </CollapsiblePanel>
       </article>
     );
   }
@@ -115,7 +118,7 @@ const SolarWind: React.FC = () => {
 
   return (
     <article className="live-panel solar-wind">
-      <h2>Solar Wind</h2>
+      <CollapsiblePanel heading={<h2>Solar Wind</h2>} bodyId="solar-wind-panel-body">
       {transit > 0 ? (
         <p className="live-panel__explain">
           We are {transit} minutes behind{" "}
@@ -233,6 +236,7 @@ const SolarWind: React.FC = () => {
         />
       </div>
       <SourceAttribution source={SOURCES.noaaSwpc} />
+      </CollapsiblePanel>
     </article>
   );
 };

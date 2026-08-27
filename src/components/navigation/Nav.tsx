@@ -108,7 +108,7 @@ const Nav: React.FC = () => {
         <ul id={menuId} className="header__menu" onClick={handleMenuClick}>
           <li>
             <Link to={"/"} className="nava" id="forecasts-url">
-              Home
+              Dashboard
             </Link>
           </li>
           <li

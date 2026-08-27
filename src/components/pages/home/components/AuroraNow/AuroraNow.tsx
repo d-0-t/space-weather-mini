@@ -5,6 +5,7 @@ import { SourceAttribution } from "../../../../sources";
 import { formatAge } from "../../../../../products/live-helpers";
 import { ChartHelp } from "../live-panels/live-panels";
 import { getMoonPhase } from "../../../../moon/moon";
+import CollapsiblePanel from "../CollapsiblePanel/CollapsiblePanel";
 import {
   KpBar,
   fetchKpObserved,
@@ -49,13 +50,6 @@ const MoonPhaseBadge: React.FC = () => {
   );
 };
 
-const AuroraNowHeader: React.FC = () => (
-  <div className="aurora-now__header">
-    <h2>Aurora Now</h2>
-    <MoonPhaseBadge />
-  </div>
-);
-
 /**
  * Aurora Now – current Kp index on the starry sky, plus the NOAA Ovation
  * 30-minute aurora oval forecast images for both hemispheres.
@@ -70,19 +64,34 @@ const AuroraNow: React.FC = () => {
     gcTime: 10 * 60 * 1000,
   });
 
+  const header = (
+    <h2>Aurora Now</h2>
+  );
+  const badge = <MoonPhaseBadge />;
+
   if (observedQuery.isPending && !observedQuery.data) {
     return (
       <article className="aurora-now" aria-busy="true">
-        <AuroraNowHeader />
-        <p>Loading Kp forecast…</p>
+        <CollapsiblePanel
+          heading={header}
+          bodyId="aurora-now-panel-body"
+          adornment={badge}
+        >
+          <p>Loading Kp forecast…</p>
+        </CollapsiblePanel>
       </article>
     );
   }
   if (observedQuery.isError && !observedQuery.data) {
     return (
       <article className="aurora-now">
-        <AuroraNowHeader />
-        <p>Couldn&apos;t load Kp forecast. Please check back later.</p>
+        <CollapsiblePanel
+          heading={header}
+          bodyId="aurora-now-panel-body"
+          adornment={badge}
+        >
+          <p>Couldn&apos;t load Kp forecast. Please check back later.</p>
+        </CollapsiblePanel>
       </article>
     );
   }
@@ -103,46 +112,51 @@ const AuroraNow: React.FC = () => {
 
   return (
     <article className="aurora-now">
-      <AuroraNowHeader />
-      <div className="aurora-now__current">
-        <span className="aurora-now__current__time">
-          {formatTimeSlot(currentSlot)}
-        </span>
-        <span
-          className={`aurora-now__current__kp kp${currentKpRounded >= 9 ? "9" : currentKpRounded + "" + (currentKpRounded + 1)}`}
-        >
-          {formatKp(currentKp)}
-        </span>
-      </div>
-      <KpBar kp={currentKpRounded} />
-      {observedQuery.isError && observed ? (
-        <p aria-live="polite">
-          ⚠ Live data unavailable – showing {formatAge(latestObserved.time_tag)}
-          -old cache
-        </p>
-      ) : null}
-      <h3>Aurora Oval Forecast</h3>
-      <div className="aurora-images">
-        <FullSizeModal
-          label="Aurora forecast, latest, North Pole, full size"
-          triggerClassName="aurora-images__tile"
-          trigger={
+      <CollapsiblePanel
+        heading={header}
+        bodyId="aurora-now-panel-body"
+        adornment={badge}
+      >
+        <div className="aurora-now__current">
+          <span className="aurora-now__current__time">
+            {formatTimeSlot(currentSlot)}
+          </span>
+          <span
+            className={`aurora-now__current__kp kp${currentKpRounded >= 9 ? "9" : currentKpRounded + "" + (currentKpRounded + 1)}`}
+          >
+            {formatKp(currentKp)}
+          </span>
+        </div>
+        <KpBar kp={currentKpRounded} />
+        {observedQuery.isError && observed ? (
+          <p aria-live="polite">
+            ⚠ Live data unavailable – showing {formatAge(latestObserved.time_tag)}
+            -old cache
+          </p>
+        ) : null}
+        <h3>Aurora Oval Forecast</h3>
+        <div className="aurora-images">
+          <FullSizeModal
+            label="Aurora forecast, latest, North Pole, full size"
+            triggerClassName="aurora-images__tile"
+            trigger={
+              <img alt={auroraAlt("North")} src={AURORA_IMAGE_URLS.north} />
+            }
+          >
             <img alt={auroraAlt("North")} src={AURORA_IMAGE_URLS.north} />
-          }
-        >
-          <img alt={auroraAlt("North")} src={AURORA_IMAGE_URLS.north} />
-        </FullSizeModal>
-        <FullSizeModal
-          label="Aurora forecast, latest, South Pole, full size"
-          triggerClassName="aurora-images__tile"
-          trigger={
+          </FullSizeModal>
+          <FullSizeModal
+            label="Aurora forecast, latest, South Pole, full size"
+            triggerClassName="aurora-images__tile"
+            trigger={
+              <img alt={auroraAlt("South")} src={AURORA_IMAGE_URLS.south} />
+            }
+          >
             <img alt={auroraAlt("South")} src={AURORA_IMAGE_URLS.south} />
-          }
-        >
-          <img alt={auroraAlt("South")} src={AURORA_IMAGE_URLS.south} />
-        </FullSizeModal>
-      </div>
-      <SourceAttribution source={AURORA_SOURCE} />
+          </FullSizeModal>
+        </div>
+        <SourceAttribution source={AURORA_SOURCE} />
+      </CollapsiblePanel>
     </article>
   );
 };

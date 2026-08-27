@@ -14,13 +14,6 @@
   background-size: 50%;
   background-blend-mode: screen;
 
-  &__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-  }
-
   &__current {
     display: flex;
     flex-direction: column;
@@ -46,16 +39,16 @@
 
 .aurora-images {
   display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: space-evenly;
+  flex-wrap: nowrap;
+  gap: 5px;
 
-  // Width-only tiles: cap at the card max width, keep the natural aspect
+  // Two 50% tiles side by side, never wrapping
   .aurora-images__tile {
-    flex: 1 0 200px;
-    max-width: 480px;
+    flex: 1 1 50%;
+    min-width: 0;
+    max-width: 50%;
     box-sizing: border-box;
-    margin: 5px;
+    margin: 0;
     padding: 0;
     display: block;
     border: 3px solid var(--color-border-muted);

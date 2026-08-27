@@ -1,0 +1,60 @@
+.collapsible-panel {
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0 1rem;
+    border-radius: 1rem 1rem 0 0;
+
+    &:hover {
+      filter: brightness(1.1);
+      background-color: color-mix(
+        in srgb,
+        var(--color-deep-indigo) 50%,
+        #00000000 25%
+      );
+    }
+  }
+
+  &__toggle {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    padding: 0.5rem 0;
+    background: transparent;
+    border: none;
+    color: var(--color-text-primary);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+
+    h2 {
+      margin: 0;
+      font-size: 1.5em;
+    }
+
+    &:focus-visible {
+      outline: 3px solid var(--color-accent-strong);
+      outline-offset: 2px;
+    }
+  }
+
+  &__chevron {
+    display: inline-block;
+    color: var(--color-accent-strong);
+    font-size: 2em;
+    line-height: 3rem;
+    transform: rotate(90deg);
+  }
+
+  &__toggle[aria-expanded="false"] &__chevron {
+    transform: rotate(0deg);
+  }
+
+  &__body {
+    margin-top: 0.5rem;
+    padding: 1rem;
+  }
+}
