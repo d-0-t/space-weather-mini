@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 
@@ -84,19 +85,30 @@ describe("AuroraNow", () => {
     );
   });
 
-  it("shows the current moon phase emoji in the header with title and sr-only label", async () => {
+  it("shows the current moon phase emoji in a help popover with sr-only label", async () => {
+    const user = userEvent.setup();
     renderAuroraNow();
     await waitFor(() =>
       expect(document.querySelector(".kp-bar")).toBeInTheDocument(),
     );
-    const moon = document.querySelector(".aurora-now__moon");
+    const moon = document.querySelector(
+      ".live-panel__help--moon",
+    ) as HTMLDetailsElement;
     expect(moon).not.toBeNull();
     // Fake system time is 2026-08-26T12:00Z → Waxing gibbous
-    expect(moon!.getAttribute("title")).toBe(
-      "Current Moon phase: Waxing gibbous",
+    expect(
+      screen.getByText("Current Moon phase: Waxing gibbous"),
+    ).toBeInTheDocument();
+    expect(moon.querySelector("[aria-hidden='true']")!.textContent).toBe("🌔");
+    // The popover explains the phase and why it matters for aurora
+    await user.click(moon.querySelector("summary")!);
+    expect(moon.open).toBe(true);
+    expect(moon.querySelector(".live-panel__popover")?.textContent).toMatch(
+      /Waxing gibbous/,
     );
-    expect(screen.getByText("Current Moon phase: Waxing gibbous")).toBeInTheDocument();
-    expect(moon!.querySelector("[aria-hidden='true']")!.textContent).toBe("🌔");
+    expect(moon.querySelector(".live-panel__popover")?.textContent).toMatch(
+      /darkest skies around the new moon/,
+    );
   });
 
   it("attributes the oval forecast images to the NOAA aurora product page", async () => {

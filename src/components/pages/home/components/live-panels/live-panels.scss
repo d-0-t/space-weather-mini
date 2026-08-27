@@ -65,11 +65,32 @@
         display: none;
       }
 
+&:hover {
+      background: var(--color-primary-violet);
+      color: var(--color-white);
+    }
+  }
+
+  // Custom trigger (e.g. the moon phase badge): no "?" circle chrome
+  &--moon {
+    summary {
+      width: auto;
+      height: auto;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: inherit;
+      font-size: 3rem;
+      cursor: help;
+      user-select: none;
+      margin-right: -1rem;
+
       &:hover {
-        background: var(--color-primary-violet);
-        color: var(--color-white);
+        background: transparent;
+        color: inherit;
       }
     }
+  }
 
     // Overlay popover – never reflows the card
     .live-panel__popover {

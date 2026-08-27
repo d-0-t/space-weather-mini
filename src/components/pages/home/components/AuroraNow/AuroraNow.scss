@@ -21,13 +21,6 @@
     gap: 1rem;
   }
 
-  &__moon {
-    cursor: help;
-    font-size: 3rem;
-    user-select: none;
-    margin-right: -1rem;
-  }
-
   &__current {
     display: flex;
     flex-direction: column;

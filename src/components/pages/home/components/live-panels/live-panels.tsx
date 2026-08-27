@@ -414,7 +414,13 @@ interface ChartHelpContent {
   text?: string;
 }
 
-export const ChartHelp: React.FC<{ content: ChartHelpContent }> = ({ content }) => {
+export const ChartHelp: React.FC<{
+  content: ChartHelpContent;
+  /** Custom summary trigger content (defaults to the "?" badge). When set, the caller must include the sr-only label. */
+  summary?: ReactNode;
+  /** Extra class on the <details> root (e.g. to opt out of the "?" circle chrome) */
+  className?: string;
+}> = ({ content, summary, className }) => {
   const detailsRef = useRef<HTMLDetailsElement>(null);
   // Escape closes the popover and returns focus to the "?" trigger
   const handleKeyDown: React.KeyboardEventHandler<HTMLElement> = (event) => {
@@ -442,12 +448,16 @@ export const ChartHelp: React.FC<{ content: ChartHelpContent }> = ({ content }) 
   return (
     <details
       ref={detailsRef}
-      className="live-panel__help"
+      className={`live-panel__help${className ? ` ${className}` : ""}`}
       onKeyDown={handleKeyDown}
     >
       <summary>
-        <span aria-hidden="true">?</span>
-        <span className="sr-only">{content.label}</span>
+        {summary ?? (
+          <>
+            <span aria-hidden="true">?</span>
+            <span className="sr-only">{content.label}</span>
+          </>
+        )}
       </summary>
       {content.rows || content.text ? (
         <div className="live-panel__popover">

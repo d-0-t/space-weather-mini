@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import FullSizeModal from "../../../../FullSizeModal";
 import { SourceAttribution } from "../../../../sources";
 import { formatAge } from "../../../../../products/live-helpers";
+import { ChartHelp } from "../live-panels/live-panels";
 import {
   KpBar,
   fetchKpObserved,
@@ -13,8 +14,10 @@ import {
 import "./AuroraNow.scss";
 
 const AURORA_IMAGE_URLS = {
-  north: "https://services.swpc.noaa.gov/images/animations/ovation/north/latest.jpg",
-  south: "https://services.swpc.noaa.gov/images/animations/ovation/south/latest.jpg",
+  north:
+    "https://services.swpc.noaa.gov/images/animations/ovation/north/latest.jpg",
+  south:
+    "https://services.swpc.noaa.gov/images/animations/ovation/south/latest.jpg",
 };
 
 const AURORA_SOURCE = {
@@ -52,14 +55,24 @@ export function getMoonPhase(date: Date = new Date()): MoonPhase {
   return MOON_PHASES[index];
 }
 
-/** Emoji-only moon badge – labelled via title + sr-only span. */
+/** Emoji-only moon badge – opens a help popover with the phase label and what it means for aurora. */
 const MoonPhaseBadge: React.FC = () => {
   const phase = getMoonPhase();
   return (
-    <span className="aurora-now__moon" title={`Current Moon phase: ${phase.name}`}>
-      <span aria-hidden="true">{phase.emoji}</span>
-      <span className="sr-only">{`Current Moon phase: ${phase.name}`}</span>
-    </span>
+    <ChartHelp
+      className="live-panel__help--moon"
+      content={{
+        label: "About the current Moon phase",
+        rows: [["Current Moon phase", phase.name]],
+        text: `A bright Moon washes out faint aurora, so the darkest skies around the new moon are best for aurora watching.`,
+      }}
+      summary={
+        <>
+          <span aria-hidden="true">{phase.emoji}</span>
+          <span className="sr-only">{`Current Moon phase: ${phase.name}`}</span>
+        </>
+      }
+    />
   );
 };
 
@@ -131,7 +144,8 @@ const AuroraNow: React.FC = () => {
       <KpBar kp={currentKpRounded} />
       {observedQuery.isError && observed ? (
         <p aria-live="polite">
-          ⚠ Live data unavailable – showing {formatAge(latestObserved.time_tag)}-old cache
+          ⚠ Live data unavailable – showing {formatAge(latestObserved.time_tag)}
+          -old cache
         </p>
       ) : null}
       <h3>Aurora Oval Forecast</h3>
