@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   CartesianGrid,
+  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -21,6 +22,12 @@ import {
 } from "../../../products/3-day-forecast";
 import { formatIssuedLocal } from "../../../products/product-header";
 import { kpClass } from "../../../styles/kp-class";
+import {
+  MoonLine,
+  MoonYAxis,
+  enrichWithMoon,
+  moonTooltipFormatter,
+} from "../../../components/moon/moon-chart";
 import GlossaryTerm from "../../explainers/GlossaryTerm";
 import { SOURCES } from "../../../components/sources";
 import { SourceAttribution } from "../../../components/sources";
@@ -33,14 +40,48 @@ const fetchThreeDayForecast = async () => {
   return parseThreeDayForecast(await response.text());
 };
 
+const MONTHS_SHORT = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+/** "Aug 23" + "00-03UT" → UTC ISO time tag (year = today's UTC year). */
+const toTimeTag = (day: string, timeSlot: string): string => {
+  const [monStr, dayStr] = day.split(" ");
+  const monthIdx = MONTHS_SHORT.indexOf(monStr);
+  const d = new Date(
+    Date.UTC(
+      new Date().getUTCFullYear(),
+      monthIdx,
+      Number(dayStr),
+      Number(timeSlot.slice(0, 2)),
+    ),
+  );
+  return Number.isNaN(d.getTime()) ? "" : d.toISOString();
+};
+
 // One chart point per 3-hour interval, the forecast days merged end to end
-// into a single 24-point series.
+// into a single 24-point series; each point carries its UTC time so the moon
+// illumination curve can be overlaid.
 const toChartPoint = (forecast: ThreeDayForecastData) =>
-  forecast.days.flatMap((day, i) =>
-    forecast.geomagneticActivity.kpBreakdown.map((row) => ({
-      label: `${day} ${row.timeSlot}`,
-      kp: row.days[i],
-    })),
+  enrichWithMoon(
+    forecast.days.flatMap((day, i) =>
+      forecast.geomagneticActivity.kpBreakdown.map((row) => ({
+        label: `${day} ${row.timeSlot}`,
+        time: toTimeTag(day, row.timeSlot),
+        kp: row.days[i],
+      })),
+    ),
   );
 
 const SectionArticle: React.FC<{
@@ -145,21 +186,25 @@ const ThreeDayForecast: React.FC = () => {
             <div
               className="three-day-forecast__chart"
               role="img"
-              aria-label={`Kp index forecast by 3-hour interval (${data.days.join(", ")})`}
+              aria-label={`Kp index forecast by 3-hour interval (${data.days.join(", ")}); Moon illumination (blue, right axis, percent)`}
             >
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={toChartPoint(data)}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="label" interval="preserveStartEnd" />
                   <YAxis domain={[0, 9]} />
-                  <Tooltip />
+                  <MoonYAxis />
+                  <Tooltip formatter={moonTooltipFormatter} />
+                  <Legend />
                   <Line
                     type="monotone"
                     dataKey="kp"
                     name="Kp"
                     strokeWidth={2}
                     stroke="greenyellow"
+                    legendType="square"
                   />
+                  <MoonLine />
                 </LineChart>
               </ResponsiveContainer>
             </div>

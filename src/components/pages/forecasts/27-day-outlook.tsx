@@ -21,6 +21,12 @@ import {
 } from "../../../products/27-day-outlook";
 import { formatIssuedLocal } from "../../../products/product-header";
 import { kpClass } from "../../../styles/kp-class";
+import {
+  MoonLine,
+  MoonYAxis,
+  enrichWithMoon,
+  moonTooltipFormatter,
+} from "../../../components/moon/moon-chart";
 import GlossaryTerm from "../../explainers/GlossaryTerm";
 import { SOURCES } from "../../../components/sources";
 import { SourceAttribution } from "../../../components/sources";
@@ -33,11 +39,46 @@ const fetch27DayOutlook = async () => {
   return parse27DayOutlook(await response.text());
 };
 
+const MONTHS_SHORT = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
+/** "2026 Aug 17" → UTC midnight time tag, so the daily points line up with
+ *  the midnight emoji markers. The phase-change marker rule (enrichWithMoon)
+ *  keeps the glyphs sparse on a full-cycle chart. */
+const toMidnightTimeTag = (date: string): string => {
+  const [yearStr, monStr, dayStr] = date.split(" ");
+  const monthIdx = MONTHS_SHORT.indexOf(monStr);
+  const d = new Date(Date.UTC(Number(yearStr), monthIdx, Number(dayStr), 0));
+  return Number.isNaN(d.getTime()) ? "" : d.toISOString();
+};
+
 const TwentySevenDayOutlook: React.FC = () => {
   const { data, isPending, isError, isFetching, refetch } = useQuery({
     queryKey: ["27-day-outlook"],
     queryFn: fetch27DayOutlook,
   });
+
+  // Kp index trend + the moon illumination curve over a full lunar cycle;
+  // radio flux and A index stay in the table below. Phase-aligned emoji
+  // markers sit at the points nearest the true phase boundaries.
+  const chartData = data
+    ? enrichWithMoon(
+        data.rows.map((r) => ({ ...r, time: toMidnightTimeTag(r.date) })),
+        { phaseAligned: true },
+      )
+    : [];
 
   return (
     <div className="container twenty-seven-day-outlook">
@@ -80,33 +121,23 @@ const TwentySevenDayOutlook: React.FC = () => {
             <div
               className="twenty-seven-day-outlook__chart"
               role="img"
-              aria-label="Radio flux, A index and Kp index trend for the next 27 days"
+              aria-label="Kp index trend for the next 27 days with Moon illumination (blue, right axis, percent)"
             >
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={data.rows}>
+                <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" interval="preserveStartEnd" />
-                  <YAxis />
-                  <YAxis yAxisId="aIndex" orientation="right" />
-                  <Tooltip />
+                  <YAxis domain={[0, 9]} />
+                  <MoonYAxis />
+                  <Tooltip formatter={moonTooltipFormatter} />
                   <Legend />
                   <Line
                     type="monotone"
-                    dataKey="radioFlux"
-                    className="twenty-seven-day-outlook__line--radio-flux"
-                    name="Radio Flux"
-                    strokeWidth={3}
-                    stroke="greenyellow"
-                    legendType="circle"
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="aIndex"
-                    yAxisId="aIndex"
-                    className="twenty-seven-day-outlook__line--a-index"
-                    name="A Index"
+                    dataKey="kpIndex"
+                    className="twenty-seven-day-outlook__line--kp-index"
+                    name="Kp Index"
                     strokeWidth={2}
-                    stroke="plum"
+                    stroke="greenyellow"
                     legendType="square"
                     dot={({ cx, cy, stroke }) => (
                       <Symbols
@@ -118,25 +149,7 @@ const TwentySevenDayOutlook: React.FC = () => {
                       />
                     )}
                   />
-                  <Line
-                    type="monotone"
-                    dataKey="kpIndex"
-                    yAxisId="kpIndex"
-                    className="twenty-seven-day-outlook__line--kp-index"
-                    name="Kp Index"
-                    strokeWidth={2}
-                    stroke="cyan"
-                    legendType="triangle"
-                    dot={({ cx, cy, stroke }) => (
-                      <Symbols
-                        cx={cx}
-                        cy={cy}
-                        type="triangle"
-                        size={64}
-                        fill={stroke}
-                      />
-                    )}
-                  />
+                  <MoonLine />
                 </LineChart>
               </ResponsiveContainer>
             </div>

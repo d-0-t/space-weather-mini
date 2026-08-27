@@ -4,6 +4,7 @@ import FullSizeModal from "../../../../FullSizeModal";
 import { SourceAttribution } from "../../../../sources";
 import { formatAge } from "../../../../../products/live-helpers";
 import { ChartHelp } from "../live-panels/live-panels";
+import { getMoonPhase } from "../../../../moon/moon";
 import {
   KpBar,
   fetchKpObserved,
@@ -26,34 +27,6 @@ const AURORA_SOURCE = {
 };
 
 const auroraAlt = (pole: string) => `Aurora Forecast (latest) - ${pole} Pole`;
-
-export interface MoonPhase {
-  emoji: string;
-  name: string;
-}
-
-const MOON_PHASES: MoonPhase[] = [
-  { emoji: "🌑", name: "New moon" },
-  { emoji: "🌒", name: "Waxing crescent" },
-  { emoji: "🌓", name: "First quarter" },
-  { emoji: "🌔", name: "Waxing gibbous" },
-  { emoji: "🌕", name: "Full moon" },
-  { emoji: "🌖", name: "Waning gibbous" },
-  { emoji: "🌗", name: "Last quarter" },
-  { emoji: "🌘", name: "Waning crescent" },
-];
-
-const SYNODIC_MONTH_DAYS = 29.530588853;
-// Known new moon reference: 2000-01-06 18:14 UTC (Meeus)
-const NEW_MOON_REF_UTC = Date.UTC(2000, 0, 6, 18, 14);
-
-/** Current moon phase from a date, as an emoji + name pair. */
-export function getMoonPhase(date: Date = new Date()): MoonPhase {
-  const daysSince = (date.getTime() - NEW_MOON_REF_UTC) / 86_400_000;
-  const fraction = (((daysSince / SYNODIC_MONTH_DAYS) % 1) + 1) % 1;
-  const index = Math.floor(fraction * 8) % 8;
-  return MOON_PHASES[index];
-}
 
 /** Emoji-only moon badge – opens a help popover with the phase label and what it means for aurora. */
 const MoonPhaseBadge: React.FC = () => {

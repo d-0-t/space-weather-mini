@@ -53,7 +53,9 @@ describe("TwentySevenDayOutlook page", () => {
   it("renders a chart with an accessible label above the table", async () => {
     renderPage();
     const table = await screen.findByRole("table");
-    const chart = screen.getByRole("img", { name: /radio flux, a index and kp index trend/i });
+    const chart = screen.getByRole("img", {
+      name: /kp index trend.*moon illumination/i,
+    });
     expect(chart).toBeInTheDocument();
     expect(chart.compareDocumentPosition(table) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });

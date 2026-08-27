@@ -100,7 +100,7 @@ test("the 27-day outlook page renders its data", async ({ page }) => {
   await expect(table).toBeVisible({ timeout: dataTimeout });
   await expect(table.getByRole("row")).toHaveCount(28);
   await expect(page.getByText("Issued (UTC):")).toBeVisible();
-  await expect(page.getByRole("img", { name: /radio flux, a index and kp index trend/i })).toBeVisible();
+  await expect(page.getByRole("img", { name: /kp index trend.*moon illumination/i })).toBeVisible();
 });
 
 test("the geophysical alert page renders", async ({ page }) => {

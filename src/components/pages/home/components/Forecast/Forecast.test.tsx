@@ -52,6 +52,19 @@ describe("Forecast", () => {
     expect(screen.getAllByText(/Kp/).length).toBeGreaterThan(0);
   });
 
+  it("overlays the local moon illumination curve on the chart", async () => {
+    renderForecast();
+    await waitFor(() =>
+      expect(document.querySelector(".forecast__chart")).toBeInTheDocument(),
+    );
+    const chart = screen.getByRole("img", {
+      name: /Kp observed.*forecast.*Now/i,
+    });
+    expect(chart.getAttribute("aria-label")).toMatch(/Moon illumination/);
+    const { moonIlluminationPercent } = await import("../../../../moon/moon");
+    expect(moonIlluminationPercent(new Date("2026-08-26T12:00:00Z"))).toBeGreaterThan(0);
+  });
+
   it("renders from planetary JSON even when the 3-day text product fails", async () => {
     mockFetch.mockImplementation((url: string) => {
       const u = typeof url === "string" ? url : "";

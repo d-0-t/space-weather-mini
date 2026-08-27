@@ -2,11 +2,13 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   CartesianGrid,
+  Legend,
   Line,
   LineChart,
   ReferenceArea,
   ReferenceLine,
   ResponsiveContainer,
+  Symbols,
   Tooltip,
   XAxis,
   YAxis,
@@ -15,6 +17,12 @@ import {
 import FullSizeModal from "../../../../FullSizeModal";
 import { SOURCES } from "../../../../sources";
 import { SourceAttribution } from "../../../../sources";
+import {
+  MoonLine,
+  MoonYAxis,
+  enrichWithMoon,
+  moonTooltipFormatter,
+} from "../../../../moon/moon-chart";
 import {
   MONTHS_SHORT,
   fetchKpForecast,
@@ -187,8 +195,10 @@ const Forecast: React.FC = () => {
       observed: null as number | null,
       forecast: p.kp,
     }));
-  const mergedData = [...observedChartData, ...forecastChartData].sort((a, b) =>
-    a.time.localeCompare(b.time),
+  const mergedData = enrichWithMoon(
+    [...observedChartData, ...forecastChartData].sort((a, b) =>
+      a.time.localeCompare(b.time),
+    ),
   );
   const latestObserved = observed[observed.length - 1];
   const nowLabel = formatChartLabel(latestObserved.time_tag);
@@ -200,7 +210,7 @@ const Forecast: React.FC = () => {
       <h2>Forecast</h2>
       <div
         role="img"
-        aria-label={`Kp observed (green circles) and forecast (plum triangles) merged, vertical Now at ${nowLabel.replace("\n", " ")}`}
+        aria-label={`Kp observed (green circles) and forecast (plum squares) merged, vertical Now at ${nowLabel.replace("\n", " ")}; Moon illumination (blue, right axis, percent)`}
         className="forecast__chart"
       >
         <ResponsiveContainer width="100%" height={220}>
@@ -242,17 +252,35 @@ const Forecast: React.FC = () => {
               tick={{ fill: "var(--color-white)", fontSize: 11 }}
               width={24}
             />
+            <MoonYAxis />
             <Tooltip
               contentStyle={{
                 backgroundColor: "var(--color-black)",
                 border: "1px solid var(--color-border-muted)",
               }}
+              formatter={moonTooltipFormatter}
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               labelFormatter={(label: any) =>
                 typeof label === "string"
                   ? label.replace("\n", " ")
                   : String(label)
               }
+            />
+            <Legend
+              // Keep the legend in series order regardless of recharts'
+              // payload registration order: observed → forecast → moon
+              itemSorter={(item) => {
+                switch (item.value) {
+                  case "Kp observed":
+                    return 0;
+                  case "Kp forecast":
+                    return 1;
+                  case "Moon illumination":
+                    return 2;
+                  default:
+                    return 3;
+                }
+              }}
             />
             <ReferenceLine
               x={nowLabel}
@@ -281,7 +309,15 @@ const Forecast: React.FC = () => {
               name="Kp observed"
               stroke="greenyellow"
               strokeWidth={2}
-              dot={false}
+              dot={({ cx, cy, stroke }) => (
+                <Symbols
+                  cx={cx}
+                  cy={cy}
+                  type="circle"
+                  size={64}
+                  fill={stroke}
+                />
+              )}
               activeDot={false}
               legendType="circle"
               connectNulls={false}
@@ -292,11 +328,20 @@ const Forecast: React.FC = () => {
               name="Kp forecast"
               stroke="plum"
               strokeWidth={2}
-              dot={false}
+              dot={({ cx, cy, stroke }) => (
+                <Symbols
+                  cx={cx}
+                  cy={cy}
+                  type="square"
+                  size={64}
+                  fill={stroke}
+                />
+              )}
               activeDot={false}
-              legendType="triangle"
+              legendType="square"
               connectNulls={false}
             />
+            <MoonLine />
           </LineChart>
         </ResponsiveContainer>
       </div>

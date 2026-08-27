@@ -69,22 +69,6 @@ describe("AuroraNow", () => {
     expect((dialogs[0] as HTMLDialogElement).open).toBe(false);
   });
 
-  it("computes moon phase for known dates", async () => {
-    const { getMoonPhase } = await import("./AuroraNow");
-    const ref = Date.UTC(2000, 0, 6, 18, 14); // known new moon
-    expect(getMoonPhase(new Date(ref)).name).toBe("New moon");
-    expect(getMoonPhase(new Date(ref + 7 * 86_400_000)).name).toBe(
-      "Waxing crescent",
-    );
-    expect(getMoonPhase(new Date(ref + 15 * 86_400_000)).name).toBe("Full moon");
-    expect(getMoonPhase(new Date(ref + 21 * 86_400_000)).name).toBe(
-      "Waning gibbous",
-    );
-    expect(getMoonPhase(new Date(ref + 26 * 86_400_000)).name).toBe(
-      "Waning crescent",
-    );
-  });
-
   it("shows the current moon phase emoji in a help popover with sr-only label", async () => {
     const user = userEvent.setup();
     renderAuroraNow();

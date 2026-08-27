@@ -215,12 +215,10 @@ const LiveBanner: React.FC = () => {
             {hemi && (
               <ResponsiveContainer width="100%" height={100}>
                 <LineChart
-                  data={hemi.points
-                    .slice(-12)
-                    .map((p) => ({
-                      label: p.observationTime.slice(11),
-                      gw: p.northPowerGW,
-                    }))}
+                  data={hemi.points.slice(-12).map((p) => ({
+                    label: p.observationTime.slice(11),
+                    gw: p.northPowerGW,
+                  }))}
                 >
                   <Line
                     type="monotone"
@@ -235,12 +233,10 @@ const LiveBanner: React.FC = () => {
             {dst && (
               <ResponsiveContainer width="100%" height={100}>
                 <LineChart
-                  data={dst.points
-                    .slice(-6)
-                    .map((p) => ({
-                      label: p.time_tag.slice(11, 16),
-                      dst: p.dst,
-                    }))}
+                  data={dst.points.slice(-6).map((p) => ({
+                    label: p.time_tag.slice(11, 16),
+                    dst: p.dst,
+                  }))}
                 >
                   <Line
                     type="monotone"
@@ -253,43 +249,6 @@ const LiveBanner: React.FC = () => {
               </ResponsiveContainer>
             )}
           </div>
-          <table className="sr-only">
-            <caption>Solar wind and indices latest values</caption>
-            <thead>
-              <tr>
-                <th scope="col">Metric</th>
-                <th scope="col">Value</th>
-                <th scope="col">As of</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Bz GSM</td>
-                <td>{bz} nT</td>
-                <td>{mag.time_tag}</td>
-              </tr>
-              <tr>
-                <td>Bt</td>
-                <td>{bt} nT</td>
-                <td>{mag.time_tag}</td>
-              </tr>
-              <tr>
-                <td>Speed</td>
-                <td>{protonSpeed} km/s</td>
-                <td>{speed.time_tag}</td>
-              </tr>
-              <tr>
-                <td>Hemispheric power</td>
-                <td>{hemiGW} GW</td>
-                <td>{latestHemi?.observationTime}</td>
-              </tr>
-              <tr>
-                <td>Dst</td>
-                <td>{dstVal} nT</td>
-                <td>{latestDst?.time_tag}</td>
-              </tr>
-            </tbody>
-          </table>
         </div>
       )}
     </article>
