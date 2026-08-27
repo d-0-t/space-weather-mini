@@ -101,21 +101,24 @@ describe("SpaceWeatherNow", () => {
     expect(screen.getAllByText(/South/).length).toBeGreaterThan(0);
   });
 
-  it("pairs each chart with an sr-only table and aria-labelled chart", async () => {
+  it("labels every chart with a descriptive aria-label", async () => {
     renderNow();
-    await waitFor(() => expect(screen.getByText("Solar wind")).toBeInTheDocument());
-    expect(
-      screen.getByRole("img", { name: /solar wind speed.*2 hours before now/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("img", { name: /bz gsm magnetic field.*2 hours before now/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("table", { name: /solar wind – latest values/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("table", { name: /dst \(kyoto\) – 60-minute averages/i }),
-    ).toBeInTheDocument();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("img", { name: /boulder magnetometer k index, last 3 hours/i }),
+      ).toBeInTheDocument(),
+    );
+    for (const label of [
+      /solar wind speed.*2 hours before now/i,
+      /proton density.*2 hours before now/i,
+      /total magnetic field strength bt.*2 hours before now/i,
+      /bz gsm magnetic field.*2 hours before now/i,
+      /hemispheric power, last 5 hours/i,
+      /disturbance storm index, last 24 hours/i,
+      /boulder magnetometer k index, last 3 hours/i,
+    ]) {
+      expect(screen.getByRole("img", { name: label })).toBeInTheDocument();
+    }
   });
 
   it("computes L1 transit time, readable tooltip timestamps and local time", async () => {
@@ -250,9 +253,6 @@ describe("SpaceWeatherNow", () => {
         screen.getByRole("img", { name: /boulder magnetometer k index, last 3 hours/i }),
       ).toBeInTheDocument(),
     );
-    expect(
-      screen.getByRole("table", { name: /boulder magnetometer k index/i }),
-    ).toBeInTheDocument();
     // No tablist remains – the two magnetometer sources are always visible
     expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
   });

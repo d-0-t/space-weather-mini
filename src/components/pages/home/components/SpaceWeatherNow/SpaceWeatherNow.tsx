@@ -452,8 +452,6 @@ const SparklineCard: React.FC<{
   help: ChartHelpContent;
   warning?: string | null;
   anchorOffset?: number;
-  /** Averaging bucket in minutes, for the sr-only caption */
-  bucketMinutes?: number;
 }> = ({
   title,
   value,
@@ -468,7 +466,6 @@ const SparklineCard: React.FC<{
   help,
   warning,
   anchorOffset,
-  bucketMinutes,
 }) => (
   <section className="space-weather-now__card">
     <div className="space-weather-now__head">
@@ -491,28 +488,6 @@ const SparklineCard: React.FC<{
           unit={unit}
           anchorOffset={anchorOffset}
         />
-        <table className="sr-only">
-          <caption>
-            {title} –{" "}
-            {bucketMinutes && bucketMinutes > 1
-              ? `${bucketMinutes}-minute averages`
-              : "latest values"}
-          </caption>
-          <thead>
-            <tr>
-              <th scope="col">Time</th>
-              <th scope="col">Value</th>
-            </tr>
-          </thead>
-          <tbody>
-            {points.map((point, index) => (
-              <tr key={`${title}-${point.time}-${index}`}>
-                <td>{formatTooltipTime(point.timeTag)}</td>
-                <td>{Number(point.value).toFixed(2)}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </>
     ) : null}
     <p className="space-weather-now__fresh">
@@ -611,23 +586,6 @@ const BoulderMagnetometerCard: React.FC = () => {
             unit="K"
             ariaLabel="Boulder magnetometer K index, last 3 hours"
           />
-          <table className="sr-only">
-            <caption>Boulder magnetometer K index – latest values</caption>
-            <thead>
-              <tr>
-                <th scope="col">Time</th>
-                <th scope="col">K</th>
-              </tr>
-            </thead>
-            <tbody>
-              {points.map((point, index) => (
-                <tr key={`boulder-${point.time}-${index}`}>
-                  <td>{formatTooltipTime(point.timeTag)}</td>
-                  <td>{Number(point.value).toFixed(2)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </>
       ) : null}
       <p className="space-weather-now__fresh">
@@ -770,7 +728,6 @@ const SpaceWeatherNow: React.FC = () => {
           anchorOffset={l1AnchorOffset}
           accent="greenyellow"
           ariaLabel="Solar wind speed, km/s, 2 hours before Now plus upcoming"
-          bucketMinutes={SMOOTHING.solarWind}
           warning={stale(windQuery)}
         />
         <SparklineCard
@@ -794,7 +751,6 @@ const SpaceWeatherNow: React.FC = () => {
           anchorOffset={l1AnchorOffset}
           accent="cyan"
           ariaLabel="Proton density, p per cubic cm, 2 hours before Now plus upcoming"
-          bucketMinutes={SMOOTHING.solarWind}
           warning={stale(windQuery)}
         />
         <SparklineCard
@@ -818,7 +774,6 @@ const SpaceWeatherNow: React.FC = () => {
           anchorOffset={l1AnchorOffset}
           accent="plum"
           ariaLabel="Total magnetic field strength Bt, nT, 2 hours before Now plus upcoming"
-          bucketMinutes={SMOOTHING.solarWind}
           warning={stale(magQuery)}
         />
         <SparklineCard
@@ -852,7 +807,6 @@ const SpaceWeatherNow: React.FC = () => {
           anchorOffset={l1AnchorOffset}
           accent="orange"
           ariaLabel="Bz GSM magnetic field, nT, 2 hours before Now plus upcoming, south or north"
-          bucketMinutes={SMOOTHING.solarWind}
           warning={stale(magQuery)}
         />
         <SparklineCard
@@ -885,7 +839,6 @@ const SpaceWeatherNow: React.FC = () => {
           )}
           accent="plum"
           ariaLabel="Hemispheric power, last 5 hours, gigawatts"
-          bucketMinutes={SMOOTHING.hemi}
           warning={stale(hemiQuery)}
         />
         <SparklineCard
@@ -914,7 +867,6 @@ const SpaceWeatherNow: React.FC = () => {
           )}
           accent="cyan"
           ariaLabel="Disturbance storm index, last 24 hours, nT"
-          bucketMinutes={SMOOTHING.dst}
           warning={stale(dstQuery)}
         />
         <KirunaMagnetogramCard />

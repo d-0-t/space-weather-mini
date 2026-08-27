@@ -39,6 +39,28 @@
       padding-left: 0px;
     }
   }
+
+  // Let the nav wrap instead of overflowing narrow viewports
+  nav {
+    max-width: 100%;
+  }
+
+  nav > ul {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  nav > ul > li,
+  nav > ul > .forecasts,
+  nav > ul > .forecasts > button {
+    width: auto;
+  }
+
+  nav > ul > li > a,
+  nav > ul > li > button.dropdown__trigger,
+  nav > ul > li > button.astro-toggle {
+    padding: 0 0.75rem;
+  }
 }
 
 .nava {

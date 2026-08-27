@@ -1,4 +1,8 @@
 :root {
+  // Dark-only design: tells the browser (and Brave/Chrome auto dark mode)
+  // not to re-style the page
+  color-scheme: dark;
+
   --color-white: #ffffff;
   --color-black: #000000;
   --color-deep-indigo: #1c1455;
