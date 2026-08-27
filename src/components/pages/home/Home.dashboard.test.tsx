@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 
@@ -100,11 +101,27 @@ describe("Home Live Now dashboard (ticket 01)", () => {
   it("keeps OVATION aurora images between live strips and forecast", async () => {
     renderHome();
     expect(
-      screen.getByAltText(/Aurora Forecast.*North Pole/i),
-    ).toBeInTheDocument();
+      screen.getAllByAltText(/Aurora Forecast.*North Pole/i).length,
+    ).toBeGreaterThan(0);
     expect(
-      screen.getByAltText(/Aurora Forecast.*South Pole/i),
-    ).toBeInTheDocument();
+      screen.getAllByAltText(/Aurora Forecast.*South Pole/i).length,
+    ).toBeGreaterThan(0);
+  });
+
+  it("opens aurora images full size in a modal and closes on Escape", async () => {
+    const user = userEvent.setup();
+    renderHome();
+    const northTile = screen.getByRole("button", {
+      name: /Aurora Forecast.*North Pole/i,
+    });
+    const dialogs = document.querySelectorAll("dialog.image-modal");
+    // One per image: Kiruna, aurora north, aurora south
+    expect(dialogs.length).toBe(3);
+    expect((dialogs[1] as HTMLDialogElement).open).toBe(false);
+    await user.click(northTile);
+    expect((dialogs[1] as HTMLDialogElement).open).toBe(true);
+    await user.keyboard("{Escape}");
+    expect((dialogs[1] as HTMLDialogElement).open).toBe(false);
   });
 
   it("shows the Space Weather Now mini charts between Live and the aurora images", async () => {

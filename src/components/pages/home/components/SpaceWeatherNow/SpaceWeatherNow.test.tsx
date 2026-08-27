@@ -302,11 +302,16 @@ describe("SpaceWeatherNow", () => {
     await waitFor(() =>
       expect(screen.getByText("Kiruna magnetometer")).toBeInTheDocument(),
     );
-    const image = screen.getByRole("img", {
+    const images = screen.getAllByRole("img", {
       name: /kiruna magnetogram, x y and z components/i,
     });
-    expect(image).toBeInTheDocument();
-    expect(image.getAttribute("src")).toContain("spaceweather.irf.se");
+    expect(images.length).toBeGreaterThanOrEqual(1);
+    expect(images[0]!.getAttribute("src")).toContain("spaceweather.irf.se");
+    // The modal also carries the full-size image
+    const dialog = document.querySelector("dialog.image-modal")!;
+    expect(dialog.querySelector("img")?.getAttribute("src")).toContain(
+      "spaceweather.irf.se",
+    );
     expect(
       screen.getByRole("heading", { name: /NOAA magnetometer \(Boulder\)/ }),
     ).toBeInTheDocument();
@@ -317,6 +322,33 @@ describe("SpaceWeatherNow", () => {
     );
     // No tablist remains – the two magnetometer sources are always visible
     expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
+  });
+
+  it("opens the Kiruna magnetogram in a modal closeable by X and Escape", async () => {
+    const user = userEvent.setup();
+    renderNow();
+    await waitFor(() =>
+      expect(screen.getByText("Kiruna magnetometer")).toBeInTheDocument(),
+    );
+    const dialog = document.querySelector(
+      "dialog.image-modal",
+    ) as HTMLDialogElement;
+    expect(dialog.open).toBe(false);
+    const tile = screen.getByRole("button", { name: /kiruna magnetogram/i });
+    await user.click(tile);
+    expect(dialog.open).toBe(true);
+    // Close button: visible × with an sr-only "Close" label and tooltip
+    const close = screen.getByRole("button", { name: /^Close$/ });
+    expect(close.querySelector("span[aria-hidden]")?.textContent).toBe("×");
+    expect(close.querySelector(".sr-only")?.textContent).toBe("Close");
+    expect(close.getAttribute("title")).toBe("Close");
+    await user.click(close);
+    expect(dialog.open).toBe(false);
+    // Escape closes it again
+    await user.click(tile);
+    expect(dialog.open).toBe(true);
+    await user.keyboard("{Escape}");
+    expect(dialog.open).toBe(false);
   });
 
   it("shows the error branch when the core solar wind feeds fail", async () => {

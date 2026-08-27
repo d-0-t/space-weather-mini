@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 
@@ -12,18 +13,37 @@ const renderPanel = () =>
   );
 
 describe("PredictedSolarWind", () => {
-  it("renders the ENLIL video panel with native controls", () => {
+  it("renders the ENLIL video preview that opens a full-size modal", async () => {
+    const user = userEvent.setup();
     renderPanel();
     expect(
       screen.getByRole("heading", { name: /Predicted solar wind/i }),
     ).toBeInTheDocument();
-    const video = document.querySelector("video")!;
-    expect(video).toBeInTheDocument();
-    expect(video.getAttribute("src")).toBe(
+    // One muted preview (tile) plus one controlled copy (modal)
+    const videos = document.querySelectorAll("video");
+    expect(videos.length).toBe(2);
+    const [tile, modal] = Array.from(videos);
+    expect(tile!.getAttribute("src")).toBe(
       "https://spaceweather.irf.se/data/swpc_enlil.mp4",
     );
-    expect(video.hasAttribute("controls")).toBe(true);
-    expect(video.getAttribute("preload")).toBe("metadata");
+    expect(tile!.hasAttribute("controls")).toBe(false);
+    expect(modal!.getAttribute("src")).toBe(
+      "https://spaceweather.irf.se/data/swpc_enlil.mp4",
+    );
+    expect(modal!.hasAttribute("controls")).toBe(true);
+    // Clicking the preview opens the modal; Escape closes it
+    const dialog = document.querySelector(
+      "dialog.image-modal",
+    ) as HTMLDialogElement;
+    expect(dialog.open).toBe(false);
+    await user.click(
+      screen.getByRole("button", {
+        name: /predicted solar wind video, full size/i,
+      }),
+    );
+    expect(dialog.open).toBe(true);
+    await user.keyboard("{Escape}");
+    expect(dialog.open).toBe(false);
   });
 
   it("explains the video in a visible caption pointing to the forecast panels", () => {
@@ -43,6 +63,25 @@ describe("PredictedSolarWind", () => {
     });
     expect(threeDayLinks.length).toBeGreaterThan(0);
     expect(threeDayLinks[0]!.getAttribute("href")).toBe("/forecasts/3days");
+  });
+
+  it("closes the modal with the X button carrying a Close label", async () => {
+    const user = userEvent.setup();
+    renderPanel();
+    await user.click(
+      screen.getByRole("button", {
+        name: /predicted solar wind video, full size/i,
+      }),
+    );
+    const close = screen.getByRole("button", { name: /^Close$/ });
+    expect(close.querySelector("span[aria-hidden]")?.textContent).toBe("×");
+    expect(close.querySelector(".sr-only")?.textContent).toBe("Close");
+    expect(close.getAttribute("title")).toBe("Close");
+    await user.click(close);
+    const dialog = document.querySelector(
+      "dialog.image-modal",
+    ) as HTMLDialogElement;
+    expect(dialog.open).toBe(false);
   });
 
   it("links the IRF source with the ENLIL forecast page", () => {

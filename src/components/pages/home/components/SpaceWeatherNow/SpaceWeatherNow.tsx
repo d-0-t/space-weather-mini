@@ -30,13 +30,12 @@ import {
   BOULDER_K_INDEX_URL,
 } from "../../../../../products/boulder-k-index";
 import { formatAge } from "../../../../../products/live-helpers";
+import FullSizeModal from "../../../../FullSizeModal";
 
 import "./SpaceWeatherNow.scss";
 
 const KIRUNA_MAGNETOGRAM_URL =
   "https://spaceweather.irf.se/data/irf-kir-mag.png";
-const KIRUNA_MAGNETOGRAM_SOURCE_URL =
-  "https://spaceweather.irf.se/forecast/mag/";
 
 /**
  * Developer-configurable chart windows, in MINUTES per feed.
@@ -580,39 +579,45 @@ const SparklineCard: React.FC<{
 );
 
 const KirunaMagnetogramCard: React.FC = () => (
-  <section className="space-weather-now__card space-weather-now__card--wide">
-    <div className="space-weather-now__head">
-      <h3>Kiruna magnetometer</h3>
-      <ChartHelp
-        content={{
-          label: "About the Kiruna magnetogram",
-          text: "IRF's live magnetogram for Kiruna (68°N, Sweden) plots the X, Y and Z field components in nT over 24 hours. Gentle wiggles are normal. Large swings – especially 100+ nT in the X component – mean substorms are overhead, so bright aurora is likely at high latitudes.",
-        }}
-      />
-    </div>
-    <div className="space-weather-now__panel">
-      <a
-        href={KIRUNA_MAGNETOGRAM_SOURCE_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        <img
-          src={KIRUNA_MAGNETOGRAM_URL}
-          alt="Kiruna magnetogram, X Y and Z components in nT over the last 24 hours"
+    <section className="space-weather-now__card">
+      <div className="space-weather-now__head">
+        <h3>Kiruna magnetometer</h3>
+        <ChartHelp
+          content={{
+            label: "About the Kiruna magnetogram",
+            text: "IRF's live magnetogram for Kiruna (68°N, Sweden) plots the X, Y and Z field components in nT over 24 hours. Gentle wiggles are normal. Large swings – especially 100+ nT in the X component – mean substorms are overhead, so bright aurora is likely at high latitudes.",
+          }}
         />
-      </a>
-      <p className="space-weather-now__fresh">
-        <a
-          href="https://spaceweather.irf.se"
-          target="_blank"
-          rel="noopener noreferrer"
+      </div>
+      <div className="space-weather-now__panel">
+        <p className="space-weather-now__fresh">
+          <a
+            href="https://spaceweather.irf.se"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Source: IRF →
+          </a>
+        </p>
+        <FullSizeModal
+          label="Kiruna magnetogram, full size"
+          triggerClassName="space-weather-now__image-tile"
+          trigger={
+            <img
+              src={KIRUNA_MAGNETOGRAM_URL}
+              alt="Kiruna magnetogram, X Y and Z components in nT over the last 24 hours"
+            />
+          }
         >
-          Source: IRF →
-        </a>
-      </p>
-    </div>
-  </section>
-);
+          <img
+            src={KIRUNA_MAGNETOGRAM_URL}
+            alt="Kiruna magnetogram, X Y and Z components in nT over the last 24 hours"
+            className="image-modal__img--invert"
+          />
+        </FullSizeModal>
+      </div>
+    </section>
+  );
 
 const BoulderMagnetometerCard: React.FC = () => {
   const boulderQuery = useQuery({

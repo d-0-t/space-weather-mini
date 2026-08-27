@@ -1,7 +1,7 @@
 .space-weather-now {
   &__grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    display: flex;
+    flex-wrap: wrap;
     gap: 1rem;
   }
 
@@ -11,16 +11,17 @@
 
   &__card {
     display: flex;
+    flex: 1 1 320px;
+    min-width: 320px;
+    max-width: 480px;
+    max-height: fit-content;
+    box-sizing: border-box;
     flex-direction: column;
     gap: 0.5rem;
     padding: 0.75rem;
     background: var(--gradient-card);
     border: 1px solid var(--color-border-muted);
     border-radius: 8px;
-
-    &--wide {
-      grid-column: 1 / -1;
-    }
   }
 
   &__head {
@@ -158,11 +159,32 @@
     font-size: 0.85rem;
   }
 
-  &__panel img {
-    width: 100%;
-    border: 1px solid var(--color-border-muted);
-    border-radius: 4px;
-    // IRF's magnetogram is white-on-white; invert for the dark theme
-    filter: invert(1);
+  &__panel {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    // Width-only tile: matches the card max width, keeps its natural aspect
+    .space-weather-now__image-tile {
+      display: block;
+      width: 100%;
+      max-width: 480px;
+      box-sizing: border-box;
+      margin: 0 auto;
+      padding: 0;
+      border: 1px solid var(--color-border-muted);
+      border-radius: 4px;
+      background: var(--color-black);
+      cursor: pointer;
+      overflow: hidden;
+
+      img {
+        display: block;
+        width: 100%;
+        height: auto;
+        // IRF's magnetogram is white-on-white; invert for the dark theme
+        filter: invert(1);
+      }
+    }
   }
 }

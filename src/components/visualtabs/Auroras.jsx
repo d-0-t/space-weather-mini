@@ -1,4 +1,12 @@
 import "../pages/Pages.scss";
+import FullSizeModal from "../FullSizeModal";
+
+const AURORA_IMAGE_URLS = {
+  north: "https://services.swpc.noaa.gov/images/animations/ovation/north/latest.jpg",
+  south: "https://services.swpc.noaa.gov/images/animations/ovation/south/latest.jpg",
+};
+
+const auroraAlt = (pole) => `Aurora Forecast (latest) - ${pole} Pole`;
 
 function VisualAuroras() {
   return (
@@ -6,26 +14,24 @@ function VisualAuroras() {
       <article>
         <h2>Latest Aurora Forecast (30min)</h2>
         <div className="aurora-images">
-          <a
-            rel="noopener noreferrer"
-            href="https://services.swpc.noaa.gov/images/animations/ovation/north/latest.jpg"
-            target="_blank"
+          <FullSizeModal
+            label="Aurora forecast, latest, North Pole, full size"
+            triggerClassName="aurora-images__tile"
+            trigger={
+              <img alt={auroraAlt("North")} src={AURORA_IMAGE_URLS.north} />
+            }
           >
-            <img
-              alt="Aurora Forecast (latest) - North Pole"
-              src="https://services.swpc.noaa.gov/images/animations/ovation/north/latest.jpg"
-            />
-          </a>
-          <a
-            rel="noopener noreferrer"
-            href="https://services.swpc.noaa.gov/images/animations/ovation/south/latest.jpg"
-            target="_blank"
+            <img alt={auroraAlt("North")} src={AURORA_IMAGE_URLS.north} />
+          </FullSizeModal>
+          <FullSizeModal
+            label="Aurora forecast, latest, South Pole, full size"
+            triggerClassName="aurora-images__tile"
+            trigger={
+              <img alt={auroraAlt("South")} src={AURORA_IMAGE_URLS.south} />
+            }
           >
-            <img
-              alt="Aurora Forecast (latest) - South Pole"
-              src="https://services.swpc.noaa.gov/images/animations/ovation/south/latest.jpg"
-            />
-          </a>
+            <img alt={auroraAlt("South")} src={AURORA_IMAGE_URLS.south} />
+          </FullSizeModal>
         </div>
         <p>
           Source:{" "}

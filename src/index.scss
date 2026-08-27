@@ -119,6 +119,71 @@ textarea:focus-visible {
   outline-offset: 2px;
 }
 
+/* Full-size media modal – native <dialog> (Escape + focus trap come built-in).
+   Explicitly pinned to the viewport and centered: the UA only positions the
+   dialog relative to its document position, which is off-screen above when
+   the page is scrolled. */
+.image-modal {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: fit-content;
+  height: fit-content;
+  padding: 0.5rem;
+  border: 1px solid var(--color-border-muted);
+  border-radius: 8px;
+  background: var(--gradient-card);
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow: auto;
+
+  img,
+  video {
+    display: block;
+    max-width: calc(90vw - 1.5rem);
+    max-height: calc(80vh - 1.5rem);
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    margin: 0 auto;
+    border-radius: 4px;
+  }
+
+  &__img--invert {
+    // IRF's magnetogram is white-on-white; invert for the dark theme
+    filter: invert(1);
+  }
+
+  &__close {
+    // Pinned to the viewport corner so it never covers the media
+    position: fixed;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    padding: 0;
+    border: 1px solid var(--color-border-muted);
+    border-radius: 50%;
+    background: var(--color-bg-surface);
+    color: var(--color-white);
+    font-size: 1.25rem;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover {
+      background: var(--color-bg-surface-strong);
+    }
+  }
+
+  &::backdrop {
+    background: color-mix(in srgb, var(--color-black) 75%, transparent);
+  }
+}
+
 /* App shell layout – replaces deprecated <center> */
 .app-shell {
   display: flex;
