@@ -1,6 +1,8 @@
 .live {
+  height: fit-content;
+
   background-image:
-    url("assets/stars-transparent.png"),
+    url("/assets/stars-transparent.png"),
     linear-gradient(
       0deg,
       color-mix(in srgb, rgb(252, 190, 82) 15%, black) 0%,

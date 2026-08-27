@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   CartesianGrid,
@@ -41,8 +41,9 @@ const KIRUNA_MAGNETOGRAM_SOURCE_URL =
 /**
  * Developer-configurable chart windows, in MINUTES per feed.
  * - dst: hourly data → 1440 minutes = last 24 hours
- * - hemi: 5-min data → 300 minutes = last 5 hours
  * - boulder: 1-min data → 180 minutes = last 3 hours
+ * The hemi feed is tiny (one day of 5-min rows), so it is plotted in full
+ * rather than windowed.
  * The L1 (solar wind) charts are windowed dynamically: BEFORE_NOW_MINUTES of
  * data before the Now line, plus every fresher reading that is still
  * propagating to Earth (the transit minutes). Windows are measured in wall
@@ -50,7 +51,6 @@ const KIRUNA_MAGNETOGRAM_SOURCE_URL =
  */
 export const DATA_WINDOWS = {
   dst: 24 * 60,
-  hemi: 5 * 60,
   boulder: 3 * 60,
 } as const;
 
@@ -177,24 +177,26 @@ function tagMs(timeTag: string): number {
 
 /**
  * Buckets the rows into wall-clock `bucketMinutes` averages, keeping the
- * `windowMinutes` before the freshest reading. Bucketing averages away the
- * 1-min burst noise and decimates the point count for a clean line.
- * Missing readings leave an empty bucket (a gap in the line).
+ * `windowMinutes` before the freshest reading (pass null to plot every row).
+ * Bucketing averages away the 1-min burst noise and decimates the point count
+ * for a clean line. Missing readings leave an empty bucket (a gap in the line).
  */
 export function smoothPoints(
   rows: { time_tag: string; value: number | null }[],
-  windowMinutes: number,
+  windowMinutes: number | null,
   bucketMinutes: number,
 ): ChartPoint[] {
   const newest = rows.length > 0 ? tagMs(rows[rows.length - 1].time_tag) : 0;
-  const cutoff = newest - windowMinutes * 60_000;
+  const cutoff =
+    windowMinutes === null ? null : newest - windowMinutes * 60_000;
   const buckets = new Map<
     number,
     { sum: number; count: number; first: number }
   >();
   for (const row of rows) {
     const ms = tagMs(row.time_tag);
-    if (row.value === null || ms < cutoff) continue;
+    if (row.value === null) continue;
+    if (cutoff !== null && ms < cutoff) continue;
     const bucket = Math.floor(ms / (bucketMinutes * 60_000));
     const entry = buckets.get(bucket) ?? { sum: 0, count: 0, first: ms };
     entry.sum += row.value;
@@ -270,6 +272,16 @@ function valueAt(
     : { value: null, timeTag: null };
 }
 
+/**
+ * Rounds the largest absolute GW reading up to a symmetric chart ceiling
+ * (18 → 20), falling back to 10 when there is no data. Used to make a
+ * mirrored second series span the Y axis symmetrically (20 → 0 → 20).
+ */
+export function symmetricCeiling(values: number[]): number {
+  const max = values.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+  return max === 0 ? 10 : Math.ceil(max / 5) * 5;
+}
+
 const MiniSparkline: React.FC<{
   title: string;
   points: ChartPoint[];
@@ -280,6 +292,16 @@ const MiniSparkline: React.FC<{
   unit: string;
   /** Points the Now line sits past the freshest reading (transit minutes) */
   anchorOffset?: number;
+  /** Optional second series plotted on the same axis (same timestamps as points) */
+  second?: {
+    points: ChartPoint[];
+    accent: string;
+    name: string;
+    /** Plots the second series below zero (mirrored), with a symmetric ± axis and absolute tick labels */
+    invert?: boolean;
+  };
+  /** Overrides the first series' tooltip name (defaults to `title`) */
+  primaryName?: string;
 }> = ({
   title,
   points,
@@ -288,14 +310,32 @@ const MiniSparkline: React.FC<{
   ariaLabel,
   unit,
   anchorOffset = 0,
+  second,
+  primaryName,
 }) => {
   const hasNow = Boolean(nowLabel);
-  const chartPoints = hasNow
-    ? withNowAnchor(points, nowLabel!, anchorOffset)
+  const mergedPoints = second
+    ? points.map((p, i) => {
+        const v = second.points[i]?.value ?? null;
+        return { ...p, value2: v === null ? null : second.invert ? -v : v };
+      })
     : points;
+  const chartPoints = hasNow
+    ? withNowAnchor(mergedPoints, nowLabel!, anchorOffset)
+    : mergedPoints;
   const nowX = hasNow
     ? chartPoints.find((p) => p.time === nowLabel)?.x
     : undefined;
+  // Symmetric ± ceiling so a mirrored second series spans 20 → 0 → 20
+  const mirrorCeiling = second?.invert
+    ? symmetricCeiling(
+        chartPoints.flatMap((p) => {
+          const values = [p.value, (p as { value2?: number | null }).value2];
+          return values.filter((v): v is number => typeof v === "number");
+        }),
+      )
+    : null;
+  const yDomain = mirrorCeiling === null ? ["auto", "auto"] : [-mirrorCeiling, mirrorCeiling];
   return (
     <div role="img" aria-label={ariaLabel} className="space-weather-now__chart">
       <ResponsiveContainer width="100%" height={140}>
@@ -323,7 +363,12 @@ const MiniSparkline: React.FC<{
             tickLine={false}
           />
           <YAxis
-            domain={["auto", "auto"]}
+            domain={yDomain}
+            tickFormatter={
+              second?.invert
+                ? (value: number) => String(Math.abs(value))
+                : undefined
+            }
             tick={{ fill: "var(--color-white)", fontSize: 11 }}
             width={44}
             tickLine={false}
@@ -340,12 +385,15 @@ const MiniSparkline: React.FC<{
             labelStyle={{ fontSize: 12 }}
             itemStyle={{ fontSize: 12 }}
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            formatter={(value: any) => [
-              value === null || value === undefined
-                ? "–"
-                : `${Number(value).toFixed(2)} ${unit}`,
-              title,
-            ]}
+            formatter={(value: any, name: any) => {
+              const raw = value === null || value === undefined ? null : Number(value);
+              const display =
+                raw === null ? null : second?.invert ? Math.abs(raw) : raw;
+              return [
+                display === null ? "–" : `${display.toFixed(2)} ${unit}`,
+                name,
+              ];
+            }}
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             labelFormatter={(_label: any, payload: any) => {
               const point = payload?.[0]?.payload as ChartPoint | undefined;
@@ -375,16 +423,35 @@ const MiniSparkline: React.FC<{
               }
             />
           ) : null}
+          {second?.invert ? (
+            <ReferenceLine
+              y={0}
+              stroke="var(--color-border-muted)"
+              strokeOpacity={0.9}
+            />
+          ) : null}
           <Line
             type="monotone"
             dataKey="value"
-            name={title}
+            name={primaryName ?? title}
             stroke={accent}
             strokeWidth={2}
             dot={false}
             connectNulls={false}
             isAnimationActive={false}
           />
+          {second ? (
+            <Line
+              type="monotone"
+              dataKey="value2"
+              name={second.name}
+              stroke={second.accent}
+              strokeWidth={2}
+              dot={false}
+              connectNulls={false}
+              isAnimationActive={false}
+            />
+          ) : null}
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -452,6 +519,15 @@ const SparklineCard: React.FC<{
   help: ChartHelpContent;
   warning?: string | null;
   anchorOffset?: number;
+  second?: {
+    points: ChartPoint[];
+    accent: string;
+    name: string;
+    invert?: boolean;
+  };
+  primaryName?: string;
+  /** Replaces the default value + note headline (e.g. two-column hemi values) */
+  valueBlock?: ReactNode;
 }> = ({
   title,
   value,
@@ -466,6 +542,9 @@ const SparklineCard: React.FC<{
   help,
   warning,
   anchorOffset,
+  second,
+  primaryName,
+  valueBlock,
 }) => (
   <section className="space-weather-now__card">
     <div className="space-weather-now__head">
@@ -473,10 +552,12 @@ const SparklineCard: React.FC<{
       <ChartHelp content={help} />
     </div>
     {warning ? <p className="space-weather-now__warning">{warning}</p> : null}
-    <p className="space-weather-now__value">
-      {value}
-      {note ? <span className="space-weather-now__note"> {note}</span> : null}
-    </p>
+    {valueBlock ?? (
+      <p className="space-weather-now__value">
+        {value}
+        {note ? <span className="space-weather-now__note"> {note}</span> : null}
+      </p>
+    )}
     {points.length > 1 ? (
       <>
         <MiniSparkline
@@ -487,6 +568,8 @@ const SparklineCard: React.FC<{
           ariaLabel={ariaLabel}
           unit={unit}
           anchorOffset={anchorOffset}
+          second={second}
+          primaryName={primaryName}
         />
       </>
     ) : null}
@@ -764,6 +847,7 @@ const SpaceWeatherNow: React.FC = () => {
               ["15-30 nT", "strong"],
               ["30+ nT", "very strong"],
             ],
+            text: "Interplanetary magnetic field (IMF), Bt component – the total strength of the Sun's magnetic field carried by the solar wind. Higher Bt means more energy is available to drive geomagnetic activity.",
           }}
           value={btNow.value !== null ? btNow.value.toFixed(1) : "–"}
           note="nT"
@@ -789,6 +873,7 @@ const SpaceWeatherNow: React.FC = () => {
               ["−10 to −20 nT", "storm (Kp5-7)"],
               ["< −20 nT", "major storm (Kp7+)"],
             ],
+            text: "Interplanetary magnetic field (IMF), Bz (GSM) component – the north-south component of the solar wind's magnetic field in GSM coordinates. Southward (negative) Bz reconnects with Earth's magnetic field, coupling energy into the magnetosphere and driving aurora.",
           }}
           value={
             bzNow.value !== null
@@ -812,8 +897,27 @@ const SpaceWeatherNow: React.FC = () => {
         <SparklineCard
           title="Hemispheric power"
           value={latestHemi ? String(Math.round(latestHemi.northPowerGW)) : "–"}
-          note="GW"
           unit="GW"
+          valueBlock={
+            latestHemi ? (
+              <p className="space-weather-now__hemi">
+                <span className="space-weather-now__hemi__side">
+                  <span className="space-weather-now__hemi__num">
+                    {Math.round(latestHemi.northPowerGW)}
+                  </span>
+                  <span className="space-weather-now__hemi__unit">GW</span>
+                  <span className="space-weather-now__hemi__dir">North</span>
+                </span>
+                <span className="space-weather-now__hemi__side">
+                  <span className="space-weather-now__hemi__num">
+                    {Math.round(latestHemi.southPowerGW)}
+                  </span>
+                  <span className="space-weather-now__hemi__unit">GW</span>
+                  <span className="space-weather-now__hemi__dir">South</span>
+                </span>
+              </p>
+            ) : undefined
+          }
           help={{
             label: "About hemispheric power",
             rows: [
@@ -834,11 +938,25 @@ const SpaceWeatherNow: React.FC = () => {
               time_tag: p.observationTime,
               value: p.northPowerGW,
             })),
-            DATA_WINDOWS.hemi,
+            null,
             SMOOTHING.hemi,
           )}
+          second={{
+            points: smoothPoints(
+              (hemiQuery.data?.points ?? []).map((p) => ({
+                time_tag: p.observationTime,
+                value: p.southPowerGW,
+              })),
+              null,
+              SMOOTHING.hemi,
+            ),
+            accent: "cyan",
+            name: "South hemispheric power",
+            invert: true,
+          }}
+          primaryName="North hemispheric power"
           accent="plum"
-          ariaLabel="Hemispheric power, last 5 hours, gigawatts"
+          ariaLabel="Hemispheric power, north and south mirrored around zero, all available data, gigawatts"
           warning={stale(hemiQuery)}
         />
         <SparklineCard

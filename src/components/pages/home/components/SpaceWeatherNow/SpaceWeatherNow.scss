@@ -113,6 +113,31 @@
     line-height: 1.1;
   }
 
+  &__hemi {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin: 0;
+
+    &__side {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.4rem;
+    }
+
+    &__num {
+      font-size: 1.5rem;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+
+    &__unit,
+    &__dir {
+      font-size: 0.85rem;
+      font-weight: 400;
+    }
+  }
+
   &__note {
     font-size: 0.85rem;
     font-weight: 400;

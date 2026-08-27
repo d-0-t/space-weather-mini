@@ -113,7 +113,7 @@ describe("SpaceWeatherNow", () => {
       /proton density.*2 hours before now/i,
       /total magnetic field strength bt.*2 hours before now/i,
       /bz gsm magnetic field.*2 hours before now/i,
-      /hemispheric power, last 5 hours/i,
+      /hemispheric power, north and south mirrored around zero, all available data/i,
       /disturbance storm index, last 24 hours/i,
       /boulder magnetometer k index, last 3 hours/i,
     ]) {
@@ -187,6 +187,16 @@ describe("SpaceWeatherNow", () => {
       { time_tag: "2026-08-26T22:02:00", value: 3 },
     ];
     expect(smoothPoints(sparse, 10, 5)[0].value).toBeCloseTo(2);
+    // A null window plots every row, even ones a window would cut off
+    const full = smoothPoints(
+      [
+        { time_tag: "2026-08-26T20:00:00", value: 1 },
+        { time_tag: "2026-08-26T22:00:00", value: 9 },
+      ],
+      null,
+      60,
+    );
+    expect(full).toHaveLength(2);
   });
 
   it("places the Now anchor transit points LEFT of the freshest reading", async () => {
@@ -207,6 +217,58 @@ describe("SpaceWeatherNow", () => {
     // Fixture speed ~280 km/s → transit ≈ 89 minutes, source IMAP
     expect(screen.getByText(/We are \d+ minutes behind/)).toBeInTheDocument();
     expect(screen.getByText(/IMAP's data, based on solar wind speed/)).toBeInTheDocument();
+  });
+
+  it("explains Bt and Bz as the interplanetary magnetic field components", async () => {
+    const user = userEvent.setup();
+    renderNow();
+    await waitFor(() => expect(screen.getByText("Bt")).toBeInTheDocument());
+    const btHelp = screen
+      .getByText("Bt")
+      .closest("section")!
+      .querySelector(".space-weather-now__help")! as HTMLDetailsElement;
+    await user.click(btHelp.querySelector("summary")!);
+    expect(btHelp.textContent).toMatch(
+      /Interplanetary magnetic field \(IMF\), Bt component/i,
+    );
+    expect(btHelp.textContent).toMatch(/strength of the Sun's magnetic field/);
+    const bzHelp = screen
+      .getByText("Bz")
+      .closest("section")!
+      .querySelector(".space-weather-now__help")! as HTMLDetailsElement;
+    await user.click(bzHelp.querySelector("summary")!);
+    expect(bzHelp.textContent).toMatch(
+      /Interplanetary magnetic field \(IMF\), Bz \(GSM\) component/i,
+    );
+    expect(bzHelp.textContent).toMatch(/southward \(negative\) Bz/i);
+  });
+
+  it("shows north and south hemispheric power together", async () => {
+    renderNow();
+    await waitFor(() =>
+      expect(screen.getByText("Hemispheric power")).toBeInTheDocument(),
+    );
+    const hemiCard = screen.getByText("Hemispheric power").closest("section")!;
+    // The chart is described as a mirror around zero covering all data
+    expect(
+      hemiCard
+        .querySelector(".space-weather-now__chart")!
+        .getAttribute("aria-label"),
+    ).toMatch(/north and south mirrored around zero, all available data/i);
+    // Headline: one large number per hemisphere, spread across the card
+    const hemi = hemiCard.querySelector(".space-weather-now__hemi")!;
+    const sides = hemi.querySelectorAll(".space-weather-now__hemi__side");
+    expect(sides).toHaveLength(2);
+    expect(sides[0]!.textContent).toMatch(/^\d+GWNorth$/);
+    expect(sides[1]!.textContent).toMatch(/^\d+GWSouth$/);
+  });
+
+  it("rounds the mirrored chart ceiling up symmetrically", async () => {
+    const { symmetricCeiling } = await import("./SpaceWeatherNow");
+    expect(symmetricCeiling([18, 16])).toBe(20);
+    expect(symmetricCeiling([0])).toBe(10);
+    expect(symmetricCeiling([53])).toBe(55);
+    expect(symmetricCeiling([-12, 0])).toBe(15);
   });
 
   it("stacks the Boulder help list and description in one popover", async () => {
