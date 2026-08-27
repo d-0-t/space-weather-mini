@@ -39,14 +39,14 @@ describe("UI palette color tokens (ticket 01)", () => {
     expect(indexScss).toContain(
       "--color-accent-strong: var(--color-light-lime)",
     );
-    // gradient token for cards — muted violet → indigo (toned down per feedback)
+    // gradient token for cards – muted violet → indigo (toned down per feedback)
     expect(indexScss).toContain("--gradient-card:");
     expect(indexScss).toContain("var(--color-primary-violet)");
     expect(indexScss).toContain("var(--color-deep-indigo)");
     expect(indexScss).toContain("color-mix");
   });
 
-  it("uses Light Lime strong accent for links, headings, and glossary terms (no old mint) — brighter per feedback", () => {
+  it("uses Light Lime strong accent for links, headings, and glossary terms (no old mint) – brighter per feedback", () => {
     // Pages.scss should no longer contain the old mint
     expect(pagesScss).not.toContain("rgb(113, 255, 180)");
     expect(pagesScss).toContain("var(--color-accent-strong)");
@@ -70,7 +70,7 @@ describe("UI palette color tokens (ticket 01)", () => {
     expect(navScss).not.toContain("#1e1958");
   });
 
-  it("renders navigation hover and dropdowns on palette tokens (no old purples/grays) — submenu dark indigo, purple only on hover", () => {
+  it("renders navigation hover and dropdowns on palette tokens (no old purples/grays) – submenu dark indigo, purple only on hover", () => {
     // old hover purples/grays should be gone
     expect(navScss).not.toContain("rgb(83, 1, 146)");
     expect(navScss).not.toContain("rgb(36, 36, 36)");

@@ -34,12 +34,12 @@ export function parseDailyGeomagneticIndices(text: string): DailyGeomagneticIndi
   const { issued, author } = scanHeader(text);
   if (issued === "") {
     throw new Error(
-      "parseDailyGeomagneticIndices: no :Issued: line found — the NOAA format may have changed"
+      "parseDailyGeomagneticIndices: no :Issued: line found – the NOAA format may have changed"
     );
   }
   if (author === "") {
     throw new Error(
-      "parseDailyGeomagneticIndices: no Prepared by line found — the NOAA format may have changed"
+      "parseDailyGeomagneticIndices: no Prepared by line found – the NOAA format may have changed"
     );
   }
 
@@ -57,7 +57,7 @@ export function parseDailyGeomagneticIndices(text: string): DailyGeomagneticIndi
     const values = tokens.slice(3).flatMap(expandToken).map(Number);
     if (values.length !== VALUES_PER_ROW) {
       throw new Error(
-        "parseDailyGeomagneticIndices: unexpected row shape — the NOAA format may have changed"
+        "parseDailyGeomagneticIndices: unexpected row shape – the NOAA format may have changed"
       );
     }
 
@@ -77,7 +77,7 @@ export function parseDailyGeomagneticIndices(text: string): DailyGeomagneticIndi
 
   if (rows.length === 0) {
     throw new Error(
-      "parseDailyGeomagneticIndices: no data rows found — the NOAA format may have changed"
+      "parseDailyGeomagneticIndices: no data rows found – the NOAA format may have changed"
     );
   }
 

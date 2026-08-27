@@ -81,7 +81,7 @@ code {
   border: 0;
 }
 
-/* Skip link — first focusable element, visible only on focus */
+/* Skip link – first focusable element, visible only on focus */
 .skip-link {
   position: absolute;
   top: 0;
@@ -115,7 +115,7 @@ textarea:focus-visible {
   outline-offset: 2px;
 }
 
-/* App shell layout — replaces deprecated <center> */
+/* App shell layout – replaces deprecated <center> */
 .app-shell {
   display: flex;
   flex-direction: column;

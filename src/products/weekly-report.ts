@@ -22,7 +22,7 @@ export interface WeeklyReport {
 export const WEEKLY_REPORT_URL =
   "https://services.swpc.noaa.gov/text/weekly.txt";
 
-// NOAA section headings — must match the fixture verbatim; format drift throws.
+// NOAA section headings – must match the fixture verbatim; format drift throws.
 const HIGHLIGHTS_TITLE = "Highlights of Solar and Geomagnetic Activity";
 const FORECAST_TITLE = "Forecast of Solar and Geomagnetic Activity";
 
@@ -46,7 +46,7 @@ function extractSection(
   }
   if (dateRangeIndex >= lines.length || lines[dateRangeIndex].trim() === "") {
     throw new Error(
-      `parseWeeklyReport: ${title} has no date range — the NOAA format may have changed`
+      `parseWeeklyReport: ${title} has no date range – the NOAA format may have changed`
     );
   }
   const dateRange = stripHtmlTags(lines[dateRangeIndex].trim()).trim();
@@ -56,7 +56,7 @@ function extractSection(
   const body = stripHtmlTags(bodyLines.join("\n")).trim();
   if (body === "") {
     throw new Error(
-      `parseWeeklyReport: ${title} has empty prose — the NOAA format may have changed`
+      `parseWeeklyReport: ${title} has empty prose – the NOAA format may have changed`
     );
   }
   return { title, dateRange, body };
@@ -66,12 +66,12 @@ export function parseWeeklyReport(text: string): WeeklyReport {
   const { issued, author } = scanHeader(text);
   if (issued === "") {
     throw new Error(
-      "parseWeeklyReport: no :Issued: line found — the NOAA format may have changed"
+      "parseWeeklyReport: no :Issued: line found – the NOAA format may have changed"
     );
   }
   if (author === "") {
     throw new Error(
-      "parseWeeklyReport: no Prepared by line found — the NOAA format may have changed"
+      "parseWeeklyReport: no Prepared by line found – the NOAA format may have changed"
     );
   }
 
@@ -87,17 +87,17 @@ export function parseWeeklyReport(text: string): WeeklyReport {
 
   if (highlightsIndex === -1) {
     throw new Error(
-      "parseWeeklyReport: Highlights section not found — the NOAA format may have changed"
+      "parseWeeklyReport: Highlights section not found – the NOAA format may have changed"
     );
   }
   if (forecastIndex === -1) {
     throw new Error(
-      "parseWeeklyReport: Forecast section not found — the NOAA format may have changed"
+      "parseWeeklyReport: Forecast section not found – the NOAA format may have changed"
     );
   }
   if (forecastIndex <= highlightsIndex) {
     throw new Error(
-      "parseWeeklyReport: Forecast section must follow Highlights — the NOAA format may have changed"
+      "parseWeeklyReport: Forecast section must follow Highlights – the NOAA format may have changed"
     );
   }
 

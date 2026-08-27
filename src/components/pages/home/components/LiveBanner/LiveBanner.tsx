@@ -125,8 +125,8 @@ const LiveBanner: React.FC = () => {
   const speedAge = formatAge(speed.time_tag);
   const hemiAge = latestHemi
     ? formatAge(latestHemi.observationTime.replace("_", "T"))
-    : "—";
-  const dstAge = latestDst ? formatAge(latestDst.time_tag) : "—";
+    : "–";
+  const dstAge = latestDst ? formatAge(latestDst.time_tag) : "–";
 
   const bSharp =
     bz < -5 ? "southward – aurora enabler" : bz < 0 ? "southward" : "northward";
@@ -148,23 +148,23 @@ const LiveBanner: React.FC = () => {
           <b>Bz (GSM)</b> {bz} nT ({bSharp})
         </span>{" "}
         · <span>Bt {bt} nT</span> · <span>Speed {protonSpeed} km/s</span> ·{" "}
-        <span>Density —</span> ·{" "}
+        <span>Density –</span> ·{" "}
         <span>
           <GlossaryTerm termId="hemispheric-power">
             Hemispheric power
           </GlossaryTerm>{" "}
-          {hemiGW ?? "—"} GW
+          {hemiGW ?? "–"} GW
         </span>{" "}
         ·{" "}
         <span>
           <GlossaryTerm termId="dst-index">Dst index</GlossaryTerm>{" "}
-          {dstVal ?? "—"} nT
+          {dstVal ?? "–"} nT
         </span>
       </p>
       <p className="live-banner__freshness">
         Bz As of {mag.time_tag} · Updated {bzAge} · Speed As of {speed.time_tag}{" "}
-        · Updated {speedAge} · Hemi As of {latestHemi?.observationTime ?? "—"} ·
-        Updated {hemiAge} · Dst As of {latestDst?.time_tag ?? "—"} · Updated{" "}
+        · Updated {speedAge} · Hemi As of {latestHemi?.observationTime ?? "–"} ·
+        Updated {hemiAge} · Dst As of {latestDst?.time_tag ?? "–"} · Updated{" "}
         {dstAge}
       </p>
       {staleWarning}

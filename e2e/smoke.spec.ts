@@ -122,7 +122,7 @@ test("home shows live now dashboard with Kp, mini charts and Live min/max table"
   await expect(page.getByText(/Updated/ ).first()).toBeVisible();
   // Charts paired with tables
   await expect(page.getByRole("img", { name: /Kp observed.*forecast.*Now/ })).toBeVisible();
-  await expect(page.getByRole("img", { name: /Solar wind speed, last 3 hours/ })).toBeVisible();
+  await expect(page.getByRole("img", { name: /Solar wind speed.*2 hours before Now/ })).toBeVisible();
   await expect(page.getByRole("img", { name: /Kiruna magnetogram/i })).toBeVisible();
   // Mini charts carry a vertical axis; the four L1 charts carry a Now line
   await expect(page.locator(".space-weather-now .recharts-yAxis")).toHaveCount(7);
@@ -136,4 +136,9 @@ test("home shows live now dashboard with Kp, mini charts and Live min/max table"
   ).toBeVisible();
   // Propagation-delay explainer
   await expect(page.getByText(/We are \d+ minutes behind .*data, based on solar wind speed/)).toBeVisible();
+  // Native collapsible "?" help on every card
+  await expect(page.locator(".space-weather-now .space-weather-now__help").first()).toBeVisible();
+  await page.locator(".space-weather-now .space-weather-now__help").first().locator("summary").click();
+  await expect(page.getByText(/< 400 km\/s/)).toBeVisible();
+  await expect(page.getByText("About solar wind")).toBeAttached();
 });

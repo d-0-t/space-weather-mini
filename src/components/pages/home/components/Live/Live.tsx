@@ -140,9 +140,9 @@ const KP_SEGMENT_CLASSES = [
 export const KpBar: React.FC<{ kp: number }> = ({ kp }) => {
   const filled = Math.min(9, kp);
   return (
-    <div className="kp-bar" role="img">
+    <div className="kp-bar" role="img" aria-label={`Kp ${kp} on a scale of 0 to 9`}>
       <span className="sr-only">
-        Kp ${kp} on scale 0 to 9, ${filled} of 9 segments colored
+        {`Kp ${kp} on scale 0 to 9, ${filled} of 9 segments colored`}
       </span>
       <span aria-hidden="true" className="kp-bar__start" />
       {KP_SEGMENT_CLASSES.map((cls, i) => {
@@ -384,7 +384,7 @@ const Live: React.FC = () => {
       <KpBar kp={currentKpRounded} />
       {observedQuery.isError && observed ? (
         <p aria-live="polite">
-          ⚠ Live data unavailable — showing {age}-old cache
+          ⚠ Live data unavailable – showing {age}-old cache
         </p>
       ) : null}
       <div

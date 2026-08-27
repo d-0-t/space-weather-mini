@@ -54,7 +54,7 @@ function contrast(hex1: string, hex2: string): number {
   return (l1 + 0.05) / (l2 + 0.05);
 }
 
-describe("UI palette final sweep — ticket 03 contract", () => {
+describe("UI palette final sweep – ticket 03 contract", () => {
   it("narrows the global * { color: white } override so accents actually render", () => {
     // App.scss must not contain the broad universal override
     expect(appScss).not.toMatch(/\*\s*\{[^}]*color\s*:\s*white/);
@@ -70,7 +70,7 @@ describe("UI palette final sweep — ticket 03 contract", () => {
       }
     }
     // No stray * selector with color in Nav either (broad override)
-    // Nav's * { color: var(--color-text-primary)} is also broad — should be narrowed
+    // Nav's * { color: var(--color-text-primary)} is also broad – should be narrowed
     // For ticket 03 final, the only global text color should be via html/body
     const hasGlobalStarInNav = /\*\s*\{[^}]*color\s*:/.test(navScss);
     expect(hasGlobalStarInNav).toBe(false);
@@ -97,7 +97,7 @@ describe("UI palette final sweep — ticket 03 contract", () => {
   it("contract invariant: only surviving raw rgb(...) / #... outside node_modules are frozen .kp01-.kp9 and td[a-value] (and :root token definitions)", () => {
     const files = allScssFiles();
     // Build a combined string with :root blocks removed (tokens definitions allowed) and frozen blocks removed
-    // Use lenient patterns that match the frozen byte-identical blocks regardless of exact formatting —
+    // Use lenient patterns that match the frozen byte-identical blocks regardless of exact formatting –
     // matches from the selector to its closing brace.
     const frozenPatterns = [
       /\.kp01[\s\S]*?\}/,
@@ -114,9 +114,9 @@ describe("UI palette final sweep — ticket 03 contract", () => {
     ];
     for (const file of files) {
       let content = normalize(readFileSync(file, "utf8"));
-      // Remove :root block (tokens) — allow raw # there
+      // Remove :root block (tokens) – allow raw # there
       content = content.replace(/:root\s*\{[\s\S]*?\}/g, "");
-      // Remove frozen blocks — use global replace to handle grouped selector + individual blocks
+      // Remove frozen blocks – use global replace to handle grouped selector + individual blocks
       for (const pat of frozenPatterns) {
         content = content.replace(new RegExp(pat.source, "g"), "");
       }
@@ -142,7 +142,7 @@ describe("UI palette final sweep — ticket 03 contract", () => {
     }
   });
 
-  it("single dark theme invariant holds — no light-theme code", () => {
+  it("single dark theme invariant holds – no light-theme code", () => {
     const files = allScssFiles().concat(
       readdirSync(resolve(__dirname, ".."), { withFileTypes: true })
         .filter((e) => e.isFile() && e.name.endsWith(".tsx"))

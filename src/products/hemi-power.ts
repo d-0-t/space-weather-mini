@@ -1,4 +1,4 @@
-/** Hemispheric power product — OVATION nowcast. */
+/** Hemispheric power product – OVATION nowcast. */
 
 export interface HemiPowerPoint {
   observationTime: string;
@@ -33,7 +33,7 @@ export function parseHemiPower(text: string): HemiPower {
       // If line looks like data but doesn't match, it's a format change
       if (/^\d{4}-\d{2}-\d{2}_\d{2}:\d{2}/.test(line)) {
         throw new Error(
-          `parseHemiPower: unexpected row shape "${line}" — the NOAA format may have changed`,
+          `parseHemiPower: unexpected row shape "${line}" – the NOAA format may have changed`,
         );
       }
       continue;
@@ -42,13 +42,13 @@ export function parseHemiPower(text: string): HemiPower {
     const northPowerGW = Number(northStr);
     const southPowerGW = Number(southStr);
     if (Number.isNaN(northPowerGW) || Number.isNaN(southPowerGW)) {
-      // n/a or missing data — skip? But spec says throw on format change if not numeric?
+      // n/a or missing data – skip? But spec says throw on format change if not numeric?
       // Treat n/a as format change for now? Actually spec says ignore blank but n/a is missing data.
       // For Horizon 1, we expect numeric GW; if n/a, throw to surface format change, unless we want to skip.
       // We'll skip n/a lines to be resilient, but if both are n/a, skip.
       if (northStr === "n/a" || southStr === "n/a") continue;
       throw new Error(
-        `parseHemiPower: non-numeric power value — the NOAA format may have changed`,
+        `parseHemiPower: non-numeric power value – the NOAA format may have changed`,
       );
     }
     points.push({ observationTime, forecastTime, northPowerGW, southPowerGW });
@@ -56,7 +56,7 @@ export function parseHemiPower(text: string): HemiPower {
 
   if (points.length === 0) {
     throw new Error(
-      "parseHemiPower: no data rows found — the NOAA format may have changed",
+      "parseHemiPower: no data rows found – the NOAA format may have changed",
     );
   }
 

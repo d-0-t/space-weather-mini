@@ -9,7 +9,7 @@ import { scanHeader } from "./product-header";
 export interface GeophysicalAlert {
   issued: string;
   author: string;
-  /** Solar-terrestrial indices paragraph — the "Geophysical Alert Message" body. */
+  /** Solar-terrestrial indices paragraph – the "Geophysical Alert Message" body. */
   message: string;
   /** Observed paragraph (e.g. "No space weather storms were observed..."). */
   observed: string;
@@ -25,12 +25,12 @@ export function parseGeophysicalAlert(text: string): GeophysicalAlert {
   const { issued, author } = scanHeader(text);
   if (issued === "") {
     throw new Error(
-      "parseGeophysicalAlert: no :Issued: line found — the NOAA format may have changed"
+      "parseGeophysicalAlert: no :Issued: line found – the NOAA format may have changed"
     );
   }
   if (author === "") {
     throw new Error(
-      "parseGeophysicalAlert: no Prepared by line found — the NOAA format may have changed"
+      "parseGeophysicalAlert: no Prepared by line found – the NOAA format may have changed"
     );
   }
 
@@ -46,7 +46,7 @@ export function parseGeophysicalAlert(text: string): GeophysicalAlert {
   }
   if (bodyStart === -1) {
     throw new Error(
-      "parseGeophysicalAlert: no body found — the NOAA format may have changed"
+      "parseGeophysicalAlert: no body found – the NOAA format may have changed"
     );
   }
 
@@ -67,7 +67,7 @@ export function parseGeophysicalAlert(text: string): GeophysicalAlert {
 
   if (paragraphs.length < 2) {
     throw new Error(
-      "parseGeophysicalAlert: observed and predicted paragraphs not found — the NOAA format may have changed"
+      "parseGeophysicalAlert: observed and predicted paragraphs not found – the NOAA format may have changed"
     );
   }
 
@@ -77,22 +77,22 @@ export function parseGeophysicalAlert(text: string): GeophysicalAlert {
 
   if (!/predicted|next 24 hours/i.test(predicted)) {
     throw new Error(
-      "parseGeophysicalAlert: predicted paragraph not found — the NOAA format may have changed"
+      "parseGeophysicalAlert: predicted paragraph not found – the NOAA format may have changed"
     );
   }
   if (!/observed|past 24 hours/i.test(observed)) {
     throw new Error(
-      "parseGeophysicalAlert: observed paragraph not found — the NOAA format may have changed"
+      "parseGeophysicalAlert: observed paragraph not found – the NOAA format may have changed"
     );
   }
   if (observed === "" || predicted === "") {
     throw new Error(
-      "parseGeophysicalAlert: observed or predicted paragraph is empty — the NOAA format may have changed"
+      "parseGeophysicalAlert: observed or predicted paragraph is empty – the NOAA format may have changed"
     );
   }
   if (message === "") {
     throw new Error(
-      "parseGeophysicalAlert: Geophysical Alert Message paragraph not found — the NOAA format may have changed"
+      "parseGeophysicalAlert: Geophysical Alert Message paragraph not found – the NOAA format may have changed"
     );
   }
 

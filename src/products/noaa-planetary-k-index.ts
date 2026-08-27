@@ -1,4 +1,4 @@
-/** Planetary K-index products — observed and forecast. */
+/** Planetary K-index products – observed and forecast. */
 
 export interface PlanetaryKPoint {
   /** ISO timestamp, e.g. "2026-08-18T00:00:00" */
@@ -35,23 +35,23 @@ export function parsePlanetaryKIndex(text: string): PlanetaryKPoint[] {
     parsed = JSON.parse(text);
   } catch {
     throw new Error(
-      "parsePlanetaryKIndex: invalid JSON — the NOAA format may have changed",
+      "parsePlanetaryKIndex: invalid JSON – the NOAA format may have changed",
     );
   }
   if (!Array.isArray(parsed)) {
     throw new Error(
-      "parsePlanetaryKIndex: root is not an array — the NOAA format may have changed",
+      "parsePlanetaryKIndex: root is not an array – the NOAA format may have changed",
     );
   }
   if (parsed.length === 0) {
     throw new Error(
-      "parsePlanetaryKIndex: empty array — the NOAA format may have changed",
+      "parsePlanetaryKIndex: empty array – the NOAA format may have changed",
     );
   }
   return parsed.map((item, index) => {
     if (!isRecord(item)) {
       throw new Error(
-        `parsePlanetaryKIndex: item ${index} is not an object — the NOAA format may have changed`,
+        `parsePlanetaryKIndex: item ${index} is not an object – the NOAA format may have changed`,
       );
     }
     const { time_tag, Kp, a_running, station_count } = item as Record<string, unknown>;
@@ -62,7 +62,7 @@ export function parsePlanetaryKIndex(text: string): PlanetaryKPoint[] {
       typeof station_count !== "number"
     ) {
       throw new Error(
-        `parsePlanetaryKIndex: item ${index} missing required fields — the NOAA format may have changed`,
+        `parsePlanetaryKIndex: item ${index} missing required fields – the NOAA format may have changed`,
       );
     }
     return { time_tag, Kp, a_running, station_count };
@@ -79,23 +79,23 @@ export function parsePlanetaryKIndexForecast(text: string): PlanetaryKForecastPo
     parsed = JSON.parse(text);
   } catch {
     throw new Error(
-      "parsePlanetaryKIndexForecast: invalid JSON — the NOAA format may have changed",
+      "parsePlanetaryKIndexForecast: invalid JSON – the NOAA format may have changed",
     );
   }
   if (!Array.isArray(parsed)) {
     throw new Error(
-      "parsePlanetaryKIndexForecast: root is not an array — the NOAA format may have changed",
+      "parsePlanetaryKIndexForecast: root is not an array – the NOAA format may have changed",
     );
   }
   if (parsed.length === 0) {
     throw new Error(
-      "parsePlanetaryKIndexForecast: empty array — the NOAA format may have changed",
+      "parsePlanetaryKIndexForecast: empty array – the NOAA format may have changed",
     );
   }
   return parsed.map((item, index) => {
     if (!isRecord(item)) {
       throw new Error(
-        `parsePlanetaryKIndexForecast: item ${index} is not an object — the NOAA format may have changed`,
+        `parsePlanetaryKIndexForecast: item ${index} is not an object – the NOAA format may have changed`,
       );
     }
     const { time_tag, kp, observed, noaa_scale } = item as Record<string, unknown>;
@@ -106,7 +106,7 @@ export function parsePlanetaryKIndexForecast(text: string): PlanetaryKForecastPo
       (noaa_scale !== null && typeof noaa_scale !== "string")
     ) {
       throw new Error(
-        `parsePlanetaryKIndexForecast: item ${index} missing required fields — the NOAA format may have changed`,
+        `parsePlanetaryKIndexForecast: item ${index} missing required fields – the NOAA format may have changed`,
       );
     }
     return {

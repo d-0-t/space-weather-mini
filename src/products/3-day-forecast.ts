@@ -63,13 +63,13 @@ function parseSection(
   const titleIndex = lines.findIndex((line) => tableTitlePattern.test(line));
   if (titleIndex === -1) {
     throw new Error(
-      "parseThreeDayForecast: section table title not found — the NOAA format may have changed"
+      "parseThreeDayForecast: section table title not found – the NOAA format may have changed"
     );
   }
   const rationaleIndex = lines.findIndex((line) => line.startsWith("Rationale:"));
   if (rationaleIndex === -1) {
     throw new Error(
-      "parseThreeDayForecast: section Rationale not found — the NOAA format may have changed"
+      "parseThreeDayForecast: section Rationale not found – the NOAA format may have changed"
     );
   }
 
@@ -89,7 +89,7 @@ function parseSection(
   );
   if (firstRowIndex === -1) {
     throw new Error(
-      "parseThreeDayForecast: no table rows found — the NOAA format may have changed"
+      "parseThreeDayForecast: no table rows found – the NOAA format may have changed"
     );
   }
 
@@ -102,7 +102,7 @@ function parseSection(
   const dayHeader = lines[dayHeaderIndex].trim().match(DAY_TOKEN_PATTERN) ?? [];
   if (dayHeader.length !== 3) {
     throw new Error(
-      "parseThreeDayForecast: expected 3 forecast days — the NOAA format may have changed"
+      "parseThreeDayForecast: expected 3 forecast days – the NOAA format may have changed"
     );
   }
 
@@ -122,7 +122,7 @@ function parseKpRows(tableLines: string[]): KpBreakdownRow[] {
     const tokens = cleaned.trim().split(/\s+/);
     if (tokens.length !== 4) {
       throw new Error(
-        "parseThreeDayForecast: unexpected Kp row shape — the NOAA format may have changed"
+        "parseThreeDayForecast: unexpected Kp row shape – the NOAA format may have changed"
       );
     }
     return { timeSlot: tokens[0], days: tokens.slice(1).map(Number) };
@@ -135,13 +135,13 @@ function parseProbabilityRows(tableLines: string[]): ProbabilityRow[] {
     const firstPercent = tokens.findIndex((token) => token.endsWith("%"));
     if (firstPercent === -1) {
       throw new Error(
-        "parseThreeDayForecast: probability row has no percentages — the NOAA format may have changed"
+        "parseThreeDayForecast: probability row has no percentages – the NOAA format may have changed"
       );
     }
     const days = tokens.slice(firstPercent).map((token) => Number(token.slice(0, -1)));
     if (days.length !== 3) {
       throw new Error(
-        "parseThreeDayForecast: unexpected probability row shape — the NOAA format may have changed"
+        "parseThreeDayForecast: unexpected probability row shape – the NOAA format may have changed"
       );
     }
     return { label: tokens.slice(0, firstPercent).join(" "), days };
@@ -152,12 +152,12 @@ export function parseThreeDayForecast(text: string): ThreeDayForecast {
   const { issued, author } = scanHeader(text);
   if (issued === "") {
     throw new Error(
-      "parseThreeDayForecast: no :Issued: line found — the NOAA format may have changed"
+      "parseThreeDayForecast: no :Issued: line found – the NOAA format may have changed"
     );
   }
   if (author === "") {
     throw new Error(
-      "parseThreeDayForecast: no Prepared by line found — the NOAA format may have changed"
+      "parseThreeDayForecast: no Prepared by line found – the NOAA format may have changed"
     );
   }
 
@@ -178,17 +178,17 @@ export function parseThreeDayForecast(text: string): ThreeDayForecast {
 
   if (issued === "") {
     throw new Error(
-      "parseThreeDayForecast: no :Issued: line found — the NOAA format may have changed"
+      "parseThreeDayForecast: no :Issued: line found – the NOAA format may have changed"
     );
   }
   if (author === "") {
     throw new Error(
-      "parseThreeDayForecast: no Prepared by line found — the NOAA format may have changed"
+      "parseThreeDayForecast: no Prepared by line found – the NOAA format may have changed"
     );
   }
   if (sections.length !== 3) {
     throw new Error(
-      `parseThreeDayForecast: expected 3 sections, found ${sections.length} — the NOAA format may have changed`
+      `parseThreeDayForecast: expected 3 sections, found ${sections.length} – the NOAA format may have changed`
     );
   }
 

@@ -1,5 +1,5 @@
 /**
- * Contract test for #12 — Legacy parser contract.
+ * Contract test for #12 – Legacy parser contract.
  *
  * Seams under test:
  *  - File-system seam: the legacy HTML-string parser must be deleted.
@@ -16,7 +16,7 @@ import { describe, expect, it } from "vitest";
 
 const SRC_ROOT = join(__dirname);
 
-describe("12 — Legacy parser contract", () => {
+describe("12 – Legacy parser contract", () => {
   it("deletes the legacy HTML-string parser file(s)", () => {
     expect(existsSync(join(SRC_ROOT, "components/parser/TxtParser.jsx"))).toBe(false);
     expect(existsSync(join(SRC_ROOT, "components/parser/TxtParser.js"))).toBe(false);

@@ -20,24 +20,24 @@ export function parseKyotoDst(text: string): KyotoDst {
   try {
     parsed = JSON.parse(text);
   } catch {
-    throw new Error("parseKyotoDst: invalid JSON — the NOAA format may have changed");
+    throw new Error("parseKyotoDst: invalid JSON – the NOAA format may have changed");
   }
   if (!Array.isArray(parsed)) {
-    throw new Error("parseKyotoDst: root is not an array — the NOAA format may have changed");
+    throw new Error("parseKyotoDst: root is not an array – the NOAA format may have changed");
   }
   if (parsed.length === 0) {
-    throw new Error("parseKyotoDst: empty array — the NOAA format may have changed");
+    throw new Error("parseKyotoDst: empty array – the NOAA format may have changed");
   }
   const points: DstPoint[] = parsed.map((item, index) => {
     if (typeof item !== "object" || item === null || Array.isArray(item)) {
       throw new Error(
-        `parseKyotoDst: item ${index} is not an object — the NOAA format may have changed`,
+        `parseKyotoDst: item ${index} is not an object – the NOAA format may have changed`,
       );
     }
     const { time_tag, dst } = item as Record<string, unknown>;
     if (typeof time_tag !== "string" || typeof dst !== "number") {
       throw new Error(
-        `parseKyotoDst: item ${index} missing time_tag/dst — the NOAA format may have changed`,
+        `parseKyotoDst: item ${index} missing time_tag/dst – the NOAA format may have changed`,
       );
     }
     return { time_tag, dst };

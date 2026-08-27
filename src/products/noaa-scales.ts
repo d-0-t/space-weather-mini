@@ -1,4 +1,4 @@
-/** NOAA Scales product — current and 3-day G/R/S probabilities. */
+/** NOAA Scales product – current and 3-day G/R/S probabilities. */
 
 export interface NoaaScaleEntry {
   Scale: string | null;
@@ -35,18 +35,18 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function parseDay(value: unknown, key: string): NoaaScalesDay {
   if (!isRecord(value)) {
     throw new Error(
-      `parseNoaaScales: day "${key}" is not an object — the NOAA format may have changed`,
+      `parseNoaaScales: day "${key}" is not an object – the NOAA format may have changed`,
     );
   }
   const { DateStamp, TimeStamp, R, S, G } = value as Record<string, unknown>;
   if (typeof DateStamp !== "string" || typeof TimeStamp !== "string") {
     throw new Error(
-      `parseNoaaScales: day "${key}" missing DateStamp/TimeStamp — the NOAA format may have changed`,
+      `parseNoaaScales: day "${key}" missing DateStamp/TimeStamp – the NOAA format may have changed`,
     );
   }
   if (!isRecord(R) || !isRecord(S) || !isRecord(G)) {
     throw new Error(
-      `parseNoaaScales: day "${key}" missing R/S/G — the NOAA format may have changed`,
+      `parseNoaaScales: day "${key}" missing R/S/G – the NOAA format may have changed`,
     );
   }
   return {
@@ -68,19 +68,19 @@ export function parseNoaaScales(text: string): NoaaScales {
     parsed = JSON.parse(text);
   } catch {
     throw new Error(
-      "parseNoaaScales: invalid JSON — the NOAA format may have changed",
+      "parseNoaaScales: invalid JSON – the NOAA format may have changed",
     );
   }
   if (!isRecord(parsed)) {
     throw new Error(
-      "parseNoaaScales: root is not an object — the NOAA format may have changed",
+      "parseNoaaScales: root is not an object – the NOAA format may have changed",
     );
   }
   const keys = ["0", "1", "2", "3", "-1"];
   for (const k of keys) {
     if (!(k in parsed)) {
       throw new Error(
-        `parseNoaaScales: missing key "${k}" — the NOAA format may have changed`,
+        `parseNoaaScales: missing key "${k}" – the NOAA format may have changed`,
       );
     }
   }

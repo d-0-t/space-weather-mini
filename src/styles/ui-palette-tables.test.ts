@@ -20,7 +20,7 @@ const indicesScss = normalize(
   ),
 );
 
-// Frozen data-encoding selectors — byte-identical contract. These are the only
+// Frozen data-encoding selectors – byte-identical contract. These are the only
 // places raw rgb(...) is allowed. Copied verbatim from the post-recolor file
 // (user's manual 75%/30% palette) so the test fails loudly if anyone tokenizes or hue-shifts them.
 const FROZEN_KP = [
@@ -129,7 +129,7 @@ describe("UI palette tabular chrome (ticket 02)", () => {
 
   it("leaves no stray gray rgb() outside the two frozen selectors", () => {
     const chrome = stripFrozen(tablesScss);
-    // After stripping frozen, no rgb() should remain at all — table chrome is fully tokenized
+    // After stripping frozen, no rgb() should remain at all – table chrome is fully tokenized
     expect(chrome).not.toMatch(/rgb\(/);
     // also forbid stray outline grays in per-product tabular wrappers
     expect(outlookScss).not.toMatch(/rgb\(/);

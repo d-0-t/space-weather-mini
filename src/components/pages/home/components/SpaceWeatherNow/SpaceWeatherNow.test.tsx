@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import rtswWindFixture from "../../../../../products/fixtures/rtsw-wind-1m.json?raw";
@@ -61,10 +62,10 @@ describe("SpaceWeatherNow", () => {
     ]) {
       expect(screen.getByText(title)).toBeInTheDocument();
     }
-    expect(screen.getByText(/km\/s/)).toBeInTheDocument();
-    expect(screen.getByText(/p\/cm³/)).toBeInTheDocument();
+    expect(screen.getAllByText(/km\/s/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/p\/cm³/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/nT/).length).toBeGreaterThan(0);
-    expect(screen.getByText(/GW/)).toBeInTheDocument();
+    expect(screen.getAllByText(/GW/).length).toBeGreaterThan(0);
   });
 
   it("labels Bz as South for the reading closest to Now and North for positive", async () => {
@@ -110,10 +111,10 @@ describe("SpaceWeatherNow", () => {
       screen.getByRole("img", { name: /bz gsm magnetic field.*2 hours before now/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("table", { name: /solar wind — latest values/i }),
+      screen.getByRole("table", { name: /solar wind – latest values/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("table", { name: /dst \(kyoto\) — 60-minute averages/i }),
+      screen.getByRole("table", { name: /dst \(kyoto\) – 60-minute averages/i }),
     ).toBeInTheDocument();
   });
 
@@ -128,6 +129,40 @@ describe("SpaceWeatherNow", () => {
     expect(formatTooltipTime("2026-08-26_21:00")).toBe("26 Aug 2026 21:00");
     expect(formatLocalTime("2026-08-26T22:04:07")).toMatch(/^\d{1,2}:\d{2}( AM| PM)?$/);
     expect(formatLocalTime("2026-08-26_21:00")).toMatch(/^\d{1,2}:\d{2}( AM| PM)?$/);
+  });
+
+  it("explains every chart in a native collapsible help toggle", async () => {
+    const user = userEvent.setup();
+    renderNow();
+    await waitFor(() => expect(screen.getByText("Solar wind")).toBeInTheDocument());
+    // One "?" help per card – 8 cards, all collapsible via native <details>
+    const helps = document.querySelectorAll(".space-weather-now__help");
+    expect(helps.length).toBeGreaterThanOrEqual(8);
+    expect(screen.getAllByText("?").length).toBeGreaterThanOrEqual(8);
+    // Per-card sr-only labels
+    expect(screen.getByText("About solar wind")).toBeInTheDocument();
+    expect(screen.getByText("About Dst")).toBeInTheDocument();
+    expect(screen.getByText("About the NOAA magnetometer")).toBeInTheDocument();
+    for (const details of Array.from(helps)) {
+      expect(details).toHaveProperty("open", false);
+    }
+    // Opening the Solar wind help reveals its compact scale
+    const solarHelp = screen.getByText("Solar wind").closest("section")!.querySelector(
+      ".space-weather-now__help",
+    )! as HTMLDetailsElement;
+    await user.click(solarHelp.querySelector("summary")!);
+    expect(solarHelp.open).toBe(true);
+    expect(solarHelp.querySelector("li b")?.textContent).toBe("< 400 km/s");
+    expect(solarHelp.textContent).toMatch(/900 km\/s.*very high/);
+    // Escape closes it and returns focus to the "?" trigger
+    await user.keyboard("{Escape}");
+    expect(solarHelp.open).toBe(false);
+    expect(solarHelp.querySelector("summary")).toHaveFocus();
+    // Clicking toggles it open and closed again
+    await user.click(solarHelp.querySelector("summary")!);
+    expect(solarHelp.open).toBe(true);
+    await user.click(solarHelp.querySelector("summary")!);
+    expect(solarHelp.open).toBe(false);
   });
 
   it("averages rows into time buckets for a cleaner line", async () => {
@@ -169,6 +204,32 @@ describe("SpaceWeatherNow", () => {
     // Fixture speed ~280 km/s → transit ≈ 89 minutes, source IMAP
     expect(screen.getByText(/We are \d+ minutes behind/)).toBeInTheDocument();
     expect(screen.getByText(/IMAP's data, based on solar wind speed/)).toBeInTheDocument();
+  });
+
+  it("stacks the Boulder help list and description in one popover", async () => {
+    const user = userEvent.setup();
+    renderNow();
+    await waitFor(() =>
+      expect(
+        screen.getByText("NOAA magnetometer (Boulder)"),
+      ).toBeInTheDocument(),
+    );
+    const boulderHelp = screen
+      .getByText("NOAA magnetometer (Boulder)")
+      .closest("section")!
+      .querySelector(".space-weather-now__help")! as HTMLDetailsElement;
+    await user.click(boulderHelp.querySelector("summary")!);
+    const popover = boulderHelp.querySelector(".space-weather-now__popover")!;
+    // Both the scale list and the description render, stacked, not overlapped
+    expect(popover.querySelectorAll("li").length).toBeGreaterThan(3);
+    expect(popover.querySelector("li b")?.textContent).toBe("0-2");
+    expect(popover.querySelector("p")?.textContent).toMatch(
+      /simple local gauge of how disturbed the magnetic field/,
+    );
+    // The list paints above (before) the description in DOM order
+    expect(
+      popover.querySelector("ul")!.compareDocumentPosition(popover.querySelector("p")!),
+    ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
   it("shows the Kiruna magnetogram image and the NOAA Boulder chart as separate cards", async () => {

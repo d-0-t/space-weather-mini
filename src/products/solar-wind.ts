@@ -1,4 +1,4 @@
-/** Solar wind summary products — mag field (Bt, Bz GSM) and speed. */
+/** Solar wind summary products – mag field (Bt, Bz GSM) and speed. */
 
 export interface SolarWindMagField {
   bt: number;
@@ -47,19 +47,19 @@ export function parseSolarWindMagField(text: string): SolarWindMagField {
     parsed = JSON.parse(text);
   } catch {
     throw new Error(
-      "parseSolarWindMagField: invalid JSON — the NOAA format may have changed",
+      "parseSolarWindMagField: invalid JSON – the NOAA format may have changed",
     );
   }
   if (!Array.isArray(parsed) || parsed.length === 0) {
     throw new Error(
-      "parseSolarWindMagField: expected non-empty array — the NOAA format may have changed",
+      "parseSolarWindMagField: expected non-empty array – the NOAA format may have changed",
     );
   }
   const item = parsed[0] as Record<string, unknown>;
   const { bt, bz_gsm, time_tag } = item;
   if (typeof bt !== "number" || typeof bz_gsm !== "number" || typeof time_tag !== "string") {
     throw new Error(
-      "parseSolarWindMagField: missing bt/bz_gsm/time_tag — the NOAA format may have changed",
+      "parseSolarWindMagField: missing bt/bz_gsm/time_tag – the NOAA format may have changed",
     );
   }
   return { bt, bz_gsm, time_tag };
@@ -75,19 +75,19 @@ export function parseSolarWindSpeed(text: string): SolarWindSpeed {
     parsed = JSON.parse(text);
   } catch {
     throw new Error(
-      "parseSolarWindSpeed: invalid JSON — the NOAA format may have changed",
+      "parseSolarWindSpeed: invalid JSON – the NOAA format may have changed",
     );
   }
   if (!Array.isArray(parsed) || parsed.length === 0) {
     throw new Error(
-      "parseSolarWindSpeed: expected non-empty array — the NOAA format may have changed",
+      "parseSolarWindSpeed: expected non-empty array – the NOAA format may have changed",
     );
   }
   const item = parsed[0] as Record<string, unknown>;
   const { proton_speed, time_tag } = item;
   if (typeof proton_speed !== "number" || typeof time_tag !== "string") {
     throw new Error(
-      "parseSolarWindSpeed: missing proton_speed/time_tag — the NOAA format may have changed",
+      "parseSolarWindSpeed: missing proton_speed/time_tag – the NOAA format may have changed",
     );
   }
   return { proton_speed, time_tag };
@@ -115,15 +115,15 @@ export function parseRtswWind(text: string): RtswWindPoint[] {
   try {
     parsed = JSON.parse(text);
   } catch {
-    throw new Error("parseRtswWind: invalid JSON — the NOAA format may have changed");
+    throw new Error("parseRtswWind: invalid JSON – the NOAA format may have changed");
   }
   if (!Array.isArray(parsed) || parsed.length === 0) {
-    throw new Error("parseRtswWind: expected non-empty array — the NOAA format may have changed");
+    throw new Error("parseRtswWind: expected non-empty array – the NOAA format may have changed");
   }
   const points = parsed.map((item, index) => {
     if (!isRecord(item) || typeof item.time_tag !== "string") {
       throw new Error(
-        `parseRtswWind: item ${index} missing time_tag — the NOAA format may have changed`,
+        `parseRtswWind: item ${index} missing time_tag – the NOAA format may have changed`,
       );
     }
     return {
@@ -146,15 +146,15 @@ export function parseRtswMagField(text: string): RtswMagFieldPoint[] {
   try {
     parsed = JSON.parse(text);
   } catch {
-    throw new Error("parseRtswMagField: invalid JSON — the NOAA format may have changed");
+    throw new Error("parseRtswMagField: invalid JSON – the NOAA format may have changed");
   }
   if (!Array.isArray(parsed) || parsed.length === 0) {
-    throw new Error("parseRtswMagField: expected non-empty array — the NOAA format may have changed");
+    throw new Error("parseRtswMagField: expected non-empty array – the NOAA format may have changed");
   }
   const points = parsed.map((item, index) => {
     if (!isRecord(item) || typeof item.time_tag !== "string") {
       throw new Error(
-        `parseRtswMagField: item ${index} missing time_tag — the NOAA format may have changed`,
+        `parseRtswMagField: item ${index} missing time_tag – the NOAA format may have changed`,
       );
     }
     return {

@@ -33,14 +33,14 @@ function parseSection(title: string, lines: string[]): DiscussionSection {
   const forecastStart = lines.indexOf(FORECAST_MARKER);
   if (summaryStart === -1 || forecastStart === -1) {
     throw new Error(
-      `parseForecastDiscussion: ${title} has no ${summaryStart === -1 ? SUMMARY_MARKER : FORECAST_MARKER} marker — the NOAA format may have changed`
+      `parseForecastDiscussion: ${title} has no ${summaryStart === -1 ? SUMMARY_MARKER : FORECAST_MARKER} marker – the NOAA format may have changed`
     );
   }
   const daySummary = lines.slice(summaryStart + 1, forecastStart).join("\n").trim();
   const forecast = lines.slice(forecastStart + 1).join("\n").trim();
   if (daySummary === "" || forecast === "") {
     throw new Error(
-      `parseForecastDiscussion: ${title} has empty prose — the NOAA format may have changed`
+      `parseForecastDiscussion: ${title} has empty prose – the NOAA format may have changed`
     );
   }
   return { daySummary, forecast };
@@ -50,12 +50,12 @@ export function parseForecastDiscussion(text: string): ForecastDiscussion {
   const { issued, author } = scanHeader(text);
   if (issued === "") {
     throw new Error(
-      "parseForecastDiscussion: no :Issued: line found — the NOAA format may have changed"
+      "parseForecastDiscussion: no :Issued: line found – the NOAA format may have changed"
     );
   }
   if (author === "") {
     throw new Error(
-      "parseForecastDiscussion: no Prepared by line found — the NOAA format may have changed"
+      "parseForecastDiscussion: no Prepared by line found – the NOAA format may have changed"
     );
   }
 
@@ -69,7 +69,7 @@ export function parseForecastDiscussion(text: string): ForecastDiscussion {
       const title = line.trim();
       if (sections[title]) {
         throw new Error(
-          `parseForecastDiscussion: duplicate section ${title} — the NOAA format may have changed`
+          `parseForecastDiscussion: duplicate section ${title} – the NOAA format may have changed`
         );
       }
       currentTitle = title;
@@ -82,7 +82,7 @@ export function parseForecastDiscussion(text: string): ForecastDiscussion {
   const missing = SECTION_TITLES.filter((title) => !sections[title]);
   if (missing.length > 0) {
     throw new Error(
-      `parseForecastDiscussion: missing section(s) ${missing.join(", ")} — the NOAA format may have changed`
+      `parseForecastDiscussion: missing section(s) ${missing.join(", ")} – the NOAA format may have changed`
     );
   }
 

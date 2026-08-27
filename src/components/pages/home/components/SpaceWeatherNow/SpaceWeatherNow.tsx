@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   CartesianGrid,
@@ -56,7 +57,7 @@ export const DATA_WINDOWS = {
 /**
  * Smoothing buckets, in minutes per averaged point. Rows are averaged per
  * wall-clock bucket, which also decimates the rendered point count.
- * - solarWind: 1-minute means — merges the feed's 2-4 rows per minute into
+ * - solarWind: 1-minute means – merges the feed's 2-4 rows per minute into
  *   one clean point per minute (smoothing 1)
  * - boulder: 1 = raw (already smooth)
  * - hemi: 5 = its native cadence (no change)
@@ -73,7 +74,7 @@ export const SMOOTHING = {
 const BEFORE_NOW_MINUTES = 120;
 
 // DSCOVR sits at L1, ~1.5 million km upstream of Earth. The measured solar
-// wind reaches Earth `1.5e6 / speed` minutes later — the "Now" line is drawn
+// wind reaches Earth `1.5e6 / speed` minutes later – the "Now" line is drawn
 // that far past the latest reading on the solar-wind charts.
 const L1_DISTANCE_KM = 1_500_000;
 
@@ -108,7 +109,7 @@ const fetchBoulder = async () => {
 };
 
 interface ChartPoint {
-  /** Numeric index — the X axis is numeric so ReferenceLine positions correctly */
+  /** Numeric index – the X axis is numeric so ReferenceLine positions correctly */
   x: number;
   /** HH:MM axis label */
   time: string;
@@ -341,7 +342,7 @@ const MiniSparkline: React.FC<{
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             formatter={(value: any) => [
               value === null || value === undefined
-                ? "—"
+                ? "–"
                 : `${Number(value).toFixed(2)} ${unit}`,
               title,
             ]}
@@ -390,6 +391,53 @@ const MiniSparkline: React.FC<{
   );
 };
 
+interface ChartHelpContent {
+  /** sr-only summary label, e.g. "About solar wind" */
+  label: string;
+  /** Compact threshold rows: value → meaning */
+  rows?: [string, string][];
+  /** Prose fallback (magnetograms) */
+  text?: string;
+}
+
+const ChartHelp: React.FC<{ content: ChartHelpContent }> = ({ content }) => {
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+  // Escape closes the popover and returns focus to the "?" trigger
+  const handleKeyDown: React.KeyboardEventHandler<HTMLElement> = (event) => {
+    if (event.key === "Escape" && detailsRef.current?.open) {
+      event.preventDefault();
+      detailsRef.current.open = false;
+      detailsRef.current.querySelector("summary")?.focus();
+    }
+  };
+  return (
+    <details
+      ref={detailsRef}
+      className="space-weather-now__help"
+      onKeyDown={handleKeyDown}
+    >
+      <summary>
+        <span aria-hidden="true">?</span>
+        <span className="sr-only">{content.label}</span>
+      </summary>
+      {content.rows || content.text ? (
+        <div className="space-weather-now__popover">
+          {content.rows ? (
+            <ul className="space-weather-now__scale">
+              {content.rows.map(([value, meaning]) => (
+                <li key={value}>
+                  <b>{value}</b> – {meaning}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {content.text ? <p>{content.text}</p> : null}
+        </div>
+      ) : null}
+    </details>
+  );
+};
+
 const SparklineCard: React.FC<{
   title: string;
   value: string;
@@ -401,6 +449,7 @@ const SparklineCard: React.FC<{
   accent: string;
   ariaLabel: string;
   unit: string;
+  help: ChartHelpContent;
   warning?: string | null;
   anchorOffset?: number;
   /** Averaging bucket in minutes, for the sr-only caption */
@@ -416,12 +465,16 @@ const SparklineCard: React.FC<{
   accent,
   ariaLabel,
   unit,
+  help,
   warning,
   anchorOffset,
   bucketMinutes,
 }) => (
   <section className="space-weather-now__card">
-    <h3>{title}</h3>
+    <div className="space-weather-now__head">
+      <h3>{title}</h3>
+      <ChartHelp content={help} />
+    </div>
     {warning ? <p className="space-weather-now__warning">{warning}</p> : null}
     <p className="space-weather-now__value">
       {value}
@@ -440,7 +493,7 @@ const SparklineCard: React.FC<{
         />
         <table className="sr-only">
           <caption>
-            {title} —{" "}
+            {title} –{" "}
             {bucketMinutes && bucketMinutes > 1
               ? `${bucketMinutes}-minute averages`
               : "latest values"}
@@ -463,14 +516,22 @@ const SparklineCard: React.FC<{
       </>
     ) : null}
     <p className="space-weather-now__fresh">
-      Updated {updated} ({asOf !== "—" ? formatLocalTime(asOf) : "—"})
+      Updated {updated} ({asOf !== "–" ? formatLocalTime(asOf) : "–"})
     </p>
   </section>
 );
 
 const KirunaMagnetogramCard: React.FC = () => (
   <section className="space-weather-now__card space-weather-now__card--wide">
-    <h3>Kiruna magnetometer</h3>
+    <div className="space-weather-now__head">
+      <h3>Kiruna magnetometer</h3>
+      <ChartHelp
+        content={{
+          label: "About the Kiruna magnetogram",
+          text: "IRF's live magnetogram for Kiruna (68°N, Sweden) plots the X, Y and Z field components in nT over 24 hours. Gentle wiggles are normal. Large swings – especially 100+ nT in the X component – mean substorms are overhead, so bright aurora is likely at high latitudes.",
+        }}
+      />
+    </div>
     <div className="space-weather-now__panel">
       <a
         href={KIRUNA_MAGNETOGRAM_SOURCE_URL}
@@ -521,10 +582,24 @@ const BoulderMagnetometerCard: React.FC = () => {
 
   return (
     <section className="space-weather-now__card">
-      <h3>NOAA magnetometer (Boulder)</h3>
+      <div className="space-weather-now__head">
+        <h3>NOAA magnetometer (Boulder)</h3>
+        <ChartHelp
+          content={{
+            label: "About the NOAA magnetometer",
+            rows: [
+              ["0-2", "quiet"],
+              ["3", "unsettled"],
+              ["4", "active"],
+              ["5+", "minor storm"],
+            ],
+            text: "NOAA Boulder's local K index (0-9), measured by a ground magnetometer in Colorado. A simple local gauge of how disturbed the magnetic field is around you.",
+          }}
+        />
+      </div>
       {warning ? <p className="space-weather-now__warning">{warning}</p> : null}
       <p className="space-weather-now__value">
-        K {latest.value !== null ? latest.value.toFixed(1) : "—"}
+        K {latest.value !== null ? latest.value.toFixed(1) : "–"}
         <span className="space-weather-now__note"> (local ground)</span>
       </p>
       {points.length > 1 ? (
@@ -537,7 +612,7 @@ const BoulderMagnetometerCard: React.FC = () => {
             ariaLabel="Boulder magnetometer K index, last 3 hours"
           />
           <table className="sr-only">
-            <caption>Boulder magnetometer K index — latest values</caption>
+            <caption>Boulder magnetometer K index – latest values</caption>
             <thead>
               <tr>
                 <th scope="col">Time</th>
@@ -556,8 +631,8 @@ const BoulderMagnetometerCard: React.FC = () => {
         </>
       ) : null}
       <p className="space-weather-now__fresh">
-        Updated {latest.timeTag ? formatAge(latest.timeTag) : "—"} (
-        {latest.timeTag ? formatLocalTime(latest.timeTag) : "—"})
+        Updated {latest.timeTag ? formatAge(latest.timeTag) : "–"} (
+        {latest.timeTag ? formatLocalTime(latest.timeTag) : "–"})
       </p>
     </section>
   );
@@ -648,7 +723,7 @@ const SpaceWeatherNow: React.FC = () => {
 
   // Headline values show the reading closest to "Now" (arriving at Earth now),
   // not the freshest measurement (still propagating to Earth). The freshness
-  // line instead tracks the feed's freshest reading — when it was updated.
+  // line instead tracks the feed's freshest reading – when it was updated.
   const speedNow = valueAt(speedRows, windNowTag);
   const densityNow = valueAt(densityRows, windNowTag);
   const btNow = valueAt(btRows, magNowTag);
@@ -675,11 +750,21 @@ const SpaceWeatherNow: React.FC = () => {
       <div className="space-weather-now__grid">
         <SparklineCard
           title="Solar wind"
-          value={speedNow.value !== null ? speedNow.value.toFixed(0) : "—"}
+          value={speedNow.value !== null ? speedNow.value.toFixed(0) : "–"}
           note="km/s"
           unit="km/s"
-          asOf={speed.timeTag ?? "—"}
-          updated={speed.timeTag ? formatAge(speed.timeTag) : "—"}
+          help={{
+            label: "About solar wind",
+            rows: [
+              ["< 400 km/s", "normal"],
+              ["400 km/s", "elevated"],
+              ["500 km/s", "moderate"],
+              ["700 km/s", "high"],
+              ["900 km/s", "very high"],
+            ],
+          }}
+          asOf={speed.timeTag ?? "–"}
+          updated={speed.timeTag ? formatAge(speed.timeTag) : "–"}
           points={smoothPoints(speedRows, l1Window, SMOOTHING.solarWind)}
           nowLabel={windNowLabel}
           anchorOffset={l1AnchorOffset}
@@ -690,11 +775,20 @@ const SpaceWeatherNow: React.FC = () => {
         />
         <SparklineCard
           title="Particle density"
-          value={densityNow.value !== null ? densityNow.value.toFixed(1) : "—"}
+          value={densityNow.value !== null ? densityNow.value.toFixed(1) : "–"}
           note="p/cm³"
           unit="p/cm³"
-          asOf={density.timeTag ?? "—"}
-          updated={density.timeTag ? formatAge(density.timeTag) : "—"}
+          help={{
+            label: "About particle density",
+            rows: [
+              ["1-10 p/cm³", "low"],
+              ["10-20 p/cm³", "moderate"],
+              ["40+ p/cm³", "high"],
+              ["60+ p/cm³", "very high"],
+            ],
+          }}
+          asOf={density.timeTag ?? "–"}
+          updated={density.timeTag ? formatAge(density.timeTag) : "–"}
           points={smoothPoints(densityRows, l1Window, SMOOTHING.solarWind)}
           nowLabel={windNowLabel}
           anchorOffset={l1AnchorOffset}
@@ -706,10 +800,19 @@ const SpaceWeatherNow: React.FC = () => {
         <SparklineCard
           title="Bt"
           unit="nT"
-          value={btNow.value !== null ? btNow.value.toFixed(1) : "—"}
+          help={{
+            label: "About Bt",
+            rows: [
+              ["< 5 nT", "quiet"],
+              ["5-15 nT", "elevated"],
+              ["15-30 nT", "strong"],
+              ["30+ nT", "very strong"],
+            ],
+          }}
+          value={btNow.value !== null ? btNow.value.toFixed(1) : "–"}
           note="nT"
-          asOf={bt.timeTag ?? "—"}
-          updated={bt.timeTag ? formatAge(bt.timeTag) : "—"}
+          asOf={bt.timeTag ?? "–"}
+          updated={bt.timeTag ? formatAge(bt.timeTag) : "–"}
           points={smoothPoints(btRows, l1Window, SMOOTHING.solarWind)}
           nowLabel={magNowLabel}
           anchorOffset={l1AnchorOffset}
@@ -721,18 +824,29 @@ const SpaceWeatherNow: React.FC = () => {
         <SparklineCard
           title="Bz"
           unit="nT"
+          help={{
+            label: "About Bz",
+            rows: [
+              ["+ (northward)", "quiet"],
+              ["- (southward)", "potential"],
+              ["0 to −5 nT", "mild"],
+              ["−5 to −10 nT", "active (Kp3-4)"],
+              ["−10 to −20 nT", "storm (Kp5-7)"],
+              ["< −20 nT", "major storm (Kp7+)"],
+            ],
+          }}
           value={
             bzNow.value !== null
               ? `${bzNow.value >= 0 ? "+" : ""}${bzNow.value.toFixed(1)}`
-              : "—"
+              : "–"
           }
           note={
             bzNow.value !== null
               ? `nT (${bzNow.value < 0 ? "South" : "North"})`
               : "nT"
           }
-          asOf={bz.timeTag ?? "—"}
-          updated={bz.timeTag ? formatAge(bz.timeTag) : "—"}
+          asOf={bz.timeTag ?? "–"}
+          updated={bz.timeTag ? formatAge(bz.timeTag) : "–"}
           points={smoothPoints(bzRows, l1Window, SMOOTHING.solarWind)}
           nowLabel={magNowLabel}
           anchorOffset={l1AnchorOffset}
@@ -743,14 +857,23 @@ const SpaceWeatherNow: React.FC = () => {
         />
         <SparklineCard
           title="Hemispheric power"
-          value={latestHemi ? String(Math.round(latestHemi.northPowerGW)) : "—"}
+          value={latestHemi ? String(Math.round(latestHemi.northPowerGW)) : "–"}
           note="GW"
           unit="GW"
-          asOf={latestHemi ? latestHemi.observationTime : "—"}
+          help={{
+            label: "About hemispheric power",
+            rows: [
+              ["< 10 GW", "quiet"],
+              ["15-30 GW", "active"],
+              ["30-50 GW", "strong"],
+              ["50+ GW", "very strong"],
+            ],
+          }}
+          asOf={latestHemi ? latestHemi.observationTime : "–"}
           updated={
             latestHemi
               ? formatAge(latestHemi.observationTime.replace("_", "T"))
-              : "—"
+              : "–"
           }
           points={smoothPoints(
             (hemiQuery.data?.points ?? []).map((p) => ({
@@ -768,10 +891,19 @@ const SpaceWeatherNow: React.FC = () => {
         <SparklineCard
           title="Dst (Kyoto)"
           unit="nT"
-          value={latestDst ? String(latestDst.dst) : "—"}
+          help={{
+            label: "About Dst",
+            rows: [
+              ["0 to −30 nT", "quiet to unsettled"],
+              ["−50 to −100 nT", "moderate storm"],
+              ["−100 to −200 nT", "strong storm"],
+              ["< −200 nT", "severe storm"],
+            ],
+          }}
+          value={latestDst ? String(latestDst.dst) : "–"}
           note="nT"
-          asOf={latestDst ? latestDst.time_tag : "—"}
-          updated={latestDst ? formatAge(latestDst.time_tag) : "—"}
+          asOf={latestDst ? latestDst.time_tag : "–"}
+          updated={latestDst ? formatAge(latestDst.time_tag) : "–"}
           points={smoothPoints(
             (dstQuery.data?.points ?? []).map((p) => ({
               time_tag: p.time_tag,

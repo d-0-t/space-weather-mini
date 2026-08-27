@@ -1,4 +1,4 @@
-/** Boulder ground magnetometer — 1-minute local K index. */
+/** Boulder ground magnetometer – 1-minute local K index. */
 
 export interface BoulderKPoint {
   time_tag: string;
@@ -12,7 +12,7 @@ export const BOULDER_K_INDEX_URL =
 /**
  * Parses the Boulder K-index 1-minute JSON string.
  * The live feed is newest-first; returns points sorted oldest-first.
- * NOAA flags missing readings with -9999 — mapped to null.
+ * NOAA flags missing readings with -9999 – mapped to null.
  */
 export function parseBoulderKIndex(text: string): BoulderKPoint[] {
   let parsed: unknown;
@@ -20,24 +20,24 @@ export function parseBoulderKIndex(text: string): BoulderKPoint[] {
     parsed = JSON.parse(text);
   } catch {
     throw new Error(
-      "parseBoulderKIndex: invalid JSON — the NOAA format may have changed",
+      "parseBoulderKIndex: invalid JSON – the NOAA format may have changed",
     );
   }
   if (!Array.isArray(parsed) || parsed.length === 0) {
     throw new Error(
-      "parseBoulderKIndex: expected non-empty array — the NOAA format may have changed",
+      "parseBoulderKIndex: expected non-empty array – the NOAA format may have changed",
     );
   }
   const points = parsed.map((item, index) => {
     if (typeof item !== "object" || item === null || Array.isArray(item)) {
       throw new Error(
-        `parseBoulderKIndex: item ${index} is not an object — the NOAA format may have changed`,
+        `parseBoulderKIndex: item ${index} is not an object – the NOAA format may have changed`,
       );
     }
     const { time_tag, k_index } = item as Record<string, unknown>;
     if (typeof time_tag !== "string") {
       throw new Error(
-        `parseBoulderKIndex: item ${index} missing time_tag — the NOAA format may have changed`,
+        `parseBoulderKIndex: item ${index} missing time_tag – the NOAA format may have changed`,
       );
     }
     const value = typeof k_index === "number" ? k_index : null;

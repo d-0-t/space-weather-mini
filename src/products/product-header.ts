@@ -17,7 +17,7 @@ function makeUtcDate(
   const month = MONTHS.indexOf(monthName);
   if (month === -1) {
     throw new Error(
-      "parseIssuedDate: unknown month — the NOAA format may have changed"
+      "parseIssuedDate: unknown month – the NOAA format may have changed"
     );
   }
   return new Date(
@@ -37,7 +37,7 @@ export function parseIssuedDate(issued: string): Date {
     return makeUtcDate(utcLast[5], utcLast[4], utcLast[3], utcLast[1], utcLast[2]);
   }
   throw new Error(
-    "parseIssuedDate: unexpected issued format — the NOAA format may have changed"
+    "parseIssuedDate: unexpected issued format – the NOAA format may have changed"
   );
 }
 
