@@ -49,6 +49,22 @@ describe("Home", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Dashboard" })).toBeInTheDocument();
   });
 
+  it("toggles compact chart view from the Dashboard header", async () => {
+    const user = userEvent.setup();
+    const { container } = renderHome();
+    const toggle = screen.getByRole("checkbox", { name: "Compact view" });
+    const root = container.querySelector(".home")!;
+    expect(root).not.toHaveClass("home--compact");
+
+    await user.click(toggle);
+    expect(toggle).toBeChecked();
+    expect(root).toHaveClass("home--compact");
+
+    await user.click(toggle);
+    expect(toggle).not.toBeChecked();
+    expect(root).not.toHaveClass("home--compact");
+  });
+
   it("renders the aurora forecast images", async () => {
     renderHome();
     await waitFor(() =>
