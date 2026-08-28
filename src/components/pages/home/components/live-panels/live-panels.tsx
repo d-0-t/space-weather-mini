@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
 import {
   CartesianGrid,
   Line,
@@ -229,6 +229,124 @@ export function symmetricCeiling(values: number[]): number {
   return max === 0 ? 10 : Math.ceil(max / 5) * 5;
 }
 
+export interface SegmentedSeries {
+  color: string;
+  points: ChartPoint[];
+}
+
+/**
+ * Splits one series into per-color segments for threshold-colored lines.
+ * Returns one series per maximal same-color RUN, each extended one point
+ * into the next run so the line stays continuous at crossings. The bridge
+ * point is plotted by both neighbours (a shared vertex only – segments are
+ * never drawn twice), which is invisible on the strokes and deduplicated in
+ * the tooltip (see dedupeTooltipEntries). Points outside the run are null,
+ * which keeps recharts from joining them into one path.
+ * `bandValue` picks the color (raw value, e.g. pre-mirror for inverted
+ * second series) while `displayValue` is what gets plotted.
+ * `dataKey` is the chart key the series is rendered from: the primary
+ * series plots `value`, the mirrored second series plots `value2` – the
+ * other key is nulled so a segment line can never draw outside its run.
+ */
+export function splitSeriesByColor(
+  source: ChartPoint[],
+  bandValue: (p: ChartPoint) => number | null,
+  displayValue: (p: ChartPoint) => number | null,
+  colorFor: (value: number) => string,
+  dataKey: "value" | "value2" = "value",
+): SegmentedSeries[] {
+  const bandOf = source.map((p) => {
+    const v = bandValue(p);
+    return v === null ? null : colorFor(v);
+  });
+  const runs: { start: number; end: number; color: string }[] = [];
+  for (let i = 0; i < bandOf.length; i++) {
+    const color = bandOf[i];
+    if (color === null) continue;
+    const last = runs[runs.length - 1];
+    if (last && last.color === color && last.end === i - 1) last.end = i;
+    else runs.push({ start: i, end: i, color });
+  }
+  return runs.map((run) => ({
+    color: run.color,
+    points: source.map((p, i) => {
+      const inRun = i >= run.start && i <= run.end;
+      const bridge = i === run.end + 1;
+      const plotted = inRun || bridge ? displayValue(p) : null;
+      return dataKey === "value"
+        ? { ...p, value: plotted, value2: null }
+        : { ...p, value: null, value2: plotted };
+    }),
+  }));
+}
+
+export interface TooltipEntry {
+  name: string;
+  value: number | null;
+  color: string;
+  payload?: ChartPoint;
+}
+
+/**
+ * Collapses duplicate tooltip entries at threshold crossings: the bridge
+ * point between two band segments is plotted by both lines, so a series can
+ * appear twice with the same value (one entry per segment color). Keep the
+ * newest (rightmost) entry per name, matching the segment ahead.
+ */
+export function dedupeTooltipEntries(entries: TooltipEntry[]): TooltipEntry[] {
+  const seen = new Set<string>();
+  return [...entries]
+    .reverse()
+    .filter((entry) => {
+      if (seen.has(entry.name)) return false;
+      seen.add(entry.name);
+      return true;
+    })
+    .reverse();
+}
+
+const TOOLTIP_STYLE: CSSProperties = {
+  backgroundColor: "var(--color-black)",
+  border: "1px solid var(--color-border-muted)",
+  padding: "2px 6px",
+  fontSize: 12,
+};
+
+const ChartTooltip: React.FC<{
+  active?: boolean;
+  payload?: TooltipEntry[];
+  label?: string;
+  unit: string;
+  invert: boolean;
+}> = ({ active, payload, label, unit, invert }) => {
+  if (!active || !payload || payload.length === 0) return null;
+  const entries = dedupeTooltipEntries(payload);
+  const point = entries[0]?.payload;
+  return (
+    <div style={TOOLTIP_STYLE}>
+      <p style={{ fontSize: 12, margin: 0 }}>
+        {point?.timeTag ? formatTooltipTime(point.timeTag) : (label ?? "")}
+      </p>
+      {entries.map((entry) => {
+        const raw =
+          entry.value === null || entry.value === undefined
+            ? null
+            : Number(entry.value);
+        const display = raw === null ? null : invert ? Math.abs(raw) : raw;
+        return (
+          <p
+            key={entry.name}
+            style={{ fontSize: 12, margin: 0, color: entry.color }}
+          >
+            {entry.name}:{" "}
+            {display === null ? "–" : `${display.toFixed(2)} ${unit}`}
+          </p>
+        );
+      })}
+    </div>
+  );
+};
+
 export const MiniSparkline: React.FC<{
   title: string;
   points: ChartPoint[];
@@ -239,6 +357,8 @@ export const MiniSparkline: React.FC<{
   unit: string;
   /** Points the Now line sits past the freshest reading (transit minutes) */
   anchorOffset?: number;
+  /** Colors the line per value via the shared severity ramp */
+  colorBy?: (value: number) => string;
   /** Optional second series plotted on the same axis (same timestamps as points) */
   second?: {
     points: ChartPoint[];
@@ -246,6 +366,8 @@ export const MiniSparkline: React.FC<{
     name: string;
     /** Plots the second series below zero (mirrored), with a symmetric ± axis and absolute tick labels */
     invert?: boolean;
+    /** Colors the second line per RAW value (pre-mirror), so GW bands still apply */
+    colorBy?: (value: number) => string;
   };
   /** Overrides the first series' tooltip name (defaults to `title`) */
   primaryName?: string;
@@ -257,6 +379,7 @@ export const MiniSparkline: React.FC<{
   ariaLabel,
   unit,
   anchorOffset = 0,
+  colorBy,
   second,
   primaryName,
 }) => {
@@ -264,12 +387,41 @@ export const MiniSparkline: React.FC<{
   const mergedPoints = second
     ? points.map((p, i) => {
         const v = second.points[i]?.value ?? null;
-        return { ...p, value2: v === null ? null : second.invert ? -v : v };
+        return {
+          ...p,
+          value2: v === null ? null : second.invert ? -v : v,
+          raw2: v,
+        };
       })
     : points;
   const chartPoints = hasNow
     ? withNowAnchor(mergedPoints, nowLabel!, anchorOffset)
     : mergedPoints;
+  const coloredSeries =
+    colorBy || second?.colorBy
+      ? {
+          primary: colorBy
+            ? splitSeriesByColor(
+                chartPoints,
+                (p) => p.value,
+                (p) => p.value,
+                colorBy,
+              )
+            : null,
+          second: second?.colorBy
+            ? splitSeriesByColor(
+                chartPoints,
+                (p) =>
+                  (p as ChartPoint & { raw2?: number | null }).raw2 ?? null,
+                (p) =>
+                  (p as ChartPoint & { value2?: number | null }).value2 ??
+                  null,
+                second.colorBy,
+                "value2",
+              )
+            : null,
+        }
+      : null;
   const nowX = hasNow
     ? chartPoints.find((p) => p.time === nowLabel)?.x
     : undefined;
@@ -323,29 +475,9 @@ export const MiniSparkline: React.FC<{
           />
           <Tooltip
             cursor={{ stroke: "var(--color-white)", strokeOpacity: 0.3 }}
-            contentStyle={{
-              backgroundColor: "var(--color-black)",
-              border: "1px solid var(--color-border-muted)",
-              padding: "2px 6px",
-              fontSize: 12,
-            }}
-            labelStyle={{ fontSize: 12 }}
-            itemStyle={{ fontSize: 12 }}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            formatter={(value: any, name: any) => {
-              const raw = value === null || value === undefined ? null : Number(value);
-              const display =
-                raw === null ? null : second?.invert ? Math.abs(raw) : raw;
-              return [
-                display === null ? "–" : `${display.toFixed(2)} ${unit}`,
-                name,
-              ];
-            }}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            labelFormatter={(_label: any, payload: any) => {
-              const point = payload?.[0]?.payload as ChartPoint | undefined;
-              return point ? formatTooltipTime(point.timeTag) : "";
-            }}
+            content={
+              <ChartTooltip unit={unit} invert={Boolean(second?.invert)} />
+            }
           />
           {hasNow && nowX !== undefined ? (
             <ReferenceLine
@@ -377,28 +509,62 @@ export const MiniSparkline: React.FC<{
               strokeOpacity={0.9}
             />
           ) : null}
-          <Line
-            type="monotone"
-            dataKey="value"
-            name={primaryName ?? title}
-            stroke={accent}
-            strokeWidth={2}
-            dot={false}
-            connectNulls={false}
-            isAnimationActive={false}
-          />
-          {second ? (
-            <Line
-              type="monotone"
-              dataKey="value2"
-              name={second.name}
-              stroke={second.accent}
-              strokeWidth={2}
-              dot={false}
-              connectNulls={false}
-              isAnimationActive={false}
-            />
-          ) : null}
+          {coloredSeries?.primary
+            ? coloredSeries.primary.map((segment, index) => (
+                <Line
+                  key={`${segment.color}-${index}`}
+                  type="monotone"
+                  dataKey="value"
+                  data={segment.points}
+                  name={primaryName ?? title}
+                  stroke={segment.color}
+                  strokeWidth={2}
+                  dot={false}
+                  connectNulls={false}
+                  isAnimationActive={false}
+                />
+              ))
+            : (
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  name={primaryName ?? title}
+                  stroke={accent}
+                  strokeWidth={2}
+                  dot={false}
+                  connectNulls={false}
+                  isAnimationActive={false}
+                />
+              )}
+          {coloredSeries?.second
+            ? coloredSeries.second.map((segment, index) => (
+                <Line
+                  key={`${segment.color}-${index}`}
+                  type="monotone"
+                  dataKey="value2"
+                  data={segment.points}
+                  name={second!.name}
+                  stroke={segment.color}
+                  strokeWidth={2}
+                  dot={false}
+                  connectNulls={false}
+                  isAnimationActive={false}
+                />
+              ))
+            : second
+              ? (
+                  <Line
+                    type="monotone"
+                    dataKey="value2"
+                    name={second.name}
+                    stroke={second.accent}
+                    strokeWidth={2}
+                    dot={false}
+                    connectNulls={false}
+                    isAnimationActive={false}
+                  />
+                )
+              : null}
         </LineChart>
       </ResponsiveContainer>
     </div>
@@ -491,11 +657,15 @@ export const SparklineCard: React.FC<{
   help: ChartHelpContent;
   warning?: string | null;
   anchorOffset?: number;
+  /** Colors the line per value via the shared severity ramp */
+  colorBy?: (value: number) => string;
   second?: {
     points: ChartPoint[];
     accent: string;
     name: string;
     invert?: boolean;
+    /** Colors the second line per RAW value (pre-mirror), so GW bands still apply */
+    colorBy?: (value: number) => string;
   };
   primaryName?: string;
   /** Replaces the default value + note headline (e.g. two-column hemi values) */
@@ -516,6 +686,7 @@ export const SparklineCard: React.FC<{
   help,
   warning,
   anchorOffset,
+  colorBy,
   second,
   primaryName,
   valueBlock,
@@ -542,6 +713,7 @@ export const SparklineCard: React.FC<{
         ariaLabel={ariaLabel}
         unit={unit}
         anchorOffset={anchorOffset}
+        colorBy={colorBy}
         second={second}
         primaryName={primaryName}
       />

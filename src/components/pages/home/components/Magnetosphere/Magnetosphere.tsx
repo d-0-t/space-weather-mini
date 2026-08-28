@@ -13,6 +13,7 @@ import {
   BOULDER_K_INDEX_URL,
 } from "../../../../../products/boulder-k-index";
 import { formatAge } from "../../../../../products/live-helpers";
+import { severityColor } from "../../../../../styles/severity";
 import { SOURCES } from "../../../../sources";
 import { SourceAttribution } from "../../../../sources";
 import FullSizeModal from "../../../../FullSizeModal";
@@ -133,6 +134,7 @@ const BoulderMagnetometerCard: React.FC = () => {
           title="Boulder K index"
           points={points}
           accent="orange"
+          colorBy={(v) => severityColor("boulder", v)}
           unit="K"
           ariaLabel="Boulder magnetometer K index, last 3 hours"
         />
@@ -240,9 +242,11 @@ const Magnetosphere: React.FC = () => {
             accent: "cyan",
             name: "South hemispheric power",
             invert: true,
+            colorBy: (v) => severityColor("hemi", v),
           }}
           primaryName="North hemispheric power"
           accent="plum"
+          colorBy={(v) => severityColor("hemi", v)}
           ariaLabel="Hemispheric power, north and south mirrored around zero, all available data, gigawatts"
           warning={stale(hemiQuery)}
           source={SOURCES.noaaSwpc}
@@ -273,6 +277,7 @@ const Magnetosphere: React.FC = () => {
             SMOOTHING.dst,
           )}
           accent="cyan"
+          colorBy={(v) => severityColor("dst", v)}
           ariaLabel="Disturbance storm index, last 24 hours, nT"
           warning={stale(dstQuery)}
           source={SOURCES.kyoto}

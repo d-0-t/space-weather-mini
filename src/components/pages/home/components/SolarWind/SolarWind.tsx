@@ -7,6 +7,7 @@ import {
   RTSW_MAG_FIELD_URL,
 } from "../../../../../products/solar-wind";
 import { formatAge } from "../../../../../products/live-helpers";
+import { severityColor } from "../../../../../styles/severity";
 import { SOURCES } from "../../../../sources";
 import { SourceAttribution } from "../../../../sources";
 import {
@@ -149,6 +150,7 @@ const SolarWind: React.FC = () => {
           nowLabel={windNowLabel}
           anchorOffset={l1AnchorOffset}
           accent="greenyellow"
+          colorBy={(v) => severityColor("speed", v)}
           ariaLabel="Solar wind speed, km/s, 2 hours before Now plus upcoming"
           warning={stale(windQuery)}
         />
@@ -173,6 +175,7 @@ const SolarWind: React.FC = () => {
           nowLabel={windNowLabel}
           anchorOffset={l1AnchorOffset}
           accent="cyan"
+          colorBy={(v) => severityColor("density", v)}
           ariaLabel="Proton density, p per cubic cm, 2 hours before Now plus upcoming"
           warning={stale(windQuery)}
         />
@@ -197,6 +200,7 @@ const SolarWind: React.FC = () => {
           nowLabel={magNowLabel}
           anchorOffset={l1AnchorOffset}
           accent="plum"
+          colorBy={(v) => severityColor("bt", v)}
           ariaLabel="Total magnetic field strength Bt, nT, 2 hours before Now plus upcoming"
           warning={stale(magQuery)}
         />
@@ -231,6 +235,7 @@ const SolarWind: React.FC = () => {
           nowLabel={magNowLabel}
           anchorOffset={l1AnchorOffset}
           accent="orange"
+          colorBy={(v) => severityColor("bz", v)}
           ariaLabel="Bz GSM magnetic field, nT, 2 hours before Now plus upcoming, south or north"
           warning={stale(magQuery)}
         />

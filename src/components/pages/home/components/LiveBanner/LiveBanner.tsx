@@ -17,6 +17,7 @@ import {
   KYOTO_DST_URL,
 } from "../../../../../products/kyoto-dst";
 import { formatAge } from "../../../../../products/live-helpers";
+import { severityColor } from "../../../../../styles/severity";
 import GlossaryTerm from "../../../../explainers/GlossaryTerm";
 
 import "./LiveBanner.scss";
@@ -195,7 +196,7 @@ const LiveBanner: React.FC = () => {
                 <Line
                   type="monotone"
                   dataKey="bz"
-                  stroke="cyan"
+                  stroke={severityColor("bz", bz)}
                   dot={false}
                   legendType="triangle"
                 />
@@ -206,7 +207,7 @@ const LiveBanner: React.FC = () => {
                 <Line
                   type="monotone"
                   dataKey="speed"
-                  stroke="greenyellow"
+                  stroke={severityColor("speed", protonSpeed)}
                   dot={false}
                   legendType="circle"
                 />
@@ -223,7 +224,11 @@ const LiveBanner: React.FC = () => {
                   <Line
                     type="monotone"
                     dataKey="gw"
-                    stroke="plum"
+                    stroke={
+                      hemiGW !== null
+                        ? severityColor("hemi", hemiGW)
+                        : "plum"
+                    }
                     dot={false}
                     legendType="square"
                   />
@@ -241,7 +246,9 @@ const LiveBanner: React.FC = () => {
                   <Line
                     type="monotone"
                     dataKey="dst"
-                    stroke="cyan"
+                    stroke={
+                      dstVal !== null ? severityColor("dst", dstVal) : "cyan"
+                    }
                     dot={false}
                     legendType="triangle"
                   />
