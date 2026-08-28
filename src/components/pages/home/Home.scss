@@ -1,6 +1,10 @@
 .home {
   padding: 0 2rem;
 
+  @media (max-width: 810px) {
+    padding: 0 0.5rem;
+  }
+
   article {
     padding: 0;
     margin-bottom: unset;

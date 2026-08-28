@@ -93,6 +93,7 @@ $aurora-kp-colors: (
     justify-content: center;
     align-items: center;
     gap: 1rem;
+    z-index: -1; // fixes the moon tooltip going behind the kp value and UTC time
 
     &__kp,
     &__time {
