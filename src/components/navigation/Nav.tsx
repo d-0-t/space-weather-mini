@@ -8,10 +8,12 @@ const ASTRO_FILTER =
   "sepia(1) saturate(5) hue-rotate(-39deg) contrast(1.1) brightness(0.9)";
 
 /**
- * Primary navigation – header banner with nav landmark.
- * On wide screens the links sit in a horizontal bar; on narrow
- * screens a hamburger button (aria-expanded/aria-controls) reveals
- * the same list as a full-screen panel.
+ * Primary navigation – header banner with nav landmark. The logo and title
+ * link back to the dashboard. On wide screens the links sit in a horizontal
+ * bar; on narrow screens a hamburger button (aria-expanded/aria-controls)
+ * reveals the same list as a full-screen panel over a dimmed backdrop –
+ * tapping the backdrop closes the panel, while panel controls (Details,
+ * links) do not.
  * The Forecasts & Discussion item is a collapsible disclosure
  * (aria-expanded) that opens on activation only – no hover.
  * Escape closes it and returns focus to the trigger.
@@ -40,13 +42,13 @@ const Nav: React.FC = () => {
 
   const handleKeyDown: React.KeyboardEventHandler<HTMLLIElement> = (event) => {
     if (event.key === "Escape" && isOpen) {
-      setIsOpen(false);
       event.stopPropagation();
       if (menuOpen) {
         // Inside the mobile panel: one Escape closes everything
-        setMenuOpen(false);
+        closeMenu();
         hamburgerRef.current?.focus();
       } else {
+        setIsOpen(false);
         triggerRef.current?.focus();
       }
     }
@@ -62,35 +64,65 @@ const Nav: React.FC = () => {
 
   const handleNavKeyDown: React.KeyboardEventHandler<HTMLElement> = (event) => {
     if (event.key === "Escape" && menuOpen) {
-      setMenuOpen(false);
+      closeMenu();
       hamburgerRef.current?.focus();
+    }
+  };
+
+  const closeMenu = () => {
+    setIsOpen(false);
+    setMenuOpen(false);
+  };
+
+  const toggleMenu = () => {
+    if (menuOpen) {
+      closeMenu();
+    } else {
+      setMenuOpen(true);
     }
   };
 
   const handleMenuClick: React.MouseEventHandler<HTMLUListElement> = (
     event,
   ) => {
-    // Navigation links close the mobile panel; the Details trigger keeps it open
-    if ((event.target as HTMLElement).closest("a")) {
-      setMenuOpen(false);
+    const target = event.target as HTMLElement;
+    // Navigation links close the panel (and navigate)
+    if (target.closest("a")) {
+      closeMenu();
+      return;
     }
+    // Controls (Details trigger, astro toggle) keep the panel open
+    if (target.closest("button")) return;
+    // Any other tap on the panel surface closes it
+    closeMenu();
   };
 
   return (
     <header className="header">
-      <div className="header__left">
+      <Link
+        to="/"
+        className="header__left"
+        aria-label="Space Weather Mini – back to dashboard"
+      >
         <img
           src="/assets/aurora.png"
           className="header__left__logo"
           alt="App logo with aurora bird"
         />
         <div className="header__left__title">Space Weather Mini</div>
-      </div>
+      </Link>
       <nav
         aria-label="Primary"
         className={`header__nav${menuOpen ? " header__nav--open" : ""}`}
         onKeyDown={handleNavKeyDown}
       >
+        {menuOpen ? (
+          <div
+            className="header__menu-backdrop"
+            aria-hidden="true"
+            onClick={closeMenu}
+          />
+        ) : null}
         <button
           ref={hamburgerRef}
           type="button"
@@ -98,7 +130,7 @@ const Nav: React.FC = () => {
           aria-expanded={menuOpen}
           aria-controls={menuId}
           title={menuOpen ? "Close menu" : "Open menu"}
-          onClick={() => setMenuOpen((value) => !value)}
+          onClick={toggleMenu}
         >
           <span className="header__hamburger__bar" aria-hidden="true" />
           <span className="sr-only">

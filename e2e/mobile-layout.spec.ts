@@ -42,10 +42,39 @@ test("collapses the nav into a hamburger that opens a full-screen panel", async 
   expect(menuBox!.y).toBeGreaterThanOrEqual(60); // below the header
   expect(menuBox!.y + menuBox!.height).toBeLessThanOrEqual(844);
 
-  // Clicking the hamburger again closes the panel
-  await toggle.click();
+  // A dimmed backdrop covers the page; tapping it closes the panel,
+  // while tapping Details (which opens the submenu) keeps it open
+  const backdrop = page.locator(".header__menu-backdrop");
+  await expect(backdrop).toBeVisible();
+  await page.getByRole("button", { name: "Details" }).click();
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  await backdrop.click({ position: { x: 10, y: 10 } });
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
   await expect(nav.getByRole("link", { name: "About" })).toBeHidden();
+  await expect(backdrop).toBeHidden();
+});
+
+test("tapping the panel background closes the menu, controls keep it open", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({
+    timeout: 60_000,
+  });
+  const toggle = page.getByRole("button", { name: /menu/i });
+  await toggle.click();
+  const details = page.getByRole("button", { name: "Details" });
+  await details.click();
+  await expect(details).toHaveAttribute("aria-expanded", "true");
+
+  // A tap on empty panel space (below the items) closes the menu
+  await page
+    .locator(".header__menu")
+    .click({ position: { x: 195, y: 720 } });
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
+  await expect(
+    page.getByRole("navigation").getByRole("link", { name: "About" }),
+  ).toBeHidden();
 });
 
 test("Details opens inline inside the panel and Escape closes everything", async ({

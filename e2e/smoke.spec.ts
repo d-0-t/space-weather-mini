@@ -7,7 +7,9 @@ test("the app boots with navigation chrome on every page", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
   await expect(page.getByText("Space Weather Mini")).toBeVisible();
   for (const label of ["Dashboard", "About", "Explainers"]) {
-    await expect(page.getByRole("link", { name: label })).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: label, exact: true }),
+    ).toBeVisible();
   }
   await expect(page.getByRole("button", { name: "Details" })).toBeVisible();
   await page.getByRole("button", { name: "Details" }).click();
@@ -94,6 +96,26 @@ test("home panels collapse and expand via their chevron toggle", async ({
   await toggle.click();
   await expect(toggle).toHaveAttribute("aria-expanded", "true");
   await expect(chart).toBeVisible();
+});
+
+test("the header logo links back to the dashboard via click and Enter", async ({
+  page,
+}) => {
+  await page.goto("/about");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "About" }),
+  ).toBeVisible();
+  const brand = page.getByRole("link", { name: /space weather mini/i });
+  await brand.click();
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Dashboard" }),
+  ).toBeVisible();
+  await page.goto("/about");
+  await brand.focus();
+  await page.keyboard.press("Enter");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Dashboard" }),
+  ).toBeVisible();
 });
 
 test("the about page renders", async ({ page }) => {

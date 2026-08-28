@@ -84,6 +84,18 @@ describe("Nav keyboard accessibility", () => {
   });
 });
 
+describe("Header brand link", () => {
+  it("links the logo and title to the dashboard", () => {
+    renderNav();
+    const brand = screen.getByRole("link", {
+      name: /space weather mini/i,
+    });
+    expect(brand).toHaveAttribute("href", "/");
+    expect(brand.querySelector("img")).not.toBeNull();
+    expect(brand.textContent).toContain("Space Weather Mini");
+  });
+});
+
 describe("Mobile menu (hamburger)", () => {
   it("exposes a hamburger toggle that controls the menu list via aria-expanded", () => {
     renderNav();
@@ -128,6 +140,42 @@ describe("Mobile menu (hamburger)", () => {
       screen.getByRole("button", { name: /^details$/i }),
     );
     expect(toggle).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("closes the menu on backdrop click, but not when Details is tapped", async () => {
+    const user = userEvent.setup();
+    renderNav();
+    const toggle = screen.getByRole("button", { name: /open menu/i });
+    await user.click(toggle);
+    const backdrop = document.querySelector(".header__menu-backdrop");
+    expect(backdrop).not.toBeNull();
+
+    // Tapping Details opens the submenu and keeps the panel open
+    const details = screen.getByRole("button", { name: /^details$/i });
+    await user.click(details);
+    expect(details).toHaveAttribute("aria-expanded", "true");
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+
+    // Tapping the backdrop closes the panel and its submenu
+    await user.click(backdrop as HTMLElement);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(document.querySelector(".header__menu-backdrop")).toBeNull();
+  });
+
+  it("closes the menu when the panel surface is tapped, but not on controls", async () => {
+    const user = userEvent.setup();
+    renderNav();
+    const toggle = screen.getByRole("button", { name: /open menu/i });
+    await user.click(toggle);
+    const menu = document.getElementById("primary-menu")!;
+
+    // Controls keep the panel open
+    await user.click(screen.getByRole("button", { name: /^details$/i }));
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+
+    // A tap on the panel surface closes it
+    await user.click(menu);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
   });
 });
 
