@@ -24,13 +24,17 @@
     gap: 1rem;
 
     &__kp {
-      font-size: 3rem;
-      border-radius: 10rem;
-      padding: 1rem;
       display: flex;
       align-items: center;
+      padding: 1rem;
+
+      font-size: 3rem;
+      line-height: 2.5rem;
+
       border: 3px dotted white;
+      border-radius: 10rem;
     }
+
     &__time {
       font-size: 0.85rem;
     }

@@ -7,7 +7,6 @@
   &::after {
     content: "";
     width: var(--border-width);
-    height: 2.6rem;
     background-color: var(--color-border-muted);
     opacity: 0.5;
   }
@@ -15,7 +14,6 @@
   &__start,
   &__stop {
     width: var(--border-width);
-    height: 2.6rem;
     background-color: var(--color-accent);
   }
 

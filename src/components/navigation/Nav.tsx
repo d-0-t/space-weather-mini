@@ -165,19 +165,19 @@ const Nav: React.FC = () => {
               aria-label="Details submenu"
             >
               <li>
-                <Link to={"/forecasts/geoalert"}>Geophysical Alert</Link>
-              </li>
-              <li>
                 <Link to={"/forecasts/daily"}>Daily Data</Link>
               </li>
               <li>
                 <Link to={"/forecasts/3days"}>3-Day Forecast</Link>
               </li>
               <li>
+                <Link to={"/forecasts/27days"}>27 Day Outlook</Link>
+              </li>
+              <li>
                 <Link to={"/forecasts/weekly"}>Weekly Report</Link>
               </li>
               <li>
-                <Link to={"/forecasts/27days"}>27 Day Outlook</Link>
+                <Link to={"/forecasts/geoalert"}>Geophysical Alert</Link>
               </li>
               <li>
                 <Link to={"/forecasts/discussion"}>Forecast Discussion</Link>
