@@ -7,8 +7,18 @@ import Forecast from "./components/Forecast/Forecast";
 import SolarWind from "./components/SolarWind/SolarWind";
 import Magnetosphere from "./components/Magnetosphere/Magnetosphere";
 
+const COMPACT_VIEW_KEY = "compact-view";
+
 const Home: React.FC = () => {
-  const [compact, setCompact] = useState(false);
+  const [compact, setCompact] = useState(
+    () => localStorage.getItem(COMPACT_VIEW_KEY) === "on",
+  );
+
+  const handleCompactChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const next = event.target.checked;
+    setCompact(next);
+    localStorage.setItem(COMPACT_VIEW_KEY, next ? "on" : "off");
+  };
 
   return (
     <div className={compact ? "home home--compact" : "home"}>
@@ -18,7 +28,7 @@ const Home: React.FC = () => {
           <input
             type="checkbox"
             checked={compact}
-            onChange={(event) => setCompact(event.target.checked)}
+            onChange={handleCompactChange}
           />
           Compact view
         </label>

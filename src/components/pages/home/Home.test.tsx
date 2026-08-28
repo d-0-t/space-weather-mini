@@ -15,6 +15,7 @@ const queryClient = () =>
 const mockFetch = vi.fn();
 
 beforeEach(() => {
+  localStorage.clear();
   mockFetch.mockReset();
   mockFetch.mockImplementation((url: string) => {
     if (typeof url === "string" && url.includes("3-day-forecast.txt")) {
@@ -59,10 +60,20 @@ describe("Home", () => {
     await user.click(toggle);
     expect(toggle).toBeChecked();
     expect(root).toHaveClass("home--compact");
+    expect(localStorage.getItem("compact-view")).toBe("on");
 
     await user.click(toggle);
     expect(toggle).not.toBeChecked();
     expect(root).not.toHaveClass("home--compact");
+    expect(localStorage.getItem("compact-view")).toBe("off");
+  });
+
+  it("restores compact view from localStorage on mount", () => {
+    localStorage.setItem("compact-view", "on");
+    const { container } = renderHome();
+    const toggle = screen.getByRole("checkbox", { name: "Compact view" });
+    expect(toggle).toBeChecked();
+    expect(container.querySelector(".home")).toHaveClass("home--compact");
   });
 
   it("renders the aurora forecast images", async () => {
