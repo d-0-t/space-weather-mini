@@ -30,6 +30,12 @@ export function formatKp(kp: number): string {
   return `Kp${kp}`;
 }
 
+/** Frozen .kp01–.kp9 band class for a Kp value (ceil-based, Kp ≥ 9 → kp9). */
+export function kpClass(kp: number): string {
+  const ceil = Math.min(9, Math.ceil(kp));
+  return ceil >= 9 ? "kp9" : `kp${ceil}${ceil + 1}`;
+}
+
 export function formatTimeSlot(slot: string): string {
   return slot.replace("-", ":00 - ").replace("UT", ":00 UTC");
 }

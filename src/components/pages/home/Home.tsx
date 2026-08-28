@@ -6,6 +6,7 @@ import AuroraNow from "./components/AuroraNow/AuroraNow";
 import Forecast from "./components/Forecast/Forecast";
 import SolarWind from "./components/SolarWind/SolarWind";
 import Magnetosphere from "./components/Magnetosphere/Magnetosphere";
+import { AlertsProvider } from "./components/Alerts/AlertsContext";
 
 const COMPACT_VIEW_KEY = "compact-view";
 
@@ -35,7 +36,9 @@ const Home: React.FC = () => {
       </div>
       <div className="home__flow">
         <div className="home__flow__col">
-          <AuroraNow />
+          <AlertsProvider>
+            <AuroraNow />
+          </AlertsProvider>
           <Forecast />
         </div>
         <div className="home__flow__col">

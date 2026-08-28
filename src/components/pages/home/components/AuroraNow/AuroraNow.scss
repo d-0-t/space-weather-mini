@@ -20,19 +20,6 @@ $aurora-kp-colors: (
   9: rgb(198, 157, 255), // Kp 8-9 white-hot lavender maximum
 );
 
-// @keyframes aurora-drift {
-//   0%,
-//   100% {
-//     transform: translate(0, 0);
-//   }
-//   33% {
-//     transform: translate(3px, -4px);
-//   }
-//   66% {
-//     transform: translate(-3px, 3px);
-//   }
-// }
-
 .aurora-now {
   height: fit-content;
   position: relative;
@@ -67,7 +54,6 @@ $aurora-kp-colors: (
     height: 75%;
     overflow: hidden;
     pointer-events: none;
-    // animation: aurora-drift 9s ease-in-out infinite;
 
     &__svg {
       position: relative;

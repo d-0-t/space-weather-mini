@@ -6,6 +6,7 @@ import { MemoryRouter } from "react-router-dom";
 
 import kpObservedFixture from "../../../../../products/fixtures/noaa-planetary-k-index.json?raw";
 import AuroraNow from "./AuroraNow";
+import { AlertsProvider } from "../Alerts/AlertsContext";
 
 const queryClient = () => new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
@@ -32,7 +33,9 @@ const renderAuroraNow = () =>
   render(
     <QueryClientProvider client={queryClient()}>
       <MemoryRouter>
-        <AuroraNow />
+        <AlertsProvider>
+          <AuroraNow />
+        </AlertsProvider>
       </MemoryRouter>
     </QueryClientProvider>,
   );
@@ -44,7 +47,7 @@ describe("AuroraNow", () => {
     await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
     expect(document.querySelector(".aurora-now__current")).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /^Aurora Oval Forecast$/i }),
+      screen.getByRole("heading", { name: /^Aurora Oval Forecast \(30 min\)$/i }),
     ).toBeInTheDocument();
     expect(
       screen.getAllByAltText(/Aurora Forecast.*North Pole/i).length,

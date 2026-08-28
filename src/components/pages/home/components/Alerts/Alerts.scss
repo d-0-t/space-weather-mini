@@ -1,0 +1,99 @@
+.alerts {
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    &__notify {
+      cursor: pointer;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--color-accent-strong);
+      border: 1px solid var(--color-border-muted);
+      border-radius: 0.5rem;
+      background-color: color-mix(in srgb, var(--color-black) 70%, transparent);
+      height: fit-content;
+
+      &:hover:not(:disabled) {
+        color: var(--color-white);
+        border-color: var(--color-accent-strong);
+        background-color: var(--color-deep-indigo);
+      }
+
+      &:disabled {
+        opacity: 0.7;
+        cursor: default;
+      }
+    }
+  }
+
+  &__threshold {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+    text-shadow: var(--text-stroke-black);
+
+    input[type="range"] {
+      flex: 1;
+      min-width: 0;
+      accent-color: var(--color-medium-green);
+      cursor: pointer;
+    }
+
+    &__value {
+      font-weight: 600;
+      color: var(--color-accent-strong);
+    }
+  }
+
+  &__strip {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+
+    &__body {
+      margin-left: 5%;
+      text-shadow: var(--text-stroke-black);
+    }
+
+    &__color {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 90%;
+      -webkit-mask-image: linear-gradient(90deg, black 0%, transparent 10%);
+      mask-image: linear-gradient(
+        90deg,
+        black 0%,
+        black 1%,
+        color-mix(in srgb, var(--color-black) 13.2%, transparent) 1%,
+        transparent 90%
+      );
+    }
+  }
+
+  &__item__title {
+    margin: 0;
+    font-weight: 600;
+  }
+
+  &__item__meta {
+    margin: 0.25rem 0 0;
+    font-size: 0.9rem;
+    color: color-mix(in srgb, var(--color-white) 75%, transparent);
+  }
+
+  &__footnote {
+    margin: 0.5rem 0;
+    font-size: 0.9rem;
+    color: color-mix(in srgb, var(--color-white) 75%, transparent);
+    text-shadow: var(--text-stroke-black);
+  }
+}

@@ -28,6 +28,12 @@ export interface NoaaScales {
 
 export const NOAA_SCALES_URL = "https://services.swpc.noaa.gov/products/noaa-scales.json";
 
+/** Parses a NOAA G-scale string ("G1" → 1); null/"0" mean no storm. */
+export function gScaleOf(scale: string | null): number | null {
+  const match = scale?.match(/^G([1-5])$/);
+  return match ? Number(match[1]) : null;
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }

@@ -1,6 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { parseNoaaScales } from "./noaa-scales";
+import { gScaleOf, parseNoaaScales } from "./noaa-scales";
 import fixture from "./fixtures/noaa-scales.json?raw";
+
+describe("gScaleOf", () => {
+  it("parses a NOAA G-scale string into a number", () => {
+    expect(gScaleOf("G1")).toBe(1);
+    expect(gScaleOf("G5")).toBe(5);
+    expect(gScaleOf("0")).toBeNull();
+    expect(gScaleOf(null)).toBeNull();
+    expect(gScaleOf("")).toBeNull();
+  });
+});
 
 describe("parseNoaaScales", () => {
   it("parses current, day1-3 and yesterday scales with issued passthrough", () => {

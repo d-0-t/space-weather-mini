@@ -1,5 +1,35 @@
 import { describe, expect, it, vi } from "vitest";
-import { formatAge } from "./live-helpers";
+import { formatAge, formatUtcShort, toEpoch } from "./live-helpers";
+
+describe("formatUtcShort", () => {
+  it("formats SWPC UTC times as 'Aug 26 16:36 UTC'", () => {
+    expect(formatUtcShort("2026-08-26 16:36:10.973")).toBe("Aug 26 16:36 UTC");
+    expect(formatUtcShort("2026-08-28T21:00:00")).toBe("Aug 28 21:00 UTC");
+    expect(formatUtcShort("2026-12-01T09:05:00Z")).toBe("Dec 1 09:05 UTC");
+  });
+
+  it("returns the raw string when the time cannot be parsed", () => {
+    expect(formatUtcShort("not a time")).toBe("not a time");
+  });
+});
+
+describe("toEpoch", () => {
+  it("parses ISO times with or without Z and space-separated SWPC times", () => {
+    expect(toEpoch("2026-08-25T18:00:00Z")).toBe(
+      new Date("2026-08-25T18:00:00Z").getTime(),
+    );
+    expect(toEpoch("2026-08-25T18:00:00")).toBe(
+      new Date("2026-08-25T18:00:00Z").getTime(),
+    );
+    expect(toEpoch("2026-08-28 15:02:40.837")).toBe(
+      new Date("2026-08-28T15:02:40.837Z").getTime(),
+    );
+  });
+
+  it("returns NaN for unparseable times", () => {
+    expect(Number.isNaN(toEpoch("not a time"))).toBe(true);
+  });
+});
 
 describe("formatAge", () => {
   it("returns 'just now' for timestamps within 60 seconds", () => {

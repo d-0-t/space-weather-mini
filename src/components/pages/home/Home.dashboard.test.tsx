@@ -6,6 +6,7 @@ import { MemoryRouter } from "react-router-dom";
 
 import threeDayFixture from "../../../products/fixtures/3-day-forecast.txt?raw";
 import scalesFixture from "../../../products/fixtures/noaa-scales.json?raw";
+import alertsFixture from "../../../products/fixtures/alerts.json?raw";
 import kpObservedFixture from "../../../products/fixtures/noaa-planetary-k-index.json?raw";
 import kpForecastFixture from "../../../products/fixtures/noaa-planetary-k-index-forecast.json?raw";
 import magFixture from "../../../products/fixtures/solar-wind-mag-field.json?raw";
@@ -28,6 +29,8 @@ beforeEach(() => {
     const u = typeof url === "string" ? url : "";
     if (u.includes("noaa-scales.json"))
       return Promise.resolve({ ok: true, text: async () => scalesFixture });
+    if (u.includes("alerts.json"))
+      return Promise.resolve({ ok: true, text: async () => alertsFixture });
     if (u.includes("noaa-planetary-k-index-forecast.json"))
       return Promise.resolve({ ok: true, text: async () => kpForecastFixture });
     if (u.includes("noaa-planetary-k-index.json"))
@@ -185,6 +188,19 @@ describe("Home Live Now dashboard (ticket 01)", () => {
           "https://spaceweather.irf.se/forecast/enlil/",
       ),
     ).toBe(true);
+  });
+
+  it("shows the alerts banner on Home with matches from the fixture feed", async () => {
+    const { container } = renderHome();
+    await waitFor(() =>
+      expect(screen.getByRole("heading", { name: "Alerts" })).toBeInTheDocument(),
+    );
+    expect(
+      screen.getByRole("slider", { name: /Kp alert threshold/ }),
+    ).toHaveValue("5");
+    await waitFor(() =>
+      expect(container.querySelector(".alerts__strip")).toBeInTheDocument(),
+    );
   });
 
   it("shows stale-cache warning when live fetch fails but cached data exists", async () => {

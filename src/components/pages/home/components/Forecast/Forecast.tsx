@@ -32,6 +32,7 @@ import {
   formatChartLabel,
   formatDayLabel,
   formatKp,
+  kpClass,
 } from "../kp-panel/kp-panel";
 
 import "./Forecast.scss";
@@ -373,14 +374,10 @@ const Forecast: React.FC = () => {
                     </>
                   ) : null}
                 </th>
-                <td
-                  className={`kp${r.min >= 9 ? "9" : Math.ceil(r.min) + "" + (Math.ceil(r.min) + 1)}`}
-                >
+                <td className={kpClass(r.min)}>
                   {formatKp(r.min)}
                 </td>
-                <td
-                  className={`kp${r.max >= 9 ? "9" : Math.ceil(r.max) + "" + (Math.ceil(r.max) + 1)}`}
-                >
+                <td className={kpClass(r.max)}>
                   {formatKp(r.max)}
                 </td>
               </tr>

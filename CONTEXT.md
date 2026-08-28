@@ -34,6 +34,10 @@ _Avoid_: DGD, daily indices
 NOAA's alert message covering solar X-ray, energetic-particle, and geomagnetic conditions, with observations and predictions.
 _Avoid_: GeoAlert, wwv (internal names only)
 
+**Alerts (alerts/watches/warnings feed)**:
+NOAA's JSON feed of current alerts, watches, and warnings (`alerts.json`), each item carrying a product code — `WARK05` (Kp 5 warning), `ALTK04` (Kp 4 alert), `WATA30` (A-index 30 watch) — and a message text. Distinct from the geophysical alert text product; the alert threshold drives which items surface.
+_Avoid_: alert feed, warning feed, alerts (without feed)
+
 ### Phenomena
 
 **Geospace**:
@@ -81,6 +85,10 @@ _Avoid_: Ap index (when the daily planetary A index is meant)
 **Dst index**:
 The hourly disturbance storm time index of equatorial magnetic disturbance; negative values indicate ring-current enhancement.
 _Avoid_: Dst value, storm index (without Dst)
+
+**Alert threshold**:
+The chaser-set Kp value (1–9, default 5) that the alerts banner and opt-in browser notifications trigger on; G1 maps to Kp 5.
+_Avoid_: alert level, trigger (without Kp)
 
 **Radio flux**:
 Solar radio flux at 10.7 cm wavelength, a solar activity proxy.

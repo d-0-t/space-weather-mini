@@ -31,4 +31,4 @@ Domain vocabulary lives in `CONTEXT.md`; coding standards in `docs/agents/coding
 
 ## Data sources
 
-All products come from NOAA SWPC public text products: forecast discussion, 3-day forecast, weekly report, 27-day outlook, daily geomagnetic indices, geophysical alert, and OVATION aurora images.
+All products come from NOAA SWPC public text and JSON products: forecast discussion, 3-day forecast, weekly report, 27-day outlook, daily geomagnetic indices, geophysical alert, and OVATION aurora images, plus the live real-time feeds on Home (planetary K-index, NOAA scales, alerts/watches/warnings, solar wind, hemispheric power, Dst).
