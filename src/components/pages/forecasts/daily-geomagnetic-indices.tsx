@@ -162,51 +162,69 @@ const DailyGeomagneticIndices: React.FC = () => {
                 </LineChart>
               </ResponsiveContainer>
             </div>
-            <table className="daily-geomagnetic-indices__table">
-              <caption>
-                Last 30 days of daily geomagnetic indices per station
-              </caption>
-              <thead>
-                <tr>
-                  <th scope="col" rowSpan={2}>
-                    UTC Date
-                  </th>
-                  <th scope="colgroup" colSpan={9}>
-                    Fredericksburg (middle latitude)
-                  </th>
-                  <th scope="colgroup" colSpan={9}>
-                    College (high latitude)
-                  </th>
-                  <th scope="colgroup" colSpan={9}>
-                    Estimated planetary
-                  </th>
-                </tr>
-                <tr>
-                  <th scope="col">A</th>
-                  <th scope="col" colSpan={8}>
-                    K-indices
-                  </th>
-                  <th scope="col">A</th>
-                  <th scope="col" colSpan={8}>
-                    K-indices
-                  </th>
-                  <th scope="col">A</th>
-                  <th scope="col" colSpan={8}>
-                    K-indices
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.rows.map((row) => (
-                  <tr key={row.date} className="daily-geomagnetic-indices__row">
-                    <td>{row.date}</td>
-                    <StationColumns station="fredericksburg" row={row} />
-                    <StationColumns station="college" row={row} />
-                    <StationColumns station="planetary" row={row} toFixed={0} />
+            <div
+              className="daily-geomagnetic-indices__scroll"
+              role="region"
+              aria-label="Daily geomagnetic indices table, scrollable"
+              tabIndex={0}
+            >
+              <table className="daily-geomagnetic-indices__table">
+                <caption>
+                  Last 30 days of daily geomagnetic indices per station
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col" rowSpan={2}>
+                      UTC Date
+                    </th>
+                    <th scope="colgroup" colSpan={9}>
+                      Fredericksburg
+                      <br />
+                      (middle latitude)
+                    </th>
+                    <th scope="colgroup" colSpan={9}>
+                      College
+                      <br />
+                      (high latitude)
+                    </th>
+                    <th scope="colgroup" colSpan={9}>
+                      Estimated planetary
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                  <tr>
+                    <th scope="col">A</th>
+                    <th scope="col" colSpan={8}>
+                      K-indices
+                    </th>
+                    <th scope="col">A</th>
+                    <th scope="col" colSpan={8}>
+                      K-indices
+                    </th>
+                    <th scope="col">A</th>
+                    <th scope="col" colSpan={8}>
+                      K-indices
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.rows.map((row) => (
+                    <tr
+                      key={row.date}
+                      className="daily-geomagnetic-indices__row"
+                    >
+                      <td>{row.date}</td>
+                      <StationColumns station="fredericksburg" row={row} />
+                      <StationColumns station="college" row={row} />
+                      <StationColumns
+                        station="planetary"
+                        row={row}
+                        toFixed={0}
+                      />
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </article>
         </>
       )}

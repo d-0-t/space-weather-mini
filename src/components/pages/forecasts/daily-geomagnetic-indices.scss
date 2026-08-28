@@ -12,10 +12,60 @@
     width: calc(100% - 2rem);
   }
 
-  &__table {
+  // 28 columns never fit a narrow viewport (or even the card on desktop):
+  // the table keeps its natural width and scrolls inside this region.
+  &__scroll {
+    max-width: 100%;
     margin: 15px 0;
-    align-self: center;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    &:focus-visible {
+      outline: 3px solid var(--color-accent-strong);
+      outline-offset: 2px;
+    }
+  }
+
+  &__table {
+    margin: 0;
     font-weight: 500;
+    min-width: max-content;
+    font-size: 0.8rem;
+
+    th,
+    td {
+      width: fit-content;
+      padding: 0 0.2rem;
+    }
+
+    th:first-child,
+    td:first-child {
+      width: fit-content;
+      color: rgb(233, 233, 233);
+    }
+
+    // Sticky date column: stays pinned while the K/A columns scroll
+    thead tr:first-child th:first-child,
+    tbody td:first-child {
+      position: sticky;
+      left: 0;
+      z-index: 1;
+      box-shadow: 2px 0 0 rgba(0, 0, 0, 0.3);
+    }
+
+    thead tr:first-child th:first-child {
+      background-color: var(--color-deep-indigo);
+      z-index: 2;
+    }
+
+    // Match the zebra stripes so scrolled cells never show through
+    tbody tr:nth-child(2n) td:first-child {
+      background-color: color-mix(in srgb, var(--color-deep-indigo) 75%, black);
+    }
+
+    tbody tr:nth-child(2n + 1) td:first-child {
+      background-color: color-mix(in srgb, var(--color-deep-indigo) 30%, black);
+    }
   }
 
   &__row:hover {
@@ -31,8 +81,4 @@
     font-size: 0.95rem;
     line-height: 1.5;
   }
-}
-
-td:first-of-type {
-  min-width: 100px;
 }

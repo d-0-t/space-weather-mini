@@ -77,6 +77,39 @@ test("tapping the panel background closes the menu, controls keep it open", asyn
   ).toBeHidden();
 });
 
+test("daily indices table fits the viewport via internal scroll", async ({
+  page,
+}) => {
+  await page.goto("/forecasts/daily");
+  const table = page.getByRole("table");
+  await expect(table).toBeVisible({ timeout: 60_000 });
+
+  // The wide 28-column table must not push the page wider than the viewport
+  const overflow = await page.evaluate(
+    () => document.documentElement.scrollWidth - window.innerWidth,
+  );
+  expect(overflow).toBeLessThanOrEqual(0);
+
+  // It scrolls inside its own region instead
+  const region = page.locator(".daily-geomagnetic-indices__scroll");
+  const sizes = await region.evaluate((el) => ({
+    client: el.clientWidth,
+    scroll: el.scrollWidth,
+  }));
+  expect(sizes.scroll).toBeGreaterThan(sizes.client);
+
+  // The sticky date column stays pinned at the left while scrolled to the end
+  await region.evaluate((el) => {
+    el.scrollLeft = el.scrollWidth;
+  });
+  const dateBox = await table
+    .locator("tbody tr:first-child td:first-child")
+    .boundingBox();
+  expect(dateBox).not.toBeNull();
+  // Pinned at the left edge of the scroll region (container + card padding only)
+  expect(dateBox!.x).toBeLessThanOrEqual(40);
+});
+
 test("Details opens inline inside the panel and Escape closes everything", async ({
   page,
 }) => {

@@ -11,6 +11,9 @@ a span {
 .container {
   padding: 10px;
   max-width: 800px;
+  // Flex item of #main-content: allow shrinking below content min-width,
+  // otherwise wide tables blow the page past the viewport on mobile
+  min-width: 0;
 }
 
 h1,
