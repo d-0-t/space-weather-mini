@@ -1,5 +1,41 @@
+// Physical aurora color ramp: low Kp = faint high-altitude emissions,
+// mid Kp = atomic-oxygen greens, severe Kp = low-altitude nitrogen fringes.
+$aurora-kp-colors: (
+  1: rgb(139, 36, 36),
+  // Kp 0-1 faint red – thin high-altitude atomic oxygen
+  2: rgb(200, 205, 212),
+  // Kp 1-2 faint gray-white arc on the horizon
+  3: rgb(126, 255, 46),
+  // Kp 2-3 lime green – the classic oxygen curtains
+  4: rgb(255, 140, 0),
+  // Kp 3-4 deep crimson storm cap
+  5: rgb(255, 40, 150),
+  // Kp 4-5 electric pink fringe
+  6: rgb(152, 58, 255),
+  // Kp 5-6 purple fringe
+  7: rgb(64, 137, 255),
+  // Kp 6-7 blue fringe
+  8: rgb(70, 42, 214),
+  // Kp 7-8 deep blue-violet
+  9: rgb(198, 157, 255), // Kp 8-9 white-hot lavender maximum
+);
+
+// @keyframes aurora-drift {
+//   0%,
+//   100% {
+//     transform: translate(0, 0);
+//   }
+//   33% {
+//     transform: translate(3px, -4px);
+//   }
+//   66% {
+//     transform: translate(-3px, 3px);
+//   }
+// }
+
 .aurora-now {
   height: fit-content;
+  position: relative;
 
   background-image:
     url("/assets/stars-transparent.png"),
@@ -14,7 +50,56 @@
   background-size: 50%;
   background-blend-mode: screen;
 
+  h3,
+  &__current__time {
+    text-shadow: var(--text-stroke-black);
+  }
+
+  & > .collapsible-panel {
+    position: relative;
+    z-index: 1;
+  }
+
+  &__curtain {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 75%;
+    overflow: hidden;
+    pointer-events: none;
+    // animation: aurora-drift 9s ease-in-out infinite;
+
+    &__svg {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      mix-blend-mode: screen;
+      filter: blur(var(--curtain-blur));
+      transition: filter 0.6s ease;
+    }
+
+    &__layer {
+      opacity: 0.06;
+      transition: opacity 0.6s ease;
+
+      @each $level, $color in $aurora-kp-colors {
+        &--#{$level} {
+          fill: $color;
+        }
+      }
+
+      &--active {
+        @for $i from 1 through length($aurora-kp-colors) {
+          &:nth-child(#{$i}) {
+            opacity: 0.5 - ($i - 1) * 0.045;
+          }
+        }
+      }
+    }
+  }
+
   &__current {
+    position: relative;
     display: flex;
     flex-direction: column;
     margin-bottom: 1rem;
@@ -23,16 +108,23 @@
     align-items: center;
     gap: 1rem;
 
+    &__kp,
+    &__time {
+      position: relative;
+      z-index: 1;
+    }
+
     &__kp {
       display: flex;
       align-items: center;
-      padding: 1rem;
+      padding: 1rem 1rem 4rem 1rem;
 
       font-size: 3rem;
       line-height: 2.5rem;
 
-      border: 3px dotted white;
-      border-radius: 10rem;
+      text-shadow: var(--text-stroke-black-strong);
+      //border: 3px dotted white;
+      //border-radius: 10rem;
     }
 
     &__time {
@@ -40,6 +132,12 @@
     }
   }
 }
+
+// @media (prefers-reduced-motion: reduce) {
+//   .aurora-now__curtain {
+//     animation: none;
+//   }
+// }
 
 .aurora-images {
   display: flex;

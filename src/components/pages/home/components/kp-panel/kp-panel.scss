@@ -1,8 +1,10 @@
 .kp-bar {
   display: flex;
   margin: 8px 0 12px;
+  font-size: 0.8rem;
+  line-height: 1rem;
 
-  --border-width: 0.4rem;
+  --border-width: 1px;
 
   &::after {
     content: "";
@@ -21,7 +23,6 @@
     box-sizing: border-box;
     text-align: center;
     font-weight: 600;
-    padding: 4px;
     flex: 1;
 
     background: color-mix(in srgb, var(--color-deep-indigo) 15%, black);

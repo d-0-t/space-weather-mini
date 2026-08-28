@@ -50,6 +50,69 @@ const MoonPhaseBadge: React.FC = () => {
   );
 };
 
+const AURORA_VIEWBOX = "0 0 300 190";
+
+const AURORA_LAYER_COUNT = 9;
+
+/** Smooth constant-thickness wavy band for one curtain layer; i = 0 is the bottom layer. */
+function auroraRibbonPath(i: number): string {
+  const thickness = 26 + (i % 3) * 6;
+  const baseY = 144 - i * 14;
+  const phase = i * 1.1;
+  const amp = 6 + (i % 3) * 3;
+  const step = 50;
+  const w = 300;
+  const yAt = (x: number, k: number) =>
+    baseY + Math.sin((x / w) * Math.PI * 3 + phase + k) * amp;
+
+  let d = `M 0 ${yAt(0, 0)}`;
+  for (let x = step; x <= w; x += step) {
+    const c1 = x - step * 0.7;
+    const c2 = x - step * 0.3;
+    d += ` C ${c1} ${yAt(c1, 0)}, ${c2} ${yAt(c2, 0)}, ${x} ${yAt(x, 0)}`;
+  }
+  d += ` L ${w} ${yAt(w, 0) + thickness}`;
+  for (let x = w - step; x >= 0; x -= step) {
+    const c1 = x + step * 0.3;
+    const c2 = x + step * 0.7;
+    d += ` C ${c1} ${yAt(c1, 0) + thickness}, ${c2} ${yAt(c2, 0) + thickness}, ${x} ${
+      yAt(x, 0) + thickness
+    }`;
+  }
+  return `${d} Z`;
+}
+
+/** Decorative aurora curtain behind the Kp badge; layer n lights up when Kp ≥ n. */
+const AuroraCurtain: React.FC<{ kp: number }> = ({ kp }) => {
+  const lit = Math.max(0, Math.min(AURORA_LAYER_COUNT, Math.floor(kp)));
+  const level = Math.max(1, lit);
+  const blurPx = level === 9 ? 3 : 24 - Math.abs(level - 3) * 4;
+  return (
+    <div className="aurora-now__curtain">
+      <svg
+        className="aurora-now__curtain__svg"
+        style={{ "--curtain-blur": `${blurPx}px` } as React.CSSProperties}
+        viewBox={AURORA_VIEWBOX}
+        preserveAspectRatio="xMidYMin meet"
+        aria-hidden="true"
+      >
+        {Array.from({ length: AURORA_LAYER_COUNT }, (_, i) => {
+          const level = i + 1;
+          return (
+            <path
+              key={level}
+              className={`aurora-now__curtain__layer aurora-now__curtain__layer--${level}${
+                level <= lit ? " aurora-now__curtain__layer--active" : ""
+              }`}
+              d={auroraRibbonPath(i)}
+            />
+          );
+        })}
+      </svg>
+    </div>
+  );
+};
+
 /**
  * Aurora Now – current Kp index on the starry sky, plus the NOAA Ovation
  * 30-minute aurora oval forecast images for both hemispheres.
@@ -64,9 +127,7 @@ const AuroraNow: React.FC = () => {
     gcTime: 10 * 60 * 1000,
   });
 
-  const header = (
-    <h2>Aurora Now</h2>
-  );
+  const header = <h2>Aurora Now</h2>;
   const badge = <MoonPhaseBadge />;
 
   if (observedQuery.isPending && !observedQuery.data) {
@@ -112,6 +173,7 @@ const AuroraNow: React.FC = () => {
 
   return (
     <article className="aurora-now">
+      <AuroraCurtain kp={currentKp} />
       <CollapsiblePanel
         heading={header}
         bodyId="aurora-now-panel-body"
@@ -122,7 +184,7 @@ const AuroraNow: React.FC = () => {
             {formatTimeSlot(currentSlot)}
           </span>
           <span
-            className={`aurora-now__current__kp kp${currentKpRounded >= 9 ? "9" : currentKpRounded + "" + (currentKpRounded + 1)}`}
+            className={`aurora-now__current__kp kpx${currentKpRounded >= 9 ? "9" : currentKpRounded + "" + (currentKpRounded + 1)}`}
           >
             {formatKp(currentKp)}
           </span>
@@ -130,7 +192,8 @@ const AuroraNow: React.FC = () => {
         <KpBar kp={currentKpRounded} />
         {observedQuery.isError && observed ? (
           <p aria-live="polite">
-            ⚠ Live data unavailable – showing {formatAge(latestObserved.time_tag)}
+            ⚠ Live data unavailable – showing{" "}
+            {formatAge(latestObserved.time_tag)}
             -old cache
           </p>
         ) : null}

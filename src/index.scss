@@ -41,6 +41,21 @@
 
   --text-stroke-black:
     1px 1px 1px #000, -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000;
+
+  --stroke-color: color-mix(
+    in srgb,
+    var(--color-deep-indigo) 75%,
+    var(--color-primary-violet) 100%
+  );
+  --stroke-blur: 18px;
+  --stroke-blur-s: 3px;
+  --text-stroke-black-strong:
+    3px 1px var(--stroke-blur-s) var(--stroke-color),
+    -3px -1px var(--stroke-blur-s) var(--stroke-color),
+    3px -1px var(--stroke-blur-s) var(--stroke-color),
+    -3px 1px var(--stroke-blur) var(--stroke-color),
+    0px 4px var(--stroke-blur) var(--stroke-color),
+    0px -4px var(--stroke-blur) var(--stroke-color);
 }
 
 html,

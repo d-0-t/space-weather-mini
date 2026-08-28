@@ -40,9 +40,9 @@ interface SeverityBand {
 export const SEVERITY_BANDS: Record<SeverityMetric, SeverityBand[]> = {
   speed: [
     { upTo: 200, color: "gray" },
-    { upTo: 400, color: "green" },
-    { upTo: 600, color: "yellow" },
-    { upTo: 800, color: "red" },
+    { upTo: 300, color: "green" },
+    { upTo: 400, color: "yellow" },
+    { upTo: 600, color: "red" },
     { upTo: Infinity, color: "magenta" },
   ],
   density: [
