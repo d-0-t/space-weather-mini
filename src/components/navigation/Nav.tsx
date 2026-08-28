@@ -105,7 +105,7 @@ const Nav: React.FC = () => {
         aria-label="Space Weather Mini – back to dashboard"
       >
         <img
-          src="/assets/aurora.png"
+          src="/assets/icon-192.png"
           className="header__left__logo"
           alt="App logo with aurora bird"
         />
