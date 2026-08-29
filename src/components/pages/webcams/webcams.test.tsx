@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeEach } from "vitest";
 
 import Webcams from "./webcams";
 import type { WebcamEntry } from "../../../data/webcams";
@@ -97,6 +97,13 @@ const fixtureEntries: WebcamEntry[] = [
 ];
 
 const renderPage = () => render(<Webcams entries={fixtureEntries} />);
+
+const openFilter = () => {
+  fireEvent.click(screen.getByRole("button", { name: /^Filter/ }));
+  return document.querySelector(
+    "dialog.webcams__filter-dialog",
+  ) as HTMLDialogElement;
+};
 
 describe("Webcams page", () => {
   it("renders a single level-1 heading", () => {
@@ -307,5 +314,348 @@ describe("Webcams page", () => {
     const earthcam = screen.getByRole("link", { name: /earthcam/i });
     expect(earthcam).toHaveAttribute("href", "https://www.earthcam.com/mapsearch/");
     expect(earthcam).toHaveAttribute("target", "_blank");
+  });
+});
+
+describe("Webcams hiding", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("hides an image card via its Hide button, stops rendering its image, and writes storage", () => {
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: "Hide North Star" }));
+    expect(
+      screen.queryByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
+    ).toBeNull();
+    expect(screen.queryByAltText("North Star, Scandinavia – current sky view")).toBeNull();
+    expect(localStorage.getItem("sw:webcams:hidden:v1")).toBe(
+      JSON.stringify(["north-star"]),
+    );
+    // Siblings stay
+    expect(
+      screen.getByRole("heading", { level: 3, name: /Northern Lights · 51\.1°N/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("hides the Twitch card", () => {
+    renderPage();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Hide Night Sky Live" }),
+    );
+    expect(screen.queryByTitle(/night sky live/i)).toBeNull();
+    expect(localStorage.getItem("sw:webcams:hidden:v1")).toBe(
+      JSON.stringify(["night-sky-live"]),
+    );
+  });
+
+  it("hides a link row", () => {
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: "Hide Tasman Still" }));
+    expect(screen.queryByRole("link", { name: "Tasman Still" })).toBeNull();
+    expect(localStorage.getItem("sw:webcams:hidden:v1")).toBe(
+      JSON.stringify(["tasman-still"]),
+    );
+  });
+
+  it("keeps hidden items out of the gallery under every region filter", () => {
+    renderPage();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Hide Northern Lights" }),
+    );
+    const dialog = openFilter();
+    fireEvent.click(
+      within(dialog).getByRole("checkbox", { name: "Canada" }),
+    );
+    fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
+    // The visible Canadian card stays, the hidden one never returns
+    expect(
+      screen.getByRole("heading", { level: 3, name: /Aurora Ridge · 56\.4°N/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { level: 3, name: /Northern Lights · 51\.1°N/ }),
+    ).toBeNull();
+  });
+});
+
+describe("Webcams hidden sources dialog", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  const openHiddenDialog = () => {
+    fireEvent.click(screen.getByRole("button", { name: /Hidden sources/ }));
+    return document.querySelector(
+      "dialog.webcams__hidden-dialog",
+    ) as HTMLDialogElement;
+  };
+
+  it("shows a live count on the Hidden sources button and lists hidden entries in the dialog", () => {
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: "Hide North Star" }));
+    fireEvent.click(screen.getByRole("button", { name: "Hide Tasman Still" }));
+    expect(
+      screen.getByRole("button", { name: "Hidden sources (2)" }),
+    ).toBeInTheDocument();
+    const dialog = openHiddenDialog();
+    expect(dialog.open).toBe(true);
+    expect(within(dialog).getByText("North Star")).toBeInTheDocument();
+    expect(within(dialog).getByText("Tasman Still")).toBeInTheDocument();
+    expect(
+      within(dialog).getByRole("button", { name: "Show North Star" }),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByRole("button", { name: "Show all" }),
+    ).toBeInTheDocument();
+  });
+
+  it("restores a single hidden entry from the dialog and keeps the count live", () => {
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: "Hide North Star" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Hide Northern Lights" }),
+    );
+    const dialog = openHiddenDialog();
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Show North Star" }),
+    );
+    expect(
+      screen.getByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Hidden sources (1)" }),
+    ).toBeInTheDocument();
+    expect(localStorage.getItem("sw:webcams:hidden:v1")).toBe(
+      JSON.stringify(["northern-lights"]),
+    );
+    expect(within(dialog).queryByText("North Star")).toBeNull();
+  });
+
+  it("restores every hidden entry via Show all", () => {
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: "Hide North Star" }));
+    fireEvent.click(screen.getByRole("button", { name: "Hide Tasman Still" }));
+    const dialog = openHiddenDialog();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Show all" }));
+    expect(
+      screen.getByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Tasman Still" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Hidden sources (0)" }),
+    ).toBeInTheDocument();
+    expect(localStorage.getItem("sw:webcams:hidden:v1")).toBe("[]");
+  });
+
+  it("closes on Escape and returns focus to the Hidden sources button", () => {
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: "Hide North Star" }));
+    const dialog = openHiddenDialog();
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    expect(dialog.open).toBe(false);
+    expect(
+      screen.getByRole("button", { name: "Hidden sources (1)" }),
+    ).toHaveFocus();
+  });
+
+  it("shows an honest empty note when nothing is hidden", () => {
+    renderPage();
+    expect(
+      screen.getByRole("button", { name: "Hidden sources (0)" }),
+    ).toBeInTheDocument();
+    const dialog = openHiddenDialog();
+    expect(within(dialog).getByText(/no hidden sources/i)).toBeInTheDocument();
+  });
+});
+
+describe("Webcams persistence and empty state", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("keeps hidden sources hidden across a fresh mount", () => {
+    const { unmount } = render(<Webcams entries={fixtureEntries} />);
+    fireEvent.click(screen.getByRole("button", { name: "Hide North Star" }));
+    unmount();
+    render(<Webcams entries={fixtureEntries} />);
+    expect(
+      screen.queryByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Hidden sources (1)" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the honest empty state when the filter and hidden set leave nothing", () => {
+    renderPage();
+    fireEvent.click(screen.getByRole("button", { name: "Hide North Star" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Hide Night Sky Live" }),
+    );
+    const dialog = openFilter();
+    fireEvent.click(
+      within(dialog).getByRole("checkbox", { name: "Scandinavia" }),
+    );
+    fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
+    // Scandinavia holds only the hidden card and the hidden Twitch card
+    expect(
+      screen.getByText("No webcams match your filters"),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("navigation", { name: /webcams sections/i }),
+    ).toBeNull();
+  });
+});
+
+describe("Webcams region filter", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("opens a checklist dialog from the Filter button with one native checkbox per present region in fixed order", () => {
+    renderPage();
+    const dialog = openFilter();
+    expect(dialog.open).toBe(true);
+    // Fixture regions: the named ones plus Iceland and the "rest" bucket
+    const checkboxes = within(dialog).getAllByRole("checkbox");
+    expect(checkboxes.map((box) => box.getAttribute("name"))).toEqual([
+      "Scandinavia",
+      "Canada",
+      "New Zealand",
+      "Iceland",
+      "rest",
+    ]);
+    expect(
+      within(dialog).getByRole("checkbox", { name: "Other regions" }),
+    ).toBeInTheDocument();
+    for (const box of checkboxes) {
+      expect(box).not.toBeChecked();
+    }
+  });
+
+  it("keeps the gallery unchanged until Apply commits the checked regions", () => {
+    renderPage();
+    const dialog = openFilter();
+    fireEvent.click(
+      within(dialog).getByRole("checkbox", { name: "Scandinavia" }),
+    );
+    // Draft only – both regions still visible while the dialog is open
+    expect(
+      screen.getByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 3, name: /Northern Lights · 51\.1°N/ }),
+    ).toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
+    expect(dialog.open).toBe(false);
+    expect(
+      screen.getByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { level: 3, name: /Northern Lights · 51\.1°N/ }),
+    ).toBeNull();
+    // Link rows narrow too
+    expect(screen.queryByRole("link", { name: "Tasman Still" })).toBeNull();
+  });
+
+  it("shows every webcam when no region is applied", () => {
+    renderPage();
+    const dialog = openFilter();
+    fireEvent.click(
+      within(dialog).getByRole("checkbox", { name: "Scandinavia" }),
+    );
+    fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
+    const dialog2 = openFilter();
+    fireEvent.click(
+      within(dialog2).getByRole("checkbox", { name: "Scandinavia" }),
+    );
+    fireEvent.click(within(dialog2).getByRole("button", { name: "Apply" }));
+    expect(
+      screen.getByRole("heading", { level: 3, name: /Northern Lights · 51\.1°N/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Tasman Still" })).toBeInTheDocument();
+  });
+
+  it("Show all and Hide all toggle the draft checkboxes without touching the gallery or the hidden set until Apply", () => {
+    renderPage();
+    // A hidden source must survive both toggles untouched
+    fireEvent.click(screen.getByRole("button", { name: "Hide Tasman Still" }));
+    const dialog = openFilter();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Hide all" }));
+    for (const box of within(dialog).getAllByRole("checkbox")) {
+      expect(box).toBeChecked();
+    }
+    // Draft only – everything still visible while the dialog is open
+    expect(
+      screen.getByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
+    ).toBeInTheDocument();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
+    // Checking every region keeps every region – the whole gallery stays,
+    // including the Iceland and "rest" link rows
+    expect(
+      screen.getByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 3, name: /Northern Lights · 51\.1°N/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Midnight Glacier" })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Alpine Peak" })).toBeInTheDocument();
+    // The hidden source is untouched by either toggle
+    expect(screen.queryByRole("link", { name: "Tasman Still" })).toBeNull();
+    expect(localStorage.getItem("sw:webcams:hidden:v1")).toBe(
+      JSON.stringify(["tasman-still"]),
+    );
+
+    const dialog2 = openFilter();
+    fireEvent.click(within(dialog2).getByRole("button", { name: "Show all" }));
+    for (const box of within(dialog2).getAllByRole("checkbox")) {
+      expect(box).not.toBeChecked();
+    }
+    fireEvent.click(within(dialog2).getByRole("button", { name: "Apply" }));
+    expect(
+      screen.getByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
+    ).toBeInTheDocument();
+    expect(localStorage.getItem("sw:webcams:hidden:v1")).toBe(
+      JSON.stringify(["tasman-still"]),
+    );
+  });
+
+  it("persists the applied filter and restores it on a fresh mount", () => {
+    const { unmount } = render(<Webcams entries={fixtureEntries} />);
+    const dialog = openFilter();
+    fireEvent.click(
+      within(dialog).getByRole("checkbox", { name: "Scandinavia" }),
+    );
+    fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
+    expect(localStorage.getItem("sw:webcams:filters:v1")).toBe(
+      JSON.stringify({ v: 1, regions: ["Scandinavia"] }),
+    );
+    // A fresh visit (new mount) still filters
+    unmount();
+    render(<Webcams entries={fixtureEntries} />);
+    expect(
+      screen.getByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { level: 3, name: /Northern Lights · 51\.1°N/ }),
+    ).toBeNull();
+  });
+
+  it("labels the Filter button with the applied region count and returns focus to it on close", () => {
+    renderPage();
+    const dialog = openFilter();
+    fireEvent.click(
+      within(dialog).getByRole("checkbox", { name: "Scandinavia" }),
+    );
+    fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
+    expect(
+      screen.getByRole("button", { name: "Filter (1)" }),
+    ).toBeInTheDocument();
+    const dialog2 = openFilter();
+    fireEvent.keyDown(dialog2, { key: "Escape" });
+    expect(dialog2.open).toBe(false);
+    expect(
+      screen.getByRole("button", { name: "Filter (1)" }),
+    ).toHaveFocus();
   });
 });

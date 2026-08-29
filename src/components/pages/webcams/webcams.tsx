@@ -1,7 +1,19 @@
-import { useMemo } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from "react";
 
 import "./webcams.scss";
 import FullSizeModal from "../../FullSizeModal";
+import {
+  loadFilteredRegions,
+  loadHiddenSourceIds,
+  saveFilteredRegions,
+  saveHiddenSourceIds,
+} from "../../../data/webcam-storage";
 import {
   webcamRegistry,
   webcamCountryCode,
@@ -14,6 +26,23 @@ import {
 
 /** Deploy target the Twitch player must receive as its parent: the page's own host. */
 const twitchParent = (): string => window.location.hostname || "localhost";
+
+/**
+ * A closed dialog hands focus back to its trigger button (the browser does
+ * this for native dialogs; the explicit handler covers test environments).
+ */
+const useDialogFocusReturn = (
+  dialogRef: RefObject<HTMLDialogElement | null>,
+  triggerRef: RefObject<HTMLButtonElement | null>,
+): void => {
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    const onClose = () => triggerRef.current?.focus();
+    dialog.addEventListener("close", onClose);
+    return () => dialog.removeEventListener("close", onClose);
+  }, [dialogRef, triggerRef]);
+};
 
 const KIND_NOTES: Record<WebcamLinkEntry["kind"], string> = {
   youtube: "YouTube stream",
@@ -76,17 +105,95 @@ const groupByRegion = <T extends WebcamEntry>(
 const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
   entries = webcamRegistry,
 }) => {
+  const [appliedRegions, setAppliedRegions] = useState<WebcamRegion[]>(() =>
+    loadFilteredRegions(localStorage),
+  );
+  const [hiddenSourceIds, setHiddenSourceIds] = useState<string[]>(() =>
+    loadHiddenSourceIds(localStorage),
+  );
+  const [draftRegions, setDraftRegions] = useState<WebcamRegion[]>([]);
+  const filterButtonRef = useRef<HTMLButtonElement>(null);
+  const filterDialogRef = useRef<HTMLDialogElement>(null);
+  const hiddenButtonRef = useRef<HTMLButtonElement>(null);
+  const hiddenDialogRef = useRef<HTMLDialogElement>(null);
+
+  useDialogFocusReturn(filterDialogRef, filterButtonRef);
+  useDialogFocusReturn(hiddenDialogRef, hiddenButtonRef);
+
+  // The checklist offers every region present in the registry, in the fixed
+  // display order; absent regions don't render, so a removed region disappears
+  // from the filter too.
+  const presentRegions = WEBCAM_REGION_ORDER.filter((region) =>
+    entries.some((entry) => entry.region === region),
+  );
+
+  // Zero applied regions shows everything; checking one or more narrows image
+  // cards, the Twitch card, and link rows alike. Hidden sources leave the
+  // gallery entirely (their images are never fetched) under every filter.
+  const visibleEntries = useMemo(() => {
+    const filtered = entries.filter(
+      (entry) =>
+        !hiddenSourceIds.includes(entry.id) &&
+        (appliedRegions.length === 0 || appliedRegions.includes(entry.region)),
+    );
+    return filtered;
+  }, [entries, hiddenSourceIds, appliedRegions]);
+
+  const hideSource = (id: string) => {
+    const next = [...hiddenSourceIds, id];
+    saveHiddenSourceIds(localStorage, next);
+    setHiddenSourceIds(next);
+  };
+
+  // The hidden set is resolved against the current registry so a cam removed
+  // from the config stops counting (its stale id stays inert in storage).
+  const hiddenSourceEntries = hiddenSourceIds
+    .map((id) => entries.find((entry) => entry.id === id))
+    .filter((entry): entry is WebcamEntry => entry !== undefined);
+
+  const restoreSource = (id: string) => {
+    const next = hiddenSourceIds.filter((hiddenId) => hiddenId !== id);
+    saveHiddenSourceIds(localStorage, next);
+    setHiddenSourceIds(next);
+  };
+
+  const restoreAllHidden = () => {
+    saveHiddenSourceIds(localStorage, []);
+    setHiddenSourceIds([]);
+  };
+
+  const openFilterDialog = () => {
+    setDraftRegions(appliedRegions);
+    filterDialogRef.current?.showModal();
+  };
+
+  const openHiddenDialog = () => hiddenDialogRef.current?.showModal();
+
+  const toggleDraftRegion = (region: WebcamRegion) => {
+    setDraftRegions((draft) =>
+      draft.includes(region)
+        ? draft.filter((r) => r !== region)
+        : [...draft, region],
+    );
+  };
+
+  const applyFilter = () => {
+    saveFilteredRegions(localStorage, draftRegions);
+    setAppliedRegions(draftRegions);
+    filterDialogRef.current?.close();
+  };
+
   const imagesByRegion = useMemo(
-    () => groupByRegion<WebcamImageEntry>(entries, "image", WEBCAM_REGION_ORDER),
-    [entries],
+    () => groupByRegion<WebcamImageEntry>(visibleEntries, "image", WEBCAM_REGION_ORDER),
+    [visibleEntries],
   );
 
   const linksByRegion = useMemo(
-    () => groupByRegion<WebcamLinkEntry>(entries, "link", LINK_REGION_ORDER),
-    [entries],
+    () => groupByRegion<WebcamLinkEntry>(visibleEntries, "link", LINK_REGION_ORDER),
+    [visibleEntries],
   );
 
-  const twitch = entries.find((entry) => entry.type === "twitch");
+  const twitch = visibleEntries.find((entry) => entry.type === "twitch");
   const loadedAt = useMemo(
     () =>
       new Date().toLocaleTimeString([], {
@@ -103,24 +210,55 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
     <div className="container webcams" id="webcams">
       <h1>Webcams</h1>
 
-      <nav className="webcams__jumps" aria-label="Webcams sections">
-        <span className="webcams__jumps-label">Jump to:</span>
-        {imagesByRegion.map(([region]) => (
-          <a key={region} className="webcams__jump" href={`#${sectionId(region)}`}>
-            {regionLabel(region)}
-          </a>
-        ))}
-        {twitch ? (
-          <a className="webcams__jump" href="#webcams-twitch">
-            Twitch stream
-          </a>
-        ) : null}
-        {linksByRegion.length > 0 ? (
-          <a className="webcams__jump" href="#webcams-links">
-            Webcam links
-          </a>
-        ) : null}
-      </nav>
+      <div className="webcams__toolbar">
+        <button
+          type="button"
+          className="webcams__button"
+          ref={filterButtonRef}
+          onClick={openFilterDialog}
+        >
+          {appliedRegions.length > 0
+            ? `Filter (${appliedRegions.length})`
+            : "Filter"}
+        </button>
+        <button
+          type="button"
+          className="webcams__button"
+          ref={hiddenButtonRef}
+          onClick={openHiddenDialog}
+        >
+          Hidden sources ({hiddenSourceEntries.length})
+        </button>
+      </div>
+
+      {visibleEntries.length === 0 ? (
+        <p className="webcams__empty">No webcams match your filters</p>
+      ) : null}
+
+      {visibleEntries.length > 0 ? (
+        <nav className="webcams__jumps" aria-label="Webcams sections">
+          <span className="webcams__jumps-label">Jump to:</span>
+          {imagesByRegion.map(([region]) => (
+            <a
+              key={region}
+              className="webcams__jump"
+              href={`#${sectionId(region)}`}
+            >
+              {regionLabel(region)}
+            </a>
+          ))}
+          {twitch ? (
+            <a className="webcams__jump" href="#webcams-twitch">
+              Twitch stream
+            </a>
+          ) : null}
+          {linksByRegion.length > 0 ? (
+            <a className="webcams__jump" href="#webcams-links">
+              Webcam links
+            </a>
+          ) : null}
+        </nav>
+      ) : null}
 
       {imagesByRegion.map(([region, cards]) => (
         <section
@@ -190,6 +328,14 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
                     {card.operator}
                   </a>
                 </p>
+                <button
+                  type="button"
+                  className="webcam-card__hide webcams__button webcams__button--small"
+                  aria-label={`Hide ${card.name}`}
+                  onClick={() => hideSource(card.id)}
+                >
+                  Hide
+                </button>
               </article>
               );
             })}
@@ -228,6 +374,14 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
             {twitch.note ? (
               <p className="webcam-card__note">{twitch.note}</p>
             ) : null}
+            <button
+              type="button"
+              className="webcam-card__hide webcams__button webcams__button--small"
+              aria-label={`Hide ${twitch.name}`}
+              onClick={() => hideSource(twitch.id)}
+            >
+              Hide
+            </button>
           </div>
         </section>
       ) : null}
@@ -263,6 +417,14 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
                     {row.note ? (
                       <span className="webcam-link-row__note">{row.note}</span>
                     ) : null}
+                    <button
+                      type="button"
+                      className="webcam-link-row__hide webcams__button webcams__button--small"
+                      aria-label={`Hide ${row.name}`}
+                      onClick={() => hideSource(row.id)}
+                    >
+                      Hide
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -284,6 +446,109 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
         </a>{" "}
         finds webcams everywhere.
       </p>
+
+      <dialog
+        ref={filterDialogRef}
+        className="webcams__dialog webcams__filter-dialog"
+        aria-labelledby="webcams-filter-title"
+      >
+        <h2 id="webcams-filter-title" className="webcams__dialog-title">Filter webcams by region</h2>
+        <p className="webcams__dialog-hint">
+          Check the regions to keep; leave every box unchecked to show all
+          webcams.
+        </p>
+        <ul className="webcams__filter-list">
+          {presentRegions.map((region) => (
+            <li key={region} className="webcams__filter-option">
+              <label className="webcams__filter-option__label">
+                <input
+                  type="checkbox"
+                  className="webcams__filter-option__checkbox"
+                  name={region}
+                  checked={draftRegions.includes(region)}
+                  onChange={() => toggleDraftRegion(region)}
+                />
+                {regionLabel(region)}
+              </label>
+            </li>
+          ))}
+        </ul>
+        <div className="webcams__dialog-actions">
+          <button
+            type="button"
+            className="webcams__button"
+            onClick={() => setDraftRegions([])}
+          >
+            Show all
+          </button>
+          <button
+            type="button"
+            className="webcams__button"
+            onClick={() => setDraftRegions(presentRegions)}
+          >
+            Hide all
+          </button>
+          <button
+            type="button"
+            className="webcams__button"
+            onClick={() => filterDialogRef.current?.close()}
+          >
+            Cancel
+          </button>
+          <button type="button" className="webcams__button" onClick={applyFilter}>
+            Apply
+          </button>
+        </div>
+      </dialog>
+
+      <dialog
+        ref={hiddenDialogRef}
+        className="webcams__dialog webcams__hidden-dialog"
+        aria-labelledby="webcams-hidden-title"
+      >
+        <h2 id="webcams-hidden-title" className="webcams__dialog-title">Hidden sources</h2>
+        {hiddenSourceEntries.length === 0 ? (
+          <p className="webcams__dialog-note">No hidden sources.</p>
+        ) : (
+          <ul className="webcams__hidden-list">
+            {hiddenSourceEntries.map((entry) => (
+              <li key={entry.id} className="webcams__hidden-row">
+                <span className="webcams__hidden-name">
+                  {entry.name}{" "}
+                  <span className="webcams__hidden-meta">
+                    {regionLabel(entry.region)}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  className="webcams__button webcams__button--small"
+                  aria-label={`Show ${entry.name}`}
+                  onClick={() => restoreSource(entry.id)}
+                >
+                  Show
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="webcams__dialog-actions">
+          <button
+            type="button"
+            className="webcams__button"
+            onClick={restoreAllHidden}
+            disabled={hiddenSourceEntries.length === 0}
+          >
+            Show all
+          </button>
+          <button
+            type="button"
+            className="webcams__button"
+            onClick={() => hiddenDialogRef.current?.close()}
+          >
+            Close
+          </button>
+        </div>
+      </dialog>
     </div>
   );
 };
