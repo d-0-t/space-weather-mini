@@ -129,6 +129,11 @@
   }
 }
 
+.header__astro svg {
+  // Moon-yellow moon glyph (the astro filter dims the page around it)
+  color: var(--color-gold);
+}
+
 .nava {
   text-decoration: none;
   color: var(--color-text-primary);

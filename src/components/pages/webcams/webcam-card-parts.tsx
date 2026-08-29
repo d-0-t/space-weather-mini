@@ -10,21 +10,29 @@ export const WebcamCardTitle: React.FC<{
   latitude: number;
 }> = ({ country, name, latitude }) => (
   <h3 className="webcam-card__title">
-    <img
-      className="webcam-card__flag"
-      src={flagSrc(webcamCountryCode(country), "16x12")}
-      srcSet={`${flagSrc(webcamCountryCode(country), "32x24")} 2x, ${flagSrc(
-        webcamCountryCode(country),
-        "48x36",
-      )} 3x`}
-      width={16}
-      height={12}
-      alt={country}
-      title={country}
-      loading="lazy"
-    />{" "}
+    <CountryFlag country={country} className="webcam-card__flag" />{" "}
     {name} · {formatLatitude(latitude)}
   </h3>
+);
+
+/** Small country flag (flagcdn 16×12 base, 2x/3x retina) with the country as alt/title. */
+export const CountryFlag: React.FC<{
+  country: string;
+  className?: string;
+}> = ({ country, className = "" }) => (
+  <img
+    className={className}
+    src={flagSrc(webcamCountryCode(country), "16x12")}
+    srcSet={`${flagSrc(webcamCountryCode(country), "32x24")} 2x, ${flagSrc(
+      webcamCountryCode(country),
+      "48x36",
+    )} 3x`}
+    width={16}
+    height={12}
+    alt={country}
+    title={country}
+    loading="lazy"
+  />
 );
 
 /** Full-size view wrapper shared by the image and live cards. */

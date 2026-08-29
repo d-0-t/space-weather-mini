@@ -58,7 +58,12 @@ describe("webcam registry contract", () => {
           true,
         );
       }
-      expect(entry.note === null || typeof entry.note === "string").toBe(true);
+      // Link rows carry no notes (ticket 05 follow-up)
+      if (!isLink(entry)) {
+        expect(entry.note === null || typeof entry.note === "string").toBe(
+          true,
+        );
+      }
     }
   });
 
@@ -72,13 +77,15 @@ describe("webcam registry contract", () => {
     }
   });
 
-  it("ships every link entry with an https url and a known kind", () => {
+  it("ships every link entry with an https url, a known kind, and a country that has a flag code", () => {
     const kinds = new Set(["youtube", "twitch", "player", "http-only"]);
     const links = webcamRegistry.filter(isLink);
     expect(links.length).toBeGreaterThan(0);
     for (const entry of links) {
       expect(entry.url).toMatch(/^https?:\/\//);
       expect(kinds.has(entry.kind)).toBe(true);
+      expect(entry.country.trim()).not.toBe("");
+      expect(webcamCountryCode(entry.country)).toMatch(/^[a-z]{2}$/);
     }
   });
 
@@ -111,16 +118,18 @@ describe("webcam registry contract", () => {
   });
 
   it("ships the verified 2026-08-29 set with image cards for every region that has one", () => {
-    // Image regions present: Scandinavia, Canada, US, Russia (Alaska's cam is the live entry)
+    // Image regions present: Nordic, North America, Russia (the live cam sits
+    // inside the North America section)
     const imageRegions = new Set(
       webcamRegistry.filter(isImage).map((e) => e.region),
     );
-    for (const region of ["Scandinavia", "Canada", "US", "Russia"]) {
+    for (const region of ["Nordic", "North America", "Russia"]) {
       expect(imageRegions.has(region as WebcamRegion)).toBe(true);
     }
-    // Link regions present: New Zealand, UK, Greenland, Iceland
+    // Link regions present: UK, rest (NZ and Antarctica links live in the
+    // "Other regions" bucket); Nordic carries both cards and links
     const linkRegions = new Set(webcamRegistry.filter(isLink).map((e) => e.region));
-    for (const region of ["New Zealand", "UK", "Greenland", "Iceland"]) {
+    for (const region of ["UK", "rest", "Nordic"]) {
       expect(linkRegions.has(region as WebcamRegion)).toBe(true);
     }
   });
@@ -130,7 +139,7 @@ describe("webcam registry contract", () => {
     expect(live).toHaveLength(1);
     for (const entry of live) {
       expect(entry.id).toBe("uaf-poker-flat");
-      expect(entry.region).toBe("Alaska");
+      expect(entry.region).toBe("North America");
       expect(entry.sseUrl).toMatch(/^https:\/\//);
       expect(entry.frameBaseUrl).toMatch(/^https:\/\/.+\/$/);
       expect(entry.imageUrl).toMatch(/^https:\/\//);

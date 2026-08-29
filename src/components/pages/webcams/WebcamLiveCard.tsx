@@ -52,7 +52,11 @@ const WebcamLiveCard: React.FC<
   }, [feeding, entry]);
 
   return (
-    <article className="webcam-card webcam-card--live">
+    <article
+      className={`webcam-card webcam-card--live${
+        feeding ? " webcam-card--wide" : ""
+      }`}
+    >
       <WebcamCardTitle
         country={entry.country}
         name={entry.name}

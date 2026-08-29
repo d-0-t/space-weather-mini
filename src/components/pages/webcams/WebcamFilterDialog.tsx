@@ -10,8 +10,8 @@ const WebcamFilterDialog: React.FC<{
   presentRegions: WebcamRegion[];
   draftRegions: WebcamRegion[];
   onToggleRegion: (region: WebcamRegion) => void;
-  onShowAll: () => void;
-  onHideAll: () => void;
+  onSelectAll: () => void;
+  onDeselectAll: () => void;
   onApply: () => void;
   onCancel: () => void;
 }> = ({
@@ -19,8 +19,8 @@ const WebcamFilterDialog: React.FC<{
   presentRegions,
   draftRegions,
   onToggleRegion,
-  onShowAll,
-  onHideAll,
+  onSelectAll,
+  onDeselectAll,
   onApply,
   onCancel,
 }) => (
@@ -53,11 +53,11 @@ const WebcamFilterDialog: React.FC<{
       ))}
     </ul>
     <div className="webcams__dialog-actions">
-      <button type="button" className="btn--secondary" onClick={onShowAll}>
-        Show all
+      <button type="button" className="btn--secondary" onClick={onSelectAll}>
+        Select all
       </button>
-      <button type="button" className="btn--secondary" onClick={onHideAll}>
-        Hide all
+      <button type="button" className="btn--secondary" onClick={onDeselectAll}>
+        Deselect all
       </button>
       <button type="button" className="btn--secondary" onClick={onCancel}>
         Cancel

@@ -21,7 +21,7 @@ import {
   transitMinutes,
   valueAt,
 } from "../live-panels/live-panels";
-import CollapsiblePanel from "../CollapsiblePanel/CollapsiblePanel";
+import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
 
 const fetchWind = async () => {
   const response = await fetch(RTSW_WIND_URL);

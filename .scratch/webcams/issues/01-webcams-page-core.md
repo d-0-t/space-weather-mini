@@ -19,7 +19,7 @@
 Implemented 2026-08-29. Decisions made during implementation (deviations from the spec's registry shape are flagged):
 
 - **Kaliningrad ships as an image card** (user decision: "aurora is possible at 54°. if there is an embeddable still, use it") — Russia is therefore an image-card region; the spec's image-region list predates this.
-- **IRF Kiruna ships as an image card** with note "(seasonal)" (user decision); nothing about whether it is active.
+- **IRF Kiruna ships as an image card** with note "Seasonal" (user decision); nothing about whether it is active.
 - **UAF Poker Flat imageUrl** is the verified daytime placeholder `https://allsky.gi.alaska.edu/images/offline-notdark.jpg` until ticket 03 adds the SSE frame resolution (`poker-notdark.jpg` is the off-season placeholder per user; swap in ticket 03).
 - **Link rows ship the full SWL video/player set** (user decision): 21 rows incl. Shetland ×2, Graham's AllSky (http-only), Ilulissat/Tasiilaq, Teriberka, Landhotel/Aðaldalshraun, Kilpisjärvi/Levi/Posio, Fabian Wimmer Abisko, NIPR Skibotn (http-only), Churchill/Banff, Fairbanks, Sebec Lake, AAD Davis, Pizzo Matro, Cape Arkona. Brno ×4 excluded (research gives no video IDs); Lights over Lapland's own player page and the UAF Chatanika entry excluded as duplicates of the Twitch card / UAF image card.
 - **`siteUrl` added to `WebcamImageEntry`** (spec's shape omits it) — required by the ticket's "Visit site opens the operator's page" and keeps a dead cam a config edit, not a code change.

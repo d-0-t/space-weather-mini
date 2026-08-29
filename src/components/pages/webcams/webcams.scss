@@ -1,4 +1,8 @@
 .container.webcams {
+  // As a flex item of #main-content the container would shrink-wrap its
+  // content; the auto-fill grid needs a definite width to count tracks, so
+  // fill the viewport and let max-width cap it.
+  width: 100%;
   max-width: 1200px;
 }
 
@@ -13,10 +17,15 @@
   }
 
   &__toolbar {
+    position: relative;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.5rem;
+
+    button {
+      position: relative;
+    }
   }
 
   &__autorefresh {
@@ -175,13 +184,6 @@
 
   &__region {
     margin-bottom: 1rem;
-
-    &-heading {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      gap: 1rem;
-    }
   }
 
   &__cards {
@@ -199,6 +201,12 @@
 
     &-region-title {
       margin-bottom: 0.25rem;
+    }
+  }
+
+  &__links-region {
+    &__flag {
+      vertical-align: middle;
     }
   }
 
@@ -223,14 +231,9 @@
     grid-column: 1 / -1;
   }
 
-  &--stream {
-    width: fit-content;
-    max-width: 100%;
-  }
-
-  &--live {
-    width: fit-content;
-    max-width: 100%;
+  // The Twitch player and the feeding live cam span two card columns.
+  &--wide {
+    grid-column: span 2;
   }
 
   &__title {
@@ -336,6 +339,10 @@
     border-bottom: none;
   }
 
+  &__flag {
+    vertical-align: middle;
+  }
+
   &__name {
     font-weight: 600;
   }
@@ -350,16 +357,5 @@
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--color-accent);
-  }
-
-  &__note {
-    flex-basis: 100%;
-    font-size: 0.85rem;
-    font-style: italic;
-    opacity: 0.85;
-  }
-
-  &__hide {
-    margin-left: auto;
   }
 }

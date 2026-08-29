@@ -1,4 +1,7 @@
-import { formatAge, formatUtcShort } from "../../../../../products/live-helpers";
+import {
+  formatAge,
+  formatUtcShort,
+} from "../../../../../products/live-helpers";
 import { gLabelForThreshold } from "../../../../../products/thresholds";
 import { kpClass } from "../kp-panel/kp-panel";
 import { useAlerts } from "./AlertsContext";
@@ -34,7 +37,7 @@ const Alerts: React.FC = () => {
         {notificationsSupported ? (
           <button
             type="button"
-            className="btn--secondary"
+            className="btn--icon"
             onClick={enableBrowserAlerts}
             disabled={
               notificationState === "granted" || notificationState === "denied"

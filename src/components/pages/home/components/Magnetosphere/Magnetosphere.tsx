@@ -27,7 +27,7 @@ import {
   latestValue,
   smoothPoints,
 } from "../live-panels/live-panels";
-import CollapsiblePanel from "../CollapsiblePanel/CollapsiblePanel";
+import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
 
 const KIRUNA_MAGNETOGRAM_URL =
   "https://spaceweather.irf.se/data/irf-kir-mag.png";

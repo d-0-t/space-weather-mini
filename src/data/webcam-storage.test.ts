@@ -57,13 +57,13 @@ describe("Webcam preferences storage (ticket 02)", () => {
   });
 
   it("round-trips the applied region filter as a versioned value", () => {
-    saveFilteredRegions(localStorage, ["Scandinavia", "Canada"]);
+    saveFilteredRegions(localStorage, ["Nordic", "North America"]);
     expect(localStorage.getItem(WEBCAM_FILTER_STORAGE_KEY)).toBe(
-      JSON.stringify({ v: 1, regions: ["Scandinavia", "Canada"] }),
+      JSON.stringify({ v: 1, regions: ["Nordic", "North America"] }),
     );
     expect(loadFilteredRegions(localStorage)).toEqual([
-      "Scandinavia",
-      "Canada",
+      "Nordic",
+      "North America",
     ]);
   });
 
@@ -82,9 +82,9 @@ describe("Webcam preferences storage (ticket 02)", () => {
   it("keeps only known regions from stored filter values", () => {
     localStorage.setItem(
       WEBCAM_FILTER_STORAGE_KEY,
-      JSON.stringify({ v: 1, regions: ["Canada", "Atlantis"] }),
+      JSON.stringify({ v: 1, regions: ["North America", "Atlantis"] }),
     );
-    expect(loadFilteredRegions(localStorage)).toEqual(["Canada"]);
+    expect(loadFilteredRegions(localStorage)).toEqual(["North America"]);
   });
 });
 

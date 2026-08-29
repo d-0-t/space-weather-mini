@@ -4,6 +4,7 @@ import RefreshIcon from "@mui/icons-material/Refresh";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
 import "./webcams.scss";
+import CollapsiblePanel from "../../CollapsiblePanel/CollapsiblePanel";
 import {
   loadAutoRefresh,
   loadFilteredRegions,
@@ -18,13 +19,16 @@ import {
   type WebcamEntry,
   type WebcamImageEntry,
   type WebcamLinkEntry,
+  type WebcamLiveEntry,
   type WebcamRegion,
+  type WebcamTwitchEntry,
 } from "../../../data/webcams";
 import WebcamFilterDialog from "./WebcamFilterDialog";
 import WebcamHiddenDialog from "./WebcamHiddenDialog";
 import WebcamImageCard from "./WebcamImageCard";
 import WebcamLiveCard from "./WebcamLiveCard";
-import { regionLabel, WebcamHideButton } from "./webcam-card-parts";
+import WebcamTwitchCard from "./WebcamTwitchCard";
+import { CountryFlag, regionLabel } from "./webcam-card-parts";
 
 /** Deploy target the Twitch player must receive as its parent: the page's own host. */
 const twitchParent = (): string => window.location.hostname || "localhost";
@@ -55,17 +59,11 @@ const KIND_NOTES: Record<WebcamLinkEntry["kind"], string> = {
 
 /** Link rows lead with the regions that have no image cards, then the rest in fixed order. */
 const LINK_REGION_ORDER: readonly WebcamRegion[] = [
-  "New Zealand",
   "UK",
-  "Greenland",
-  "Russia",
-  ...WEBCAM_REGION_ORDER.filter(
-    (region) => !["New Zealand", "UK", "Greenland", "Russia"].includes(region),
-  ),
+  ...WEBCAM_REGION_ORDER.filter((region) => region !== "UK"),
 ];
 
-const sectionId = (region: WebcamRegion): string =>
-  `webcams-region-${region}`;
+const sectionId = (region: WebcamRegion): string => `webcams-region-${region}`;
 
 /** Panoramic feeds render last, spanning the whole row. */
 const orderedCards = (cards: WebcamImageEntry[]): WebcamImageEntry[] =>
@@ -82,7 +80,8 @@ const groupByRegion = <T extends WebcamEntry>(
   const map = new Map<WebcamRegion, T[]>();
   for (const region of order) map.set(region, []);
   for (const entry of entries) {
-    if (entry.type === type) map.get(entry.region as WebcamRegion)?.push(entry as T);
+    if (entry.type === type)
+      map.get(entry.region as WebcamRegion)?.push(entry as T);
   }
   return [...map.entries()].filter(([, items]) => items.length > 0);
 };
@@ -211,17 +210,51 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
   };
 
   const imagesByRegion = useMemo(
-    () => groupByRegion<WebcamImageEntry>(visibleEntries, "image", WEBCAM_REGION_ORDER),
+    () =>
+      groupByRegion<WebcamImageEntry>(
+        visibleEntries,
+        "image",
+        WEBCAM_REGION_ORDER,
+      ),
     [visibleEntries],
   );
+
+  // One section per region holding any media – image cards plus the live cam
+  // and the Twitch stream when they belong to the region. A region stays
+  // alive while any of its media is visible, so hiding every image card of a
+  // region doesn't silently drop its live cam.
+  const mediaByRegion = useMemo(() => {
+    const map = new Map<
+      WebcamRegion,
+      {
+        cards: WebcamImageEntry[];
+        live: WebcamLiveEntry | null;
+        twitch: WebcamTwitchEntry | null;
+      }
+    >();
+    for (const region of WEBCAM_REGION_ORDER) {
+      map.set(region, { cards: [], live: null, twitch: null });
+    }
+    for (const entry of visibleEntries) {
+      if (entry.type === "image") {
+        map.get(entry.region)!.cards.push(entry);
+      } else if (entry.type === "live") {
+        map.get(entry.region)!.live = entry;
+      } else if (entry.type === "twitch") {
+        map.get(entry.region)!.twitch = entry;
+      }
+    }
+    return [...map.entries()].filter(
+      ([, media]) =>
+        media.cards.length > 0 || media.live !== null || media.twitch !== null,
+    );
+  }, [visibleEntries]);
 
   const linksByRegion = useMemo(
-    () => groupByRegion<WebcamLinkEntry>(visibleEntries, "link", LINK_REGION_ORDER),
+    () =>
+      groupByRegion<WebcamLinkEntry>(visibleEntries, "link", LINK_REGION_ORDER),
     [visibleEntries],
   );
-
-  const twitch = visibleEntries.find((entry) => entry.type === "twitch");
-  const live = visibleEntries.find((entry) => entry.type === "live");
 
   const parent = twitchParent();
   const tabVisible = useTabVisible();
@@ -234,7 +267,7 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
         <div className="webcams__toolbar">
           <button
             type="button"
-            className="btn--secondary"
+            className="btn--icon"
             title="Refresh"
             aria-label="Refresh"
             onClick={() => setRefreshNonce((nonce) => nonce + 1)}
@@ -244,7 +277,7 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
           </button>
           <button
             type="button"
-            className="btn--secondary"
+            className="btn--icon"
             title="Filter webcams by region"
             aria-label={
               appliedRegions.length > 0
@@ -254,9 +287,9 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
             ref={filterButtonRef}
             onClick={openFilterDialog}
           >
-            {appliedRegions.length > 0 ? (
+            {/* {appliedRegions.length > 0 ? (
               <span className="btn__badge" aria-hidden="true" />
-            ) : null}
+            ) : null} */}
             <FilterListIcon fontSize="small" />
             <span className="btn__label">
               {appliedRegions.length > 0
@@ -266,21 +299,21 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
           </button>
           <button
             type="button"
-            className="btn--secondary"
+            className="btn--icon"
             title="Hidden sources"
             aria-label={`Hidden sources (${hiddenSourceEntries.length})`}
             ref={hiddenButtonRef}
             onClick={openHiddenDialog}
           >
-            {hiddenSourceEntries.length > 0 ? (
+            {/* {hiddenSourceEntries.length > 0 ? (
               <span className="btn__badge" aria-hidden="true" />
-            ) : null}
+            ) : null} */}
             <VisibilityOffIcon fontSize="small" />
             <span className="btn__label">
               Hidden sources ({hiddenSourceEntries.length})
             </span>
           </button>
-          <label className="btn--secondary webcams__autorefresh">
+          <label className="btn--icon webcams__autorefresh">
             <input
               type="checkbox"
               className="webcams__autorefresh__checkbox"
@@ -304,7 +337,7 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
       {visibleEntries.length > 0 ? (
         <nav className="webcams__jumps" aria-label="Webcams sections">
           <span className="webcams__jumps-label">Jump to:</span>
-          {imagesByRegion.map(([region]) => (
+          {mediaByRegion.map(([region]) => (
             <a
               key={region}
               className="webcams__jump"
@@ -313,16 +346,6 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
               {regionLabel(region)}
             </a>
           ))}
-          {live ? (
-            <a className="webcams__jump" href="#webcams-live">
-              Live cam
-            </a>
-          ) : null}
-          {twitch ? (
-            <a className="webcams__jump" href="#webcams-twitch">
-              Twitch stream
-            </a>
-          ) : null}
           {linksByRegion.length > 0 ? (
             <a className="webcams__jump" href="#webcams-links">
               Webcam links
@@ -331,130 +354,113 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
         </nav>
       ) : null}
 
-      {imagesByRegion.map(([region, cards]) => (
-        <section
-          key={region}
-          className="webcams__region"
-          aria-labelledby={sectionId(region)}
-        >
-          <div className="webcams__region-heading">
-            <h2 id={sectionId(region)}>{regionLabel(region)}</h2>
-            <a className="webcams__jump" href="#webcams">
-              Jump to top
-            </a>
-          </div>
-          <div className="webcams__cards">
-            {orderedCards(cards).map((card) => (
-              <WebcamImageCard
-                key={card.id}
-                card={card}
-                autoRefresh={autoRefresh}
-                tabVisible={tabVisible}
-                refreshNonce={refreshNonce}
-                onHide={hideSource}
-              />
-            ))}
-          </div>
-        </section>
-      ))}
-
-      {live ? (
-        <section className="webcams__region" aria-labelledby="webcams-live">
-          <div className="webcams__region-heading">
-            <h2 id="webcams-live">Live cam</h2>
-            <a className="webcams__jump" href="#webcams">
-              Jump to top
-            </a>
-          </div>
-          <WebcamLiveCard
-            entry={live}
-            autoRefresh={autoRefresh}
-            tabVisible={tabVisible}
-            onHide={hideSource}
-          />
-        </section>
-      ) : null}
-
-      {twitch ? (
-        <section className="webcams__region" aria-labelledby="webcams-twitch">
-          <div className="webcams__region-heading">
-            <h2 id="webcams-twitch">Twitch stream</h2>
-            <a className="webcams__jump" href="#webcams">
-              Jump to top
-            </a>
-          </div>
-          <div className="webcam-card webcam-card--stream">
-            <h3 className="webcam-card__title">{twitch.name}</h3>
-            <iframe
-              src={`https://player.twitch.tv/?channel=${twitch.twitchChannel}&parent=${parent}&autoplay=false&muted=true`}
-              title={`${twitch.name} – live on Twitch`}
-              height="360"
-              width="640"
-              allowFullScreen
-              className="webcam-card__twitch"
-            />
-            <p className="webcam-card__attribution">
-              Source:{" "}
-              <a
-                href={twitch.siteUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {twitch.operator}
-              </a>
-            </p>
-            {twitch.note ? (
-              <p className="webcam-card__note">{twitch.note}</p>
-            ) : null}
-            <WebcamHideButton
-              name={twitch.name}
-              onHide={() => hideSource(twitch.id)}
-            />
-          </div>
-        </section>
-      ) : null}
+      {mediaByRegion.map(([region, media]) => {
+        return (
+          <section
+            key={region}
+            className="webcams__region"
+            aria-labelledby={sectionId(region)}
+          >
+            <CollapsiblePanel
+              heading={<h2 id={sectionId(region)}>{regionLabel(region)}</h2>}
+              bodyId={`${sectionId(region)}-body`}
+              adornment={
+                <a className="webcams__jump" href="#webcams">
+                  Jump to top
+                </a>
+              }
+            >
+              <div className="webcams__cards">
+                {orderedCards(media.cards).map((card) => (
+                  <WebcamImageCard
+                    key={card.id}
+                    card={card}
+                    autoRefresh={autoRefresh}
+                    tabVisible={tabVisible}
+                    refreshNonce={refreshNonce}
+                    onHide={hideSource}
+                  />
+                ))}
+                {media.live ? (
+                  <WebcamLiveCard
+                    entry={media.live}
+                    autoRefresh={autoRefresh}
+                    tabVisible={tabVisible}
+                    onHide={hideSource}
+                  />
+                ) : null}
+                {media.twitch ? (
+                  <WebcamTwitchCard
+                    entry={media.twitch}
+                    parent={parent}
+                    onHide={hideSource}
+                  />
+                ) : null}
+              </div>
+            </CollapsiblePanel>
+          </section>
+        );
+      })}
 
       {linksByRegion.length > 0 ? (
         <section className="webcams__links" aria-labelledby="webcams-links">
-          <div className="webcams__region-heading">
-            <h2 id="webcams-links">Webcam links</h2>
-            <a className="webcams__jump" href="#webcams">
-              Jump to top
-            </a>
-          </div>
-          {linksByRegion.map(([region, rows]) => (
-            <div key={region} className="webcams__links-region">
-              <h3 className="webcams__links-region-title">{regionLabel(region)}</h3>
-              <ul className="webcams__links-list">
-                {rows.map((row) => (
-                  <li key={row.id} className="webcam-link-row">
-                    <a
-                      href={row.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="webcam-link-row__name"
-                    >
-                      {row.name}
-                    </a>
-                    <span className="webcam-link-row__meta">
-                      {row.region} · {row.operator}
-                    </span>
-                    <span className="webcam-link-row__kind">
-                      {KIND_NOTES[row.kind]}
-                    </span>
-                    {row.note ? (
-                      <span className="webcam-link-row__note">{row.note}</span>
-                    ) : null}
-                    <WebcamHideButton
-                      className="webcam-link-row__hide"
-                      name={row.name}
-                      onHide={() => hideSource(row.id)}
-                    />
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <CollapsiblePanel
+            heading={<h2 id="webcams-links">Webcam links</h2>}
+            bodyId="webcams-links-body"
+            adornment={
+              <a className="webcams__jump" href="#webcams">
+                Jump to top
+              </a>
+            }
+          >
+            {linksByRegion.map(([region, rows]) => {
+              // One flag on the group heading when every row shares a country
+              // (e.g. UK); mixed groups like Nordic and Other regions show a
+              // flag per row instead.
+              const uniformCountry = rows.every(
+                (row) => row.country === rows[0].country,
+              );
+              return (
+                <div key={region} className="webcams__links-region">
+                  <h3 className="webcams__links-region-title">
+                    {uniformCountry ? (
+                      <CountryFlag
+                        country={rows[0].country}
+                        className="webcam-links-region__flag"
+                      />
+                    ) : null}{" "}
+                    {regionLabel(region)}
+                  </h3>
+                  <ul className="webcams__links-list">
+                    {rows.map((row) => (
+                      <li key={row.id} className="webcam-link-row">
+                        {!uniformCountry ? (
+                          <CountryFlag
+                            country={row.country}
+                            className="webcam-link-row__flag"
+                          />
+                        ) : null}
+                        <a
+                          href={row.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="webcam-link-row__name"
+                        >
+                          {row.name}
+                        </a>
+                        <span className="webcam-link-row__meta">
+                          {row.country} · {row.operator}
+                        </span>
+                        <span className="webcam-link-row__kind">
+                          {KIND_NOTES[row.kind]}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              );
+            })}
+          </CollapsiblePanel>
         </section>
       ) : null}
 
@@ -475,8 +481,8 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
         presentRegions={presentRegions}
         draftRegions={draftRegions}
         onToggleRegion={toggleDraftRegion}
-        onShowAll={() => setDraftRegions([])}
-        onHideAll={() => setDraftRegions(presentRegions)}
+        onSelectAll={() => setDraftRegions(presentRegions)}
+        onDeselectAll={() => setDraftRegions([])}
         onApply={applyFilter}
         onCancel={() => filterDialogRef.current?.close()}
       />

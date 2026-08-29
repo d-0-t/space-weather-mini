@@ -34,7 +34,7 @@ describe("UI palette color tokens (ticket 01)", () => {
     expect(indexScss).toContain(
       "--color-bg-header: var(--color-deep-indigo)",
     );
-    expect(indexScss).toContain("--color-text-primary: var(--color-white)");
+    expect(indexScss).toContain("--color-text-primary: #f0f0f0");
     expect(indexScss).toContain("--color-accent: var(--color-medium-green)");
     expect(indexScss).toContain(
       "--color-accent-strong: var(--color-light-lime)",

@@ -16,7 +16,7 @@ const fixtureEntries: WebcamEntry[] = [
     type: "image",
     id: "aurora-ridge",
     name: "Aurora Ridge",
-    region: "Canada",
+    region: "North America",
     country: "Canada",
     latitude: 56.4,
     operator: "Aurora Ridge Observatory",
@@ -33,7 +33,7 @@ const fixtureEntries: WebcamEntry[] = [
     type: "image",
     id: "northern-lights",
     name: "Northern Lights",
-    region: "Canada",
+    region: "North America",
     country: "Canada",
     latitude: 51.1,
     operator: "North Pole Cam Co",
@@ -49,7 +49,7 @@ const fixtureEntries: WebcamEntry[] = [
     type: "image",
     id: "still-sky",
     name: "Still Sky",
-    region: "Canada",
+    region: "North America",
     country: "Canada",
     latitude: 53.0,
     operator: "Static Cams Co",
@@ -65,7 +65,7 @@ const fixtureEntries: WebcamEntry[] = [
     type: "image",
     id: "north-star",
     name: "North Star",
-    region: "Scandinavia",
+    region: "Nordic",
     country: "Norway",
     latitude: 69.6,
     operator: "Test Observatory",
@@ -74,24 +74,24 @@ const fixtureEntries: WebcamEntry[] = [
     refreshable: true,
     license: "Free with credit – Test Observatory",
     note: null,
-    alt: "North Star, Scandinavia – current sky view",
+    alt: "North Star, Nordic – current sky view",
     siteUrl: "https://example.org/north-star",
   },
   {
     type: "twitch",
     id: "night-sky-live",
     name: "Night Sky Live",
-    region: "Scandinavia",
+    region: "Nordic",
     operator: "Night Sky Live",
     twitchChannel: "nightskylive",
     siteUrl: "https://example.org/night-sky-live",
     note: null,
   },
-{
+  {
     type: "live",
     id: "poker-flat-live",
     name: "Poker Flat Live",
-    region: "Alaska",
+    region: "North America",
     country: "Alaska, US",
     latitude: 65.1,
     operator: "Geophysical Institute",
@@ -103,35 +103,35 @@ const fixtureEntries: WebcamEntry[] = [
     alt: "Poker Flat Live, Alaska – current sky view",
     siteUrl: "https://example.org/poker-flat",
   },
-{
+  {
     type: "link",
     id: "midnight-glacier",
     name: "Midnight Glacier",
-    region: "Iceland",
+    region: "Nordic",
+    country: "Iceland",
     operator: "Glacier TV",
     url: "https://glacier.example.com",
     kind: "youtube",
-    note: null,
   },
   {
     type: "link",
     id: "tasman-still",
     name: "Tasman Still",
-    region: "New Zealand",
+    region: "rest",
+    country: "New Zealand",
     operator: "Tasman Cams",
     url: "https://tasman.example.com",
     kind: "http-only",
-    note: null,
   },
   {
     type: "link",
     id: "alpine-peak",
     name: "Alpine Peak",
     region: "rest",
+    country: "Switzerland",
     operator: "Alpine Cams",
     url: "https://alpine.example.com",
     kind: "player",
-    note: null,
   },
 ];
 
@@ -206,10 +206,12 @@ describe("Webcams page", () => {
       "Canada",
     );
     // Within its region, the panoramic card comes after the regular ones
-    const canadaSection = document
-      .getElementById("webcams-region-Canada")!
+    const northAmericaSection = document
+      .getElementById("webcams-region-North America")!
       .closest("section")!;
-    const cards = Array.from(canadaSection.querySelectorAll(".webcam-card"));
+    const cards = Array.from(
+      northAmericaSection.querySelectorAll(".webcam-card"),
+    );
     const northern = cards.findIndex((c) =>
       c.textContent?.includes("Northern Lights"),
     );
@@ -236,8 +238,8 @@ describe("Webcams page", () => {
       // Jump to top reuses the jump-pill style (ticket 05)
       expect(top).toHaveClass("webcams__jump");
     }
-    // Image regions (2) + Live cam + Twitch stream + Webcam links
-    expect(screen.getAllByRole("link", { name: "Jump to top" })).toHaveLength(5);
+    // Image regions (2) + Webcam links
+    expect(screen.getAllByRole("link", { name: "Jump to top" })).toHaveLength(3);
   });
 
   it("renders a Jump to row with a pill per section heading", () => {
@@ -245,9 +247,8 @@ describe("Webcams page", () => {
     const jumps = screen.getByRole("navigation", { name: /webcams sections/i });
     expect(within(jumps).getByText(/^Jump to:/)).toBeInTheDocument();
     for (const [label, id] of [
-      ["Scandinavia", "webcams-region-Scandinavia"],
-      ["Canada", "webcams-region-Canada"],
-      ["Twitch stream", "webcams-twitch"],
+      ["Nordic", "webcams-region-Nordic"],
+      ["North America", "webcams-region-North America"],
       ["Webcam links", "webcams-links"],
     ]) {
       const pill = within(jumps).getByRole("link", { name: label });
@@ -261,22 +262,78 @@ describe("Webcams page", () => {
     const headings = screen
       .getAllByRole("heading", { level: 2 })
       .map((h) => h.textContent);
-    // Scandinavia (index 0) before Canada (index 2) in WEBCAM_REGION_ORDER
-    expect(headings.indexOf("Scandinavia")).toBeLessThan(
-      headings.indexOf("Canada"),
+    // Nordic (index 0) before North America (index 1) in WEBCAM_REGION_ORDER
+    expect(headings.indexOf("Nordic")).toBeLessThan(
+      headings.indexOf("North America"),
     );
   });
 
-  it("groups link rows in the spec order: New Zealand, UK, Greenland, Russia, then the rest", () => {
+  it("collapses a region via its disclosure toggle and restores it", () => {
+    renderPage();
+    const toggle = screen.getByRole("button", { name: "Nordic" });
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(
+      screen.queryByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
+    ).toBeNull();
+    // The Twitch stream card in the Nordic region hides with it
+    expect(
+      screen.queryByTitle("Night Sky Live – live on Twitch"),
+    ).toBeNull();
+    // Sibling regions stay open
+    expect(
+      screen.getByRole("heading", { level: 3, name: /Northern Lights · 51\.1°N/ }),
+    ).toBeInTheDocument();
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(
+      screen.getByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("collapses the Webcam links section via its disclosure toggle", () => {
+    renderPage();
+    const toggle = screen.getByRole("button", { name: "Webcam links" });
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(
+      screen.queryByRole("link", { name: "Midnight Glacier" }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("groups link rows by region with the UK first and Other regions last", () => {
     renderPage();
     const linksSection = document.querySelector(".webcams__links")!;
     const h3s = Array.from(linksSection.querySelectorAll("h3")).map(
-      (h) => h.textContent,
+      (h) => h.textContent?.trim(),
     );
-    // New Zealand is the first link region; the rest bucket comes after the named regions
-    expect(h3s[0]).toBe("New Zealand");
-    expect(h3s.indexOf("New Zealand")).toBeLessThan(h3s.indexOf("Iceland"));
+    // Fixture link regions: Nordic (one Iceland row) then Other regions
+    expect(h3s[0]).toBe("Nordic");
     expect(h3s[h3s.length - 1]).toBe("Other regions");
+  });
+
+  it("shows a group flag on uniform-country link sections and a flag per row in mixed sections", () => {
+    renderPage();
+    // The fixture Nordic section holds one Iceland row → the group heading
+    // carries the Iceland flag instead of the row
+    const nordicTitle = document.querySelector(
+      ".webcams__links-region .webcams__links-region-title",
+    )!;
+    expect(nordicTitle.querySelector("img")).toHaveAttribute(
+      "alt",
+      "Iceland",
+    );
+    // The Other regions section mixes New Zealand and Switzerland → per-row flags
+    const restRows = Array.from(document.querySelectorAll(".webcam-link-row"));
+    const alts = restRows
+      .map((row) => row.querySelector(".webcam-link-row__flag")?.getAttribute("alt"))
+      .filter((alt): alt is string => alt !== undefined);
+    expect(alts).toContain("New Zealand");
+    expect(alts).toContain("Switzerland");
   });
 
   it("renders the Twitch embed with a title, no autoplay, and a source attribution to the operator's site", () => {
@@ -426,7 +483,7 @@ describe("Webcams auto-refresh header (ticket 03)", () => {
     // An applied filter lights the Filter badge
     const dialog = openFilter();
     fireEvent.click(
-      within(dialog).getByRole("checkbox", { name: "Scandinavia" }),
+      within(dialog).getByRole("checkbox", { name: "Nordic" }),
     );
     fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
     expect(
@@ -627,7 +684,7 @@ describe("Webcams hiding", () => {
     expect(
       screen.queryByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
     ).toBeNull();
-    expect(screen.queryByAltText("North Star, Scandinavia – current sky view")).toBeNull();
+    expect(screen.queryByAltText("North Star, Nordic – current sky view")).toBeNull();
     expect(localStorage.getItem("sw:webcams:hidden:v1")).toBe(
       JSON.stringify(["north-star"]),
     );
@@ -648,15 +705,6 @@ describe("Webcams hiding", () => {
     );
   });
 
-  it("hides a link row", () => {
-    renderPage();
-    fireEvent.click(screen.getByRole("button", { name: "Hide Tasman Still" }));
-    expect(screen.queryByRole("link", { name: "Tasman Still" })).toBeNull();
-    expect(localStorage.getItem("sw:webcams:hidden:v1")).toBe(
-      JSON.stringify(["tasman-still"]),
-    );
-  });
-
   it("keeps hidden items out of the gallery under every region filter", () => {
     renderPage();
     fireEvent.click(
@@ -664,10 +712,10 @@ describe("Webcams hiding", () => {
     );
     const dialog = openFilter();
     fireEvent.click(
-      within(dialog).getByRole("checkbox", { name: "Canada" }),
+      within(dialog).getByRole("checkbox", { name: "North America" }),
     );
     fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
-    // The visible Canadian card stays, the hidden one never returns
+    // The visible North American card stays, the hidden one never returns
     expect(
       screen.getByRole("heading", { level: 3, name: /Aurora Ridge · 56\.4°N/ }),
     ).toBeInTheDocument();
@@ -692,14 +740,16 @@ describe("Webcams hidden sources dialog", () => {
   it("shows a live count on the Hidden sources button and lists hidden entries in the dialog", () => {
     renderPage();
     fireEvent.click(screen.getByRole("button", { name: "Hide North Star" }));
-    fireEvent.click(screen.getByRole("button", { name: "Hide Tasman Still" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Hide Northern Lights" }),
+    );
     expect(
       screen.getByRole("button", { name: "Hidden sources (2)" }),
     ).toBeInTheDocument();
     const dialog = openHiddenDialog();
     expect(dialog.open).toBe(true);
     expect(within(dialog).getByText("North Star")).toBeInTheDocument();
-    expect(within(dialog).getByText("Tasman Still")).toBeInTheDocument();
+    expect(within(dialog).getByText("Northern Lights")).toBeInTheDocument();
     expect(
       within(dialog).getByRole("button", { name: "Show North Star" }),
     ).toBeInTheDocument();
@@ -733,13 +783,17 @@ describe("Webcams hidden sources dialog", () => {
   it("restores every hidden entry via Show all", () => {
     renderPage();
     fireEvent.click(screen.getByRole("button", { name: "Hide North Star" }));
-    fireEvent.click(screen.getByRole("button", { name: "Hide Tasman Still" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Hide Northern Lights" }),
+    );
     const dialog = openHiddenDialog();
     fireEvent.click(within(dialog).getByRole("button", { name: "Show all" }));
     expect(
       screen.getByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Tasman Still" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 3, name: /Northern Lights · 51\.1°N/ }),
+    ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Hidden sources (0)" }),
     ).toBeInTheDocument();
@@ -787,16 +841,21 @@ describe("Webcams persistence and empty state", () => {
 
   it("shows the honest empty state when the filter and hidden set leave nothing", () => {
     renderPage();
-    fireEvent.click(screen.getByRole("button", { name: "Hide North Star" }));
+    // North America holds the three image cards plus the live cam – hide
+    // them all, then filter to North America
+    fireEvent.click(screen.getByRole("button", { name: "Hide Aurora Ridge" }));
     fireEvent.click(
-      screen.getByRole("button", { name: "Hide Night Sky Live" }),
+      screen.getByRole("button", { name: "Hide Northern Lights" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Hide Still Sky" }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Hide Poker Flat Live" }),
     );
     const dialog = openFilter();
     fireEvent.click(
-      within(dialog).getByRole("checkbox", { name: "Scandinavia" }),
+      within(dialog).getByRole("checkbox", { name: "North America" }),
     );
     fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
-    // Scandinavia holds only the hidden card and the hidden Twitch card
     expect(
       screen.getByText("No webcams match your filters"),
     ).toBeInTheDocument();
@@ -815,14 +874,11 @@ describe("Webcams region filter", () => {
     renderPage();
     const dialog = openFilter();
     expect(dialog.open).toBe(true);
-    // Fixture regions: the named ones plus Alaska (live cam), Iceland and the "rest" bucket
+    // Fixture regions: Nordic, North America (incl. the live cam) and the "rest" bucket
     const checkboxes = within(dialog).getAllByRole("checkbox");
     expect(checkboxes.map((box) => box.getAttribute("name"))).toEqual([
-      "Scandinavia",
-      "Alaska",
-      "Canada",
-      "New Zealand",
-      "Iceland",
+      "Nordic",
+      "North America",
       "rest",
     ]);
     expect(
@@ -837,7 +893,7 @@ describe("Webcams region filter", () => {
     renderPage();
     const dialog = openFilter();
     fireEvent.click(
-      within(dialog).getByRole("checkbox", { name: "Scandinavia" }),
+      within(dialog).getByRole("checkbox", { name: "Nordic" }),
     );
     // Draft only – both regions still visible while the dialog is open
     expect(
@@ -862,12 +918,12 @@ describe("Webcams region filter", () => {
     renderPage();
     const dialog = openFilter();
     fireEvent.click(
-      within(dialog).getByRole("checkbox", { name: "Scandinavia" }),
+      within(dialog).getByRole("checkbox", { name: "Nordic" }),
     );
     fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
     const dialog2 = openFilter();
     fireEvent.click(
-      within(dialog2).getByRole("checkbox", { name: "Scandinavia" }),
+      within(dialog2).getByRole("checkbox", { name: "Nordic" }),
     );
     fireEvent.click(within(dialog2).getByRole("button", { name: "Apply" }));
     expect(
@@ -876,12 +932,12 @@ describe("Webcams region filter", () => {
     expect(screen.getByRole("link", { name: "Tasman Still" })).toBeInTheDocument();
   });
 
-  it("Show all and Hide all toggle the draft checkboxes without touching the gallery or the hidden set until Apply", () => {
+  it("Select all and Deselect all toggle the draft checkboxes without touching the gallery or the hidden set until Apply", () => {
     renderPage();
     // A hidden source must survive both toggles untouched
-    fireEvent.click(screen.getByRole("button", { name: "Hide Tasman Still" }));
+    fireEvent.click(screen.getByRole("button", { name: "Hide Still Sky" }));
     const dialog = openFilter();
-    fireEvent.click(within(dialog).getByRole("button", { name: "Hide all" }));
+    fireEvent.click(within(dialog).getByRole("button", { name: "Select all" }));
     for (const box of within(dialog).getAllByRole("checkbox")) {
       expect(box).toBeChecked();
     }
@@ -891,7 +947,7 @@ describe("Webcams region filter", () => {
     ).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
     // Checking every region keeps every region – the whole gallery stays,
-    // including the Iceland and "rest" link rows
+    // including the Nordic and "rest" link rows
     expect(
       screen.getByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
     ).toBeInTheDocument();
@@ -901,13 +957,17 @@ describe("Webcams region filter", () => {
     expect(screen.getByRole("link", { name: "Midnight Glacier" })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Alpine Peak" })).toBeInTheDocument();
     // The hidden source is untouched by either toggle
-    expect(screen.queryByRole("link", { name: "Tasman Still" })).toBeNull();
+    expect(
+      screen.queryByRole("heading", { level: 3, name: /Still Sky · 53\.0°N/ }),
+    ).toBeNull();
     expect(localStorage.getItem("sw:webcams:hidden:v1")).toBe(
-      JSON.stringify(["tasman-still"]),
+      JSON.stringify(["still-sky"]),
     );
 
     const dialog2 = openFilter();
-    fireEvent.click(within(dialog2).getByRole("button", { name: "Show all" }));
+    fireEvent.click(
+      within(dialog2).getByRole("button", { name: "Deselect all" }),
+    );
     for (const box of within(dialog2).getAllByRole("checkbox")) {
       expect(box).not.toBeChecked();
     }
@@ -916,7 +976,7 @@ describe("Webcams region filter", () => {
       screen.getByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
     ).toBeInTheDocument();
     expect(localStorage.getItem("sw:webcams:hidden:v1")).toBe(
-      JSON.stringify(["tasman-still"]),
+      JSON.stringify(["still-sky"]),
     );
   });
 
@@ -924,11 +984,11 @@ describe("Webcams region filter", () => {
     const { unmount } = render(<Webcams entries={fixtureEntries} />);
     const dialog = openFilter();
     fireEvent.click(
-      within(dialog).getByRole("checkbox", { name: "Scandinavia" }),
+      within(dialog).getByRole("checkbox", { name: "Nordic" }),
     );
     fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
     expect(localStorage.getItem("sw:webcams:filters:v1")).toBe(
-      JSON.stringify({ v: 1, regions: ["Scandinavia"] }),
+      JSON.stringify({ v: 1, regions: ["Nordic"] }),
     );
     // A fresh visit (new mount) still filters
     unmount();
@@ -945,7 +1005,7 @@ describe("Webcams region filter", () => {
     renderPage();
     const dialog = openFilter();
     fireEvent.click(
-      within(dialog).getByRole("checkbox", { name: "Scandinavia" }),
+      within(dialog).getByRole("checkbox", { name: "Nordic" }),
     );
     fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
     expect(
@@ -1003,8 +1063,10 @@ describe("Webcams live cam (ticket 03)", () => {
     vi.useRealTimers();
   });
 
-  const liveSection = (): HTMLElement | null =>
-    document.querySelector("section[aria-labelledby='webcams-live']");
+  const liveCard = (): HTMLElement | null =>
+    document.querySelector(".webcam-card--live");
+const liveSection = (): HTMLElement | null =>
+    liveCard()?.closest("section") ?? null;
 
   const setTabHidden = (hidden: boolean) => {
     Object.defineProperty(document, "visibilityState", {
@@ -1016,12 +1078,15 @@ describe("Webcams live cam (ticket 03)", () => {
     });
   };
 
-  it("renders the live cam as its own section with station, latitude, placeholder, attribution, a Live updates toggle and a Hide control", () => {
+  it("renders the live cam inside the North America section with station, latitude, placeholder, attribution, a Live updates toggle and a Hide control", () => {
     renderPage();
     const section = liveSection()!;
     expect(section).not.toBeNull();
     expect(
-      within(section).getByRole("heading", { level: 2, name: "Live cam" }),
+      within(section).getByRole("heading", {
+        level: 2,
+        name: "North America",
+      }),
     ).toBeInTheDocument();
     expect(
       within(section).getByRole("heading", {
@@ -1029,19 +1094,19 @@ describe("Webcams live cam (ticket 03)", () => {
         name: /Poker Flat Live · 65\.1°N/,
       }),
     ).toBeInTheDocument();
-    const flag = section.querySelector(".webcam-card__flag")!;
+    const flag = liveCard()!.querySelector(".webcam-card__flag")!;
     expect(flag).toHaveAttribute("alt", "Alaska, US");
-    expect(section.querySelector(".webcam-card__img")).toHaveAttribute(
+    expect(liveCard()!.querySelector(".webcam-card__img")).toHaveAttribute(
       "src",
       "https://cdn.example.org/poker-placeholder.jpg",
     );
-    expect(section.querySelector(".webcam-card__img")).toHaveAttribute(
+    expect(liveCard()!.querySelector(".webcam-card__img")).toHaveAttribute(
       "alt",
       "Poker Flat Live, Alaska – current sky view",
     );
-    expect(within(section).getByText(/^Source:/)).toHaveTextContent(
-      "Geophysical Institute",
-    );
+    expect(
+      within(liveCard()!).getByText(/^Source:/),
+    ).toHaveTextContent("Geophysical Institute");
     // The Live updates toggle and the Hide button share one wrapping row
     const actions = section.querySelector(".webcam-card__actions")!;
     const toggle = within(actions as HTMLElement).getByRole("checkbox", {
@@ -1054,9 +1119,28 @@ describe("Webcams live cam (ticket 03)", () => {
         name: "Hide Poker Flat Live",
       }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Live cam" })).toHaveAttribute(
-      "href",
-      "#webcams-live",
+  });
+
+  it("spans one card column while idle and two while the feed is active", () => {
+    renderPage();
+    const card = () => document.querySelector(".webcam-card--live")!;
+    // Auto-refresh off – the feed is idle, one column wide
+    expect(card()).not.toHaveClass("webcam-card--wide");
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: /auto-refresh/i }),
+    );
+    expect(card()).toHaveClass("webcam-card--wide");
+    // Consent off again – back to one column
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: /auto-refresh/i }),
+    );
+    expect(card()).not.toHaveClass("webcam-card--wide");
+  });
+
+  it("spans the Twitch stream card two columns wide", () => {
+    renderPage();
+    expect(document.querySelector(".webcam-card--stream")).toHaveClass(
+      "webcam-card--wide",
     );
   });
 
@@ -1070,7 +1154,7 @@ describe("Webcams live cam (ticket 03)", () => {
     expect(MockEventSource.instances[0].url).toBe(
       "https://allsky.example.org/src/checkLive.php?cam=poker-flat",
     );
-    const img = liveSection()!.querySelector(".webcam-card__img")!;
+    const img = liveCard()!.querySelector(".webcam-card__img")!;
     act(() => {
       MockEventSource.instances[0].dispatch("message", {
         data: '{"0": "PKR/tagged_cam/PKR_260829140029.jpg"}',
@@ -1080,9 +1164,9 @@ describe("Webcams live cam (ticket 03)", () => {
       "src",
       "https://allsky.example.org/PKR/tagged_cam/PKR_260829140029.jpg",
     );
-    expect(liveSection()!.querySelector(".webcam-card__freshness")).toHaveTextContent(
-      /^Loaded \d{2}:\d{2} · live feed updates every ~5–15 s$/,
-    );
+    expect(
+      liveCard()!.querySelector(".webcam-card__freshness"),
+    ).toHaveTextContent(/^Loaded \d{2}:\d{2} · live feed updates every ~5–15 s$/);
   });
 
   it("shows an honest live-feed-unavailable fallback with the operator link on feed failure, and recovers on the next frame", () => {
@@ -1095,7 +1179,7 @@ describe("Webcams live cam (ticket 03)", () => {
       MockEventSource.instances[0].dispatch("error");
     });
     const section = liveSection()!;
-    expect(section.querySelector(".webcam-card__img")).toBeNull();
+    expect(liveCard()!.querySelector(".webcam-card__img")).toBeNull();
     const fallback = within(section).getByText(/live feed unavailable/i);
     expect(
       within(fallback).getByRole("link", { name: /operator's site/i }),
@@ -1113,7 +1197,7 @@ describe("Webcams live cam (ticket 03)", () => {
         data: '{"0": "images/poker-notdark.jpg"}',
       });
     });
-    expect(section.querySelector(".webcam-card__img")).toHaveAttribute(
+    expect(liveCard()!.querySelector(".webcam-card__img")).toHaveAttribute(
       "src",
       "https://allsky.example.org/images/poker-notdark.jpg",
     );
@@ -1137,10 +1221,10 @@ describe("Webcams live cam (ticket 03)", () => {
     expect(MockEventSource.instances[0].closed).toBe(true);
     // …and the card falls back to the honest placeholder, never the stale frame
     expect(
-      liveSection()!.querySelector(".webcam-card__img"),
+      liveCard()!.querySelector(".webcam-card__img"),
     ).toHaveAttribute("src", "https://cdn.example.org/poker-placeholder.jpg");
     expect(
-      within(liveSection()!).getByText(
+      within(liveCard()!).getByText(
         /^Loaded \d{2}:\d{2} · placeholder frame$/,
       ),
     ).toBeInTheDocument();
@@ -1179,24 +1263,24 @@ describe("Webcams live cam (ticket 03)", () => {
         data: '{"0": "PKR/tagged_cam/PKR_260829140029.jpg"}',
       });
     });
-    expect(liveSection()!.querySelector(".webcam-card__img")).toHaveAttribute(
+    expect(liveCard()!.querySelector(".webcam-card__img")).toHaveAttribute(
       "src",
       "https://allsky.example.org/PKR/tagged_cam/PKR_260829140029.jpg",
     );
     // Global consent off – the last real frame must not linger under a
     // "placeholder frame" label
     fireEvent.click(consent);
-    expect(liveSection()!.querySelector(".webcam-card__img")).toHaveAttribute(
+    expect(liveCard()!.querySelector(".webcam-card__img")).toHaveAttribute(
       "src",
       "https://cdn.example.org/poker-placeholder.jpg",
     );
     expect(
-      within(liveSection()!).getByText(
+      within(liveCard()!).getByText(
         /^Loaded \d{2}:\d{2} · placeholder frame$/,
       ),
     ).toBeInTheDocument();
     expect(
-      within(liveSection()!).queryByText(/live feed updates every/i),
+      within(liveCard()!).queryByText(/live feed updates every/i),
     ).toBeNull();
   });
 
@@ -1207,7 +1291,7 @@ describe("Webcams live cam (ticket 03)", () => {
     fireEvent.click(
       screen.getByRole("checkbox", { name: /auto-refresh/i }),
     );
-    const liveImg = liveSection()!.querySelector(".webcam-card__img")!;
+    const liveImg = liveCard()!.querySelector(".webcam-card__img")!;
     act(() => vi.advanceTimersByTime(30 * 60_000));
     expect(liveImg).toHaveAttribute(
       "src",
@@ -1243,7 +1327,6 @@ describe("Webcams button polish (ticket 05)", () => {
       "Hide Aurora Ridge",
       "Hide North Star",
       "Hide Night Sky Live",
-      "Hide Tasman Still",
       "Hide Poker Flat Live",
     ]) {
       const button = screen.getByRole("button", { name });
@@ -1262,7 +1345,7 @@ describe("Webcams button polish (ticket 05)", () => {
     expect(within(dialog).getByRole("button", { name: "Apply" })).toHaveClass(
       "btn--primary",
     );
-    for (const name of ["Show all", "Hide all", "Cancel"]) {
+    for (const name of ["Select all", "Deselect all", "Cancel"]) {
       expect(within(dialog).getByRole("button", { name })).toHaveClass(
         "btn--secondary",
       );

@@ -25,7 +25,7 @@ const Home: React.FC = () => {
     <div className={compact ? "home home--compact" : "home"}>
       <div className="home__header">
         <h1>Dashboard</h1>
-        <label className="btn--secondary home__compact-toggle">
+        <label className="btn--icon home__compact-toggle">
           <input
             type="checkbox"
             checked={compact}

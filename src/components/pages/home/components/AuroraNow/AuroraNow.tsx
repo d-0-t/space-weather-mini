@@ -5,7 +5,7 @@ import { SourceAttribution } from "../../../../sources";
 import { formatAge } from "../../../../../products/live-helpers";
 import { ChartHelp } from "../live-panels/live-panels";
 import { getMoonPhase } from "../../../../moon/moon";
-import CollapsiblePanel from "../CollapsiblePanel/CollapsiblePanel";
+import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
 import Alerts from "../Alerts/Alerts";
 import {
   KpBar,

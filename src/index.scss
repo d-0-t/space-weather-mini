@@ -17,7 +17,9 @@
   --color-status-red: #e5484d;
 
   --color-bg-page: var(--color-black);
-  --color-text-primary: var(--color-white);
+  // Slightly toned-down text white (ticket 05 follow-up) – softer than pure
+  // white but still ~19:1 on black
+  --color-text-primary: #f0f0f0;
   --color-text-inverse: var(--color-black);
   --color-bg-header: var(--color-deep-indigo);
   --color-bg-surface: var(--color-primary-violet);
@@ -65,11 +67,14 @@ body {
   background-color: var(--color-bg-page);
 }
 
-body {
-  margin: 0 0 1rem 0;
+* {
   font-family:
     -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
     "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+}
+
+body {
+  margin: 0 0 1rem 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -158,6 +163,7 @@ code {
 .btn--icon {
   cursor: pointer;
   display: inline-flex;
+  box-sizing: border-box;
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
@@ -167,6 +173,8 @@ code {
   background-color: var(--color-black);
   border: 2px solid var(--color-border-muted-transparent);
   border-radius: 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
   line-height: 1;
 
   &:hover:not(:disabled) {
@@ -188,7 +196,7 @@ code {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background-color: var(--color-status-red);
+  background-color: var(--color-primary-violet);
   border: 1px solid var(--color-black);
 }
 

@@ -12,33 +12,28 @@ export type WebcamEntry =
   | WebcamLiveEntry
   | WebcamLinkEntry;
 
-/** Regions in the fixed display order; `rest` buckets entries outside the named set. */
+/**
+ * Regions in the fixed display order; `rest` buckets entries outside the
+ * named set (Other regions). Nordic covers Scandinavia proper plus Iceland,
+ * Svalbard and Greenland (renamed 2026-08-29); Canada and US share the
+ * North America section (ticket 05 follow-up).
+ */
 export type WebcamRegion =
-  | "Scandinavia"
+  | "Nordic"
   | "Alaska"
-  | "Canada"
-  | "US"
-  | "Antarctica"
+  | "North America"
   | "Australia"
-  | "New Zealand"
   | "UK"
-  | "Greenland"
   | "Russia"
-  | "Iceland"
   | "rest";
 
 export const WEBCAM_REGION_ORDER: readonly WebcamRegion[] = [
-  "Scandinavia",
+  "Nordic",
   "Alaska",
-  "Canada",
-  "US",
-  "Antarctica",
+  "North America",
   "Australia",
-  "New Zealand",
   "UK",
-  "Greenland",
   "Russia",
-  "Iceland",
   "rest",
 ];
 
@@ -56,6 +51,13 @@ export const WEBCAM_COUNTRY_CODES: Record<string, string> = {
   "Alaska, US": "us",
   US: "us",
   Russia: "ru",
+  UK: "gb",
+  Greenland: "gl",
+  Iceland: "is",
+  Switzerland: "ch",
+  Germany: "de",
+  "New Zealand": "nz",
+  Antarctica: "aq",
 };
 
 export const webcamCountryCode = (country: string): string =>
@@ -83,7 +85,7 @@ export interface WebcamImageEntry {
   refreshable: boolean;
   /** Licence note for the card; null when no licence text could be found. */
   license: string | null;
-  /** Seasonal or staleness note ("Operates when dark", "(seasonal)"). */
+  /** Seasonal or staleness note ("Operates when dark", "Seasonal"). */
   note: string | null;
   alt: string;
   /** Operator's page, for the "Visit site" link. */
@@ -140,11 +142,12 @@ export interface WebcamLinkEntry {
   id: string;
   name: string;
   region: WebcamRegion;
+  /** Display country/locale – drives the row or group flag (ticket 05 follow-up). */
+  country: string;
   operator: string;
   url: string;
   /** What the destination actually is – drives the kind note on the row. */
   kind: "youtube" | "twitch" | "player" | "http-only";
-  note: string | null;
 }
 
 export const webcamRegistry: WebcamEntry[] = [
@@ -154,7 +157,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "irf-kiruna",
     country: "Sweden",
     name: "IRF Kiruna all-sky (KAGO)",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 67.8,
     operator: "Swedish Institute of Space Physics (IRF)",
     imageUrl: "https://www.irf.se/alis/allsky/krn/latest_medium.jpeg",
@@ -162,7 +165,7 @@ export const webcamRegistry: WebcamEntry[] = [
     refreshable: true,
     license:
       "KAGO licence – free for non-commercial use; commercial use needs written permission",
-    note: "(seasonal)",
+    note: "Seasonal",
     alt: "IRF Kiruna all-sky (KAGO), Scandinavia – current sky view",
     siteUrl: "https://www2.irf.se/Observatory/",
   },
@@ -171,7 +174,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "uec-tromso",
     country: "Norway",
     name: "Tromsø AI – Tromsø",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 69.6,
     operator: "UEC (Univ. of Electro-Communications)",
     imageUrl:
@@ -188,7 +191,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "uec-abisko",
     country: "Sweden",
     name: "Tromsø AI – Abisko",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 68.3,
     operator: "UEC (Univ. of Electro-Communications)",
     imageUrl:
@@ -205,7 +208,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "uec-kiruna",
     country: "Sweden",
     name: "Tromsø AI – Kiruna",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 67.8,
     operator: "UEC (Univ. of Electro-Communications)",
     imageUrl:
@@ -222,7 +225,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "uec-skibotn",
     country: "Norway",
     name: "Tromsø AI – Skibotn",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 69.4,
     operator: "UEC (Univ. of Electro-Communications)",
     imageUrl:
@@ -239,7 +242,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "tgo-asc01",
     country: "Norway",
     name: "TGO All-Sky ASC01",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 69.4,
     operator: "Tromsø Geophysical Observatory (UiT)",
     imageUrl: "https://fox.phys.uit.no/ASC/Latest_ASC01.png",
@@ -255,7 +258,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "tgo-bacc5",
     country: "Norway",
     name: "TGO BACC colour cam",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 69.4,
     operator: "Tromsø Geophysical Observatory (UiT)",
     imageUrl: "https://fox.phys.uit.no/ASC/BACC5.jpg",
@@ -271,7 +274,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "jokkmokk-nr2",
     country: "Sweden",
     name: "Jokkmokk PORJUS NR2",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 66.9,
     operator: "Nature of Jokkmokk (jokkmokk.jp)",
     imageUrl: "https://uk.jokkmokk.jp/photo/nr2/latest_m.jpg",
@@ -287,7 +290,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "jokkmokk-nr3",
     country: "Sweden",
     name: "Jokkmokk PORJUS NR3",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 66.9,
     operator: "Nature of Jokkmokk (jokkmokk.jp)",
     imageUrl: "https://uk.jokkmokk.jp/photo/nr3/latest_m.jpg",
@@ -303,7 +306,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "jokkmokk-nr4",
     country: "Sweden",
     name: "Jokkmokk PORJUS NR4",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 66.9,
     operator: "Nature of Jokkmokk (jokkmokk.jp)",
     imageUrl: "https://uk.jokkmokk.jp/photo/nr4/latest_m.jpg",
@@ -319,7 +322,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "jokkmokk-nr5",
     country: "Sweden",
     name: "Jokkmokk PORJUS NR5",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 66.9,
     operator: "Nature of Jokkmokk (jokkmokk.jp)",
     imageUrl: "https://uk.jokkmokk.jp/photo/nr5/latest_m.jpg",
@@ -335,7 +338,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "fmi-hankasalmi",
     country: "Finland",
     name: "FMI AuroraSnow – Hankasalmi",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 62.3,
     operator: "Finnish Meteorological Institute (FMI)",
     imageUrl:
@@ -352,7 +355,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "fmi-nyrola",
     country: "Finland",
     name: "FMI AuroraSnow – Nyrölä",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 62.2,
     operator: "Finnish Meteorological Institute (FMI)",
     imageUrl: "https://aurorasnow.fmi.fi/public_service/images/latest_SIR.jpg",
@@ -368,7 +371,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "fmi-kirkkonummi",
     country: "Finland",
     name: "FMI AuroraSnow – Kirkkonummi",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 60.1,
     operator: "Finnish Meteorological Institute (FMI)",
     imageUrl: "https://aurorasnow.fmi.fi/public_service/images/latest_HOV.jpg",
@@ -384,7 +387,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "panomax-nordkapp",
     country: "Norway",
     name: "Panomax – Nordkapp",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 71.2,
     operator: "Panomax GmbH",
     panoramic: true,
@@ -402,7 +405,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "panomax-loen",
     country: "Norway",
     name: "Panomax – Loen",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 61.9,
     operator: "Panomax GmbH",
     panoramic: true,
@@ -420,7 +423,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "yrno-setermoen",
     country: "Norway",
     name: "yr.no – Setermoen",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 68.9,
     operator: "MET Norway (yr.no)",
     imageUrl: "https://www.yr.no/webcams/1/2000/setermoen/3.jpg",
@@ -436,7 +439,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "yrno-ortneset",
     country: "Norway",
     name: "yr.no – Brekke/Orneset",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 61.1,
     operator: "MET Norway (yr.no)",
     imageUrl: "https://www.yr.no/webcams/1/2000/ortneset/1.jpg",
@@ -452,7 +455,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "yrno-finnsnes",
     country: "Norway",
     name: "yr.no – Finnsnes",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 69.2,
     operator: "MET Norway (yr.no)",
     imageUrl: "https://www.yr.no/webcams/1/2000/finnsnes/2.jpg",
@@ -468,7 +471,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "yrno-skjervoy",
     country: "Norway",
     name: "yr.no – Skjervøy",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 70.0,
     operator: "MET Norway (yr.no)",
     imageUrl: "https://www.yr.no/webcams/1/2000/skjervoy/1.jpg",
@@ -484,7 +487,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "yrno-risoyhamn",
     country: "Norway",
     name: "yr.no – Risøyhamn",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 69.0,
     operator: "MET Norway (yr.no)",
     imageUrl: "https://www.yr.no/webcams/1/2000/risoyhamn/1.jpg",
@@ -500,7 +503,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "sgo-sodankyla",
     country: "Finland",
     name: "SGO UCL all-sky",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 67.4,
     operator: "Sodankylä Geophysical Observatory (SGO)",
     imageUrl: "https://sgo.fi/Data/RealTime/Kuvat/UCL.jpg",
@@ -516,7 +519,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "syrjavaara",
     country: "Finland",
     name: "Syrjävaara Dark Sky Park all-sky",
-    region: "Scandinavia",
+    region: "Nordic",
     latitude: 63.0,
     operator: "Syrjävaara Dark Sky Park",
     imageUrl: "https://syrjavaara.fi/img/syrjavaara_latest_img.jpg",
@@ -534,7 +537,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "auroramax",
     country: "Canada",
     name: "AuroraMAX",
-    region: "Canada",
+    region: "North America",
     latitude: 62.4,
     operator: "Univ. of Calgary / CSA / Astronomy North",
     imageUrl: "https://auroramax.phys.ucalgary.ca/recent/recent_480p.jpg",
@@ -550,7 +553,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "trex-gillam",
     country: "Canada",
     name: "TREx RGB – Gillam",
-    region: "Canada",
+    region: "North America",
     latitude: 56.4,
     operator: "UCalgary Auroral Imaging Group",
     imageUrl:
@@ -568,7 +571,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "trex-pinawa",
     country: "Canada",
     name: "TREx RGB – Pinawa",
-    region: "Canada",
+    region: "North America",
     latitude: 50.2,
     operator: "UCalgary Auroral Imaging Group",
     imageUrl:
@@ -586,7 +589,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "trex-rabbit-lake",
     country: "Canada",
     name: "TREx RGB – Rabbit Lake",
-    region: "Canada",
+    region: "North America",
     latitude: 58.2,
     operator: "UCalgary Auroral Imaging Group",
     imageUrl:
@@ -604,7 +607,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "smile-kapuskasing",
     country: "Canada",
     name: "SMILE ASI – Kapuskasing",
-    region: "Canada",
+    region: "North America",
     latitude: 49.4,
     operator: "UCalgary Auroral Imaging Group",
     imageUrl:
@@ -622,7 +625,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "smile-rankin-inlet",
     country: "Canada",
     name: "SMILE ASI – Rankin Inlet",
-    region: "Canada",
+    region: "North America",
     latitude: 62.8,
     operator: "UCalgary Auroral Imaging Group",
     imageUrl:
@@ -640,7 +643,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "ucalgary-campus",
     country: "Canada",
     name: "UCalgary campus all-sky",
-    region: "Canada",
+    region: "North America",
     latitude: 51.0,
     operator: "UCalgary Auroral Imaging Group",
     imageUrl: "https://cam01.sci.ucalgary.ca/AllSkyCam/AllSkyCurrentImage.JPG",
@@ -659,7 +662,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "nps-isle-royale",
     country: "US",
     name: "NPS Isle Royale – Northshore",
-    region: "US",
+    region: "North America",
     latitude: 48.0,
     operator: "US National Park Service",
     imageUrl: "https://www.nps.gov/webcams-isro/northshore.jpg",
@@ -675,7 +678,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "allskycam-hope",
     country: "US",
     name: "AllSkyCam – Hope",
-    region: "US",
+    region: "North America",
     latitude: 40.9,
     operator: "AllSkyCam.com community",
     imageUrl: "https://www.allskycam.com/u/627/latest_full.jpg",
@@ -691,7 +694,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "linuxkidd-mayhill",
     country: "US",
     name: "linuxkidd all-sky",
-    region: "US",
+    region: "North America",
     latitude: 32.9,
     operator: "allsky.linuxkidd.com",
     imageUrl: "https://allsky.linuxkidd.com/image-fullsize.jpg",
@@ -727,7 +730,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "uaf-poker-flat",
     country: "Alaska, US",
     name: "UAF Allsky Aurora Camera – Poker Flat",
-    region: "Alaska",
+    region: "North America",
     latitude: 65.1,
     operator: "Geophysical Institute, Univ. of Alaska Fairbanks",
     // Daytime/off-season placeholder. The SSE names the live frame at
@@ -748,23 +751,23 @@ export const webcamRegistry: WebcamEntry[] = [
     type: "twitch",
     id: "lights-over-lapland",
     name: "Lights over Lapland",
-    region: "Scandinavia",
+    region: "Nordic",
     operator: "Lights over Lapland",
     twitchChannel: "lightsoverlaplandlive",
     siteUrl: "https://lightsoverlapland.com/",
     note: null,
   },
 
-  // ── Link rows: New Zealand ────────────────────────────────────────────────
+  // ── Link rows: rest (Other regions) ───────────────────────────────────────
   {
     type: "link",
     id: "grahams-allsky",
-    name: "Graham's AllSky",
-    region: "New Zealand",
+    name: "Graham's AllSky – Wellington",
+    region: "rest",
+    country: "New Zealand",
     operator: "Graham's AllSky",
     url: "http://grahamsallsky.zapto.org/allsky/image.jpg",
     kind: "http-only",
-    note: null,
   },
 
   // ── Link rows: UK ─────────────────────────────────────────────────────────
@@ -773,205 +776,177 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "shetland-cliff-cam-3",
     name: "Shetland Webcams – Cliff Cam 3",
     region: "UK",
+    country: "UK",
     operator: "North Broadcast Ltd (Shetland Webcams)",
     url: "https://www.shetlandwebcams.com/cliff-cam-3/",
     kind: "player",
-    note: "Video stream (HLS/HTML5) – no embeddable still",
   },
   {
     type: "link",
     id: "shetland-eshaness",
     name: "Shetland Webcams – Eshaness Lighthouse",
     region: "UK",
+    country: "UK",
     operator: "North Broadcast Ltd (Shetland Webcams)",
     url: "https://www.shetlandwebcams.com/eshaness-lighthouse/",
     kind: "player",
-    note: "Video stream – no embeddable still",
   },
 
-  // ── Link rows: Greenland ──────────────────────────────────────────────────
+  // ── Link rows: Nordic ─────────────────────────────────────────────────────
   {
     type: "link",
     id: "ilulissat",
     name: "Ilulissat Airport",
-    region: "Greenland",
+    region: "Nordic",
+    country: "Greenland",
     operator: "YouTube",
     url: "https://www.youtube.com/watch?v=nT9QtAbaLg4",
     kind: "youtube",
-    note: null,
   },
   {
     type: "link",
     id: "tasiilaq",
     name: "Tasiilaq Heliport",
-    region: "Greenland",
+    region: "Nordic",
+    country: "Greenland",
     operator: "YouTube",
     url: "https://www.youtube.com/watch?v=hfF9bhaBuvw",
     kind: "youtube",
-    note: null,
+  },
+  {
+    type: "link",
+    id: "landhotel",
+    name: "Hella Landhotel northern lights cam",
+    region: "Nordic",
+    country: "Iceland",
+    operator: "Hella Landhotel",
+    url: "https://landhotel.is/index.php/northernlights-live",
+    kind: "player",
+  },
+  {
+    type: "link",
+    id: "adaldalshraun",
+    name: "Aðaldalshraun northern lights cam",
+    region: "Nordic",
+    country: "Iceland",
+    operator: "Netnurds",
+    url: "https://netnurds.com",
+    kind: "player",
+  },
+  {
+    type: "link",
+    id: "kilpisjarvi",
+    name: "Kilpisjärvi (North)",
+    region: "Nordic",
+    country: "Finland",
+    operator: "YouTube",
+    url: "https://www.youtube.com/watch?v=ccTVAhJU5lg",
+    kind: "youtube",
+  },
+  {
+    type: "link",
+    id: "levi",
+    name: "Levi",
+    region: "Nordic",
+    country: "Finland",
+    operator: "YouTube",
+    url: "https://www.youtube.com/watch?v=rKfecmmzzw0",
+    kind: "youtube",
+  },
+  {
+    type: "link",
+    id: "posio",
+    name: "Posio",
+    region: "Nordic",
+    country: "Finland",
+    operator: "YouTube",
+    url: "https://www.youtube.com/watch?v=HuCjMGI8fKg",
+    kind: "youtube",
+  },
+  {
+    type: "link",
+    id: "fabian-wimmer-abisko",
+    name: "Abisko all-sky by Fabian Wimmer",
+    region: "Nordic",
+    country: "Sweden",
+    operator: "Fabian Wimmer",
+    url: "https://fabianwimmer.com/abisko-allsky-webcam-live-northern-lights-weather/",
+    kind: "player",
+  },
+  {
+    type: "link",
+    id: "nipr-skibotn",
+    name: "NIPR Watec – Skibotn",
+    region: "Nordic",
+    country: "Norway",
+    operator: "National Institute of Polar Research (NIPR)",
+    url: "http://pc115.seg20.nipr.ac.jp/www/opt/realtime.html",
+    kind: "http-only",
   },
 
   // ── Link rows: Russia ─────────────────────────────────────────────────────
   {
     type: "link",
     id: "teriberka",
-    name: "Teriberka aurora cam",
+    name: "Murmansk – Teriberka aurora cam",
     region: "Russia",
+    country: "Russia",
     operator: "video.auroracam.ru",
     url: "https://video.auroracam.ru/page/mmeWvVgS",
     kind: "player",
-    note: "Boomstream video player",
   },
 
-  // ── Link rows: Iceland ────────────────────────────────────────────────────
-  {
-    type: "link",
-    id: "landhotel",
-    name: "Hella Landhotel northern lights cam",
-    region: "Iceland",
-    operator: "Hella Landhotel",
-    url: "https://landhotel.is/index.php/northernlights-live",
-    kind: "player",
-    note: "Video page",
-  },
-  {
-    type: "link",
-    id: "adaldalshraun",
-    name: "Aðaldalshraun northern lights cam",
-    region: "Iceland",
-    operator: "Netnurds",
-    url: "https://netnurds.com",
-    kind: "player",
-    note: "Video page",
-  },
-
-  // ── Link rows: Scandinavia ────────────────────────────────────────────────
-  {
-    type: "link",
-    id: "kilpisjarvi",
-    name: "Kilpisjärvi (North)",
-    region: "Scandinavia",
-    operator: "YouTube",
-    url: "https://www.youtube.com/watch?v=ccTVAhJU5lg",
-    kind: "youtube",
-    note: null,
-  },
-  {
-    type: "link",
-    id: "levi",
-    name: "Levi",
-    region: "Scandinavia",
-    operator: "YouTube",
-    url: "https://www.youtube.com/watch?v=rKfecmmzzw0",
-    kind: "youtube",
-    note: null,
-  },
-  {
-    type: "link",
-    id: "posio",
-    name: "Posio",
-    region: "Scandinavia",
-    operator: "YouTube",
-    url: "https://www.youtube.com/watch?v=iOmco6eIa-0",
-    kind: "youtube",
-    note: null,
-  },
-  {
-    type: "link",
-    id: "fabian-wimmer-abisko",
-    name: "Abisko all-sky by Fabian Wimmer",
-    region: "Scandinavia",
-    operator: "Fabian Wimmer",
-    url: "https://fabianwimmer.com/",
-    kind: "player",
-    note: "Site player – no plain still in page HTML",
-  },
-  {
-    type: "link",
-    id: "nipr-skibotn",
-    name: "NIPR Watec – Skibotn",
-    region: "Scandinavia",
-    operator: "National Institute of Polar Research (NIPR)",
-    url: "http://pc115.seg20.nipr.ac.jp/www/opt/realtime.html",
-    kind: "http-only",
-    note: null,
-  },
-
-  // ── Link rows: Canada ─────────────────────────────────────────────────────
+  // ── Link rows: North America ──────────────────────────────────────────────
   {
     type: "link",
     id: "churchill",
     name: "Churchill",
-    region: "Canada",
+    region: "North America",
+    country: "Canada",
     operator: "YouTube",
     url: "https://www.youtube.com/watch?v=a0i1Kg6fROg",
     kind: "youtube",
-    note: null,
-  },
-  {
-    type: "link",
-    id: "banff",
-    name: "Banff",
-    region: "Canada",
-    operator: "YouTube",
-    url: "https://www.youtube.com/watch?v=_YomWp1APOk",
-    kind: "youtube",
-    note: null,
-  },
-
-  // ── Link rows: US ─────────────────────────────────────────────────────────
-  {
-    type: "link",
-    id: "fairbanks",
-    name: "Fairbanks",
-    region: "US",
-    operator: "YouTube",
-    url: "https://www.youtube.com/watch?v=k7S5IkS_FTA",
-    kind: "youtube",
-    note: null,
   },
   {
     type: "link",
     id: "sebec-lake",
     name: "Sebec Lake webcam",
-    region: "US",
+    region: "North America",
+    country: "US",
     operator: "NEOC (neoc.com)",
     url: "https://neoc.com/webcam3/",
     kind: "player",
-    note: "Site player",
   },
 
-  // ── Link rows: Antarctica ─────────────────────────────────────────────────
+  // ── Link rows: rest (Other regions) ───────────────────────────────────────
   {
     type: "link",
     id: "aad-davis",
-    name: "AAD Davis Station webcams",
-    region: "Antarctica",
+    name: "Casey, Davis, Macquarie Island, Mawson",
+    region: "rest",
+    country: "Antarctica",
     operator: "Australian Antarctic Division",
-    url: "https://www.antarctica.gov.au/live-and-work/predicted-weather/webcams/",
+    url: "https://www.antarctica.gov.au/antarctic-operations/webcams/",
     kind: "player",
-    note: "Timestamped frame filenames – no stable still",
   },
-
-  // ── Link rows: rest ───────────────────────────────────────────────────────
   {
     type: "link",
     id: "pizzo-matro",
     name: "Pizzo Matro",
     region: "rest",
+    country: "Switzerland",
     operator: "Roundshot",
     url: "https://pizzomatro.roundshot.com/",
     kind: "player",
-    note: "Roundshot viewer – no embeddable still",
   },
   {
     type: "link",
     id: "cape-arkona",
     name: "Cape Arkona (Vitt)",
     region: "rest",
+    country: "Germany",
     operator: "Panomax",
     url: "https://kap-arkona.panomax.com/",
     kind: "player",
-    note: "Panomax viewer",
   },
 ];

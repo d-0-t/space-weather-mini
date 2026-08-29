@@ -203,7 +203,7 @@ const Nav: React.FC = () => {
           <li>
             <button
               type="button"
-              className="btn--icon"
+              className="btn--icon header__astro"
               title="Astro mode"
               aria-pressed={isAstro}
               onClick={toggleAstro}

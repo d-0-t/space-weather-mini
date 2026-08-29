@@ -23,7 +23,7 @@ import {
   enrichWithMoon,
   moonTooltipFormatter,
 } from "../../../../moon/moon-chart";
-import CollapsiblePanel from "../CollapsiblePanel/CollapsiblePanel";
+import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
 import {
   MONTHS_SHORT,
   fetchKpForecast,
