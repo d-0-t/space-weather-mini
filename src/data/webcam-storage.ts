@@ -1,14 +1,16 @@
 /**
- * Versioned webcam preferences (ticket 02): the per-source hidden set and the
- * applied region filter, both persisted across visits. Corrupt or
- * foreign-shaped storage falls back to the default (nothing hidden, no
- * filter), mirroring the threshold storage pattern in products/thresholds.ts.
+ * Versioned webcam preferences: the per-source hidden set, the applied region
+ * filter, and the opt-in auto-refresh setting (ticket 03), all persisted
+ * across visits. Corrupt or foreign-shaped storage falls back to the default
+ * (nothing hidden, no filter, auto-refresh off), mirroring the threshold
+ * storage pattern in products/thresholds.ts.
  */
 
 import { WEBCAM_REGION_ORDER, type WebcamRegion } from "./webcams";
 
 export const HIDDEN_WEBCAMS_STORAGE_KEY = "sw:webcams:hidden:v1";
 export const WEBCAM_FILTER_STORAGE_KEY = "sw:webcams:filters:v1";
+export const AUTO_REFRESH_STORAGE_KEY = "sw:webcams:autorefresh:v1";
 
 /** Loads the hidden source ids, defaulting to an empty set when missing or corrupt. */
 export function loadHiddenSourceIds(
@@ -66,4 +68,24 @@ export function saveFilteredRegions(
     WEBCAM_FILTER_STORAGE_KEY,
     JSON.stringify({ v: 1, regions }),
   );
+}
+
+/** Loads the opt-in auto-refresh setting, defaulting to off when missing or corrupt. */
+export function loadAutoRefresh(storage: Pick<Storage, "getItem">): boolean {
+  try {
+    const raw = storage.getItem(AUTO_REFRESH_STORAGE_KEY);
+    if (raw === null) return false;
+    const parsed: unknown = JSON.parse(raw);
+    return parsed === true;
+  } catch {
+    return false;
+  }
+}
+
+/** Persists the opt-in auto-refresh setting as a versioned boolean. */
+export function saveAutoRefresh(
+  storage: Pick<Storage, "setItem">,
+  enabled: boolean,
+): void {
+  storage.setItem(AUTO_REFRESH_STORAGE_KEY, JSON.stringify(enabled));
 }

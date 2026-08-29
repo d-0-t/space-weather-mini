@@ -1,7 +1,14 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
-import { describe, expect, it, beforeEach } from "vitest";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  within,
+} from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import Webcams from "./webcams";
+import { AUTO_REFRESH_STORAGE_KEY } from "../../../data/webcam-storage";
 import type { WebcamEntry } from "../../../data/webcams";
 
 const fixtureEntries: WebcamEntry[] = [
@@ -40,6 +47,22 @@ const fixtureEntries: WebcamEntry[] = [
   },
   {
     type: "image",
+    id: "still-sky",
+    name: "Still Sky",
+    region: "Canada",
+    country: "Canada",
+    latitude: 53.0,
+    operator: "Static Cams Co",
+    imageUrl: "https://cdn.example.org/still-sky.jpg",
+    cadenceMinutes: 1,
+    refreshable: false,
+    license: "Free with credit",
+    note: null,
+    alt: "Still Sky, Canada – current sky view",
+    siteUrl: "https://example.org/still-sky",
+  },
+  {
+    type: "image",
     id: "north-star",
     name: "North Star",
     region: "Scandinavia",
@@ -63,6 +86,22 @@ const fixtureEntries: WebcamEntry[] = [
     twitchChannel: "nightskylive",
     siteUrl: "https://example.org/night-sky-live",
     note: null,
+  },
+{
+    type: "live",
+    id: "poker-flat-live",
+    name: "Poker Flat Live",
+    region: "Alaska",
+    country: "Alaska, US",
+    latitude: 65.1,
+    operator: "Geophysical Institute",
+    imageUrl: "https://cdn.example.org/poker-placeholder.jpg",
+    sseUrl: "https://allsky.example.org/src/checkLive.php?cam=poker-flat",
+    frameBaseUrl: "https://allsky.example.org/",
+    license: "Public monitor",
+    note: "Night-only – placeholder frame in daylight",
+    alt: "Poker Flat Live, Alaska – current sky view",
+    siteUrl: "https://example.org/poker-flat",
   },
 {
     type: "link",
@@ -191,8 +230,8 @@ describe("Webcams page", () => {
       });
       expect(top).toHaveAttribute("href", "#webcams");
     }
-    // Image regions (2) + Twitch stream + Webcam links
-    expect(screen.getAllByRole("link", { name: "Jump to top" })).toHaveLength(4);
+    // Image regions (2) + Live cam + Twitch stream + Webcam links
+    expect(screen.getAllByRole("link", { name: "Jump to top" })).toHaveLength(5);
   });
 
   it("renders a Jump to row with a pill per section heading", () => {
@@ -314,6 +353,215 @@ describe("Webcams page", () => {
     const earthcam = screen.getByRole("link", { name: /earthcam/i });
     expect(earthcam).toHaveAttribute("href", "https://www.earthcam.com/mapsearch/");
     expect(earthcam).toHaveAttribute("target", "_blank");
+  });
+});
+
+describe("Webcams auto-refresh header (ticket 03)", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("keeps the Refresh, Filter and Hidden sources controls in the header row with the h1", () => {
+    renderPage();
+    const heading = screen.getByRole("heading", { level: 1, name: "Webcams" });
+    const headerRow = heading.closest(
+      ".webcams__header",
+    ) as HTMLElement;
+    expect(
+      within(headerRow).getByRole("button", { name: "Refresh" }),
+    ).toBeInTheDocument();
+    expect(
+      within(headerRow).getByRole("button", { name: /^Filter/ }),
+    ).toBeInTheDocument();
+    expect(
+      within(headerRow).getByRole("button", { name: /Hidden sources/ }),
+    ).toBeInTheDocument();
+  });
+
+  it("renders the auto-refresh setting as a native checkbox, unchecked by default, with honest copy", () => {
+    renderPage();
+    const checkbox = screen.getByRole("checkbox", {
+      name: /auto-refresh images/i,
+    });
+    expect(checkbox.tagName).toBe("INPUT");
+    expect(checkbox).not.toBeChecked();
+    expect(
+      screen.getByText("Auto-refresh images – uses data"),
+    ).toBeInTheDocument();
+  });
+
+  it("persists the auto-refresh setting and restores it on a fresh mount", () => {
+    const { unmount } = render(<Webcams entries={fixtureEntries} />);
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: /auto-refresh images/i }),
+    );
+    expect(
+      screen.getByRole("checkbox", { name: /auto-refresh images/i }),
+    ).toBeChecked();
+    expect(localStorage.getItem(AUTO_REFRESH_STORAGE_KEY)).toBe("true");
+    unmount();
+    render(<Webcams entries={fixtureEntries} />);
+    expect(
+      screen.getByRole("checkbox", { name: /auto-refresh images/i }),
+    ).toBeChecked();
+  });
+});
+
+describe("Webcams auto-refresh cadence (ticket 03)", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const advance = (ms: number) => act(() => vi.advanceTimersByTime(ms));
+
+  const cardImage = (title: string): HTMLImageElement =>
+    screen
+      .getByText(new RegExp(title))
+      .closest("article")!
+      .querySelector(".webcam-card__img")!;
+
+  it("busts every image card's still via the header Refresh button, updating its Loaded time, with auto-refresh off", () => {
+    renderPage();
+    const auroraImg = cardImage("Aurora Ridge · 56.4°N");
+    const northernImg = cardImage("Northern Lights · 51.1°N");
+    const stillImg = cardImage("Still Sky · 53.0°N");
+    const auroraCard = auroraImg.closest("article")!;
+    const freshnessBefore = within(auroraCard).getByText(/^Loaded /).textContent;
+    advance(60_000);
+    fireEvent.click(screen.getByRole("button", { name: "Refresh" }));
+    expect(auroraImg.getAttribute("src")).toMatch(
+      /^https:\/\/cdn\.example\.org\/aurora-ridge\.jpg\?t=\d+$/,
+    );
+    expect(northernImg.getAttribute("src")).toMatch(
+      /^https:\/\/cdn\.example\.org\/northern-lights\.jpg\?t=\d+$/,
+    );
+    expect(stillImg.getAttribute("src")).toMatch(
+      /^https:\/\/cdn\.example\.org\/still-sky\.jpg\?t=\d+$/,
+    );
+    // The Loaded time updates to the refresh moment
+    const freshnessAfter = within(auroraCard).getByText(/^Loaded /).textContent;
+    expect(freshnessAfter).not.toBe(freshnessBefore);
+    expect(freshnessAfter).toMatch(
+      /^Loaded \d{2}:\d{2} · operator refreshes every 2 min$/,
+    );
+  });
+
+  it("reloads refreshable cards at their own cadence and never faster, leaving non-refreshable cards untouched", () => {
+    renderPage();
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: /auto-refresh images/i }),
+    );
+    const auroraImg = cardImage("Aurora Ridge · 56.4°N");
+    const northernImg = cardImage("Northern Lights · 51.1°N");
+    const stillImg = cardImage("Still Sky · 53.0°N");
+    const auroraBefore = auroraImg.getAttribute("src");
+    const northernBefore = northernImg.getAttribute("src");
+    const stillBefore = stillImg.getAttribute("src");
+
+    advance(119_999); // 1:59.999 – just under the 2-minute cadence
+    expect(auroraImg.getAttribute("src")).toBe(auroraBefore);
+    advance(1); // exactly 2 minutes
+    expect(auroraImg.getAttribute("src")).toMatch(/\?t=\d+$/);
+    expect(northernImg.getAttribute("src")).toBe(northernBefore);
+    expect(stillImg.getAttribute("src")).toBe(stillBefore);
+
+    advance(10 * 60_000 - 120_001); // 7:59.999 more – just under the 10-minute cadence
+    expect(northernImg.getAttribute("src")).toBe(northernBefore);
+    advance(1); // exactly 10 minutes
+    expect(northernImg.getAttribute("src")).toMatch(/\?t=\d+$/);
+    // The non-refreshable card stays untouched through every tick
+    expect(stillImg.getAttribute("src")).toBe(stillBefore);
+  });
+
+  it("never auto-refreshes the Twitch player or the link rows", () => {
+    renderPage();
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: /auto-refresh images/i }),
+    );
+    const twitchSrc = screen
+      .getByTitle(/night sky live/i)
+      .getAttribute("src");
+    const linkHrefs = Array.from(
+      document.querySelectorAll(".webcam-link-row a"),
+    ).map((a) => a.getAttribute("href"));
+    advance(20 * 60_000);
+    expect(screen.getByTitle(/night sky live/i).getAttribute("src")).toBe(
+      twitchSrc,
+    );
+    expect(
+      Array.from(document.querySelectorAll(".webcam-link-row a")).map((a) =>
+        a.getAttribute("href"),
+      ),
+    ).toEqual(linkHrefs);
+  });
+});
+
+describe("Webcams auto-refresh visibility (ticket 03)", () => {
+  const originalVisibility = document.visibilityState;
+
+  beforeEach(() => {
+    localStorage.clear();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: originalVisibility,
+    });
+    vi.useRealTimers();
+  });
+
+  const advance = (ms: number) => act(() => vi.advanceTimersByTime(ms));
+
+  const setTabHidden = (hidden: boolean) => {
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: hidden ? "hidden" : "visible",
+    });
+    act(() => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+  };
+
+  const cardImage = (title: string): HTMLImageElement =>
+    screen
+      .getByText(new RegExp(title))
+      .closest("article")!
+      .querySelector(".webcam-card__img")!;
+
+  it("pauses cadence reloads while the tab is hidden and resumes when it becomes visible", () => {
+    renderPage();
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: /auto-refresh images/i }),
+    );
+    const auroraImg = cardImage("Aurora Ridge · 56.4°N");
+    const before = auroraImg.getAttribute("src");
+
+    setTabHidden(true);
+    advance(20 * 60_000); // hidden – nothing reloads
+    expect(auroraImg.getAttribute("src")).toBe(before);
+
+    setTabHidden(false); // visible – the interval re-arms
+    advance(2 * 60_000 - 1); // just under the cadence
+    expect(auroraImg.getAttribute("src")).toBe(before);
+    advance(1); // exactly one cadence after re-arming
+    expect(auroraImg.getAttribute("src")).toMatch(/\?t=\d+$/);
+  });
+
+  it("keeps the manual Refresh button working while the tab is hidden", () => {
+    renderPage();
+    const auroraImg = cardImage("Aurora Ridge · 56.4°N");
+    const before = auroraImg.getAttribute("src");
+    setTabHidden(true);
+    fireEvent.click(screen.getByRole("button", { name: "Refresh" }));
+    expect(auroraImg.getAttribute("src")).not.toBe(before);
+    expect(auroraImg.getAttribute("src")).toMatch(/\?t=\d+$/);
   });
 });
 
@@ -516,10 +764,11 @@ describe("Webcams region filter", () => {
     renderPage();
     const dialog = openFilter();
     expect(dialog.open).toBe(true);
-    // Fixture regions: the named ones plus Iceland and the "rest" bucket
+    // Fixture regions: the named ones plus Alaska (live cam), Iceland and the "rest" bucket
     const checkboxes = within(dialog).getAllByRole("checkbox");
     expect(checkboxes.map((box) => box.getAttribute("name"))).toEqual([
       "Scandinavia",
+      "Alaska",
       "Canada",
       "New Zealand",
       "Iceland",
@@ -657,5 +906,277 @@ describe("Webcams region filter", () => {
     expect(
       screen.getByRole("button", { name: "Filter (1)" }),
     ).toHaveFocus();
+  });
+});
+
+class MockEventSource {
+  static instances: MockEventSource[] = [];
+
+  listeners: Record<string, Array<(event: { data?: string }) => void>> = {};
+  closed = false;
+
+  constructor(public url: string) {
+    MockEventSource.instances.push(this);
+  }
+
+  addEventListener(
+    type: string,
+    cb: (event: { data?: string }) => void,
+  ): void {
+    (this.listeners[type] ??= []).push(cb);
+  }
+
+  dispatch(type: string, event: { data?: string } = {}): void {
+    for (const cb of this.listeners[type] ?? []) cb(event);
+  }
+
+  close(): void {
+    this.closed = true;
+  }
+}
+
+describe("Webcams live cam (ticket 03)", () => {
+  const originalVisibility = document.visibilityState;
+
+  beforeEach(() => {
+    localStorage.clear();
+    MockEventSource.instances = [];
+  });
+
+  afterEach(() => {
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: originalVisibility,
+    });
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  const liveSection = (): HTMLElement | null =>
+    document.querySelector("section[aria-labelledby='webcams-live']");
+
+  const setTabHidden = (hidden: boolean) => {
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      value: hidden ? "hidden" : "visible",
+    });
+    act(() => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+  };
+
+  it("renders the live cam as its own section with station, latitude, placeholder, note, attribution, a Live updates toggle and a Hide control", () => {
+    renderPage();
+    const section = liveSection()!;
+    expect(section).not.toBeNull();
+    expect(
+      within(section).getByRole("heading", { level: 2, name: "Live cam" }),
+    ).toBeInTheDocument();
+    expect(
+      within(section).getByRole("heading", {
+        level: 3,
+        name: /Poker Flat Live · 65\.1°N/,
+      }),
+    ).toBeInTheDocument();
+    const flag = section.querySelector(".webcam-card__flag")!;
+    expect(flag).toHaveAttribute("alt", "Alaska, US");
+    expect(section.querySelector(".webcam-card__img")).toHaveAttribute(
+      "src",
+      "https://cdn.example.org/poker-placeholder.jpg",
+    );
+    expect(section.querySelector(".webcam-card__img")).toHaveAttribute(
+      "alt",
+      "Poker Flat Live, Alaska – current sky view",
+    );
+    expect(within(section).getByText(/night-only/i)).toBeInTheDocument();
+    expect(within(section).getByText(/^Source:/)).toHaveTextContent(
+      "Geophysical Institute",
+    );
+    const toggle = within(section).getByRole("checkbox", {
+      name: "Live updates",
+    });
+    expect(toggle).toBeChecked();
+    expect(toggle).toBeDisabled(); // no feed without the global consent
+    expect(
+      within(section).getByRole("button", { name: "Hide Poker Flat Live" }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Live cam" })).toHaveAttribute(
+      "href",
+      "#webcams-live",
+    );
+  });
+
+  it("follows the operator's SSE feed while auto-refresh is on and the tab is visible", () => {
+    vi.stubGlobal("EventSource", MockEventSource);
+    renderPage();
+    const consent = screen.getByRole("checkbox", {
+      name: /auto-refresh images/i,
+    });
+    expect(MockEventSource.instances).toHaveLength(0); // no feed without consent
+    fireEvent.click(consent);
+    expect(MockEventSource.instances).toHaveLength(1);
+    expect(MockEventSource.instances[0].url).toBe(
+      "https://allsky.example.org/src/checkLive.php?cam=poker-flat",
+    );
+    const img = liveSection()!.querySelector(".webcam-card__img")!;
+    act(() => {
+      MockEventSource.instances[0].dispatch("message", {
+        data: '{"0": "PKR/tagged_cam/PKR_260829140029.jpg"}',
+      });
+    });
+    expect(img).toHaveAttribute(
+      "src",
+      "https://allsky.example.org/PKR/tagged_cam/PKR_260829140029.jpg",
+    );
+    expect(liveSection()!.querySelector(".webcam-card__freshness")).toHaveTextContent(
+      /^Loaded \d{2}:\d{2} · live feed updates every ~5–15 s$/,
+    );
+  });
+
+  it("shows an honest live-feed-unavailable fallback with the operator link on feed failure, and recovers on the next frame", () => {
+    vi.stubGlobal("EventSource", MockEventSource);
+    renderPage();
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: /auto-refresh images/i }),
+    );
+    act(() => {
+      MockEventSource.instances[0].dispatch("error");
+    });
+    const section = liveSection()!;
+    expect(section.querySelector(".webcam-card__img")).toBeNull();
+    const fallback = within(section).getByText(/live feed unavailable/i);
+    expect(
+      within(fallback).getByRole("link", { name: /operator's site/i }),
+    ).toHaveAttribute("href", "https://example.org/poker-flat");
+    // No freshness claim while the feed is down
+    expect(
+      within(section).queryByText(/live feed updates every/i),
+    ).toBeNull();
+    // The next frame restores the image
+    act(() => {
+      MockEventSource.instances[0].dispatch("message", {
+        data: '{"0": "images/poker-notdark.jpg"}',
+      });
+    });
+    expect(section.querySelector(".webcam-card__img")).toHaveAttribute(
+      "src",
+      "https://allsky.example.org/images/poker-notdark.jpg",
+    );
+  });
+
+  it("lets the user disable live updates on the card, closing the feed and showing the placeholder", () => {
+    vi.stubGlobal("EventSource", MockEventSource);
+    renderPage();
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: /auto-refresh images/i }),
+    );
+    // A real frame arrives first…
+    act(() => {
+      MockEventSource.instances[0].dispatch("message", {
+        data: '{"0": "PKR/tagged_cam/PKR_260829140029.jpg"}',
+      });
+    });
+    const toggle = screen.getByRole("checkbox", { name: "Live updates" });
+    fireEvent.click(toggle);
+    expect(toggle).not.toBeChecked();
+    expect(MockEventSource.instances[0].closed).toBe(true);
+    // …and the card falls back to the honest placeholder, never the stale frame
+    expect(
+      liveSection()!.querySelector(".webcam-card__img"),
+    ).toHaveAttribute("src", "https://cdn.example.org/poker-placeholder.jpg");
+    expect(
+      within(liveSection()!).getByText(
+        /^Loaded \d{2}:\d{2} · placeholder frame$/,
+      ),
+    ).toBeInTheDocument();
+    // Re-enabling opens a fresh feed
+    fireEvent.click(toggle);
+    expect(MockEventSource.instances).toHaveLength(2);
+    expect(MockEventSource.instances[1].closed).toBe(false);
+  });
+
+  it("closes the feed when auto-refresh turns off or the tab hides, reopening when they return", () => {
+    vi.stubGlobal("EventSource", MockEventSource);
+    renderPage();
+    const consent = screen.getByRole("checkbox", {
+      name: /auto-refresh images/i,
+    });
+    fireEvent.click(consent);
+    expect(MockEventSource.instances).toHaveLength(1);
+
+    fireEvent.click(consent); // global off
+    expect(MockEventSource.instances[0].closed).toBe(true);
+    fireEvent.click(consent); // global back on
+    expect(MockEventSource.instances).toHaveLength(2);
+
+    setTabHidden(true); // tab hidden
+    expect(MockEventSource.instances[1].closed).toBe(true);
+    setTabHidden(false); // tab visible again
+    expect(MockEventSource.instances).toHaveLength(3);
+    expect(MockEventSource.instances[2].closed).toBe(false);
+  });
+
+  it("reverts to the placeholder frame whenever the feed stops, even after live frames", () => {
+    vi.stubGlobal("EventSource", MockEventSource);
+    renderPage();
+    const consent = screen.getByRole("checkbox", {
+      name: /auto-refresh images/i,
+    });
+    fireEvent.click(consent);
+    act(() => {
+      MockEventSource.instances[0].dispatch("message", {
+        data: '{"0": "PKR/tagged_cam/PKR_260829140029.jpg"}',
+      });
+    });
+    expect(liveSection()!.querySelector(".webcam-card__img")).toHaveAttribute(
+      "src",
+      "https://allsky.example.org/PKR/tagged_cam/PKR_260829140029.jpg",
+    );
+    // Global consent off – the last real frame must not linger under a
+    // "placeholder frame" label
+    fireEvent.click(consent);
+    expect(liveSection()!.querySelector(".webcam-card__img")).toHaveAttribute(
+      "src",
+      "https://cdn.example.org/poker-placeholder.jpg",
+    );
+    expect(
+      within(liveSection()!).getByText(
+        /^Loaded \d{2}:\d{2} · placeholder frame$/,
+      ),
+    ).toBeInTheDocument();
+    expect(
+      within(liveSection()!).queryByText(/live feed updates every/i),
+    ).toBeNull();
+  });
+
+  it("never reloads the live card on cadence intervals – only the SSE feed moves it", () => {
+    vi.useFakeTimers();
+    vi.stubGlobal("EventSource", MockEventSource);
+    renderPage();
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: /auto-refresh images/i }),
+    );
+    const liveImg = liveSection()!.querySelector(".webcam-card__img")!;
+    act(() => vi.advanceTimersByTime(30 * 60_000));
+    expect(liveImg).toHaveAttribute(
+      "src",
+      "https://cdn.example.org/poker-placeholder.jpg",
+    );
+  });
+
+  it("hides the live cam from the gallery and restores it from the Hidden sources dialog", () => {
+    renderPage();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Hide Poker Flat Live" }),
+    );
+    expect(liveSection()).toBeNull();
+    expect(
+      screen.getByRole("button", { name: "Hidden sources (1)" }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: /Hidden sources/ }));
+    fireEvent.click(
+      screen.getByRole("button", { name: "Show Poker Flat Live" }),
+    );
+    expect(liveSection()).not.toBeNull();
   });
 });

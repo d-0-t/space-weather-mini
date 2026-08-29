@@ -7,6 +7,7 @@ import {
   type WebcamEntry,
   type WebcamImageEntry,
   type WebcamLinkEntry,
+  type WebcamLiveEntry,
   type WebcamRegion,
   type WebcamTwitchEntry,
 } from "./webcams";
@@ -14,6 +15,7 @@ import {
 const isImage = (e: WebcamEntry): e is WebcamImageEntry => e.type === "image";
 const isTwitch = (e: WebcamEntry): e is WebcamTwitchEntry => e.type === "twitch";
 const isLink = (e: WebcamEntry): e is WebcamLinkEntry => e.type === "link";
+const isLive = (e: WebcamEntry): e is WebcamLiveEntry => e.type === "live";
 
 describe("webcam registry contract", () => {
   it("gives every entry a unique id and a non-empty name, region and operator", () => {
@@ -109,17 +111,38 @@ describe("webcam registry contract", () => {
   });
 
   it("ships the verified 2026-08-29 set with image cards for every region that has one", () => {
-    // Image regions present: Scandinavia, Alaska, Canada, US, Russia
+    // Image regions present: Scandinavia, Canada, US, Russia (Alaska's cam is the live entry)
     const imageRegions = new Set(
       webcamRegistry.filter(isImage).map((e) => e.region),
     );
-    for (const region of ["Scandinavia", "Alaska", "Canada", "US", "Russia"]) {
+    for (const region of ["Scandinavia", "Canada", "US", "Russia"]) {
       expect(imageRegions.has(region as WebcamRegion)).toBe(true);
     }
     // Link regions present: New Zealand, UK, Greenland, Iceland
     const linkRegions = new Set(webcamRegistry.filter(isLink).map((e) => e.region));
     for (const region of ["New Zealand", "UK", "Greenland", "Iceland"]) {
       expect(linkRegions.has(region as WebcamRegion)).toBe(true);
+    }
+  });
+
+  it("ships the one true-live entry (UAF Poker Flat) with a CORS-open sse feed and a placeholder image", () => {
+    const live = webcamRegistry.filter(isLive);
+    expect(live).toHaveLength(1);
+    for (const entry of live) {
+      expect(entry.id).toBe("uaf-poker-flat");
+      expect(entry.region).toBe("Alaska");
+      expect(entry.sseUrl).toMatch(/^https:\/\//);
+      expect(entry.frameBaseUrl).toMatch(/^https:\/\/.+\/$/);
+      expect(entry.imageUrl).toMatch(/^https:\/\//);
+      expect(entry.alt.trim()).not.toBe("");
+      expect(entry.siteUrl).toMatch(/^https:\/\//);
+      expect(entry.country.trim()).not.toBe("");
+      expect(entry.latitude).toBeGreaterThan(-90);
+      expect(entry.latitude).toBeLessThanOrEqual(90);
+      expect(entry.license === null || typeof entry.license === "string").toBe(
+        true,
+      );
+      expect(entry.note === null || typeof entry.note === "string").toBe(true);
     }
   });
 });

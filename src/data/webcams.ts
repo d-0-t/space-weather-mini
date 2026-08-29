@@ -5,8 +5,12 @@
  * A cam that dies or changes licence is removed here, not in the page code.
  */
 
-/** A gallery item is either a webcam (image card), the Twitch embed, or a webcam link (link row). */
-export type WebcamEntry = WebcamImageEntry | WebcamTwitchEntry | WebcamLinkEntry;
+/** A gallery item is either a webcam (image card), the Twitch embed, the true-live cam, or a webcam link (link row). */
+export type WebcamEntry =
+  | WebcamImageEntry
+  | WebcamTwitchEntry
+  | WebcamLiveEntry
+  | WebcamLinkEntry;
 
 /** Regions in the fixed display order; `rest` buckets entries outside the named set. */
 export type WebcamRegion =
@@ -97,6 +101,37 @@ export interface WebcamTwitchEntry {
   /** Operator's site, for the Source attribution link. */
   siteUrl: string;
   note: string | null;
+}
+
+/**
+ * The one true-live cam (UAF Poker Flat): follows the operator's CORS-open SSE
+ * feed for ~5–15 s frames while live mode is on (ADR-0003 discipline – gated
+ * by the opt-in auto-refresh setting and the visible tab); the image falls
+ * back to `imageUrl` when live mode is off.
+ */
+export interface WebcamLiveEntry {
+  type: "live";
+  id: string;
+  name: string;
+  region: WebcamRegion;
+  /** Display country/locale for the card tag, e.g. "Alaska, US". */
+  country: string;
+  /** Latitude to 1 decimal, signed (negative = south). */
+  latitude: number;
+  operator: string;
+  /** Daytime/off-season placeholder still shown while live mode is off. */
+  imageUrl: string;
+  /** CORS-open SSE endpoint emitting the current frame path as its first data value. */
+  sseUrl: string;
+  /** Base URL the emitted frame path is resolved against. */
+  frameBaseUrl: string;
+  /** Licence note for the card; null when no licence text could be found. */
+  license: string | null;
+  /** Seasonal or staleness note ("Night-only – placeholder frame in daylight"). */
+  note: string | null;
+  alt: string;
+  /** Operator's page, for the "Visit site" link. */
+  siteUrl: string;
 }
 
 /** Link row: a video-only or unembeddable source that links out instead of displaying an image. */
@@ -492,26 +527,6 @@ export const webcamRegistry: WebcamEntry[] = [
     siteUrl: "https://syrjavaara.fi/",
   },
 
-  // ── Image cards: Alaska ──────────────────────────────────────────────────
-  {
-    type: "image",
-    id: "uaf-poker-flat",
-    country: "Alaska, US",
-    name: "UAF Allsky Aurora Camera – Poker Flat",
-    region: "Alaska",
-    latitude: 65.1,
-    operator: "Geophysical Institute, Univ. of Alaska Fairbanks",
-    // Stable daytime placeholder; the true frame name comes from the operator's
-    // CORS-open SSE feed at night (allsky.gi.alaska.edu/src/checkLive.php).
-    imageUrl: "https://allsky.gi.alaska.edu/images/offline-notdark.jpg",
-    cadenceMinutes: 1,
-    refreshable: true,
-    license: "Public monitor – credit Geophysical Institute, UAF",
-    note: "Night-only – placeholder frame in daylight",
-    alt: "UAF Allsky Aurora Camera – Poker Flat, Alaska – current sky view",
-    siteUrl: "https://allsky.gi.alaska.edu/",
-  },
-
   // ── Image cards: Canada ───────────────────────────────────────────────────
   {
     type: "image",
@@ -692,6 +707,28 @@ export const webcamRegistry: WebcamEntry[] = [
     note: "Aurora only on extreme storms (54°N)",
     alt: "Starvisor – Kaliningrad, Russia – current sky view",
     siteUrl: "https://starvisor.ru/",
+  },
+
+  // ── Live cam ──────────────────────────────────────────────────────────────
+  {
+    type: "live",
+    id: "uaf-poker-flat",
+    country: "Alaska, US",
+    name: "UAF Allsky Aurora Camera – Poker Flat",
+    region: "Alaska",
+    latitude: 65.1,
+    operator: "Geophysical Institute, Univ. of Alaska Fairbanks",
+    // Daytime/off-season placeholder. The SSE names the live frame at
+    // runtime (probed 2026-08-29: images/poker-notdark.jpg in daylight,
+    // PKR/tagged_cam/… at night), so this still only shows while live
+    // updates are off.
+    imageUrl: "https://allsky.gi.alaska.edu/images/poker-notdark.jpg",
+    sseUrl: "https://allsky.gi.alaska.edu/src/checkLive.php?cam=poker-flat",
+    frameBaseUrl: "https://allsky.gi.alaska.edu/",
+    license: "Public monitor – credit Geophysical Institute, UAF",
+    note: "Night-only – placeholder frame in daylight",
+    alt: "UAF Allsky Aurora Camera – Poker Flat, Alaska – current sky view",
+    siteUrl: "https://allsky.gi.alaska.edu/",
   },
 
   // ── Twitch embed ──────────────────────────────────────────────────────────

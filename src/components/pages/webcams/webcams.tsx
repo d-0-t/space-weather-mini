@@ -9,8 +9,10 @@ import {
 import "./webcams.scss";
 import FullSizeModal from "../../FullSizeModal";
 import {
+  loadAutoRefresh,
   loadFilteredRegions,
   loadHiddenSourceIds,
+  saveAutoRefresh,
   saveFilteredRegions,
   saveHiddenSourceIds,
 } from "../../../data/webcam-storage";
@@ -21,6 +23,7 @@ import {
   type WebcamEntry,
   type WebcamImageEntry,
   type WebcamLinkEntry,
+  type WebcamLiveEntry,
   type WebcamRegion,
 } from "../../../data/webcams";
 
@@ -95,6 +98,271 @@ const groupByRegion = <T extends WebcamEntry>(
   return [...map.entries()].filter(([, items]) => items.length > 0);
 };
 
+const formatLoadedTime = (): string =>
+  new Date().toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+/** True while the tab is visible; auto-refresh pauses while hidden (ADR-0003). */
+const useTabVisible = (): boolean => {
+  const [visible, setVisible] = useState(
+    () => document.visibilityState !== "hidden",
+  );
+  useEffect(() => {
+    const onVisibilityChange = () =>
+      setVisible(document.visibilityState !== "hidden");
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () =>
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+  }, []);
+  return visible;
+};
+
+/** Cache-busts a still so the browser can't serve a stale frame. */
+const cacheBustedSrc = (url: string): string => `${url}?t=${Date.now()}`;
+
+/**
+ * Extracts the current frame path from the operator's SSE data line, which is
+ * a JSON object of cameras (`{ "0": "PKR/tagged_cam/PKR_260829140029.jpg", … }`);
+ * returns null when the payload isn't that shape.
+ */
+const parseSseFramePath = (raw: string): string | null => {
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== "object" || parsed === null) return null;
+    const first = Object.values(parsed)[0];
+    return typeof first === "string" && first.length > 0 ? first : null;
+  } catch {
+    return null;
+  }
+};
+
+/** Props every gallery card (image or live) needs from the page. */
+interface WebcamCardBaseProps {
+  autoRefresh: boolean;
+  tabVisible: boolean;
+  onHide: (id: string) => void;
+}
+
+/** Flag + "Station · 69.6°N" title shared by the image and live cards. */
+const WebcamCardTitle: React.FC<{
+  country: string;
+  name: string;
+  latitude: number;
+}> = ({ country, name, latitude }) => (
+  <h3 className="webcam-card__title">
+    <img
+      className="webcam-card__flag"
+      src={flagSrc(webcamCountryCode(country), "16x12")}
+      srcSet={`${flagSrc(webcamCountryCode(country), "32x24")} 2x, ${flagSrc(
+        webcamCountryCode(country),
+        "48x36",
+      )} 3x`}
+      width={16}
+      height={12}
+      alt={country}
+      title={country}
+      loading="lazy"
+    />{" "}
+    {name} · {formatLatitude(latitude)}
+  </h3>
+);
+
+/** Full-size view wrapper shared by the image and live cards. */
+const WebcamCardImage: React.FC<{
+  label: string;
+  src: string;
+  alt: string;
+}> = ({ label, src, alt }) => (
+  <FullSizeModal
+    label={label}
+    trigger={<img src={src} alt={alt} className="webcam-card__img" />}
+    triggerClassName="webcam-card__trigger"
+  >
+    <img src={src} alt={alt} />
+  </FullSizeModal>
+);
+
+/** "Source: {operator}" attribution link shared by the image and live cards. */
+const WebcamCardAttribution: React.FC<{
+  operator: string;
+  siteUrl: string;
+}> = ({ operator, siteUrl }) => (
+  <p className="webcam-card__attribution">
+    Source:{" "}
+    <a href={siteUrl} target="_blank" rel="noopener noreferrer">
+      {operator}
+    </a>
+  </p>
+);
+
+/**
+ * One image card (ticket 03): owns its own still `src` and "Loaded HH:MM"
+ * time, so every reload – the page-level Refresh button, the opt-in cadence
+ * interval, or the SSE feed – updates the honest freshness line. Auto-refresh
+ * never polls faster than the operator's cadence and pauses while the tab is
+ * hidden (ADR-0003 discipline); the Refresh button always works.
+ */
+const WebcamImageCard: React.FC<
+  WebcamCardBaseProps & {
+    card: WebcamImageEntry;
+    refreshNonce: number;
+  }
+> = ({ card, autoRefresh, tabVisible, refreshNonce, onHide }) => {
+  const [src, setSrc] = useState(card.imageUrl);
+  const [loadedAt, setLoadedAt] = useState(formatLoadedTime);
+
+  const reload = () => {
+    setSrc(cacheBustedSrc(card.imageUrl));
+    setLoadedAt(formatLoadedTime());
+  };
+
+  // The page-level Refresh button re-renders every card's still; the nonce
+  // changes on click, so the mount render (nonce unchanged) is skipped.
+  const lastNonce = useRef(refreshNonce);
+  useEffect(() => {
+    if (lastNonce.current === refreshNonce) return;
+    lastNonce.current = refreshNonce;
+    reload();
+    // reload() closes over stable props only; the nonce is the trigger.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshNonce]);
+
+  useEffect(() => {
+    if (!autoRefresh || !card.refreshable || !tabVisible) return;
+    const minutes = Math.max(card.cadenceMinutes, 1);
+    const id = window.setInterval(reload, minutes * 60_000);
+    return () => window.clearInterval(id);
+    // reload() closes over stable props only; the gating props are the deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoRefresh, card, tabVisible]);
+
+  return (
+    <article
+      className={`webcam-card${
+        card.panoramic ? " webcam-card--panoramic" : ""
+      }`}
+    >
+      <WebcamCardTitle
+        country={card.country}
+        name={card.name}
+        latitude={card.latitude}
+      />
+      <WebcamCardImage label={`${card.name}, full size`} src={src} alt={card.alt} />
+      <p className="webcam-card__freshness">
+        Loaded {loadedAt} · operator refreshes every {card.cadenceMinutes} min
+      </p>
+      {card.note ? <p className="webcam-card__note">{card.note}</p> : null}
+      <WebcamCardAttribution operator={card.operator} siteUrl={card.siteUrl} />
+      <button
+        type="button"
+        className="webcam-card__hide webcams__button webcams__button--small"
+        aria-label={`Hide ${card.name}`}
+        onClick={() => onHide(card.id)}
+      >
+        Hide
+      </button>
+    </article>
+  );
+};
+
+/**
+ * The one true-live cam (UAF Poker Flat, ticket 03): follows the operator's
+ * CORS-open SSE feed for ~5–15 s frames while live mode is on, auto-refresh
+ * is on, and the tab is visible. On feed failure the still swaps for an
+ * honest fallback note with the operator link; the next frame restores it.
+ * Whenever the feed stops (live mode off, consent off, or tab hidden) the
+ * card reverts to the operator's placeholder still, so the freshness line
+ * can never claim "placeholder frame" over a real frame.
+ */
+const WebcamLiveCard: React.FC<
+  WebcamCardBaseProps & {
+    entry: WebcamLiveEntry;
+  }
+> = ({ entry, autoRefresh, tabVisible, onHide }) => {
+  const [liveEnabled, setLiveEnabled] = useState(true);
+  const [src, setSrc] = useState(entry.imageUrl);
+  const [loadedAt, setLoadedAt] = useState(formatLoadedTime);
+  const [feedFailed, setFeedFailed] = useState(false);
+
+  const feeding = autoRefresh && tabVisible && liveEnabled;
+
+  useEffect(() => {
+    if (!feeding) return;
+    const source = new EventSource(entry.sseUrl);
+    source.addEventListener("message", (event: MessageEvent) => {
+      const path = parseSseFramePath(event.data);
+      if (path === null) return;
+      setFeedFailed(false);
+      setSrc(`${entry.frameBaseUrl}${path}`);
+      setLoadedAt(formatLoadedTime());
+    });
+    source.addEventListener("error", () => setFeedFailed(true));
+    return () => source.close();
+  }, [feeding, entry]);
+
+  useEffect(() => {
+    if (!feeding) setSrc(entry.imageUrl);
+  }, [feeding, entry]);
+
+  return (
+    <article className="webcam-card webcam-card--live">
+      <WebcamCardTitle
+        country={entry.country}
+        name={entry.name}
+        latitude={entry.latitude}
+      />
+      {feedFailed ? (
+        <p className="webcam-card__feed-fallback">
+          Live feed unavailable –{" "}
+          <a
+            href={entry.siteUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            visit the operator's site
+          </a>
+        </p>
+      ) : (
+        <WebcamCardImage
+          label={`${entry.name}, full size`}
+          src={src}
+          alt={entry.alt}
+        />
+      )}
+      {feedFailed ? null : (
+        <p className="webcam-card__freshness">
+          {feeding
+            ? `Loaded ${loadedAt} · live feed updates every ~5–15 s`
+            : `Loaded ${loadedAt} · placeholder frame`}
+        </p>
+      )}
+      {entry.note ? <p className="webcam-card__note">{entry.note}</p> : null}
+      <WebcamCardAttribution operator={entry.operator} siteUrl={entry.siteUrl} />
+      <label className="webcam-card__live-toggle">
+        <input
+          type="checkbox"
+          className="webcam-card__live-toggle__checkbox"
+          checked={liveEnabled}
+          disabled={!autoRefresh}
+          onChange={() => setLiveEnabled((enabled) => !enabled)}
+        />
+        Live updates
+      </label>
+      <button
+        type="button"
+        className="webcam-card__hide webcams__button webcams__button--small"
+        aria-label={`Hide ${entry.name}`}
+        onClick={() => onHide(entry.id)}
+      >
+        Hide
+      </button>
+    </article>
+  );
+};
+
 /**
  * Curated live sky camera gallery (ADR-0004): one card per verified webcam,
  * the Lights over Lapland Twitch embed (never autoplaying), link rows for
@@ -111,6 +379,10 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
   const [hiddenSourceIds, setHiddenSourceIds] = useState<string[]>(() =>
     loadHiddenSourceIds(localStorage),
   );
+  const [autoRefresh, setAutoRefresh] = useState<boolean>(() =>
+    loadAutoRefresh(localStorage),
+  );
+  const [refreshNonce, setRefreshNonce] = useState(0);
   const [draftRegions, setDraftRegions] = useState<WebcamRegion[]>([]);
   const filterButtonRef = useRef<HTMLButtonElement>(null);
   const filterDialogRef = useRef<HTMLDialogElement>(null);
@@ -194,41 +466,56 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
   );
 
   const twitch = visibleEntries.find((entry) => entry.type === "twitch");
-  const loadedAt = useMemo(
-    () =>
-      new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-      }),
-    [],
-  );
+  const live = visibleEntries.find((entry) => entry.type === "live");
 
   const parent = twitchParent();
+  const tabVisible = useTabVisible();
 
   return (
     <div className="container webcams" id="webcams">
-      <h1>Webcams</h1>
+      <div className="webcams__header">
+        <h1>Webcams</h1>
 
-      <div className="webcams__toolbar">
-        <button
-          type="button"
-          className="webcams__button"
-          ref={filterButtonRef}
-          onClick={openFilterDialog}
-        >
-          {appliedRegions.length > 0
-            ? `Filter (${appliedRegions.length})`
-            : "Filter"}
-        </button>
-        <button
-          type="button"
-          className="webcams__button"
-          ref={hiddenButtonRef}
-          onClick={openHiddenDialog}
-        >
-          Hidden sources ({hiddenSourceEntries.length})
-        </button>
+        <div className="webcams__toolbar">
+          <button
+            type="button"
+            className="webcams__button"
+            onClick={() => setRefreshNonce((nonce) => nonce + 1)}
+          >
+            Refresh
+          </button>
+          <button
+            type="button"
+            className="webcams__button"
+            ref={filterButtonRef}
+            onClick={openFilterDialog}
+          >
+            {appliedRegions.length > 0
+              ? `Filter (${appliedRegions.length})`
+              : "Filter"}
+          </button>
+          <button
+            type="button"
+            className="webcams__button"
+            ref={hiddenButtonRef}
+            onClick={openHiddenDialog}
+          >
+            Hidden sources ({hiddenSourceEntries.length})
+          </button>
+          <label className="webcams__autorefresh">
+            <input
+              type="checkbox"
+              className="webcams__autorefresh__checkbox"
+              checked={autoRefresh}
+              onChange={() => {
+                const next = !autoRefresh;
+                saveAutoRefresh(localStorage, next);
+                setAutoRefresh(next);
+              }}
+            />
+            Auto-refresh images – uses data
+          </label>
+        </div>
       </div>
 
       {visibleEntries.length === 0 ? (
@@ -247,6 +534,11 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
               {regionLabel(region)}
             </a>
           ))}
+          {live ? (
+            <a className="webcams__jump" href="#webcams-live">
+              Live cam
+            </a>
+          ) : null}
           {twitch ? (
             <a className="webcams__jump" href="#webcams-twitch">
               Twitch stream
@@ -273,75 +565,36 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
             </a>
           </div>
           <div className="webcams__cards">
-            {orderedCards(cards).map((card) => {
-              const code = webcamCountryCode(card.country);
-              return (
-                <article
-                  key={card.id}
-                  className={`webcam-card${
-                    card.panoramic ? " webcam-card--panoramic" : ""
-                  }`}
-                >
-                  <h3 className="webcam-card__title">
-                    <img
-                      className="webcam-card__flag"
-                      src={flagSrc(code, "16x12")}
-                      srcSet={`${flagSrc(code, "32x24")} 2x, ${flagSrc(
-                        code,
-                        "48x36",
-                      )} 3x`}
-                      width={16}
-                      height={12}
-                      alt={card.country}
-                      title={card.country}
-                      loading="lazy"
-                    />{" "}
-                    {card.name} · {formatLatitude(card.latitude)}
-                  </h3>
-                <FullSizeModal
-                  label={`${card.name}, full size`}
-                  trigger={
-                    <img
-                      src={card.imageUrl}
-                      alt={card.alt}
-                      className="webcam-card__img"
-                    />
-                  }
-                  triggerClassName="webcam-card__trigger"
-                >
-                  <img src={card.imageUrl} alt={card.alt} />
-                </FullSizeModal>
-                <p className="webcam-card__freshness">
-                  Loaded {loadedAt} · operator refreshes every {card.cadenceMinutes}{" "}
-                  min
-                </p>
-                {card.note ? (
-                  <p className="webcam-card__note">{card.note}</p>
-                ) : null}
-                <p className="webcam-card__attribution">
-                  Source:{" "}
-                  <a
-                    href={card.siteUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {card.operator}
-                  </a>
-                </p>
-                <button
-                  type="button"
-                  className="webcam-card__hide webcams__button webcams__button--small"
-                  aria-label={`Hide ${card.name}`}
-                  onClick={() => hideSource(card.id)}
-                >
-                  Hide
-                </button>
-              </article>
-              );
-            })}
+            {orderedCards(cards).map((card) => (
+              <WebcamImageCard
+                key={card.id}
+                card={card}
+                autoRefresh={autoRefresh}
+                tabVisible={tabVisible}
+                refreshNonce={refreshNonce}
+                onHide={hideSource}
+              />
+            ))}
           </div>
         </section>
       ))}
+
+      {live ? (
+        <section className="webcams__region" aria-labelledby="webcams-live">
+          <div className="webcams__region-heading">
+            <h2 id="webcams-live">Live cam</h2>
+            <a className="webcams__top" href="#webcams">
+              Jump to top
+            </a>
+          </div>
+          <WebcamLiveCard
+            entry={live}
+            autoRefresh={autoRefresh}
+            tabVisible={tabVisible}
+            onHide={hideSource}
+          />
+        </section>
+      ) : null}
 
       {twitch ? (
         <section className="webcams__region" aria-labelledby="webcams-twitch">

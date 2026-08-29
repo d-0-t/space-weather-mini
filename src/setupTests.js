@@ -43,6 +43,21 @@ if (
   };
 }
 
+// jsdom does not implement EventSource; the UAF live cam (ticket 03) opens
+// one while auto-refresh is on. Tests that exercise the feed stub the real
+// class (vi.stubGlobal); this inert default lets the page mount without one.
+class InertEventSource {
+  constructor(_url) {}
+
+  addEventListener() {}
+
+  close() {}
+}
+
+if (typeof EventSource === "undefined") {
+  globalThis.EventSource = InertEventSource;
+}
+
 afterEach(() => {
   cleanup();
 });

@@ -57,7 +57,7 @@ describe("Nav keyboard accessibility", () => {
     // Tab moves focus into the first submenu item
     await user.tab();
     expect(
-      screen.getByRole("link", { name: "Geophysical Alert" }),
+      screen.getByRole("link", { name: "Daily Data" }),
     ).toHaveFocus();
 
     // Escape collapses the menu and returns focus to trigger

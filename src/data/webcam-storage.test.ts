@@ -1,10 +1,13 @@
 import { beforeEach, describe, expect, it } from "vitest";
 
 import {
+  AUTO_REFRESH_STORAGE_KEY,
   HIDDEN_WEBCAMS_STORAGE_KEY,
   WEBCAM_FILTER_STORAGE_KEY,
+  loadAutoRefresh,
   loadFilteredRegions,
   loadHiddenSourceIds,
+  saveAutoRefresh,
   saveFilteredRegions,
   saveHiddenSourceIds,
 } from "./webcam-storage";
@@ -82,5 +85,35 @@ describe("Webcam preferences storage (ticket 02)", () => {
       JSON.stringify({ v: 1, regions: ["Canada", "Atlantis"] }),
     );
     expect(loadFilteredRegions(localStorage)).toEqual(["Canada"]);
+  });
+});
+
+describe("Webcam auto-refresh preference (ticket 03)", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("defaults auto-refresh to off when nothing is stored", () => {
+    expect(loadAutoRefresh(localStorage)).toBe(false);
+  });
+
+  it("round-trips the auto-refresh setting as a versioned boolean", () => {
+    saveAutoRefresh(localStorage, true);
+    expect(localStorage.getItem(AUTO_REFRESH_STORAGE_KEY)).toBe("true");
+    expect(loadAutoRefresh(localStorage)).toBe(true);
+    saveAutoRefresh(localStorage, false);
+    expect(loadAutoRefresh(localStorage)).toBe(false);
+  });
+
+  it("falls back to off on corrupt or foreign-shaped storage", () => {
+    localStorage.setItem(AUTO_REFRESH_STORAGE_KEY, "not json");
+    expect(loadAutoRefresh(localStorage)).toBe(false);
+    localStorage.setItem(
+      AUTO_REFRESH_STORAGE_KEY,
+      JSON.stringify({ v: 1, enabled: true }),
+    );
+    expect(loadAutoRefresh(localStorage)).toBe(false);
+    localStorage.setItem(AUTO_REFRESH_STORAGE_KEY, JSON.stringify(1));
+    expect(loadAutoRefresh(localStorage)).toBe(false);
   });
 });

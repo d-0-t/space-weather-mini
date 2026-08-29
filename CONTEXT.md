@@ -149,3 +149,11 @@ _Avoid_: cam site, webcam (when the station is meant)
 **Webcam link**:
 A webcams page entry that links out to a video-only or unembeddable webcam (YouTube/Twitch stream, site player, HTTP-only still) instead of displaying an image; gallery items are either webcams (image cards) or webcam links.
 _Avoid_: video cam, stream entry
+
+**Live cam**:
+The one webcam entry (UAF Poker Flat) that follows its operator's CORS-open SSE feed for ~5–15 s frames while live updates are on, instead of reloading an operator-cadence still; it renders as its own card like the Twitch stream, with an honest "live feed unavailable" fallback on feed failure.
+_Avoid_: live feed (without caveat), streaming cam
+
+**Live updates**:
+The per-card opt-in switch on the live cam that gates its SSE feed; it only takes effect while the global auto-refresh setting is on and the tab is visible.
+_Avoid_: live mode, live toggle (internal names only)
