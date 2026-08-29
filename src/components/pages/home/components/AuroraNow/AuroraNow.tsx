@@ -85,7 +85,7 @@ function auroraRibbonPath(i: number): string {
 
 /** Decorative aurora curtain behind the Kp badge; layer n lights up when Kp ≥ n. */
 const AuroraCurtain: React.FC<{ kp: number }> = ({ kp }) => {
-  const lit = Math.max(0, Math.min(AURORA_LAYER_COUNT, Math.floor(kp)));
+  const lit = Math.max(0, Math.min(AURORA_LAYER_COUNT, Math.round(kp)));
   const level = Math.max(1, lit);
   const blurPx = level === 9 ? 3 : 24 - Math.abs(level - 3) * 4;
   return (
