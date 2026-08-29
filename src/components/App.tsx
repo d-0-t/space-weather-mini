@@ -9,6 +9,7 @@ import WeeklyReport from "./pages/forecasts/weekly-report";
 import TwentySevenDayOutlook from "./pages/forecasts/27-day-outlook";
 import ThreeDayForecast from "./pages/forecasts/3-day-forecast";
 import DailyGeomagneticIndices from "./pages/forecasts/daily-geomagnetic-indices";
+import Webcams from "./pages/webcams/webcams";
 import Explainers from "./pages/explainers";
 
 const App: React.FC = () => {
@@ -16,6 +17,7 @@ const App: React.FC = () => {
     <Routes>
       <Route path={""} element={<Home />} />
       <Route path={"home"} element={<Home />} />
+      <Route path={"webcams"} element={<Webcams />} />
       <Route path={"forecasts"} element={<Forecasts />}>
         <Route index element={<ForecastDiscussion />} />
         <Route path={"discussion"} element={<ForecastDiscussion />} />

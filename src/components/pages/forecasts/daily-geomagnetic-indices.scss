@@ -41,7 +41,7 @@
     th:first-child,
     td:first-child {
       width: fit-content;
-      color: rgb(233, 233, 233);
+      color: var(--color-text-primary);
     }
 
     // Sticky date column: stays pinned while the K/A columns scroll

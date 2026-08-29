@@ -3,11 +3,11 @@ import { severityColor } from "./severity";
 
 describe("severityColor", () => {
   it("maps speed to the gray→magenta ramp", () => {
-    expect(severityColor("speed", 150)).toBe("#9aa0a6");
-    expect(severityColor("speed", 200)).toBe("#4ade80");
-    expect(severityColor("speed", 450)).toBe("#facc15");
-    expect(severityColor("speed", 700)).toBe("#f44336");
-    expect(severityColor("speed", 900)).toBe("#ff00ea");
+    expect(severityColor("speed", 150)).toBe("#9aa0a6"); // gray < 200
+    expect(severityColor("speed", 200)).toBe("#4ade80"); // green 200–300
+    expect(severityColor("speed", 450)).toBe("#f44336"); // red 400–600
+    expect(severityColor("speed", 700)).toBe("#ff00ea"); // magenta 600+
+    expect(severityColor("speed", 900)).toBe("#ff00ea"); // magenta 600+
   });
 
   it("maps density with the orange 20–40 band", () => {

@@ -114,6 +114,9 @@ describe("UI palette final sweep – ticket 03 contract", () => {
       /\.kp89[\s\S]*?\}/,
       /\.kp9[\s\S]*?\}/,
       /td\[a-value\][\s\S]*?\}/,
+      // Aurora curtain (AuroraNow.scss): physical aurora emission colours keyed
+      // to Kp level – the same frozen data-token mechanism as .kp01–.kp9
+      /\$aurora-kp-colors:\s*\([^;]*?\);/,
     ];
     for (const file of files) {
       let content = normalize(readFileSync(file, "utf8"));

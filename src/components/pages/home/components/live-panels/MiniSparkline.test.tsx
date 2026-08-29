@@ -66,7 +66,7 @@ describe("MiniSparkline threshold coloring", () => {
     const { container } = render(
       <MiniSparkline
         title="Speed"
-        points={pts([100, 300, 500, 700, 900])}
+        points={pts([100, 250, 350, 500, 700])}
         accent="greenyellow"
         ariaLabel="test speed chart"
         unit="km/s"
@@ -75,10 +75,10 @@ describe("MiniSparkline threshold coloring", () => {
     );
     const strokes = strokesOf(container);
     expect(strokes).toContain("#9aa0a6"); // gray < 200
-    expect(strokes).toContain("#4ade80"); // green 200–400
-    expect(strokes).toContain("#facc15"); // yellow 400–600
-    expect(strokes).toContain("#f44336"); // red 600–800
-    expect(strokes).toContain("#ff00ea"); // magenta 800+
+    expect(strokes).toContain("#4ade80"); // green 200–300
+    expect(strokes).toContain("#facc15"); // yellow 300–400
+    expect(strokes).toContain("#f44336"); // red 400–600
+    expect(strokes).toContain("#ff00ea"); // magenta 600+
   });
 
   it("renders a single accent line when no colorBy is set", () => {

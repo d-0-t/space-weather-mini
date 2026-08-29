@@ -97,4 +97,12 @@ describe("App shell accessibility", () => {
     // This placeholder will be inverted after the fix – see implementation.
     expect(hasCenterInShell).toBe(false);
   });
+
+  it("renders the webcams page at /webcams with a single h1", async () => {
+    renderShell("/webcams");
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Webcams" }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+  });
 });

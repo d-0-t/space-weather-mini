@@ -96,6 +96,21 @@ describe("Header brand link", () => {
   });
 });
 
+describe("Top-level nav entries", () => {
+  it("sits the Webcams entry between Dashboard and Details", () => {
+    renderNav();
+    const nav = screen.getByRole("navigation", { name: /primary/i });
+    const items = Array.from(nav.querySelectorAll("li > a, li > button"));
+    const labels = items.map((el) => el.textContent?.trim() ?? "");
+    const dashboard = labels.indexOf("Dashboard");
+    const webcams = labels.indexOf("Webcams");
+    const details = labels.indexOf("Details");
+    expect(webcams).toBeGreaterThan(dashboard);
+    expect(webcams).toBeLessThan(details);
+    expect(nav.querySelector('a[href="/webcams"]')).not.toBeNull();
+  });
+});
+
 describe("Mobile menu (hamburger)", () => {
   it("exposes a hamburger toggle that controls the menu list via aria-expanded", () => {
     renderNav();

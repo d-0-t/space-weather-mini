@@ -143,6 +143,11 @@ const Nav: React.FC = () => {
               Dashboard
             </Link>
           </li>
+          <li>
+            <Link to={"/webcams"} className="nava">
+              Webcams
+            </Link>
+          </li>
           <li
             className={`forecasts dropdown${isOpen ? " dropdown--open" : ""}`}
             onBlur={handleBlur}
