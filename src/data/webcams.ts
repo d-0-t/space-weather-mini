@@ -151,13 +151,31 @@ export const webcamRegistry: WebcamEntry[] = [
   // ── Image cards: Scandinavia ──────────────────────────────────────────────
   {
     type: "image",
+    id: "irf-kiruna",
+    country: "Sweden",
+    name: "IRF Kiruna all-sky (KAGO)",
+    region: "Scandinavia",
+    latitude: 67.8,
+    operator: "Swedish Institute of Space Physics (IRF)",
+    imageUrl: "https://www.irf.se/alis/allsky/krn/latest_medium.jpeg",
+    cadenceMinutes: 1,
+    refreshable: true,
+    license:
+      "KAGO licence – free for non-commercial use; commercial use needs written permission",
+    note: "(seasonal)",
+    alt: "IRF Kiruna all-sky (KAGO), Scandinavia – current sky view",
+    siteUrl: "https://www2.irf.se/Observatory/",
+  },
+  {
+    type: "image",
     id: "uec-tromso",
     country: "Norway",
     name: "Tromsø AI – Tromsø",
     region: "Scandinavia",
     latitude: 69.6,
     operator: "UEC (Univ. of Electro-Communications)",
-    imageUrl: "https://tromsoe-ai.cei.uec.ac.jp/~nanjo/public/aurora_alert/latest.jpg",
+    imageUrl:
+      "https://tromsoe-ai.cei.uec.ac.jp/~nanjo/public/aurora_alert/latest.jpg",
     cadenceMinutes: 5,
     refreshable: true,
     license: "Academic outreach – credit UEC/NIPR",
@@ -479,23 +497,6 @@ export const webcamRegistry: WebcamEntry[] = [
   },
   {
     type: "image",
-    id: "irf-kiruna",
-    country: "Sweden",
-    name: "IRF Kiruna all-sky (KAGO)",
-    region: "Scandinavia",
-    latitude: 67.8,
-    operator: "Swedish Institute of Space Physics (IRF)",
-    imageUrl: "https://www.irf.se/alis/allsky/krn/latest_medium.jpeg",
-    cadenceMinutes: 1,
-    refreshable: true,
-    license:
-      "KAGO licence – free for non-commercial use; commercial use needs written permission",
-    note: "(seasonal)",
-    alt: "IRF Kiruna all-sky (KAGO), Scandinavia – current sky view",
-    siteUrl: "https://www2.irf.se/Observatory/",
-  },
-  {
-    type: "image",
     id: "sgo-sodankyla",
     country: "Finland",
     name: "SGO UCL all-sky",
@@ -552,10 +553,12 @@ export const webcamRegistry: WebcamEntry[] = [
     region: "Canada",
     latitude: 56.4,
     operator: "UCalgary Auroral Imaging Group",
-    imageUrl: "https://api.phys.ucalgary.ca/api/v1/rt/trexrgb_gill_standard/latest",
+    imageUrl:
+      "https://api.phys.ucalgary.ca/api/v1/rt/trexrgb_gill_standard/latest",
     cadenceMinutes: 1,
     refreshable: true,
-    license: "Academic research network – credit UCalgary Auroral Imaging Group",
+    license:
+      "Academic research network – credit UCalgary Auroral Imaging Group",
     note: "Operates when dark",
     alt: "TREx RGB – Gillam, Canada – current sky view",
     siteUrl: "https://aurora.phys.ucalgary.ca/",
@@ -568,10 +571,12 @@ export const webcamRegistry: WebcamEntry[] = [
     region: "Canada",
     latitude: 50.2,
     operator: "UCalgary Auroral Imaging Group",
-    imageUrl: "https://api.phys.ucalgary.ca/api/v1/rt/trexrgb_pina_standard/latest",
+    imageUrl:
+      "https://api.phys.ucalgary.ca/api/v1/rt/trexrgb_pina_standard/latest",
     cadenceMinutes: 1,
     refreshable: true,
-    license: "Academic research network – credit UCalgary Auroral Imaging Group",
+    license:
+      "Academic research network – credit UCalgary Auroral Imaging Group",
     note: "Operates when dark",
     alt: "TREx RGB – Pinawa, Canada – current sky view",
     siteUrl: "https://aurora.phys.ucalgary.ca/",
@@ -584,10 +589,12 @@ export const webcamRegistry: WebcamEntry[] = [
     region: "Canada",
     latitude: 58.2,
     operator: "UCalgary Auroral Imaging Group",
-    imageUrl: "https://api.phys.ucalgary.ca/api/v1/rt/trexrgb_rabb_standard/latest",
+    imageUrl:
+      "https://api.phys.ucalgary.ca/api/v1/rt/trexrgb_rabb_standard/latest",
     cadenceMinutes: 1,
     refreshable: true,
-    license: "Academic research network – credit UCalgary Auroral Imaging Group",
+    license:
+      "Academic research network – credit UCalgary Auroral Imaging Group",
     note: "Operates when dark",
     alt: "TREx RGB – Rabbit Lake, Canada – current sky view",
     siteUrl: "https://aurora.phys.ucalgary.ca/",
@@ -600,10 +607,12 @@ export const webcamRegistry: WebcamEntry[] = [
     region: "Canada",
     latitude: 49.4,
     operator: "UCalgary Auroral Imaging Group",
-    imageUrl: "https://api.phys.ucalgary.ca/api/v1/rt/smileasi_kapu_standard/latest",
+    imageUrl:
+      "https://api.phys.ucalgary.ca/api/v1/rt/smileasi_kapu_standard/latest",
     cadenceMinutes: 1,
     refreshable: true,
-    license: "Academic research network – credit UCalgary Auroral Imaging Group",
+    license:
+      "Academic research network – credit UCalgary Auroral Imaging Group",
     note: "Operates when dark",
     alt: "SMILE ASI – Kapuskasing, Canada – current sky view",
     siteUrl: "https://aurora.phys.ucalgary.ca/",
@@ -616,10 +625,12 @@ export const webcamRegistry: WebcamEntry[] = [
     region: "Canada",
     latitude: 62.8,
     operator: "UCalgary Auroral Imaging Group",
-    imageUrl: "https://api.phys.ucalgary.ca/api/v1/rt/smileasi_rank_standard/latest",
+    imageUrl:
+      "https://api.phys.ucalgary.ca/api/v1/rt/smileasi_rank_standard/latest",
     cadenceMinutes: 1,
     refreshable: true,
-    license: "Academic research network – credit UCalgary Auroral Imaging Group",
+    license:
+      "Academic research network – credit UCalgary Auroral Imaging Group",
     note: "Operates when dark",
     alt: "SMILE ASI – Rankin Inlet, Canada – current sky view",
     siteUrl: "https://aurora.phys.ucalgary.ca/",
@@ -635,7 +646,8 @@ export const webcamRegistry: WebcamEntry[] = [
     imageUrl: "https://cam01.sci.ucalgary.ca/AllSkyCam/AllSkyCurrentImage.JPG",
     cadenceMinutes: 2,
     refreshable: true,
-    license: "Academic research network – credit UCalgary Auroral Imaging Group",
+    license:
+      "Academic research network – credit UCalgary Auroral Imaging Group",
     note: null,
     alt: "UCalgary campus all-sky, Canada – current sky view",
     siteUrl: "https://aurora.phys.ucalgary.ca/",
@@ -726,7 +738,7 @@ export const webcamRegistry: WebcamEntry[] = [
     sseUrl: "https://allsky.gi.alaska.edu/src/checkLive.php?cam=poker-flat",
     frameBaseUrl: "https://allsky.gi.alaska.edu/",
     license: "Public monitor – credit Geophysical Institute, UAF",
-    note: "Night-only – placeholder frame in daylight",
+    note: null,
     alt: "UAF Allsky Aurora Camera – Poker Flat, Alaska – current sky view",
     siteUrl: "https://allsky.gi.alaska.edu/",
   },
@@ -752,7 +764,7 @@ export const webcamRegistry: WebcamEntry[] = [
     operator: "Graham's AllSky",
     url: "http://grahamsallsky.zapto.org/allsky/image.jpg",
     kind: "http-only",
-    note: "HTTP-only still – blocked by mixed content on HTTPS pages",
+    note: null,
   },
 
   // ── Link rows: UK ─────────────────────────────────────────────────────────
@@ -882,7 +894,7 @@ export const webcamRegistry: WebcamEntry[] = [
     operator: "National Institute of Polar Research (NIPR)",
     url: "http://pc115.seg20.nipr.ac.jp/www/opt/realtime.html",
     kind: "http-only",
-    note: "HTTP-only still – blocked by mixed content on HTTPS pages",
+    note: null,
   },
 
   // ── Link rows: Canada ─────────────────────────────────────────────────────

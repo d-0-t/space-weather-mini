@@ -20,45 +20,13 @@
   }
 
   &__autorefresh {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.4rem 0.85rem;
-    border: 1px solid var(--color-border-muted);
-    border-radius: 999px;
-    background: var(--color-bg-surface);
-    color: var(--color-text-primary);
-    font-weight: 600;
-    cursor: pointer;
+    // Checkbox on the right of the label, like the Compact view toggle
+    flex-direction: row-reverse;
 
     &__checkbox {
       accent-color: var(--color-accent-strong);
       width: 1.1rem;
       height: 1.1rem;
-    }
-  }
-
-  &__button {
-    padding: 0.4rem 0.85rem;
-    border: 1px solid var(--color-border-muted);
-    border-radius: 999px;
-    background: var(--color-bg-surface);
-    color: var(--color-text-primary);
-    font-weight: 600;
-    cursor: pointer;
-
-    &:hover:not(:disabled) {
-      border-color: var(--color-accent-strong);
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: default;
-    }
-
-    &--small {
-      padding: 0.25rem 0.6rem;
-      font-size: 0.8rem;
     }
   }
 
@@ -216,11 +184,6 @@
     }
   }
 
-  &__top {
-    font-size: 0.85rem;
-    white-space: nowrap;
-  }
-
   &__cards {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
@@ -247,6 +210,8 @@
 }
 
 .webcam-card {
+  display: flex;
+  flex-direction: column;
   min-width: 0;
   background: var(--gradient-card);
   border: 1px solid var(--color-border-muted-transparent);
@@ -259,6 +224,11 @@
   }
 
   &--stream {
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  &--live {
     width: fit-content;
     max-width: 100%;
   }
@@ -302,14 +272,40 @@
     font-size: 0.8rem;
   }
 
+  // Attribution + actions pin to the bottom of the card so uneven image
+  // heights don't leave ragged card bottoms.
   &__attribution {
-    margin: 0.5rem 0 0 0;
+    margin-top: auto;
+    padding-top: 0.5rem;
     font-size: 0.85rem;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+
+    .webcam-card__hide {
+      margin-top: 0;
+    }
+  }
+
+  &__live-toggle {
+    // Checkbox on the right of the label, like the auto-refresh pill
+    flex-direction: row-reverse;
+    margin: 0;
+
+    &__checkbox {
+      accent-color: var(--color-accent-strong);
+      width: 1.1rem;
+      height: 1.1rem;
+    }
   }
 
   &__hide {
     margin-top: 0.5rem;
-    font-size: 0.8rem;
   }
 
   &__feed-fallback {
@@ -318,22 +314,6 @@
     border: 1px dashed var(--color-border-muted-transparent);
     border-radius: 8px;
     font-size: 0.85rem;
-  }
-
-  &__live-toggle {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    margin-top: 0.5rem;
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-
-    &__checkbox {
-      accent-color: var(--color-accent-strong);
-      width: 1rem;
-      height: 1rem;
-    }
   }
 
   &__twitch {
@@ -381,6 +361,5 @@
 
   &__hide {
     margin-left: auto;
-    font-size: 0.75rem;
   }
 }

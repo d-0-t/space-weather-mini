@@ -13,6 +13,8 @@
   --color-light-lime: #a0e35f;
   --color-gold: #fcbe52;
   --color-orange: #ff5100;
+  // Status red – active-filter/hidden indicators (ticket 05)
+  --color-status-red: #e5484d;
 
   --color-bg-page: var(--color-black);
   --color-text-primary: var(--color-white);
@@ -100,6 +102,115 @@ code {
   clip: rect(0 0 0 0);
   white-space: nowrap;
   border: 0;
+}
+
+/* ── Shared button system (ticket 05) ───────────────────────────────────────
+   Three variants: primary (green CTA), secondary (dark pill, browser-alerts
+   style), icon (emoji-only, Astro-mode style). Labels collapse to icons on
+   narrow screens; active-state controls carry a red corner dot. */
+
+.btn--primary {
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-accent-strong);
+  border-radius: 0.5rem;
+  background-color: var(--color-accent-strong);
+  color: var(--color-text-inverse);
+  font-weight: 600;
+
+  &:hover:not(:disabled) {
+    background-color: var(--color-medium-green);
+    border-color: var(--color-medium-green);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+.btn--secondary {
+  position: relative;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-accent-strong);
+  border: 1px solid var(--color-border-muted);
+  border-radius: 0.5rem;
+  background-color: color-mix(in srgb, var(--color-black) 70%, transparent);
+
+  &:hover:not(:disabled) {
+    color: var(--color-white);
+    border-color: var(--color-accent-strong);
+    background-color: var(--color-deep-indigo);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: default;
+  }
+}
+
+.btn--icon {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 0.75rem;
+  background-color: var(--color-black);
+  border: 2px solid var(--color-border-muted-transparent);
+  border-radius: 1rem;
+  line-height: 1;
+
+  &:hover:not(:disabled) {
+    border-color: var(--color-border-muted);
+    background-color: var(--color-deep-indigo);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
+}
+
+/* Red corner dot marking an active state (filter applied, sources hidden) */
+.btn__badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--color-status-red);
+  border: 1px solid var(--color-black);
+}
+
+/* Below ~1000px icon+label buttons collapse to icons: the label becomes
+   visually-hidden (still announced), the title attribute names the control
+   for mouse users, and icon buttons go square again. */
+@media (max-width: 999px) {
+  .btn__label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .btn--icon {
+    padding: 0;
+  }
 }
 
 /* Skip link – first focusable element, visible only on focus */

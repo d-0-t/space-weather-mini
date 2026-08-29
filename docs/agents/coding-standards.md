@@ -13,6 +13,7 @@ The conventions every change to this repo must follow. Enforced by review, not t
 ## Styling
 
 - SCSS (dart-sass, built by Vite) with **BEM** naming: `block__element--modifier`. Nesting only to express BEM structure, e.g. `list__item__img` — never deeper than one modifier/state level.
+- **Shared button system** (ticket 05): `.btn--primary` / `.btn--secondary` / `.btn--icon` plus `.btn__label` / `.btn__badge` live in `index.scss` as a deliberate cross-block utility layer (the BEM exception — buttons on any page may adopt the modifier classes directly, as the Astro toggle, browser-alerts button, Compact view toggle and all webcams controls do).
 - **Color tokens**: the UI palette lives on `:root` in `src/index.scss` as CSS custom properties (raw `--color-*` plus semantic aliases and `--gradient-card`/`--gradient-header`) per ADR 0002. Every non-data color MUST use a token — never raw `rgb(...)`/`#...` outside the frozen data selectors. The `.kp01`–`.kp9` band classes and `td[a-value]` are the frozen **data-token** mechanism for Kp-index and A-index presentation and are never variable-ized; all other table chrome (`table`, `th`, `td`, `tr:nth-child`, hover outlines, `td[cellType]`) uses the `:root` tokens (or `color-mix(in srgb, var(--color-deep-indigo) … , black)` for zebra striping).
 - Semantic HTML: tables for tabular products, headings in order, one `<h1>` per page.
 

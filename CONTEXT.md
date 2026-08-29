@@ -121,7 +121,7 @@ _Avoid_: regional text, regionale (the product carries no per-region prose)
 ### Presentation
 
 **UI palette**:
-The eight-color system for all non-data UI derived from the aurora bird: White, Black, Deep Indigo, Primary Dark Violet, Lighter Purple Highlights, Dark Green Shadows/Bases, Medium Green Midtones, and Light Lime Highlights.
+The eight-color system for all non-data UI derived from the aurora bird: White, Black, Deep Indigo, Primary Dark Violet, Lighter Purple Highlights, Dark Green Shadows/Bases, Medium Green Midtones, and Light Lime Highlights. Plus the status accents gold, orange, and status red (active-filter / hidden-source indicators, ticket 05).
 _Avoid_: theme colors, brand palette
 
 **Color token**:

@@ -34,7 +34,7 @@ const Alerts: React.FC = () => {
         {notificationsSupported ? (
           <button
             type="button"
-            className="alerts__header__notify"
+            className="btn--secondary"
             onClick={enableBrowserAlerts}
             disabled={
               notificationState === "granted" || notificationState === "denied"

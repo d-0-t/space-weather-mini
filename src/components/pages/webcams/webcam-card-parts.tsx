@@ -1,0 +1,122 @@
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+
+import FullSizeModal from "../../FullSizeModal";
+import { webcamCountryCode, type WebcamRegion } from "../../../data/webcams";
+
+/** Flag + "Station · 69.6°N" title shared by the image and live cards. */
+export const WebcamCardTitle: React.FC<{
+  country: string;
+  name: string;
+  latitude: number;
+}> = ({ country, name, latitude }) => (
+  <h3 className="webcam-card__title">
+    <img
+      className="webcam-card__flag"
+      src={flagSrc(webcamCountryCode(country), "16x12")}
+      srcSet={`${flagSrc(webcamCountryCode(country), "32x24")} 2x, ${flagSrc(
+        webcamCountryCode(country),
+        "48x36",
+      )} 3x`}
+      width={16}
+      height={12}
+      alt={country}
+      title={country}
+      loading="lazy"
+    />{" "}
+    {name} · {formatLatitude(latitude)}
+  </h3>
+);
+
+/** Full-size view wrapper shared by the image and live cards. */
+export const WebcamCardImage: React.FC<{
+  label: string;
+  src: string;
+  alt: string;
+}> = ({ label, src, alt }) => (
+  <FullSizeModal
+    label={label}
+    trigger={<img src={src} alt={alt} className="webcam-card__img" />}
+    triggerClassName="webcam-card__trigger"
+  >
+    <img src={src} alt={alt} />
+  </FullSizeModal>
+);
+
+/** "Source: {operator}" attribution link shared by the image and live cards. */
+export const WebcamCardAttribution: React.FC<{
+  operator: string;
+  siteUrl: string;
+}> = ({ operator, siteUrl }) => (
+  <p className="webcam-card__attribution">
+    Source:{" "}
+    <a href={siteUrl} target="_blank" rel="noopener noreferrer">
+      {operator}
+    </a>
+  </p>
+);
+
+/**
+ * Icon Hide control shared by every gallery item (image card, live card,
+ * Twitch card, link row): a crossed-out-eye glyph with the station in the
+ * tooltip and the accessible name; the word "Hide" shows beside the icon on
+ * wide screens and collapses to sr-only below 1000px (btn__label).
+ */
+export const WebcamHideButton: React.FC<{
+  name: string;
+  onHide: () => void;
+  className?: string;
+}> = ({ name, onHide, className = "" }) => (
+  <button
+    type="button"
+    className={`btn--icon webcam-card__hide${className ? ` ${className}` : ""}`}
+    title={`Hide ${name}`}
+    aria-label={`Hide ${name}`}
+    onClick={onHide}
+  >
+    <VisibilityOffIcon fontSize="medium" />
+    <span className="btn__label">Hide</span>
+  </button>
+);
+
+/** Props every gallery card (image or live) needs from the page. */
+export interface WebcamCardBaseProps {
+  autoRefresh: boolean;
+  tabVisible: boolean;
+  onHide: (id: string) => void;
+}
+
+export const regionLabel = (region: WebcamRegion): string =>
+  region === "rest" ? "Other regions" : region;
+
+export const formatLatitude = (latitude: number): string =>
+  `${Math.abs(latitude).toFixed(1)}°${latitude < 0 ? "S" : "N"}`;
+
+/** Flagcdn.com flag URLs per flagpedia's download API (16×12 base, 2x/3x retina). */
+export const flagSrc = (code: string, size: "16x12" | "32x24" | "48x36"): string =>
+  `https://flagcdn.com/${size}/${code}.png`;
+
+export const formatLoadedTime = (): string =>
+  new Date().toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+/** Cache-busts a still so the browser can't serve a stale frame. */
+export const cacheBustedSrc = (url: string): string => `${url}?t=${Date.now()}`;
+
+/**
+ * Extracts the current frame path from the operator's SSE data line, which is
+ * a JSON object of cameras (`{ "0": "PKR/tagged_cam/PKR_260829140029.jpg", … }`);
+ * returns null when the payload isn't that shape.
+ */
+export const parseSseFramePath = (raw: string): string | null => {
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== "object" || parsed === null) return null;
+    const first = Object.values(parsed)[0];
+    return typeof first === "string" && first.length > 0 ? first : null;
+  } catch {
+    return null;
+  }
+};

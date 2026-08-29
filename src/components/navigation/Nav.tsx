@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
 
 import "./Nav.scss";
 
@@ -202,13 +203,13 @@ const Nav: React.FC = () => {
           <li>
             <button
               type="button"
-              className="btn--astro-toggle"
+              className="btn--icon"
               title="Astro mode"
               aria-pressed={isAstro}
               onClick={toggleAstro}
             >
-              <span aria-hidden="true">🌙</span>
-              <span className="sr-only">Astro mode</span>
+              <DarkModeIcon fontSize="medium" />
+              <span className="btn__label">Astro mode</span>
             </button>
           </li>
         </ul>

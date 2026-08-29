@@ -16,5 +16,6 @@ Why: a single dark theme preserves night-sky visibility ("if you look at it in t
 **Consequences**:
 
 - Every non-data color MUST use a token; raw `rgb(...)`/`#...` outside `kp*`/`a-value` is a lint failure.
+- The raw palette in `:root` is the aurora-bird eight-color system plus the status accents `--color-gold`, `--color-orange` and `--color-status-red` (added 2026-08-29, ticket 05, for the active-filter/hidden-source indicator dots); status colors follow the same token rule as the rest of the UI.
 - `App.scss` `*{color:white}` is narrowed to respect accent tokens.
 - Visual verification is one atomic PR touching `index.scss`, `Nav.scss`, `Pages.scss`, `Tables.scss` (non-Kp), `glossary-term.scss`, verified by Vitest + Playwright a11y specs and contrast checks (white on black 21:1, white on Deep Indigo ~14:1, Light Lime outline ~13:1 on black — all WCAG 2.1 AA).
