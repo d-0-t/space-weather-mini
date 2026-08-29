@@ -135,3 +135,17 @@ _Avoid_: panel, container, box
 **Accent**:
 A green highlight used for links, headings, glossary terms, or focus outlines.
 _Avoid_: highlight, brand color, lime
+
+### Webcams
+
+**Webcam**:
+A third-party live sky camera image feed displayed on the webcams page, refreshed by its operator on a published cadence; the app only embeds feeds whose operator permits it and always attributes the source.
+_Avoid_: live feed (without caveat), aurora cam, sky camera
+
+**Camera station**:
+The physical site and its operator pair behind a webcam (e.g. UEC Tromsø AI at Tromsø, Norway); the unit of attribution.
+_Avoid_: cam site, webcam (when the station is meant)
+
+**Webcam link**:
+A webcams page entry that links out to a video-only or unembeddable webcam (YouTube/Twitch stream, site player, HTTP-only still) instead of displaying an image; gallery items are either webcams (image cards) or webcam links.
+_Avoid_: video cam, stream entry
