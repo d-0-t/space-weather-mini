@@ -469,7 +469,7 @@ export const MiniSparkline: React.FC<{
                 : undefined
             }
             tick={{ fill: "var(--color-white)", fontSize: 11 }}
-            width={44}
+            width="auto"
             tickLine={false}
             axisLine={false}
           />
