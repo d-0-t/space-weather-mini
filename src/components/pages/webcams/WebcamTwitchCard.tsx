@@ -3,14 +3,18 @@ import type { WebcamTwitchEntry } from "../../../data/webcams";
 import {
   WebcamCardAttribution,
   WebcamHideButton,
+  WebcamPinToggle,
+  type WebcamPinProps,
 } from "./webcam-card-parts";
 
 /** The Lights over Lapland Twitch player – never autoplaying (ticket 01). */
-const WebcamTwitchCard: React.FC<{
-  entry: WebcamTwitchEntry;
-  parent: string;
-  onHide: (id: string) => void;
-}> = ({ entry, parent, onHide }) => (
+const WebcamTwitchCard: React.FC<
+  WebcamPinProps & {
+    entry: WebcamTwitchEntry;
+    parent: string;
+    onHide: (id: string) => void;
+  }
+> = ({ entry, parent, onHide, pinMode, pinned, pinDisabled, onTogglePin }) => (
   <div className="webcam-card webcam-card--stream webcam-card--wide">
     <div className="webcam-card__head">
       <h3 className="webcam-card__title">{entry.name}</h3>
@@ -26,6 +30,14 @@ const WebcamTwitchCard: React.FC<{
     />
     <WebcamCardAttribution operator={entry.operator} siteUrl={entry.siteUrl} />
     {entry.note ? <p className="webcam-card__note">{entry.note}</p> : null}
+    <WebcamPinToggle
+      id={entry.id}
+      name={entry.name}
+      pinMode={pinMode}
+      pinned={pinned}
+      pinDisabled={pinDisabled}
+      onTogglePin={onTogglePin}
+    />
   </div>
 );
 

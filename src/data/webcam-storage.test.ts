@@ -3,16 +3,22 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   AUTO_REFRESH_STORAGE_KEY,
   HIDDEN_WEBCAMS_STORAGE_KEY,
+  PINS_AUTO_REFRESH_STORAGE_KEY,
+  PINNED_WEBCAMS_STORAGE_KEY,
   WEBCAM_FILTER_STORAGE_KEY,
   WEBCAM_PANELS_STORAGE_KEY,
   loadAutoRefresh,
   loadClosedPanels,
   loadFilteredRegions,
   loadHiddenSourceIds,
+  loadPinsAutoRefresh,
+  loadPinnedIds,
   saveAutoRefresh,
   saveClosedPanels,
   saveFilteredRegions,
   saveHiddenSourceIds,
+  savePinsAutoRefresh,
+  savePinnedIds,
 } from "./webcam-storage";
 
 describe("Webcam preferences storage (ticket 02)", () => {
@@ -162,5 +168,67 @@ describe("Webcam auto-refresh preference (ticket 03)", () => {
     expect(loadAutoRefresh(localStorage)).toBe(false);
     localStorage.setItem(AUTO_REFRESH_STORAGE_KEY, JSON.stringify(1));
     expect(loadAutoRefresh(localStorage)).toBe(false);
+  });
+});
+
+describe("Webcam pins storage", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("returns no pinned ids when nothing is stored", () => {
+    expect(loadPinnedIds(localStorage)).toEqual([]);
+  });
+
+  it("round-trips pinned ids as a versioned array, capped at two", () => {
+    savePinnedIds(localStorage, ["uec-tromso", "auroramax"]);
+    expect(localStorage.getItem(PINNED_WEBCAMS_STORAGE_KEY)).toBe(
+      JSON.stringify({ v: 1, pins: ["uec-tromso", "auroramax"] }),
+    );
+    expect(loadPinnedIds(localStorage)).toEqual([
+      "uec-tromso",
+      "auroramax",
+    ]);
+    // The UI contract is 1-2 pins – extras are dropped on save and load
+    savePinnedIds(localStorage, ["a", "b", "c"]);
+    expect(loadPinnedIds(localStorage)).toEqual(["a", "b"]);
+    localStorage.setItem(
+      PINNED_WEBCAMS_STORAGE_KEY,
+      JSON.stringify({ v: 1, pins: ["x", "y", "z"] }),
+    );
+    expect(loadPinnedIds(localStorage)).toEqual(["x", "y"]);
+  });
+
+  it("drops duplicates and non-string junk from pinned ids", () => {
+    savePinnedIds(localStorage, ["uec-tromso", "uec-tromso"]);
+    expect(loadPinnedIds(localStorage)).toEqual(["uec-tromso"]);
+    localStorage.setItem(
+      PINNED_WEBCAMS_STORAGE_KEY,
+      JSON.stringify({ v: 1, pins: ["uec-tromso", 42, null] }),
+    );
+    expect(loadPinnedIds(localStorage)).toEqual(["uec-tromso"]);
+  });
+
+  it("falls back to no pins on corrupt, foreign-shaped, or unknown-version storage", () => {
+    localStorage.setItem(PINNED_WEBCAMS_STORAGE_KEY, "not json");
+    expect(loadPinnedIds(localStorage)).toEqual([]);
+    localStorage.setItem(PINNED_WEBCAMS_STORAGE_KEY, JSON.stringify({ v: 1 }));
+    expect(loadPinnedIds(localStorage)).toEqual([]);
+    localStorage.setItem(
+      PINNED_WEBCAMS_STORAGE_KEY,
+      JSON.stringify({ v: 99, pins: ["uec-tromso"] }),
+    );
+    expect(loadPinnedIds(localStorage)).toEqual([]);
+  });
+
+  it("defaults the Dashboard pins auto-refresh to off and round-trips it", () => {
+    expect(loadPinsAutoRefresh(localStorage)).toBe(false);
+    savePinsAutoRefresh(localStorage, true);
+    expect(localStorage.getItem(PINS_AUTO_REFRESH_STORAGE_KEY)).toBe("true");
+    expect(loadPinsAutoRefresh(localStorage)).toBe(true);
+    localStorage.setItem(PINS_AUTO_REFRESH_STORAGE_KEY, "not json");
+    expect(loadPinsAutoRefresh(localStorage)).toBe(false);
+    localStorage.setItem(PINS_AUTO_REFRESH_STORAGE_KEY, JSON.stringify(1));
+    expect(loadPinsAutoRefresh(localStorage)).toBe(false);
   });
 });

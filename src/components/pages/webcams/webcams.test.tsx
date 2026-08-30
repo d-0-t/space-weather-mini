@@ -1,10 +1,4 @@
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  within,
-} from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import Webcams from "./webcams";
@@ -186,11 +180,16 @@ describe("Webcams page", () => {
     const sourceLink = within(source).getByRole("link", {
       name: "Test Observatory",
     });
-    expect(sourceLink).toHaveAttribute("href", "https://example.org/north-star");
+    expect(sourceLink).toHaveAttribute(
+      "href",
+      "https://example.org/north-star",
+    );
     expect(sourceLink).toHaveAttribute("target", "_blank");
     expect(sourceLink).toHaveAttribute("rel", "noopener noreferrer");
     expect(within(card).queryByText(/licence/i)).not.toBeInTheDocument();
-    expect(within(card).queryByRole("link", { name: /visit site/i })).toBeNull();
+    expect(
+      within(card).queryByRole("link", { name: /visit site/i }),
+    ).toBeNull();
     expect(card.querySelector(".webcam-card__img")).toHaveAttribute(
       "src",
       "https://cdn.example.org/north-star.jpg",
@@ -199,9 +198,7 @@ describe("Webcams page", () => {
 
   it("shows the seasonal note on a card appended to the freshness line and renders panoramic cards last as full-row banners", () => {
     renderPage();
-    const card = screen
-      .getByText(/Aurora Ridge · 56\.4°N/)
-      .closest("article")!;
+    const card = screen.getByText(/Aurora Ridge · 56\.4°N/).closest("article")!;
     expect(
       within(card).getByText(
         /^Loaded \d{2}:\d{2} · Refreshes every 2 min · \(seasonal\)$/,
@@ -246,7 +243,9 @@ describe("Webcams page", () => {
       expect(top).toHaveClass("webcams__jump");
     }
     // Image regions (2) + Webcam links
-    expect(screen.getAllByRole("link", { name: "Jump to top" })).toHaveLength(3);
+    expect(screen.getAllByRole("link", { name: "Jump to top" })).toHaveLength(
+      3,
+    );
   });
 
   it("renders a Jump to row with a pill per section heading", () => {
@@ -285,12 +284,13 @@ describe("Webcams page", () => {
       screen.queryByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
     ).toBeNull();
     // The Twitch stream card in the Nordic region hides with it
-    expect(
-      screen.queryByTitle("Night Sky Live – live on Twitch"),
-    ).toBeNull();
+    expect(screen.queryByTitle("Night Sky Live – live on Twitch")).toBeNull();
     // Sibling regions stay open
     expect(
-      screen.getByRole("heading", { level: 3, name: /Northern Lights · 51\.1°N/ }),
+      screen.getByRole("heading", {
+        level: 3,
+        name: /Northern Lights · 51\.1°N/,
+      }),
     ).toBeInTheDocument();
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
@@ -304,9 +304,7 @@ describe("Webcams page", () => {
     const toggle = screen.getByRole("button", { name: "Webcam links" });
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "false");
-    expect(
-      screen.queryByRole("link", { name: "Midnight Glacier" }),
-    ).toBeNull();
+    expect(screen.queryByRole("link", { name: "Midnight Glacier" })).toBeNull();
     expect(
       screen.getByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
     ).toBeInTheDocument();
@@ -315,8 +313,8 @@ describe("Webcams page", () => {
   it("groups link rows by region with the UK first and Other regions last", () => {
     renderPage();
     const linksSection = document.querySelector(".webcams__links")!;
-    const h3s = Array.from(linksSection.querySelectorAll("h3")).map(
-      (h) => h.textContent?.trim(),
+    const h3s = Array.from(linksSection.querySelectorAll("h3")).map((h) =>
+      h.textContent?.trim(),
     );
     // Fixture link regions: Nordic (one Iceland row) then Other regions
     expect(h3s[0]).toBe("Nordic");
@@ -330,14 +328,13 @@ describe("Webcams page", () => {
     const nordicTitle = document.querySelector(
       ".webcams__links-region .webcams__links-region-title",
     )!;
-    expect(nordicTitle.querySelector("img")).toHaveAttribute(
-      "alt",
-      "Iceland",
-    );
+    expect(nordicTitle.querySelector("img")).toHaveAttribute("alt", "Iceland");
     // The Other regions section mixes New Zealand and Switzerland → per-row flags
     const restRows = Array.from(document.querySelectorAll(".webcam-link-row"));
     const alts = restRows
-      .map((row) => row.querySelector(".webcam-link-row__flag")?.getAttribute("alt"))
+      .map((row) =>
+        row.querySelector(".webcam-link-row__flag")?.getAttribute("alt"),
+      )
       .filter((alt): alt is string => alt !== undefined);
     expect(alts).toContain("New Zealand");
     expect(alts).toContain("Switzerland");
@@ -359,10 +356,15 @@ describe("Webcams page", () => {
       within(streamCard as HTMLElement).getByText(/^Source:/),
     ).toHaveTextContent("Night Sky Live");
     const sourceLink = screen.getByRole("link", { name: "Night Sky Live" });
-    expect(sourceLink).toHaveAttribute("href", "https://example.org/night-sky-live");
+    expect(sourceLink).toHaveAttribute(
+      "href",
+      "https://example.org/night-sky-live",
+    );
     expect(sourceLink).toHaveAttribute("target", "_blank");
     // No autoplay copy, no separate watch link
-    expect(screen.queryByText(/nothing streams until you press play/i)).toBeNull();
+    expect(
+      screen.queryByText(/nothing streams until you press play/i),
+    ).toBeNull();
     expect(
       screen.queryByRole("link", { name: /watch live on twitch/i }),
     ).toBeNull();
@@ -397,7 +399,9 @@ describe("Webcams page", () => {
       name: /north star, full size/i,
     });
     fireEvent.click(trigger);
-    const dialog = document.querySelector("dialog.image-modal") as HTMLDialogElement;
+    const dialog = document.querySelector(
+      "dialog.image-modal",
+    ) as HTMLDialogElement;
     expect(dialog.open).toBe(true);
     expect(dialog.querySelector("img")).toHaveAttribute(
       "src",
@@ -412,7 +416,9 @@ describe("Webcams page", () => {
     fireEvent.click(
       screen.getByRole("button", { name: /north star, full size/i }),
     );
-    const dialog = document.querySelector("dialog.image-modal") as HTMLDialogElement;
+    const dialog = document.querySelector(
+      "dialog.image-modal",
+    ) as HTMLDialogElement;
     expect(dialog.open).toBe(true);
     fireEvent.keyDown(dialog, { key: "Escape" });
     expect(dialog.open).toBe(false);
@@ -423,7 +429,10 @@ describe("Webcams page", () => {
     expect(screen.getByText(/looking for more\?/i)).toBeInTheDocument();
     expect(screen.getByText(/from around the world/i)).toBeInTheDocument();
     const earthcam = screen.getByRole("link", { name: /earthcam/i });
-    expect(earthcam).toHaveAttribute("href", "https://www.earthcam.com/mapsearch/");
+    expect(earthcam).toHaveAttribute(
+      "href",
+      "https://www.earthcam.com/mapsearch/",
+    );
     expect(earthcam).toHaveAttribute("target", "_blank");
   });
 });
@@ -489,9 +498,7 @@ describe("Webcams auto-refresh header (ticket 03)", () => {
   it("keeps the Refresh, Filter and Hidden sources controls in the header row with the h1", () => {
     renderPage();
     const heading = screen.getByRole("heading", { level: 1, name: "Webcams" });
-    const headerRow = heading.closest(
-      ".webcams__header",
-    ) as HTMLElement;
+    const headerRow = heading.closest(".webcams__header") as HTMLElement;
     const refresh = within(headerRow).getByRole("button", { name: "Refresh" });
     const filter = within(headerRow).getByRole("button", {
       name: "Filter by region (0)",
@@ -547,26 +554,22 @@ describe("Webcams auto-refresh header (ticket 03)", () => {
 
     // An applied filter updates the Filter label
     const dialog = openFilter();
-    fireEvent.click(
-      within(dialog).getByRole("checkbox", { name: "Nordic" }),
-    );
+    fireEvent.click(within(dialog).getByRole("checkbox", { name: "Nordic" }));
     fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
     const filterAfter = screen.getByRole("button", {
       name: "Filter by region (1)",
     });
     expect(filterAfter.querySelector(".btn__badge")).toBeNull();
     expect(
-      screen.getByRole("button", { name: "Hidden sources (1)" }).querySelector(
-        ".btn__badge",
-      ),
+      screen
+        .getByRole("button", { name: "Hidden sources (1)" })
+        .querySelector(".btn__badge"),
     ).toBeNull();
   });
 
   it("persists the auto-refresh setting and restores it on a fresh mount", () => {
     const { unmount } = render(<Webcams entries={fixtureEntries} />);
-    fireEvent.click(
-      screen.getByRole("checkbox", { name: /auto-refresh/i }),
-    );
+    fireEvent.click(screen.getByRole("checkbox", { name: /auto-refresh/i }));
     expect(
       screen.getByRole("checkbox", { name: /auto-refresh/i }),
     ).toBeChecked();
@@ -603,7 +606,8 @@ describe("Webcams auto-refresh cadence (ticket 03)", () => {
     const northernImg = cardImage("Northern Lights · 51.1°N");
     const stillImg = cardImage("Still Sky · 53.0°N");
     const auroraCard = auroraImg.closest("article")!;
-    const freshnessBefore = within(auroraCard).getByText(/^Loaded /).textContent;
+    const freshnessBefore =
+      within(auroraCard).getByText(/^Loaded /).textContent;
     advance(60_000);
     fireEvent.click(screen.getByRole("button", { name: "Refresh" }));
     expect(auroraImg.getAttribute("src")).toMatch(
@@ -625,9 +629,7 @@ describe("Webcams auto-refresh cadence (ticket 03)", () => {
 
   it("reloads refreshable cards at their own cadence and never faster, leaving non-refreshable cards untouched", () => {
     renderPage();
-    fireEvent.click(
-      screen.getByRole("checkbox", { name: /auto-refresh/i }),
-    );
+    fireEvent.click(screen.getByRole("checkbox", { name: /auto-refresh/i }));
     const auroraImg = cardImage("Aurora Ridge · 56.4°N");
     const northernImg = cardImage("Northern Lights · 51.1°N");
     const stillImg = cardImage("Still Sky · 53.0°N");
@@ -652,9 +654,7 @@ describe("Webcams auto-refresh cadence (ticket 03)", () => {
 
   it("never auto-refreshes the Twitch player or the link rows", () => {
     renderPage();
-    fireEvent.click(
-      screen.getByRole("checkbox", { name: /auto-refresh/i }),
-    );
+    fireEvent.click(screen.getByRole("checkbox", { name: /auto-refresh/i }));
     const twitchSrc = screen
       .getByTitle("Night Sky Live – live on Twitch")
       .getAttribute("src");
@@ -709,9 +709,7 @@ describe("Webcams auto-refresh visibility (ticket 03)", () => {
 
   it("pauses cadence reloads while the tab is hidden and resumes when it becomes visible", () => {
     renderPage();
-    fireEvent.click(
-      screen.getByRole("checkbox", { name: /auto-refresh/i }),
-    );
+    fireEvent.click(screen.getByRole("checkbox", { name: /auto-refresh/i }));
     const auroraImg = cardImage("Aurora Ridge · 56.4°N");
     const before = auroraImg.getAttribute("src");
 
@@ -748,13 +746,18 @@ describe("Webcams hiding", () => {
     expect(
       screen.queryByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
     ).toBeNull();
-    expect(screen.queryByAltText("North Star, Nordic – current sky view")).toBeNull();
+    expect(
+      screen.queryByAltText("North Star, Nordic – current sky view"),
+    ).toBeNull();
     expect(localStorage.getItem("sw:webcams:hidden:v1")).toBe(
       JSON.stringify(["north-star"]),
     );
     // Siblings stay
     expect(
-      screen.getByRole("heading", { level: 3, name: /Northern Lights · 51\.1°N/ }),
+      screen.getByRole("heading", {
+        level: 3,
+        name: /Northern Lights · 51\.1°N/,
+      }),
     ).toBeInTheDocument();
   });
 
@@ -784,7 +787,10 @@ describe("Webcams hiding", () => {
       screen.getByRole("heading", { level: 3, name: /Aurora Ridge · 56\.4°N/ }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("heading", { level: 3, name: /Northern Lights · 51\.1°N/ }),
+      screen.queryByRole("heading", {
+        level: 3,
+        name: /Northern Lights · 51\.1°N/,
+      }),
     ).toBeNull();
   });
 });
@@ -815,10 +821,14 @@ describe("Webcams hidden sources dialog", () => {
     // The entry names live in the name column; the Show buttons repeat them
     // in their sr-only spans, so scope to the name column
     expect(
-      within(dialog).getByText("North Star", { selector: ".webcams__hidden-name" }),
+      within(dialog).getByText("North Star", {
+        selector: ".webcams__hidden-name",
+      }),
     ).toBeInTheDocument();
     expect(
-      within(dialog).getByText("Northern Lights", { selector: ".webcams__hidden-name" }),
+      within(dialog).getByText("Northern Lights", {
+        selector: ".webcams__hidden-name",
+      }),
     ).toBeInTheDocument();
     expect(
       within(dialog).getByRole("button", { name: "Show North Star" }),
@@ -862,7 +872,10 @@ describe("Webcams hidden sources dialog", () => {
       screen.getByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { level: 3, name: /Northern Lights · 51\.1°N/ }),
+      screen.getByRole("heading", {
+        level: 3,
+        name: /Northern Lights · 51\.1°N/,
+      }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Hidden sources (0)" }),
@@ -962,15 +975,16 @@ describe("Webcams region filter", () => {
   it("keeps the gallery unchanged until Apply commits the checked regions", () => {
     renderPage();
     const dialog = openFilter();
-    fireEvent.click(
-      within(dialog).getByRole("checkbox", { name: "Nordic" }),
-    );
+    fireEvent.click(within(dialog).getByRole("checkbox", { name: "Nordic" }));
     // Draft only – both regions still visible while the dialog is open
     expect(
       screen.getByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { level: 3, name: /Northern Lights · 51\.1°N/ }),
+      screen.getByRole("heading", {
+        level: 3,
+        name: /Northern Lights · 51\.1°N/,
+      }),
     ).toBeInTheDocument();
     fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
     expect(dialog.open).toBe(false);
@@ -978,7 +992,10 @@ describe("Webcams region filter", () => {
       screen.getByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("heading", { level: 3, name: /Northern Lights · 51\.1°N/ }),
+      screen.queryByRole("heading", {
+        level: 3,
+        name: /Northern Lights · 51\.1°N/,
+      }),
     ).toBeNull();
     // Link rows narrow too
     expect(screen.queryByRole("link", { name: "Tasman Still" })).toBeNull();
@@ -987,19 +1004,20 @@ describe("Webcams region filter", () => {
   it("shows every webcam when no region is applied", () => {
     renderPage();
     const dialog = openFilter();
-    fireEvent.click(
-      within(dialog).getByRole("checkbox", { name: "Nordic" }),
-    );
+    fireEvent.click(within(dialog).getByRole("checkbox", { name: "Nordic" }));
     fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
     const dialog2 = openFilter();
-    fireEvent.click(
-      within(dialog2).getByRole("checkbox", { name: "Nordic" }),
-    );
+    fireEvent.click(within(dialog2).getByRole("checkbox", { name: "Nordic" }));
     fireEvent.click(within(dialog2).getByRole("button", { name: "Apply" }));
     expect(
-      screen.getByRole("heading", { level: 3, name: /Northern Lights · 51\.1°N/ }),
+      screen.getByRole("heading", {
+        level: 3,
+        name: /Northern Lights · 51\.1°N/,
+      }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Tasman Still" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Tasman Still" }),
+    ).toBeInTheDocument();
   });
 
   it("Select all and Deselect all toggle the draft checkboxes without touching the gallery or the hidden set until Apply", () => {
@@ -1022,10 +1040,17 @@ describe("Webcams region filter", () => {
       screen.getByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { level: 3, name: /Northern Lights · 51\.1°N/ }),
+      screen.getByRole("heading", {
+        level: 3,
+        name: /Northern Lights · 51\.1°N/,
+      }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Midnight Glacier" })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Alpine Peak" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Midnight Glacier" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Alpine Peak" }),
+    ).toBeInTheDocument();
     // The hidden source is untouched by either toggle
     expect(
       screen.queryByRole("heading", { level: 3, name: /Still Sky · 53\.0°N/ }),
@@ -1053,9 +1078,7 @@ describe("Webcams region filter", () => {
   it("persists the applied filter and restores it on a fresh mount", () => {
     const { unmount } = render(<Webcams entries={fixtureEntries} />);
     const dialog = openFilter();
-    fireEvent.click(
-      within(dialog).getByRole("checkbox", { name: "Nordic" }),
-    );
+    fireEvent.click(within(dialog).getByRole("checkbox", { name: "Nordic" }));
     fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
     expect(localStorage.getItem("sw:webcams:filters:v1")).toBe(
       JSON.stringify({ v: 1, regions: ["Nordic"] }),
@@ -1067,16 +1090,17 @@ describe("Webcams region filter", () => {
       screen.getByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
     ).toBeInTheDocument();
     expect(
-      screen.queryByRole("heading", { level: 3, name: /Northern Lights · 51\.1°N/ }),
+      screen.queryByRole("heading", {
+        level: 3,
+        name: /Northern Lights · 51\.1°N/,
+      }),
     ).toBeNull();
   });
 
   it("labels the Filter button with the applied region count and returns focus to it on close", () => {
     renderPage();
     const dialog = openFilter();
-    fireEvent.click(
-      within(dialog).getByRole("checkbox", { name: "Nordic" }),
-    );
+    fireEvent.click(within(dialog).getByRole("checkbox", { name: "Nordic" }));
     fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
     expect(
       screen.getByRole("button", { name: "Filter by region (1)" }),
@@ -1100,10 +1124,7 @@ class MockEventSource {
     MockEventSource.instances.push(this);
   }
 
-  addEventListener(
-    type: string,
-    cb: (event: { data?: string }) => void,
-  ): void {
+  addEventListener(type: string, cb: (event: { data?: string }) => void): void {
     (this.listeners[type] ??= []).push(cb);
   }
 
@@ -1135,7 +1156,7 @@ describe("Webcams live cam (ticket 03)", () => {
 
   const liveCard = (): HTMLElement | null =>
     document.querySelector(".webcam-card--live");
-const liveSection = (): HTMLElement | null =>
+  const liveSection = (): HTMLElement | null =>
     liveCard()?.closest("section") ?? null;
 
   const setTabHidden = (hidden: boolean) => {
@@ -1174,9 +1195,9 @@ const liveSection = (): HTMLElement | null =>
       "alt",
       "Poker Flat Live, Alaska – current sky view",
     );
-    expect(
-      within(liveCard()!).getByText(/^Source:/),
-    ).toHaveTextContent("Geophysical Institute");
+    expect(within(liveCard()!).getByText(/^Source:/)).toHaveTextContent(
+      "Geophysical Institute",
+    );
     // The Live updates toggle lives in its own actions row; the Hide button
     // sits in the card title row next to the station name
     const actions = section.querySelector(".webcam-card__actions")!;
@@ -1198,14 +1219,10 @@ const liveSection = (): HTMLElement | null =>
     const card = () => document.querySelector(".webcam-card--live")!;
     // Auto-refresh off – the feed is idle, one column wide
     expect(card()).not.toHaveClass("webcam-card--wide");
-    fireEvent.click(
-      screen.getByRole("checkbox", { name: /auto-refresh/i }),
-    );
+    fireEvent.click(screen.getByRole("checkbox", { name: /auto-refresh/i }));
     expect(card()).toHaveClass("webcam-card--wide");
     // Consent off again – back to one column
-    fireEvent.click(
-      screen.getByRole("checkbox", { name: /auto-refresh/i }),
-    );
+    fireEvent.click(screen.getByRole("checkbox", { name: /auto-refresh/i }));
     expect(card()).not.toHaveClass("webcam-card--wide");
   });
 
@@ -1238,15 +1255,15 @@ const liveSection = (): HTMLElement | null =>
     );
     expect(
       liveCard()!.querySelector(".webcam-card__freshness"),
-    ).toHaveTextContent(/^Loaded \d{2}:\d{2} · live feed updates every ~5–15 s$/);
+    ).toHaveTextContent(
+      /^Loaded \d{2}:\d{2} · live feed updates every ~5–15 s$/,
+    );
   });
 
   it("shows an honest live-feed-unavailable fallback with the operator link on feed failure, and recovers on the next frame", () => {
     vi.stubGlobal("EventSource", MockEventSource);
     renderPage();
-    fireEvent.click(
-      screen.getByRole("checkbox", { name: /auto-refresh/i }),
-    );
+    fireEvent.click(screen.getByRole("checkbox", { name: /auto-refresh/i }));
     act(() => {
       MockEventSource.instances[0].dispatch("error");
     });
@@ -1257,9 +1274,7 @@ const liveSection = (): HTMLElement | null =>
       within(fallback).getByRole("link", { name: /operator's site/i }),
     ).toHaveAttribute("href", "https://example.org/poker-flat");
     // No freshness claim and no Live updates toggle while the feed is down
-    expect(
-      within(section).queryByText(/live feed updates every/i),
-    ).toBeNull();
+    expect(within(section).queryByText(/live feed updates every/i)).toBeNull();
     expect(
       within(section).queryByRole("checkbox", { name: "Live updates" }),
     ).toBeNull();
@@ -1278,9 +1293,7 @@ const liveSection = (): HTMLElement | null =>
   it("lets the user disable live updates on the card, closing the feed and showing the placeholder", () => {
     vi.stubGlobal("EventSource", MockEventSource);
     renderPage();
-    fireEvent.click(
-      screen.getByRole("checkbox", { name: /auto-refresh/i }),
-    );
+    fireEvent.click(screen.getByRole("checkbox", { name: /auto-refresh/i }));
     // A real frame arrives first…
     act(() => {
       MockEventSource.instances[0].dispatch("message", {
@@ -1292,13 +1305,12 @@ const liveSection = (): HTMLElement | null =>
     expect(toggle).not.toBeChecked();
     expect(MockEventSource.instances[0].closed).toBe(true);
     // …and the card falls back to the honest placeholder, never the stale frame
+    expect(liveCard()!.querySelector(".webcam-card__img")).toHaveAttribute(
+      "src",
+      "https://cdn.example.org/poker-placeholder.jpg",
+    );
     expect(
-      liveCard()!.querySelector(".webcam-card__img"),
-    ).toHaveAttribute("src", "https://cdn.example.org/poker-placeholder.jpg");
-    expect(
-      within(liveCard()!).getByText(
-        /^Loaded \d{2}:\d{2} · placeholder frame$/,
-      ),
+      within(liveCard()!).getByText(/^Loaded \d{2}:\d{2} · placeholder frame$/),
     ).toBeInTheDocument();
     // Re-enabling opens a fresh feed
     fireEvent.click(toggle);
@@ -1347,9 +1359,7 @@ const liveSection = (): HTMLElement | null =>
       "https://cdn.example.org/poker-placeholder.jpg",
     );
     expect(
-      within(liveCard()!).getByText(
-        /^Loaded \d{2}:\d{2} · placeholder frame$/,
-      ),
+      within(liveCard()!).getByText(/^Loaded \d{2}:\d{2} · placeholder frame$/),
     ).toBeInTheDocument();
     expect(
       within(liveCard()!).queryByText(/live feed updates every/i),
@@ -1360,9 +1370,7 @@ const liveSection = (): HTMLElement | null =>
     vi.useFakeTimers();
     vi.stubGlobal("EventSource", MockEventSource);
     renderPage();
-    fireEvent.click(
-      screen.getByRole("checkbox", { name: /auto-refresh/i }),
-    );
+    fireEvent.click(screen.getByRole("checkbox", { name: /auto-refresh/i }));
     const liveImg = liveCard()!.querySelector(".webcam-card__img")!;
     act(() => vi.advanceTimersByTime(30 * 60_000));
     expect(liveImg).toHaveAttribute(
@@ -1424,5 +1432,113 @@ describe("Webcams button polish (ticket 05)", () => {
         "btn--secondary",
       );
     }
+  });
+});
+
+describe("Webcams pinning (dashboard pins)", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("opens pinning mode from the toolbar with the instruction strip, and Cancel leaves storage untouched", () => {
+    renderPage();
+    const pinButton = screen.getByRole("button", {
+      name: "Pin webcam to dashboard",
+    });
+    expect(pinButton).toHaveClass("btn--secondary");
+    expect(pinButton).toHaveAttribute("title", "Pin webcam to dashboard");
+    expect(pinButton).toHaveAttribute("aria-expanded", "false");
+    expect(pinButton).toHaveAttribute("aria-controls", "webcams-pin-strip");
+    fireEvent.click(pinButton);
+    expect(pinButton).toHaveAttribute("aria-expanded", "true");
+    // The strip's note and both actions keep their text at every size
+    expect(
+      screen.getByText(
+        /Pin 1 or 2 webcams that you would like to include in your Dashboard/,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Apply" })).toHaveClass(
+      "btn--primary",
+    );
+    expect(screen.getByRole("button", { name: "Cancel" })).toHaveClass(
+      "btn--secondary",
+    );
+    // Card checkboxes appear – image, live and Twitch cards alike
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: "Pin Aurora Ridge webcam" }),
+    );
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: "Pin Poker Flat Live webcam" }),
+    );
+    expect(
+      screen.getByRole("checkbox", { name: "Pin Night Sky Live webcam" }),
+    ).toBeInTheDocument();
+    // Each label leads its text
+    // bottom, so the name stays the plain visible text
+    const pinLabel = screen
+      .getByRole("checkbox", { name: "Pin Aurora Ridge webcam" })
+      .closest("label")!;
+    expect(pinLabel.closest("article")!.lastElementChild).toBe(pinLabel);
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(localStorage.getItem("sw:webcams:pins:v1")).toBeNull();
+    expect(pinButton).toHaveAttribute("aria-expanded", "false");
+    expect(
+      screen.queryByRole("checkbox", { name: "Pin Aurora Ridge webcam" }),
+    ).toBeNull();
+  });
+
+  it("drafts at most two pins – further boxes lock until one is unchecked – and Apply persists them", () => {
+    renderPage();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Pin webcam to dashboard" }),
+    );
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: "Pin Aurora Ridge webcam" }),
+    );
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: "Pin Northern Lights webcam" }),
+    );
+    const third = screen.getByRole("checkbox", {
+      name: "Pin Still Sky webcam",
+    });
+    expect(third).toBeDisabled();
+    // Unchecking one unlocks the rest
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: "Pin Aurora Ridge webcam" }),
+    );
+    expect(
+      screen.getByRole("checkbox", { name: "Pin Still Sky webcam" }),
+    ).toBeEnabled();
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: "Pin Still Sky webcam" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+    expect(localStorage.getItem("sw:webcams:pins:v1")).toBe(
+      JSON.stringify({ v: 1, pins: ["northern-lights", "still-sky"] }),
+    );
+    expect(
+      screen.getByRole("button", { name: "Pin webcam to dashboard" }),
+    ).toHaveAttribute("aria-expanded", "false");
+  });
+
+  it("re-entering pinning mode pre-checks the applied pins, and unpinning then Apply clears them", () => {
+    localStorage.setItem(
+      "sw:webcams:pins:v1",
+      JSON.stringify({ v: 1, pins: ["aurora-ridge"] }),
+    );
+    renderPage();
+    fireEvent.click(
+      screen.getByRole("button", { name: "Pin webcam to dashboard" }),
+    );
+    expect(
+      screen.getByRole("checkbox", { name: "Pin Aurora Ridge webcam" }),
+    ).toBeChecked();
+    fireEvent.click(
+      screen.getByRole("checkbox", { name: "Pin Aurora Ridge webcam" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Apply" }));
+    expect(localStorage.getItem("sw:webcams:pins:v1")).toBe(
+      JSON.stringify({ v: 1, pins: [] }),
+    );
   });
 });

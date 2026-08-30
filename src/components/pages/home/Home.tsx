@@ -7,6 +7,7 @@ import AuroraNow from "./components/AuroraNow/AuroraNow";
 import Forecast from "./components/Forecast/Forecast";
 import SolarWind from "./components/SolarWind/SolarWind";
 import Magnetosphere from "./components/Magnetosphere/Magnetosphere";
+import PinnedWebcams from "./components/PinnedWebcams/PinnedWebcams";
 import { AlertsProvider } from "./components/Alerts/AlertsContext";
 import AlertsDialog from "./components/Alerts/AlertsDialog";
 import { ALERTS_ENABLED } from "../../../features";
@@ -57,6 +58,7 @@ const Home: React.FC = () => {
         <div className="home__flow">
           <div className="home__flow__col">
             <AuroraNow />
+            <PinnedWebcams />
             <Forecast />
           </div>
           <div className="home__flow__col">

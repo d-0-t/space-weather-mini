@@ -10,6 +10,8 @@ import {
   WebcamCardImage,
   WebcamCardTitle,
   WebcamHideButton,
+  WebcamPinToggle,
+  type WebcamPinProps,
 } from "./webcam-card-parts";
 
 /**
@@ -20,11 +22,12 @@ import {
  * hidden (ADR-0003 discipline); the Refresh button always works.
  */
 const WebcamImageCard: React.FC<
-  WebcamCardBaseProps & {
-    card: WebcamImageEntry;
-    refreshNonce: number;
-  }
-> = ({ card, autoRefresh, tabVisible, refreshNonce, onHide }) => {
+  WebcamCardBaseProps &
+    WebcamPinProps & {
+      card: WebcamImageEntry;
+      refreshNonce: number;
+    }
+> = ({ card, autoRefresh, tabVisible, refreshNonce, onHide, pinMode, pinned, pinDisabled, onTogglePin }) => {
   const [src, setSrc] = useState(card.imageUrl);
   const [loadedAt, setLoadedAt] = useState(formatLoadedTime);
 
@@ -77,6 +80,14 @@ const WebcamImageCard: React.FC<
         {card.note ? ` · ${card.note}` : ""}
       </p>
       <WebcamCardAttribution operator={card.operator} siteUrl={card.siteUrl} />
+      <WebcamPinToggle
+        id={card.id}
+        name={card.name}
+        pinMode={pinMode}
+        pinned={pinned}
+        pinDisabled={pinDisabled}
+        onTogglePin={onTogglePin}
+      />
     </article>
   );
 };

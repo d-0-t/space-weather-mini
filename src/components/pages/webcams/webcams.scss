@@ -34,6 +34,37 @@
     }
   }
 
+  // The Pin toolbar button's glyph is tilted like a pin pushed in at an angle
+  // (the card labels' pin icons tilt the same way)
+  &__pin-toggle svg {
+    transform: rotate(30deg);
+  }
+
+  &__pin-strip {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    margin-bottom: 1rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--color-border-muted);
+    border-radius: 15px;
+    background: var(--gradient-card);
+
+    &__note {
+      flex: 1 1 20rem;
+      margin: 0;
+      line-height: 1.5rem;
+    }
+
+    &__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+  }
+
   &__empty {
     padding: 1.25rem;
     border: 1px dashed var(--color-border-muted-transparent);
@@ -255,6 +286,35 @@
   &__title {
     margin: 0;
     font-size: 0.95rem;
+  }
+
+  // "Pin {name} webcam" checkbox, only in pinning mode – a <label>, so its
+  // text stays visible at every screen size (never collapses like buttons).
+  // The 📌 glyph rides inline in the label text (aria-hidden).
+  &__pin {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+    cursor: pointer;
+    font-weight: 600;
+
+    &__checkbox {
+      position: relative;
+      accent-color: var(--color-accent-strong);
+      width: 1.1rem;
+      height: 1.1rem;
+
+      &__pin-icon {
+        position: relative;
+        top: 3px;
+        width: 0.5rem;
+        height: 0.5rem;
+        font-size: 0.5rem;
+        rotate: 30deg;
+        color: var(--color-gold);
+      }
+    }
   }
 
   &__flag {

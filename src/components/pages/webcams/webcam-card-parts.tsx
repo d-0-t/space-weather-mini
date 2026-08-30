@@ -1,4 +1,5 @@
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
+import PushPinIcon from "@mui/icons-material/PushPin";
 
 import FullSizeModal from "../../FullSizeModal";
 import { webcamCountryCode, type WebcamRegion } from "../../../data/webcams";
@@ -96,6 +97,51 @@ export interface WebcamCardBaseProps {
   tabVisible: boolean;
   onHide: (id: string) => void;
 }
+
+/** Pin-mode props: a card renders its "Pin {name} webcam" checkbox while the page's pinning mode is active. */
+export interface WebcamPinProps {
+  pinMode: boolean;
+  pinned: boolean;
+  /** Disabled once two pins are drafted – the UI contract is 1 or 2. */
+  pinDisabled: boolean;
+  onTogglePin: (id: string) => void;
+}
+
+/**
+ * "Pin {name} webcam" checkbox shown on a card while the webcams page is in
+ * pinning mode. A plain <label> with the visible text at every screen size –
+ * never collapsed, unlike button labels. The 📌 glyph leads the text and is
+ * aria-hidden, so the accessible name stays the plain text.
+ */
+export const WebcamPinToggle: React.FC<{
+  id: string;
+  name: string;
+  pinMode: boolean;
+  pinned: boolean;
+  pinDisabled: boolean;
+  onTogglePin: (id: string) => void;
+}> = ({ id, name, pinMode, pinned, pinDisabled, onTogglePin }) => {
+  if (!pinMode) return null;
+  return (
+    <label className="webcam-card__pin">
+      <input
+        type="checkbox"
+        className="webcam-card__pin__checkbox"
+        checked={pinned}
+        disabled={pinDisabled && !pinned}
+        onChange={() => onTogglePin(id)}
+      />
+      <span>
+        <PushPinIcon
+          className="webcam-card__pin__checkbox__pin-icon"
+          aria-hidden="true"
+          fontSize="inherit"
+        />{" "}
+        Pin {name} webcam
+      </span>
+    </label>
+  );
+};
 
 export const regionLabel = (region: WebcamRegion): string =>
   region === "rest" ? "Other regions" : region;

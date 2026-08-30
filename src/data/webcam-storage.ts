@@ -12,6 +12,8 @@ export const HIDDEN_WEBCAMS_STORAGE_KEY = "sw:webcams:hidden:v1";
 export const WEBCAM_FILTER_STORAGE_KEY = "sw:webcams:filters:v1";
 export const AUTO_REFRESH_STORAGE_KEY = "sw:webcams:autorefresh:v1";
 export const WEBCAM_PANELS_STORAGE_KEY = "sw:webcams:panels:v1";
+export const PINNED_WEBCAMS_STORAGE_KEY = "sw:webcams:pins:v1";
+export const PINS_AUTO_REFRESH_STORAGE_KEY = "sw:webcams:pins-autorefresh:v1";
 
 /** Loads the hidden source ids, defaulting to an empty set when missing or corrupt. */
 export function loadHiddenSourceIds(
@@ -121,4 +123,59 @@ export function saveClosedPanels(
     WEBCAM_PANELS_STORAGE_KEY,
     JSON.stringify({ v: 1, closed: ids }),
   );
+}
+
+/**
+ * Loads the ids of the webcams pinned to the Dashboard (at most two by the
+ * UI's contract), defaulting to an empty set when missing or corrupt. The
+ * stored ids are resolved against the registry at render time, so stale ids
+ * of removed cams stay inert in storage.
+ */
+export function loadPinnedIds(
+  storage: Pick<Storage, "getItem">,
+): string[] {
+  try {
+    const raw = storage.getItem(PINNED_WEBCAMS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== "object" || parsed === null) return [];
+    const { v, pins } = parsed as Record<string, unknown>;
+    if (v !== 1 || !Array.isArray(pins)) return [];
+    return pins.filter((id): id is string => typeof id === "string").slice(0, 2);
+  } catch {
+    return [];
+  }
+}
+
+/** Persists the pinned webcam ids as a versioned array, capped at two. */
+export function savePinnedIds(
+  storage: Pick<Storage, "setItem">,
+  ids: string[],
+): void {
+  storage.setItem(
+    PINNED_WEBCAMS_STORAGE_KEY,
+    JSON.stringify({ v: 1, pins: [...new Set(ids)].slice(0, 2) }),
+  );
+}
+
+/** Loads the Dashboard pinned-webcams auto-refresh consent, defaulting to off. */
+export function loadPinsAutoRefresh(
+  storage: Pick<Storage, "getItem">,
+): boolean {
+  try {
+    const raw = storage.getItem(PINS_AUTO_REFRESH_STORAGE_KEY);
+    if (raw === null) return false;
+    const parsed: unknown = JSON.parse(raw);
+    return parsed === true;
+  } catch {
+    return false;
+  }
+}
+
+/** Persists the Dashboard pinned-webcams auto-refresh consent as a boolean. */
+export function savePinsAutoRefresh(
+  storage: Pick<Storage, "setItem">,
+  enabled: boolean,
+): void {
+  storage.setItem(PINS_AUTO_REFRESH_STORAGE_KEY, JSON.stringify(enabled));
 }

@@ -114,9 +114,12 @@ code {
 
 .btn--primary {
   cursor: pointer;
+  box-sizing: border-box;
   padding: 0.5rem 1rem;
-  border: 1px solid var(--color-accent-strong);
-  border-radius: 0.5rem;
+  // Same chrome as secondary – identical radius, border-box sizing, and the
+  // muted-transparent border style; only the fill differs
+  border: 2px solid var(--color-border-muted-transparent);
+  border-radius: 1rem;
   background-color: var(--color-accent-strong);
   color: var(--color-text-inverse);
   font-weight: 600;

@@ -1,0 +1,71 @@
+.pinned-webcams {
+  &__autorefresh {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin: 0 0 0.75rem;
+    cursor: pointer;
+    font-weight: 600;
+
+    &__checkbox {
+      accent-color: var(--color-accent-strong);
+      width: 1.1rem;
+      height: 1.1rem;
+    }
+  }
+
+  &__cards {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+}
+
+.pinned-webcam-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 0.6rem;
+  background: var(--gradient-card);
+  border: 1px solid var(--color-border-muted-transparent);
+  border-radius: 12px;
+
+  &__title {
+    margin: 0;
+    font-size: 0.9rem;
+  }
+
+  &__flag {
+    vertical-align: middle;
+  }
+
+  &__trigger {
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: zoom-in;
+  }
+
+  &__img {
+    display: block;
+    width: 100%;
+    max-height: 140px;
+    object-fit: contain;
+    border-radius: 6px;
+    background: var(--color-black);
+  }
+
+  &__attribution {
+    margin: 0;
+    font-size: 0.8rem;
+  }
+
+  &__twitch {
+    display: block;
+    max-width: 100%;
+    border: none;
+    border-radius: 6px;
+  }
+}

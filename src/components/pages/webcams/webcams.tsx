@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import PushPinIcon from "@mui/icons-material/PushPin";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 
@@ -10,10 +11,12 @@ import {
   loadClosedPanels,
   loadFilteredRegions,
   loadHiddenSourceIds,
+  loadPinnedIds,
   saveAutoRefresh,
   saveClosedPanels,
   saveFilteredRegions,
   saveHiddenSourceIds,
+  savePinnedIds,
 } from "../../../data/webcam-storage";
 import {
   webcamRegistry,
@@ -138,6 +141,11 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
   const [autoRefresh, setAutoRefresh] = useState<boolean>(() =>
     loadAutoRefresh(localStorage),
   );
+  const [pinnedIds, setPinnedIds] = useState<string[]>(() =>
+    loadPinnedIds(localStorage),
+  );
+  const [pinMode, setPinMode] = useState(false);
+  const [draftPins, setDraftPins] = useState<string[]>([]);
   const [closedPanels, setClosedPanels] = useState<string[]>(() =>
     loadClosedPanels(localStorage),
   );
@@ -192,6 +200,34 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
     saveHiddenSourceIds(localStorage, []);
     setHiddenSourceIds([]);
   };
+
+  // Pinning mode drafts 1-2 ids and only commits them on Apply, so Cancel
+  // leaves the persisted pins untouched; the draft starts from the applied
+  // pins so toggling the mode is never destructive.
+  const togglePinMode = () => {
+    if (pinMode) {
+      setPinMode(false);
+    } else {
+      setDraftPins(loadPinnedIds(localStorage));
+      setPinMode(true);
+    }
+  };
+
+  const toggleDraftPin = (id: string) => {
+    setDraftPins((draft) =>
+      draft.includes(id)
+        ? draft.filter((pinnedId) => pinnedId !== id)
+        : [...draft, id].slice(0, 2),
+    );
+  };
+
+  const applyPins = () => {
+    savePinnedIds(localStorage, draftPins);
+    setPinnedIds(draftPins);
+    setPinMode(false);
+  };
+
+  const cancelPins = () => setPinMode(false);
 
   const openFilterDialog = () => {
     setDraftRegions(appliedRegions);
@@ -274,6 +310,9 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
 
   const parent = twitchParent();
   const tabVisible = useTabVisible();
+  // The UI contract is 1 or 2 pins – further unchecked boxes lock once the
+  // draft holds two, so the user can't over-commit before Apply.
+  const pinDisabled = draftPins.length >= 2;
 
   return (
     <div className="container webcams" id="webcams">
@@ -316,6 +355,17 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
               Hidden sources ({hiddenSourceEntries.length})
             </span>
           </button>
+          <button
+            type="button"
+            className="btn--secondary webcams__pin-toggle"
+            title="Pin webcam to dashboard"
+            aria-expanded={pinMode}
+            aria-controls="webcams-pin-strip"
+            onClick={togglePinMode}
+          >
+            <PushPinIcon fontSize="small" />
+            <span className="btn__label">Pin webcam to dashboard</span>
+          </button>
           <label className="btn--secondary webcams__autorefresh">
             <input
               type="checkbox"
@@ -332,6 +382,27 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
           </label>
         </div>
       </div>
+
+      {pinMode ? (
+        <div className="webcams__pin-strip" id="webcams-pin-strip">
+          <p className="webcams__pin-strip__note">
+            Pin 1 or 2 webcams that you would like to include in your
+            Dashboard.
+          </p>
+          <div className="webcams__pin-strip__actions">
+            <button
+              type="button"
+              className="btn--secondary"
+              onClick={cancelPins}
+            >
+              Cancel
+            </button>
+            <button type="button" className="btn--primary" onClick={applyPins}>
+              Apply
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       {visibleEntries.length === 0 ? (
         <p className="webcams__empty">No webcams match your filters</p>
@@ -390,6 +461,10 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
                     tabVisible={tabVisible}
                     refreshNonce={refreshNonce}
                     onHide={hideSource}
+                    pinMode={pinMode}
+                    pinned={draftPins.includes(card.id)}
+                    pinDisabled={pinDisabled}
+                    onTogglePin={toggleDraftPin}
                   />
                 ))}
                 {media.live ? (
@@ -398,6 +473,10 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
                     autoRefresh={autoRefresh}
                     tabVisible={tabVisible}
                     onHide={hideSource}
+                    pinMode={pinMode}
+                    pinned={draftPins.includes(media.live.id)}
+                    pinDisabled={pinDisabled}
+                    onTogglePin={toggleDraftPin}
                   />
                 ) : null}
                 {media.twitch ? (
@@ -405,6 +484,10 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
                     entry={media.twitch}
                     parent={parent}
                     onHide={hideSource}
+                    pinMode={pinMode}
+                    pinned={draftPins.includes(media.twitch.id)}
+                    pinDisabled={pinDisabled}
+                    onTogglePin={toggleDraftPin}
                   />
                 ) : null}
               </div>

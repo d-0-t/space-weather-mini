@@ -10,6 +10,8 @@ import {
   WebcamCardImage,
   WebcamCardTitle,
   WebcamHideButton,
+  WebcamPinToggle,
+  type WebcamPinProps,
 } from "./webcam-card-parts";
 
 /**
@@ -22,10 +24,11 @@ import {
  * can never claim "placeholder frame" over a real frame.
  */
 const WebcamLiveCard: React.FC<
-  WebcamCardBaseProps & {
-    entry: WebcamLiveEntry;
-  }
-> = ({ entry, autoRefresh, tabVisible, onHide }) => {
+  WebcamCardBaseProps &
+    WebcamPinProps & {
+      entry: WebcamLiveEntry;
+    }
+> = ({ entry, autoRefresh, tabVisible, onHide, pinMode, pinned, pinDisabled, onTogglePin }) => {
   const [liveEnabled, setLiveEnabled] = useState(true);
   const [src, setSrc] = useState(entry.imageUrl);
   const [loadedAt, setLoadedAt] = useState(formatLoadedTime);
@@ -65,7 +68,7 @@ const WebcamLiveCard: React.FC<
       />
       <WebcamHideButton name={entry.name} onHide={() => onHide(entry.id)} />
     </div>
-      {feedFailed ? (
+    {feedFailed ? (
         <p className="webcam-card__feed-fallback">
           Live feed unavailable –{" "}
           <a
@@ -107,6 +110,14 @@ const WebcamLiveCard: React.FC<
           </label>
         )}
       </div>
+      <WebcamPinToggle
+        id={entry.id}
+        name={entry.name}
+        pinMode={pinMode}
+        pinned={pinned}
+        pinDisabled={pinDisabled}
+        onTogglePin={onTogglePin}
+      />
     </article>
   );
 };
