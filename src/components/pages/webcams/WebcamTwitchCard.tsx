@@ -12,13 +12,16 @@ const WebcamTwitchCard: React.FC<
   WebcamPinProps & {
     entry: WebcamTwitchEntry;
     parent: string;
+    canHide: boolean;
     onHide: (id: string) => void;
   }
-> = ({ entry, parent, onHide, pinMode, pinned, pinDisabled, onTogglePin }) => (
+> = ({ entry, parent, canHide, onHide, pinMode, pinned, pinDisabled, onTogglePin }) => (
   <div className="webcam-card webcam-card--stream webcam-card--wide">
     <div className="webcam-card__head">
       <h3 className="webcam-card__title">{entry.name}</h3>
-      <WebcamHideButton name={entry.name} onHide={() => onHide(entry.id)} />
+      {canHide ? (
+        <WebcamHideButton name={entry.name} onHide={() => onHide(entry.id)} />
+      ) : null}
     </div>
     <iframe
       src={`https://player.twitch.tv/?channel=${entry.twitchChannel}&parent=${parent}&autoplay=false&muted=true`}

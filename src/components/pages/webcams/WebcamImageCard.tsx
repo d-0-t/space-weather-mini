@@ -27,7 +27,7 @@ const WebcamImageCard: React.FC<
       card: WebcamImageEntry;
       refreshNonce: number;
     }
-> = ({ card, autoRefresh, tabVisible, refreshNonce, onHide, pinMode, pinned, pinDisabled, onTogglePin }) => {
+> = ({ card, autoRefresh, tabVisible, canHide, refreshNonce, onHide, pinMode, pinned, pinDisabled, onTogglePin }) => {
   const [src, setSrc] = useState(card.imageUrl);
   const [loadedAt, setLoadedAt] = useState(formatLoadedTime);
 
@@ -68,7 +68,9 @@ const WebcamImageCard: React.FC<
           name={card.name}
           latitude={card.latitude}
         />
-        <WebcamHideButton name={card.name} onHide={() => onHide(card.id)} />
+        {canHide ? (
+          <WebcamHideButton name={card.name} onHide={() => onHide(card.id)} />
+        ) : null}
       </div>
       <WebcamCardImage
         label={`${card.name}, full size`}

@@ -95,6 +95,8 @@ export const WebcamHideButton: React.FC<{
 export interface WebcamCardBaseProps {
   autoRefresh: boolean;
   tabVisible: boolean;
+  /** Hiding is a "My selection" preference – the Hide button renders only in that view. */
+  canHide: boolean;
   onHide: (id: string) => void;
 }
 

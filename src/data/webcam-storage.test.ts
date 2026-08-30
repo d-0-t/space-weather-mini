@@ -7,18 +7,21 @@ import {
   PINNED_WEBCAMS_STORAGE_KEY,
   WEBCAM_FILTER_STORAGE_KEY,
   WEBCAM_PANELS_STORAGE_KEY,
+  WEBCAM_VIEW_STORAGE_KEY,
   loadAutoRefresh,
   loadClosedPanels,
   loadFilteredRegions,
   loadHiddenSourceIds,
   loadPinsAutoRefresh,
   loadPinnedIds,
+  loadViewMode,
   saveAutoRefresh,
   saveClosedPanels,
   saveFilteredRegions,
   saveHiddenSourceIds,
   savePinsAutoRefresh,
   savePinnedIds,
+  saveViewMode,
 } from "./webcam-storage";
 
 describe("Webcam preferences storage (ticket 02)", () => {
@@ -230,5 +233,38 @@ describe("Webcam pins storage", () => {
     expect(loadPinsAutoRefresh(localStorage)).toBe(false);
     localStorage.setItem(PINS_AUTO_REFRESH_STORAGE_KEY, JSON.stringify(1));
     expect(loadPinsAutoRefresh(localStorage)).toBe(false);
+  });
+});
+
+describe("Webcams viewing mode", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("defaults to the curated view when nothing is stored", () => {
+    expect(loadViewMode(localStorage)).toBe("curated");
+  });
+
+  it("round-trips the viewing mode as a versioned string", () => {
+    saveViewMode(localStorage, "selection");
+    expect(localStorage.getItem(WEBCAM_VIEW_STORAGE_KEY)).toBe(
+      JSON.stringify("selection"),
+    );
+    expect(loadViewMode(localStorage)).toBe("selection");
+    saveViewMode(localStorage, "all");
+    expect(loadViewMode(localStorage)).toBe("all");
+    saveViewMode(localStorage, "curated");
+    expect(loadViewMode(localStorage)).toBe("curated");
+  });
+
+  it("falls back to the curated view on corrupt or unknown values", () => {
+    localStorage.setItem(WEBCAM_VIEW_STORAGE_KEY, "not json");
+    expect(loadViewMode(localStorage)).toBe("curated");
+    localStorage.setItem(WEBCAM_VIEW_STORAGE_KEY, JSON.stringify({ v: 1 }));
+    expect(loadViewMode(localStorage)).toBe("curated");
+    localStorage.setItem(WEBCAM_VIEW_STORAGE_KEY, JSON.stringify("saved"));
+    expect(loadViewMode(localStorage)).toBe("curated");
+    localStorage.setItem(WEBCAM_VIEW_STORAGE_KEY, JSON.stringify(42));
+    expect(loadViewMode(localStorage)).toBe("curated");
   });
 });

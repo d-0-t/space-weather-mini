@@ -11,6 +11,15 @@
   min-height: 4rem;
   border-bottom: 0.2rem outset var(--color-dark-green);
 
+  // The sr-only nav label is a 1px absolute box whose static position sits
+  // flush at the header's right edge; without an inset it pokes 1px past the
+  // viewport and adds a horizontal scrollbar to every page (41bce3a). The
+  // sr-only negative margin would push the box back out, so it is cleared.
+  .sr-only {
+    right: 0;
+    margin-right: 0;
+  }
+
   &__left {
     display: flex;
     align-items: center;

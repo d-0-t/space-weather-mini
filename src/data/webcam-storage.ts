@@ -14,6 +14,7 @@ export const AUTO_REFRESH_STORAGE_KEY = "sw:webcams:autorefresh:v1";
 export const WEBCAM_PANELS_STORAGE_KEY = "sw:webcams:panels:v1";
 export const PINNED_WEBCAMS_STORAGE_KEY = "sw:webcams:pins:v1";
 export const PINS_AUTO_REFRESH_STORAGE_KEY = "sw:webcams:pins-autorefresh:v1";
+export const WEBCAM_VIEW_STORAGE_KEY = "sw:webcams:view:v1";
 
 /** Loads the hidden source ids, defaulting to an empty set when missing or corrupt. */
 export function loadHiddenSourceIds(
@@ -178,4 +179,33 @@ export function savePinsAutoRefresh(
   enabled: boolean,
 ): void {
   storage.setItem(PINS_AUTO_REFRESH_STORAGE_KEY, JSON.stringify(enabled));
+}
+
+/** The three viewing modes of the webcams page; "curated" is the default tab. */
+export type WebcamView = "curated" | "selection" | "all";
+
+const WEBCAM_VIEWS: readonly WebcamView[] = ["curated", "selection", "all"];
+
+/** Loads the selected viewing mode, defaulting to "curated" when missing or corrupt. */
+export function loadViewMode(
+  storage: Pick<Storage, "getItem">,
+): WebcamView {
+  try {
+    const raw = storage.getItem(WEBCAM_VIEW_STORAGE_KEY);
+    if (raw === null) return "curated";
+    const parsed: unknown = JSON.parse(raw);
+    return WEBCAM_VIEWS.includes(parsed as WebcamView)
+      ? (parsed as WebcamView)
+      : "curated";
+  } catch {
+    return "curated";
+  }
+}
+
+/** Persists the selected viewing mode as a versioned string. */
+export function saveViewMode(
+  storage: Pick<Storage, "setItem">,
+  view: WebcamView,
+): void {
+  storage.setItem(WEBCAM_VIEW_STORAGE_KEY, JSON.stringify(view));
 }

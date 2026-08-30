@@ -28,7 +28,7 @@ const WebcamLiveCard: React.FC<
     WebcamPinProps & {
       entry: WebcamLiveEntry;
     }
-> = ({ entry, autoRefresh, tabVisible, onHide, pinMode, pinned, pinDisabled, onTogglePin }) => {
+> = ({ entry, autoRefresh, tabVisible, canHide, onHide, pinMode, pinned, pinDisabled, onTogglePin }) => {
   const [liveEnabled, setLiveEnabled] = useState(true);
   const [src, setSrc] = useState(entry.imageUrl);
   const [loadedAt, setLoadedAt] = useState(formatLoadedTime);
@@ -66,7 +66,9 @@ const WebcamLiveCard: React.FC<
         name={entry.name}
         latitude={entry.latitude}
       />
-      <WebcamHideButton name={entry.name} onHide={() => onHide(entry.id)} />
+      {canHide ? (
+        <WebcamHideButton name={entry.name} onHide={() => onHide(entry.id)} />
+      ) : null}
     </div>
     {feedFailed ? (
         <p className="webcam-card__feed-fallback">

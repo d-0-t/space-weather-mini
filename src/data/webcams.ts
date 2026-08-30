@@ -75,6 +75,8 @@ export interface WebcamImageEntry {
   country: string;
   /** Latitude to 1 decimal, signed (negative = south). */
   latitude: number;
+  /** Longitude to 1 decimal, east-positive (negative = west); needed for the "Relevant now" local-darkness gate, so only curated cams carry it. */
+  longitude?: number;
   /** Panoramic feed – renders 3× card width. */
   panoramic?: boolean;
   operator: string;
@@ -159,6 +161,7 @@ export const webcamRegistry: WebcamEntry[] = [
     name: "IRF Kiruna all-sky (KAGO)",
     region: "Nordic",
     latitude: 67.8,
+    longitude: 20.42,
     operator: "Swedish Institute of Space Physics (IRF)",
     imageUrl: "https://www.irf.se/alis/allsky/krn/latest_medium.jpeg",
     cadenceMinutes: 1,
@@ -176,6 +179,7 @@ export const webcamRegistry: WebcamEntry[] = [
     name: "Tromsø AI – Tromsø",
     region: "Nordic",
     latitude: 69.6,
+    longitude: 18.96,
     operator: "UEC (Univ. of Electro-Communications)",
     imageUrl:
       "https://tromsoe-ai.cei.uec.ac.jp/~nanjo/public/aurora_alert/latest.jpg",
@@ -193,6 +197,7 @@ export const webcamRegistry: WebcamEntry[] = [
     name: "Tromsø AI – Abisko",
     region: "Nordic",
     latitude: 68.3,
+    longitude: 18.83,
     operator: "UEC (Univ. of Electro-Communications)",
     imageUrl:
       "https://tromsoe-ai.cei.uec.ac.jp/~nanjo/public/aurora_alert/latest_abisko.jpg",
@@ -292,6 +297,7 @@ export const webcamRegistry: WebcamEntry[] = [
     name: "Jokkmokk PORJUS NR3",
     region: "Nordic",
     latitude: 66.9,
+    longitude: 19.83,
     operator: "Nature of Jokkmokk (jokkmokk.jp)",
     imageUrl: "https://uk.jokkmokk.jp/photo/nr3/latest_m.jpg",
     cadenceMinutes: 1,
@@ -308,6 +314,7 @@ export const webcamRegistry: WebcamEntry[] = [
     name: "Jokkmokk PORJUS NR4",
     region: "Nordic",
     latitude: 66.9,
+    longitude: 19.83,
     operator: "Nature of Jokkmokk (jokkmokk.jp)",
     imageUrl: "https://uk.jokkmokk.jp/photo/nr4/latest_m.jpg",
     cadenceMinutes: 1,
@@ -340,6 +347,7 @@ export const webcamRegistry: WebcamEntry[] = [
     name: "FMI AuroraSnow – Hankasalmi",
     region: "Nordic",
     latitude: 62.3,
+    longitude: 26.43,
     operator: "Finnish Meteorological Institute (FMI)",
     imageUrl:
       "https://aurorasnow.fmi.fi/public_service/images/latest_SIR_AllSky.jpg",
@@ -536,16 +544,17 @@ export const webcamRegistry: WebcamEntry[] = [
     type: "image",
     id: "auroramax",
     country: "Canada",
-    name: "AuroraMAX",
+    name: "AuroraMAX – Yellowknife",
     region: "North America",
     latitude: 62.4,
+    longitude: -114.37,
     operator: "Univ. of Calgary / CSA / Astronomy North",
     imageUrl: "https://auroramax.phys.ucalgary.ca/recent/recent_480p.jpg",
     cadenceMinutes: 1,
     refreshable: true,
     license: "Canadian Space Agency, University of Calgary, Astronomy North",
     note: "Off May–August",
-    alt: "AuroraMAX, Canada – current sky view",
+    alt: "AuroraMAX – Yellowknife, Canada – current sky view",
     siteUrl: "https://auroramax.com/",
   },
   {
@@ -555,6 +564,7 @@ export const webcamRegistry: WebcamEntry[] = [
     name: "TREx RGB – Gillam",
     region: "North America",
     latitude: 56.4,
+    longitude: -94.71,
     operator: "UCalgary Auroral Imaging Group",
     imageUrl:
       "https://api.phys.ucalgary.ca/api/v1/rt/trexrgb_gill_standard/latest",
@@ -573,6 +583,7 @@ export const webcamRegistry: WebcamEntry[] = [
     name: "TREx RGB – Pinawa",
     region: "North America",
     latitude: 50.2,
+    longitude: -95.88,
     operator: "UCalgary Auroral Imaging Group",
     imageUrl:
       "https://api.phys.ucalgary.ca/api/v1/rt/trexrgb_pina_standard/latest",
@@ -591,6 +602,7 @@ export const webcamRegistry: WebcamEntry[] = [
     name: "TREx RGB – Rabbit Lake",
     region: "North America",
     latitude: 58.2,
+    longitude: -103.71,
     operator: "UCalgary Auroral Imaging Group",
     imageUrl:
       "https://api.phys.ucalgary.ca/api/v1/rt/trexrgb_rabb_standard/latest",
@@ -609,6 +621,7 @@ export const webcamRegistry: WebcamEntry[] = [
     name: "SMILE ASI – Kapuskasing",
     region: "North America",
     latitude: 49.4,
+    longitude: -82.4,
     operator: "UCalgary Auroral Imaging Group",
     imageUrl:
       "https://api.phys.ucalgary.ca/api/v1/rt/smileasi_kapu_standard/latest",
@@ -664,6 +677,7 @@ export const webcamRegistry: WebcamEntry[] = [
     name: "NPS Isle Royale – Northshore",
     region: "North America",
     latitude: 48.0,
+    longitude: -88.6,
     operator: "US National Park Service",
     imageUrl: "https://www.nps.gov/webcams-isro/northshore.jpg",
     cadenceMinutes: 5,
@@ -680,6 +694,7 @@ export const webcamRegistry: WebcamEntry[] = [
     name: "AllSkyCam – Hope",
     region: "North America",
     latitude: 40.9,
+    longitude: -74.97,
     operator: "AllSkyCam.com community",
     imageUrl: "https://www.allskycam.com/u/627/latest_full.jpg",
     cadenceMinutes: 5,
@@ -696,6 +711,7 @@ export const webcamRegistry: WebcamEntry[] = [
     name: "linuxkidd all-sky",
     region: "North America",
     latitude: 32.9,
+    longitude: -105.48,
     operator: "allsky.linuxkidd.com",
     imageUrl: "https://allsky.linuxkidd.com/image-fullsize.jpg",
     cadenceMinutes: 2,
@@ -714,6 +730,7 @@ export const webcamRegistry: WebcamEntry[] = [
     name: "Starvisor – Kaliningrad",
     region: "Russia",
     latitude: 54.7,
+    longitude: 20.5,
     operator: "Starvisor",
     imageUrl: "https://starvisor.ru/wp-content/uploads/webcam/cap_klnsky.jpg",
     cadenceMinutes: 1,
@@ -949,4 +966,31 @@ export const webcamRegistry: WebcamEntry[] = [
     url: "https://kap-arkona.panomax.com/",
     kind: "player",
   },
+];
+
+/**
+ * The "Relevant now" curated gallery: handpicked stations chosen for image
+ * quality, reliability and maintenance. The list adapts to each station's
+ * local sunrise and sunset – a cam is shown while the sun is below its
+ * horizon (twilight counts: auroras can still be on) and skipped in local
+ * daylight, including midnight-sun seasons. Display order matters: the cards
+ * render in this order, grouped by region. The Lights over Lapland Twitch
+ * stream joins the curated gallery separately (it streams whenever it streams).
+ */
+export const CURATED_WEBCAM_IDS: readonly string[] = [
+  "irf-kiruna",
+  "uec-tromso",
+  "uec-abisko",
+  "jokkmokk-nr3",
+  "jokkmokk-nr4",
+  "fmi-hankasalmi",
+  "auroramax",
+  "trex-gillam",
+  "trex-pinawa",
+  "trex-rabbit-lake",
+  "smile-kapuskasing",
+  "nps-isle-royale",
+  "allskycam-hope",
+  "linuxkidd-mayhill",
+  "starvisor-kaliningrad",
 ];

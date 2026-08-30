@@ -4,6 +4,7 @@
   color-scheme: dark;
 
   --color-white: #ffffff;
+  --color-gray: #d7d7d7;
   --color-black: #000000;
   --color-deep-indigo: #1c1455;
   --color-primary-violet: #7a16a5;
@@ -63,6 +64,20 @@
 html,
 body {
   background-color: var(--color-bg-page);
+  background-image:
+    linear-gradient(
+      color-mix(in srgb, transparent 10%, black),
+      color-mix(in srgb, transparent 30%, black)
+    ),
+    url("/assets/stars-transparent.png"),
+    linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--color-gold) 15%, black) 0%,
+      color-mix(in srgb, var(--color-orange) 15%, black) 5%,
+      color-mix(in srgb, var(--color-deep-indigo) 33%, black) 20%,
+      color-mix(in srgb, var(--color-primary-violet) 5%, black)
+    );
+  background-repeat: repeat;
 }
 
 * {

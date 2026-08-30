@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  CURATED_WEBCAM_IDS,
   webcamRegistry,
   webcamCountryCode,
   WEBCAM_REGION_ORDER,
@@ -152,6 +153,34 @@ describe("webcam registry contract", () => {
         true,
       );
       expect(entry.note === null || typeof entry.note === "string").toBe(true);
+    }
+  });
+
+  it("ships the AuroraMAX entry under its full station name (AuroraMAX – Yellowknife)", () => {
+    const auroramax = webcamRegistry.find((e) => e.id === "auroramax");
+    expect(auroramax?.type).toBe("image");
+    if (auroramax?.type === "image") {
+      expect(auroramax.name).toBe("AuroraMAX – Yellowknife");
+      expect(auroramax.alt).toBe(
+        "AuroraMAX – Yellowknife, Canada – current sky view",
+      );
+    }
+  });
+
+  it("resolves every curated id to a distinct image entry that carries longitude", () => {
+    const byId = new Map(webcamRegistry.map((e) => [e.id, e]));
+    expect(new Set(CURATED_WEBCAM_IDS).size).toBe(CURATED_WEBCAM_IDS.length);
+    for (const id of CURATED_WEBCAM_IDS) {
+      const entry = byId.get(id);
+      expect(entry, `curated id ${id} resolves`).toBeDefined();
+      expect(entry!.type, `curated id ${id} is an image card`).toBe("image");
+      const image = entry as WebcamImageEntry;
+      expect(
+        typeof image.longitude,
+        `curated id ${id} carries longitude for the darkness gate`,
+      ).toBe("number");
+      expect(image.longitude).toBeGreaterThan(-180);
+      expect(image.longitude).toBeLessThanOrEqual(180);
     }
   });
 });
