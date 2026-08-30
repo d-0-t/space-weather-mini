@@ -368,7 +368,7 @@ describe("Webcams page", () => {
     ).toBeNull();
   });
 
-  it("renders link rows after the image cards, with station, region, operator and kind note", () => {
+  it("renders link rows after the image cards, with station, flag and kind note", () => {
     renderPage();
     const text = document.body.textContent ?? "";
     const firstLink = text.indexOf("Midnight Glacier");
@@ -380,8 +380,10 @@ describe("Webcams page", () => {
     const row = screen
       .getByRole("link", { name: "Tasman Still" })
       .closest("li")!;
-    expect(within(row).getByText(/New Zealand/)).toBeInTheDocument();
-    expect(within(row).getByText(/Tasman Cams/)).toBeInTheDocument();
+    // The country lives in the row flag and the operator is not repeated –
+    // the meta line ("New Zealand · Tasman Cams") is gone
+    expect(within(row).queryByText(/New Zealand/)).toBeNull();
+    expect(within(row).queryByText(/Tasman Cams/)).toBeNull();
     expect(within(row).getByText("Webcam")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Tasman Still" })).toHaveAttribute(
       "target",
@@ -491,14 +493,16 @@ describe("Webcams auto-refresh header (ticket 03)", () => {
       ".webcams__header",
     ) as HTMLElement;
     const refresh = within(headerRow).getByRole("button", { name: "Refresh" });
-    const filter = within(headerRow).getByRole("button", { name: "Filter" });
+    const filter = within(headerRow).getByRole("button", {
+      name: "Filter by region (0)",
+    });
     const hidden = within(headerRow).getByRole("button", {
       name: "Hidden sources (0)",
     });
-    // Every toolbar control is an icon button named by its collapsible
-    // visible label – no aria-label, no title to override the name
+    // Every toolbar control is an icon button carrying a collapsible label
+    // span and a tooltip title – never an aria-label
     for (const button of [refresh, filter, hidden]) {
-      expect(button).toHaveClass("btn--icon");
+      expect(button).toHaveClass("btn--secondary");
       expect(button).not.toHaveAttribute("aria-label");
       expect(button.querySelector(".btn__label")).not.toBeNull();
       expect(button.querySelector("svg")).not.toBeNull();
@@ -527,7 +531,9 @@ describe("Webcams auto-refresh header (ticket 03)", () => {
 
   it("communicates active counts through the Filter and Hidden sources button labels, with no badge dot", () => {
     renderPage();
-    const filter = screen.getByRole("button", { name: "Filter" });
+    const filter = screen.getByRole("button", {
+      name: "Filter by region (0)",
+    });
     const hidden = screen.getByRole("button", { name: "Hidden sources (0)" });
     expect(filter.querySelector(".btn__badge")).toBeNull();
     expect(hidden.querySelector(".btn__badge")).toBeNull();
@@ -545,7 +551,9 @@ describe("Webcams auto-refresh header (ticket 03)", () => {
       within(dialog).getByRole("checkbox", { name: "Nordic" }),
     );
     fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
-    const filterAfter = screen.getByRole("button", { name: "Filter (1)" });
+    const filterAfter = screen.getByRole("button", {
+      name: "Filter by region (1)",
+    });
     expect(filterAfter.querySelector(".btn__badge")).toBeNull();
     expect(
       screen.getByRole("button", { name: "Hidden sources (1)" }).querySelector(
@@ -1071,13 +1079,13 @@ describe("Webcams region filter", () => {
     );
     fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
     expect(
-      screen.getByRole("button", { name: "Filter (1)" }),
+      screen.getByRole("button", { name: "Filter by region (1)" }),
     ).toBeInTheDocument();
     const dialog2 = openFilter();
     fireEvent.keyDown(dialog2, { key: "Escape" });
     expect(dialog2.open).toBe(false);
     expect(
-      screen.getByRole("button", { name: "Filter (1)" }),
+      screen.getByRole("button", { name: "Filter by region (1)" }),
     ).toHaveFocus();
   });
 });
@@ -1169,15 +1177,17 @@ const liveSection = (): HTMLElement | null =>
     expect(
       within(liveCard()!).getByText(/^Source:/),
     ).toHaveTextContent("Geophysical Institute");
-    // The Live updates toggle and the Hide button share one wrapping row
+    // The Live updates toggle lives in its own actions row; the Hide button
+    // sits in the card title row next to the station name
     const actions = section.querySelector(".webcam-card__actions")!;
     const toggle = within(actions as HTMLElement).getByRole("checkbox", {
       name: "Live updates",
     });
     expect(toggle).toBeChecked();
     expect(toggle).toBeDisabled(); // no feed without the global consent
+    const head = liveCard()!.querySelector(".webcam-card__head")!;
     expect(
-      within(actions as HTMLElement).getByRole("button", {
+      within(head as HTMLElement).getByRole("button", {
         name: "Hide Poker Flat Live",
       }),
     ).toBeInTheDocument();
@@ -1383,7 +1393,7 @@ describe("Webcams button polish (ticket 05)", () => {
     localStorage.clear();
   });
 
-  it("turns every Hide button into an icon button with a crossed-out-eye, a tooltip and a collapsible label", () => {
+  it("turns every Hide button into an icon button in the title row with a crossed-out-eye, a tooltip and an sr-only name matching it", () => {
     renderPage();
     for (const name of [
       "Hide Aurora Ridge",
@@ -1392,12 +1402,14 @@ describe("Webcams button polish (ticket 05)", () => {
       "Hide Poker Flat Live",
     ]) {
       const button = screen.getByRole("button", { name });
-      expect(button).toHaveClass("btn--icon");
+      expect(button).toHaveClass("btn--secondary");
       expect(button).toHaveAttribute("title", name);
-      // A crossed-out-eye glyph, with the word "Hide" in the label span that
-      // collapses to sr-only below 1000px
+      // Sits next to the card title, never in a bottom actions row
+      expect(button.closest(".webcam-card__head")).not.toBeNull();
+      // No visible text – the sr-only span repeats the tooltip verbatim
+      expect(button.querySelector(".btn__label")).toBeNull();
       expect(button.querySelector("svg")).not.toBeNull();
-      expect(button.querySelector(".btn__label")).toHaveTextContent("Hide");
+      expect(button.querySelector(".sr-only")).toHaveTextContent(name);
     }
   });
 

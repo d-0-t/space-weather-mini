@@ -70,7 +70,7 @@ const FullSizeModal: React.FC<FullSizeModalProps> = ({
         </span>
         <button
           type="button"
-          className="image-modal__close"
+          className="btn--secondary image-modal__close"
           title="Close"
           onClick={() => dialogRef.current?.close()}
         >

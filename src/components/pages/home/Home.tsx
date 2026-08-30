@@ -32,18 +32,18 @@ const Home: React.FC = () => {
         <div className="home__header">
           <h1>Dashboard</h1>
           <div className="home__header-controls">
-            <label className="btn--icon home__compact-toggle">
+            <label className="btn--secondary home__compact-toggle">
               <input
                 type="checkbox"
                 checked={compact}
                 onChange={handleCompactChange}
               />
-              Compact view
+              <span className="btn__label">Compact view</span>
             </label>
             {ALERTS_ENABLED ? (
               <button
                 type="button"
-                className="btn--icon home__alerts-toggle"
+                className="btn--secondary home__alerts-toggle"
                 title="Alerts"
                 ref={alertsButtonRef}
                 onClick={() => alertsDialogRef.current?.showModal()}

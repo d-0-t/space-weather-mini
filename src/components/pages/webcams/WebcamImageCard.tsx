@@ -59,18 +59,24 @@ const WebcamImageCard: React.FC<
         card.panoramic ? " webcam-card--panoramic" : ""
       }`}
     >
-      <WebcamCardTitle
-        country={card.country}
-        name={card.name}
-        latitude={card.latitude}
+      <div className="webcam-card__head">
+        <WebcamCardTitle
+          country={card.country}
+          name={card.name}
+          latitude={card.latitude}
+        />
+        <WebcamHideButton name={card.name} onHide={() => onHide(card.id)} />
+      </div>
+      <WebcamCardImage
+        label={`${card.name}, full size`}
+        src={src}
+        alt={card.alt}
       />
-      <WebcamCardImage label={`${card.name}, full size`} src={src} alt={card.alt} />
       <p className="webcam-card__freshness">
         Loaded {loadedAt} · Refreshes every {card.cadenceMinutes} min
         {card.note ? ` · ${card.note}` : ""}
       </p>
       <WebcamCardAttribution operator={card.operator} siteUrl={card.siteUrl} />
-      <WebcamHideButton name={card.name} onHide={() => onHide(card.id)} />
     </article>
   );
 };

@@ -108,9 +108,9 @@ code {
 }
 
 /* ── Shared button system (ticket 05) ───────────────────────────────────────
-   Three variants: primary (green CTA), secondary (dark pill, browser-alerts
-   style), icon (emoji-only, Astro-mode style). Labels collapse to icons on
-   narrow screens. */
+   Two variants: primary (green CTA) and secondary (dark pill). Labels
+   collapse to icons on narrow screens – but only for real buttons, never for
+   checkbox <label> pills. */
 
 .btn--primary {
   cursor: pointer;
@@ -133,32 +133,6 @@ code {
 }
 
 .btn--secondary {
-  position: relative;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--color-accent-strong);
-  border: 1px solid var(--color-border-muted);
-  border-radius: 0.5rem;
-  background-color: color-mix(in srgb, var(--color-black) 70%, transparent);
-
-  &:hover:not(:disabled) {
-    color: var(--color-white);
-    border-color: var(--color-accent-strong);
-    background-color: var(--color-deep-indigo);
-  }
-
-  &:disabled {
-    opacity: 0.7;
-    cursor: default;
-  }
-}
-
-.btn--icon {
   cursor: pointer;
   display: inline-flex;
   box-sizing: border-box;
@@ -186,11 +160,13 @@ code {
   }
 }
 
-/* Below ~1000px icon+label buttons collapse to icons: the label becomes
+/* Below ~1000px buttons with icon+label collapse to icons: the label becomes
    visually-hidden (still announced), the title attribute names the control
-   for mouse users, and icon buttons go square again. */
+   for mouse users, and icon buttons go square again. Only <button> elements
+   collapse – checkbox <label> pills (auto-refresh, Compact view) keep their
+   text at every width. */
 @media (max-width: 999px) {
-  .btn__label {
+  button > .btn__label {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -202,7 +178,7 @@ code {
     border: 0;
   }
 
-  .btn--icon {
+  button.btn--secondary:has(> .btn__label) {
     padding: 0;
   }
 }
@@ -277,28 +253,13 @@ textarea:focus-visible {
   }
 
   &__close {
-    // Pinned to the viewport corner so it never covers the media
+    // Pinned to the viewport corner so it never covers the media; the
+    // button chrome itself comes from .btn--secondary
     position: fixed;
     top: 0.75rem;
     right: 0.75rem;
     z-index: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    padding: 0;
-    border: 1px solid var(--color-border-muted);
-    border-radius: 50%;
-    background: var(--color-bg-surface);
-    color: var(--color-white);
     font-size: 1.25rem;
-    line-height: 1;
-    cursor: pointer;
-
-    &:hover {
-      background: var(--color-bg-surface-strong);
-    }
   }
 
   &::backdrop {

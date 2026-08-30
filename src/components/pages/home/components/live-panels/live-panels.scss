@@ -3,6 +3,12 @@
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
+
+    // Narrow screens: snugger cards so the Solar Wind and Magnetosphere
+    // panels fit the viewport (ADR-0003 discipline, Home.scss 810px split)
+    @media (max-width: 810px) {
+      gap: 0.4rem;
+    }
   }
 
   &__explain {
@@ -47,29 +53,14 @@
     }
 
     summary {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      width: 1.4rem;
-      height: 1.4rem;
-      border: 1px solid var(--color-accent);
-      border-radius: 50%;
-      color: var(--color-accent);
-      font-weight: 700;
-      font-size: 0.85rem;
+      list-style: none;
       cursor: pointer;
       user-select: none;
-      list-style: none;
 
       &::-webkit-details-marker {
         display: none;
       }
-
-&:hover {
-      background: var(--color-primary-violet);
-      color: var(--color-white);
     }
-  }
 
   // Custom trigger (e.g. the moon phase badge): no "?" circle chrome
   &--moon {
@@ -138,6 +129,8 @@
 
   &__hemi {
     display: flex;
+    // Wraps so "37 GW North" / "40 GW South" never clip on narrow screens
+    flex-wrap: wrap;
     justify-content: space-between;
     gap: 1rem;
     margin: 0;

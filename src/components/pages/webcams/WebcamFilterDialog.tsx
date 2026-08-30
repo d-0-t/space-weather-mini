@@ -59,8 +59,14 @@ const WebcamFilterDialog: React.FC<{
       <button type="button" className="btn--secondary" onClick={onDeselectAll}>
         Deselect all
       </button>
-      <button type="button" className="btn--secondary" onClick={onCancel}>
-        Cancel
+      <button
+        type="button"
+        className="btn--secondary"
+        title="Cancel"
+        onClick={onCancel}
+      >
+        <span aria-hidden="true">×</span>
+        <span className="sr-only">Cancel</span>
       </button>
       <button type="button" className="btn--primary" onClick={onApply}>
         Apply

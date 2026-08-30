@@ -185,6 +185,14 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
     gap: 1rem;
+
+    // Narrow screens: one cam per row. At ~395px the grid drops to a single
+    // track where a span-2 wide card would force an implicit overflow track,
+    // and at 600-850px a wide card squeezes its normal neighbour – so stack
+    // the cards and let the wide ones span the full (single) row.
+    @media (max-width: 480px) {
+      grid-template-columns: 1fr;
+    }
   }
 
   &__links {
@@ -229,6 +237,19 @@
   // The Twitch player and the feeding live cam span two card columns.
   &--wide {
     grid-column: span 2;
+
+    // In the one-per-row narrow layout the span-2 area would overflow the
+    // single track; spanning everything equals that one track instead.
+    @media (max-width: 480px) {
+      grid-column: 1 / -1;
+    }
+  }
+
+  &__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.5rem;
   }
 
   &__title {
@@ -284,10 +305,6 @@
     align-items: center;
     gap: 0.5rem;
     margin-top: 0.5rem;
-
-    .webcam-card__hide {
-      margin-top: 0;
-    }
   }
 
   &__live-toggle {
@@ -300,10 +317,6 @@
       width: 1.1rem;
       height: 1.1rem;
     }
-  }
-
-  &__hide {
-    margin-top: 0.5rem;
   }
 
   &__feed-fallback {
@@ -340,11 +353,6 @@
 
   &__name {
     font-weight: 600;
-  }
-
-  &__meta {
-    font-size: 0.85rem;
-    opacity: 0.85;
   }
 
   &__kind {

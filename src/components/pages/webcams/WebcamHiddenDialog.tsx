@@ -38,6 +38,7 @@ const WebcamHiddenDialog: React.FC<{
               onClick={() => onRestore(entry.id)}
             >
               Show
+              <span className="sr-only"> {entry.name}</span>
             </button>
           </li>
         ))}
@@ -52,8 +53,14 @@ const WebcamHiddenDialog: React.FC<{
       >
         Show all
       </button>
-      <button type="button" className="btn--secondary" onClick={onClose}>
-        Close
+      <button
+        type="button"
+        className="btn--secondary"
+        title="Close"
+        onClick={onClose}
+      >
+        <span aria-hidden="true">×</span>
+        <span className="sr-only">Close</span>
       </button>
     </div>
   </dialog>

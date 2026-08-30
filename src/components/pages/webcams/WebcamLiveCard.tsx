@@ -57,11 +57,14 @@ const WebcamLiveCard: React.FC<
         feeding ? " webcam-card--wide" : ""
       }`}
     >
+<div className="webcam-card__head">
       <WebcamCardTitle
         country={entry.country}
         name={entry.name}
         latitude={entry.latitude}
       />
+      <WebcamHideButton name={entry.name} onHide={() => onHide(entry.id)} />
+    </div>
       {feedFailed ? (
         <p className="webcam-card__feed-fallback">
           Live feed unavailable –{" "}
@@ -103,7 +106,6 @@ const WebcamLiveCard: React.FC<
             <span className="btn__label">Live updates</span>
           </label>
         )}
-        <WebcamHideButton name={entry.name} onHide={() => onHide(entry.id)} />
       </div>
     </article>
   );

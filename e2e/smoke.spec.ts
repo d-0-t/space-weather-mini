@@ -35,7 +35,7 @@ test("the keyboard navigation opens the Details submenu and Escape returns focus
   await trigger.focus();
   await page.keyboard.press("Enter");
   await expect(trigger).toHaveAttribute("aria-expanded", "true");
-  const firstLink = page.getByRole("navigation").getByRole("link", { name: "Geophysical Alert", exact: true });
+  const firstLink = page.getByRole("navigation").getByRole("link", { name: "Daily Data", exact: true });
   await expect(firstLink).toBeVisible();
   await page.keyboard.press("Tab");
   await expect(firstLink).toBeFocused();

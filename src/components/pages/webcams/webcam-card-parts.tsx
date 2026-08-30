@@ -67,24 +67,25 @@ export const WebcamCardAttribution: React.FC<{
 
 /**
  * Icon Hide control shared by every gallery item (image card, live card,
- * Twitch card, link row): a crossed-out-eye glyph with the station in the
- * tooltip and the accessible name; the word "Hide" shows beside the icon on
- * wide screens and collapses to sr-only below 1000px (btn__label).
+ * Twitch card): a crossed-out-eye glyph in the card title row, with the
+ * station in the tooltip and the accessible name. Never shows visible text –
+ * the sr-only span carries the same name as the title attribute.
  */
 export const WebcamHideButton: React.FC<{
   name: string;
   onHide: () => void;
   className?: string;
 }> = ({ name, onHide, className = "" }) => {
+  const label = `Hide ${name}`;
   return (
     <button
       type="button"
-      className={`btn--icon webcam-card__hide${className ? ` ${className}` : ""}`}
-      title={`Hide ${name}`}
+      className={`btn--secondary webcam-card__hide${className ? ` ${className}` : ""}`}
+      title={label}
       onClick={onHide}
     >
       <VisibilityOffIcon fontSize="medium" />
-      <span className="btn__label">Hide</span>
+      <span className="sr-only">{label}</span>
     </button>
   );
 };

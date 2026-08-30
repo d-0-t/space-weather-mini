@@ -283,7 +283,7 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
         <div className="webcams__toolbar">
           <button
             type="button"
-            className="btn--icon"
+            className="btn--secondary"
             title="Refresh"
             onClick={() => setRefreshNonce((nonce) => nonce + 1)}
           >
@@ -292,7 +292,7 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
           </button>
           <button
             type="button"
-            className="btn--icon"
+            className="btn--secondary"
             ref={filterButtonRef}
             onClick={openFilterDialog}
             title={`Filter by region (${appliedRegions.length})`}
@@ -306,7 +306,7 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
           </button>
           <button
             type="button"
-            className="btn--icon"
+            className="btn--secondary"
             ref={hiddenButtonRef}
             onClick={openHiddenDialog}
             title={`Hidden sources (${hiddenSourceEntries.length})`}
@@ -316,7 +316,7 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
               Hidden sources ({hiddenSourceEntries.length})
             </span>
           </button>
-          <label className="btn--icon webcams__autorefresh">
+          <label className="btn--secondary webcams__autorefresh">
             <input
               type="checkbox"
               className="webcams__autorefresh__checkbox"
@@ -461,9 +461,6 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
                         >
                           {row.name}
                         </a>
-                        <span className="webcam-link-row__meta">
-                          {row.country} · {row.operator}
-                        </span>
                         <span className="webcam-link-row__kind">
                           {KIND_NOTES[row.kind]}
                         </span>

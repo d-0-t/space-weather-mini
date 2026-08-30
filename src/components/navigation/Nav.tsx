@@ -109,9 +109,13 @@ const Nav: React.FC = () => {
         <div className="header__left__title">Space Weather Mini</div>
       </Link>
       <nav
+        aria-labelledby="primary-nav-label"
         className={`header__nav${menuOpen ? " header__nav--open" : ""}`}
         onKeyDown={handleNavKeyDown}
       >
+        <span className="sr-only" id="primary-nav-label">
+          Primary navigation
+        </span>
         {menuOpen ? (
           <div
             className="header__menu-backdrop"
@@ -201,7 +205,7 @@ const Nav: React.FC = () => {
           <li>
             <button
               type="button"
-              className="btn--icon header__astro"
+              className="btn--secondary header__astro"
               title="Astro mode"
               aria-pressed={isAstro}
               onClick={toggleAstro}

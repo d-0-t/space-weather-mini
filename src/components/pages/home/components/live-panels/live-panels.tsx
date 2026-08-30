@@ -631,7 +631,10 @@ export const ChartHelp: React.FC<{
       className={`live-panel__help${className ? ` ${className}` : ""}`}
       onKeyDown={handleKeyDown}
     >
-      <summary>
+      <summary
+        className={summary ? undefined : "btn--secondary"}
+        title={summary ? undefined : content.label}
+      >
         {summary ?? (
           <>
             <span aria-hidden="true">?</span>

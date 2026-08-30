@@ -122,7 +122,7 @@
       }
     }
 
-    & > button.btn--icon {
+    & > button.btn--secondary {
       margin-left: 0.5rem;
       margin-right: 1rem;
     }
@@ -199,7 +199,11 @@
   }
 }
 
-@media (max-width: 720px) {
+// The full menu (Dashboard, Webcams, Details, About, Explainers, astro
+// toggle) wraps to two rows below ~850px, so the hamburger panel takes over
+// from 900px down – a wider point than before, covering narrow desktop
+// windows too.
+@media (max-width: 900px) {
   .header__menu-backdrop {
     position: fixed;
     inset: 0;
