@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -78,6 +79,7 @@ const KpChartTick = (props: {
  * IRF ENLIL predicted solar wind video and links to the full forecast pages.
  */
 const Forecast: React.FC = () => {
+  const forecastChartLabelId = useId();
   const { data } = useQuery({
     queryKey: ["3-day-forecast"],
     queryFn: fetchThreeDay,
@@ -214,9 +216,12 @@ const Forecast: React.FC = () => {
       <CollapsiblePanel heading={<h2>Forecast</h2>} bodyId="forecast-panel-body">
       <div
         role="img"
-        aria-label={`Kp observed (green circles) and forecast (plum squares) merged, vertical Now at ${nowLabel.replace("\n", " ")}; Moon illumination (blue, right axis, percent)`}
+        aria-labelledby={forecastChartLabelId}
         className="forecast__chart"
       >
+        <span className="sr-only" id={forecastChartLabelId}>
+          {`Kp observed (green circles) and forecast (plum squares) merged, vertical Now at ${nowLabel.replace("\n", " ")}; Moon illumination (blue, right axis, percent)`}
+        </span>
         <ResponsiveContainer width="100%" height={220}>
           <LineChart data={mergedData} margin={{ bottom: 20 }}>
             <CartesianGrid

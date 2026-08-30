@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   CartesianGrid,
@@ -129,6 +130,7 @@ const ProbabilityTable: React.FC<{
 );
 
 const ThreeDayForecast: React.FC = () => {
+  const forecastChartLabelId = useId();
   const { data, isPending, isError } = useQuery({
     queryKey: ["3-day-forecast"],
     queryFn: fetchThreeDayForecast,
@@ -186,8 +188,11 @@ const ThreeDayForecast: React.FC = () => {
             <div
               className="three-day-forecast__chart"
               role="img"
-              aria-label={`Kp index forecast by 3-hour interval (${data.days.join(", ")}); Moon illumination (blue, right axis, percent)`}
+              aria-labelledby={forecastChartLabelId}
             >
+              <span className="sr-only" id={forecastChartLabelId}>
+                {`Kp index forecast by 3-hour interval (${data.days.join(", ")}); Moon illumination (blue, right axis, percent)`}
+              </span>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={toChartPoint(data)}>
                   <CartesianGrid strokeDasharray="3 3" />

@@ -60,7 +60,10 @@ describe("Forecast", () => {
     const chart = screen.getByRole("img", {
       name: /Kp observed.*forecast.*Now/i,
     });
-    expect(chart.getAttribute("aria-label")).toMatch(/Moon illumination/);
+    // The chart is named by sr-only text, not aria-label
+    expect(
+      chart.querySelector(".sr-only")!.textContent,
+    ).toMatch(/Moon illumination/);
     const { moonIlluminationPercent } = await import("../../../../moon/moon");
     expect(moonIlluminationPercent(new Date("2026-08-26T12:00:00Z"))).toBeGreaterThan(0);
   });

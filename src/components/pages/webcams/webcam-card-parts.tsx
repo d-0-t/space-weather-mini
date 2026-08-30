@@ -10,8 +10,8 @@ export const WebcamCardTitle: React.FC<{
   latitude: number;
 }> = ({ country, name, latitude }) => (
   <h3 className="webcam-card__title">
-    <CountryFlag country={country} className="webcam-card__flag" />{" "}
-    {name} · {formatLatitude(latitude)}
+    <CountryFlag country={country} className="webcam-card__flag" /> {name} ·{" "}
+    {formatLatitude(latitude)}
   </h3>
 );
 
@@ -43,6 +43,8 @@ export const WebcamCardImage: React.FC<{
 }> = ({ label, src, alt }) => (
   <FullSizeModal
     label={label}
+    // The button is named by sr-only text inside FullSizeModal, so the img
+    // alt stays a plain image description without joining the button name
     trigger={<img src={src} alt={alt} className="webcam-card__img" />}
     triggerClassName="webcam-card__trigger"
   >
@@ -73,18 +75,19 @@ export const WebcamHideButton: React.FC<{
   name: string;
   onHide: () => void;
   className?: string;
-}> = ({ name, onHide, className = "" }) => (
-  <button
-    type="button"
-    className={`btn--icon webcam-card__hide${className ? ` ${className}` : ""}`}
-    title={`Hide ${name}`}
-    aria-label={`Hide ${name}`}
-    onClick={onHide}
-  >
-    <VisibilityOffIcon fontSize="medium" />
-    <span className="btn__label">Hide</span>
-  </button>
-);
+}> = ({ name, onHide, className = "" }) => {
+  return (
+    <button
+      type="button"
+      className={`btn--icon webcam-card__hide${className ? ` ${className}` : ""}`}
+      title={`Hide ${name}`}
+      onClick={onHide}
+    >
+      <VisibilityOffIcon fontSize="medium" />
+      <span className="btn__label">Hide</span>
+    </button>
+  );
+};
 
 /** Props every gallery card (image or live) needs from the page. */
 export interface WebcamCardBaseProps {
@@ -100,8 +103,10 @@ export const formatLatitude = (latitude: number): string =>
   `${Math.abs(latitude).toFixed(1)}°${latitude < 0 ? "S" : "N"}`;
 
 /** Flagcdn.com flag URLs per flagpedia's download API (16×12 base, 2x/3x retina). */
-export const flagSrc = (code: string, size: "16x12" | "32x24" | "48x36"): string =>
-  `https://flagcdn.com/${size}/${code}.png`;
+export const flagSrc = (
+  code: string,
+  size: "16x12" | "32x24" | "48x36",
+): string => `https://flagcdn.com/${size}/${code}.png`;
 
 export const formatLoadedTime = (): string =>
   new Date().toLocaleTimeString([], {

@@ -58,7 +58,7 @@ describe("Magnetosphere", () => {
     expect(screen.getAllByText(/GW/).length).toBeGreaterThan(0);
   });
 
-  it("labels every chart with a descriptive aria-label", async () => {
+  it("labels every chart with a descriptive accessible name", async () => {
     renderMagnetosphere();
     await waitFor(() =>
       expect(
@@ -105,9 +105,7 @@ describe("Magnetosphere", () => {
     const hemiCard = screen.getByText("Hemispheric power").closest("section")!;
     // The chart is described as a mirror around zero covering all data
     expect(
-      hemiCard
-        .querySelector(".live-panel__chart")!
-        .getAttribute("aria-label"),
+      hemiCard.querySelector(".live-panel__chart .sr-only")!.textContent,
     ).toMatch(/north and south mirrored around zero, all available data/i);
     // Headline: one large number per hemisphere, spread across the card
     const hemi = hemiCard.querySelector(".live-panel__hemi")!;
@@ -160,7 +158,11 @@ describe("Magnetosphere", () => {
     });
     expect(images.length).toBeGreaterThanOrEqual(1);
     expect(images[0]!.getAttribute("src")).toContain("spaceweather.irf.se");
-    // The modal also carries the full-size image
+    // The trigger tile is named by sr-only text; the modal also carries the
+    // full-size image
+    expect(
+      screen.getByRole("button", { name: /Kiruna magnetogram, full size/i }),
+    ).toBeInTheDocument();
     const dialog = document.querySelector("dialog.image-modal")!;
     expect(dialog.querySelector("img")?.getAttribute("src")).toContain(
       "spaceweather.irf.se",

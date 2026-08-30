@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   CartesianGrid,
@@ -58,6 +59,8 @@ const StationColumns: React.FC<{
 );
 
 const DailyGeomagneticIndices: React.FC = () => {
+  const indicesChartLabelId = useId();
+  const indicesTableLabelId = useId();
   const { data, isPending, isError } = useQuery({
     queryKey: ["daily-geomagnetic-indices"],
     queryFn: fetchDailyGeomagneticIndices,
@@ -108,8 +111,11 @@ const DailyGeomagneticIndices: React.FC = () => {
             <div
               className="daily-geomagnetic-indices__chart"
               role="img"
-              aria-label="Largest daily Kp index per station (Fredericksburg, College, estimated planetary) for the last 30 days"
+              aria-labelledby={indicesChartLabelId}
             >
+              <span className="sr-only" id={indicesChartLabelId}>
+                Largest daily Kp index per station (Fredericksburg, College, estimated planetary) for the last 30 days
+              </span>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={data.rows.map(toChartPoint)}>
                   <CartesianGrid strokeDasharray="3 3" />
@@ -165,9 +171,12 @@ const DailyGeomagneticIndices: React.FC = () => {
             <div
               className="daily-geomagnetic-indices__scroll"
               role="region"
-              aria-label="Daily geomagnetic indices table, scrollable"
+              aria-labelledby={indicesTableLabelId}
               tabIndex={0}
             >
+              <span className="sr-only" id={indicesTableLabelId}>
+                Daily geomagnetic indices table, scrollable
+              </span>
               <table className="daily-geomagnetic-indices__table">
                 <caption>
                   Last 30 days of daily geomagnetic indices per station

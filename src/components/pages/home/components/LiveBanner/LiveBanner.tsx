@@ -185,9 +185,9 @@ const LiveBanner: React.FC = () => {
         <div className="live-banner__details">
           <div
             role="img"
-            aria-label={`Bz GSM last 6h, Bt last 6h, speed last 6h, hemispheric power last 6h, Dst last 6h`}
+            aria-labelledby="live-banner-sparklines-label"
           >
-            <p>
+            <p id="live-banner-sparklines-label">
               Bz / Bt / Speed / Hemi / Dst 6-hour sparklines (paired tables
               below)
             </p>

@@ -1,3 +1,4 @@
+import { useId } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   CartesianGrid,
@@ -65,6 +66,7 @@ const toMidnightTimeTag = (date: string): string => {
 };
 
 const TwentySevenDayOutlook: React.FC = () => {
+  const outlookChartLabelId = useId();
   const { data, isPending, isError, isFetching, refetch } = useQuery({
     queryKey: ["27-day-outlook"],
     queryFn: fetch27DayOutlook,
@@ -121,8 +123,11 @@ const TwentySevenDayOutlook: React.FC = () => {
             <div
               className="twenty-seven-day-outlook__chart"
               role="img"
-              aria-label="Kp index trend for the next 27 days with Moon illumination (blue, right axis, percent)"
+              aria-labelledby={outlookChartLabelId}
             >
+              <span className="sr-only" id={outlookChartLabelId}>
+                Kp index trend for the next 27 days with Moon illumination (blue, right axis, percent)
+              </span>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />

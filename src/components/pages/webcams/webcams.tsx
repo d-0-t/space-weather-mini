@@ -285,7 +285,6 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
             type="button"
             className="btn--icon"
             title="Refresh"
-            aria-label="Refresh"
             onClick={() => setRefreshNonce((nonce) => nonce + 1)}
           >
             <RefreshIcon fontSize="small" />
@@ -294,14 +293,9 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
           <button
             type="button"
             className="btn--icon"
-            title="Filter webcams by region"
-            aria-label={
-              appliedRegions.length > 0
-                ? `Filter (${appliedRegions.length})`
-                : "Filter"
-            }
             ref={filterButtonRef}
             onClick={openFilterDialog}
+            title={`Filter by region (${appliedRegions.length})`}
           >
             <FilterListIcon fontSize="small" />
             <span className="btn__label">
@@ -313,10 +307,9 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
           <button
             type="button"
             className="btn--icon"
-            title="Hidden sources"
-            aria-label={`Hidden sources (${hiddenSourceEntries.length})`}
             ref={hiddenButtonRef}
             onClick={openHiddenDialog}
+            title={`Hidden sources (${hiddenSourceEntries.length})`}
           >
             <VisibilityOffIcon fontSize="small" />
             <span className="btn__label">
@@ -345,7 +338,13 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
       ) : null}
 
       {visibleEntries.length > 0 ? (
-        <nav className="webcams__jumps" aria-label="Webcams sections">
+        <nav
+          className="webcams__jumps"
+          aria-labelledby="webcams-sections-label"
+        >
+          <span className="sr-only" id="webcams-sections-label">
+            Webcams sections
+          </span>
           <span className="webcams__jumps-label">Jump to:</span>
           {mediaByRegion.map(([region]) => (
             <a

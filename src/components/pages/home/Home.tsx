@@ -45,7 +45,6 @@ const Home: React.FC = () => {
                 type="button"
                 className="btn--icon home__alerts-toggle"
                 title="Alerts"
-                aria-label="Alerts"
                 ref={alertsButtonRef}
                 onClick={() => alertsDialogRef.current?.showModal()}
               >

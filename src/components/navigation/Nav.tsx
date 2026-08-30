@@ -100,11 +100,7 @@ const Nav: React.FC = () => {
 
   return (
     <header className="header">
-      <Link
-        to="/"
-        className="header__left"
-        aria-label="Space Weather Mini – back to dashboard"
-      >
+      <Link to="/" className="header__left">
         <img
           src="/assets/icon-192.png"
           className="header__left__logo"
@@ -113,7 +109,6 @@ const Nav: React.FC = () => {
         <div className="header__left__title">Space Weather Mini</div>
       </Link>
       <nav
-        aria-label="Primary"
         className={`header__nav${menuOpen ? " header__nav--open" : ""}`}
         onKeyDown={handleNavKeyDown}
       >
@@ -168,8 +163,11 @@ const Nav: React.FC = () => {
             <ul
               className="dropdown-content"
               id={submenuId}
-              aria-label="Details submenu"
+              aria-labelledby="forecasts-submenu-label"
             >
+              <li className="sr-only" id="forecasts-submenu-label">
+                Details submenu
+              </li>
               <li>
                 <Link to={"/forecasts/daily"}>Daily Data</Link>
               </li>

@@ -1,4 +1,10 @@
-import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import {
+  useEffect,
+  useId,
+  useRef,
+  type CSSProperties,
+  type ReactNode,
+} from "react";
 import {
   CartesianGrid,
   Line,
@@ -383,6 +389,7 @@ export const MiniSparkline: React.FC<{
   second,
   primaryName,
 }) => {
+  const chartLabelId = useId();
   const hasNow = Boolean(nowLabel);
   const mergedPoints = second
     ? points.map((p, i) => {
@@ -436,7 +443,14 @@ export const MiniSparkline: React.FC<{
     : null;
   const yDomain = mirrorCeiling === null ? ["auto", "auto"] : [-mirrorCeiling, mirrorCeiling];
   return (
-    <div role="img" aria-label={ariaLabel} className="live-panel__chart">
+    <div
+      role="img"
+      aria-labelledby={chartLabelId}
+      className="live-panel__chart"
+    >
+      <span className="sr-only" id={chartLabelId}>
+        {ariaLabel}
+      </span>
       <ResponsiveContainer width="100%" height={140}>
         <LineChart
           data={chartPoints}

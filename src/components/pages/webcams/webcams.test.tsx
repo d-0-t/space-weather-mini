@@ -495,15 +495,15 @@ describe("Webcams auto-refresh header (ticket 03)", () => {
     const hidden = within(headerRow).getByRole("button", {
       name: "Hidden sources (0)",
     });
-    // Every toolbar control is an icon button with an icon, a tooltip
-    // title, and a collapsible visible label
+    // Every toolbar control is an icon button named by its collapsible
+    // visible label – no aria-label, no title to override the name
     for (const button of [refresh, filter, hidden]) {
       expect(button).toHaveClass("btn--icon");
-      expect(button).toHaveAttribute("title");
+      expect(button).not.toHaveAttribute("aria-label");
       expect(button.querySelector(".btn__label")).not.toBeNull();
       expect(button.querySelector("svg")).not.toBeNull();
     }
-    expect(refresh).toHaveAttribute("title", "Refresh");
+    expect(refresh.querySelector(".btn__label")).toHaveTextContent("Refresh");
   });
 
   it("renders the auto-refresh setting as a native checkbox, unchecked by default, with the cadence range in its label", () => {
@@ -804,8 +804,14 @@ describe("Webcams hidden sources dialog", () => {
     ).toBeInTheDocument();
     const dialog = openHiddenDialog();
     expect(dialog.open).toBe(true);
-    expect(within(dialog).getByText("North Star")).toBeInTheDocument();
-    expect(within(dialog).getByText("Northern Lights")).toBeInTheDocument();
+    // The entry names live in the name column; the Show buttons repeat them
+    // in their sr-only spans, so scope to the name column
+    expect(
+      within(dialog).getByText("North Star", { selector: ".webcams__hidden-name" }),
+    ).toBeInTheDocument();
+    expect(
+      within(dialog).getByText("Northern Lights", { selector: ".webcams__hidden-name" }),
+    ).toBeInTheDocument();
     expect(
       within(dialog).getByRole("button", { name: "Show North Star" }),
     ).toBeInTheDocument();

@@ -1,4 +1,4 @@
-import { useEffect, type RefObject } from "react";
+import { useEffect, useId, type RefObject } from "react";
 
 import Alerts from "./Alerts";
 
@@ -9,13 +9,16 @@ import "./Alerts.scss";
  * browser-alerts permission) live in a native <dialog> opened from the
  * Dashboard header's Alerts icon button. Polling and notifications run in
  * AlertsProvider, so closing the modal never stops them; a closed dialog hands
- * focus back to the trigger button.
+ * focus back to the trigger button. The dialog is named by sr-only text
+ * (aria-labelledby), never aria-label.
  */
 const AlertsDialog: React.FC<{
   dialogRef: RefObject<HTMLDialogElement | null>;
   triggerRef: RefObject<HTMLButtonElement | null>;
   onClose: () => void;
 }> = ({ dialogRef, triggerRef, onClose }) => {
+  const dialogLabelId = useId();
+
   // A closed dialog hands focus back to its trigger button (the browser does
   // this for native dialogs; the explicit handler covers test environments).
   useEffect(() => {
@@ -30,8 +33,11 @@ const AlertsDialog: React.FC<{
     <dialog
       ref={dialogRef}
       className="alerts-dialog"
-      aria-label="Alert settings"
+      aria-labelledby={dialogLabelId}
     >
+      <span className="sr-only" id={dialogLabelId}>
+        Alert settings
+      </span>
       <Alerts />
       <div className="alerts-dialog__actions">
         <button type="button" className="btn--secondary" onClick={onClose}>

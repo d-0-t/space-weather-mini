@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 
 interface FullSizeModalProps {
   /** Accessible name for the trigger button and the dialog */
@@ -15,7 +15,8 @@ interface FullSizeModalProps {
  * Full-size viewer built on the native <dialog>: a trigger tile button and a
  * modal that fits the viewport. Escape closes it (native), as does the X
  * button pinned to the viewport's top-right corner so it never covers the
- * media, and a click on the backdrop outside the dialog box.
+ * media, and a click on the backdrop outside the dialog box. The dialog is
+ * named by sr-only text inside them (aria-labelledby).
  */
 const FullSizeModal: React.FC<FullSizeModalProps> = ({
   label,
@@ -24,6 +25,7 @@ const FullSizeModal: React.FC<FullSizeModalProps> = ({
   children,
 }) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const dialogLabelId = useId();
 
   // A click on the backdrop (outside the dialog box) closes the modal. The
   // dialog box is centered with auto margins, so the dimmed area around it is
@@ -53,12 +55,19 @@ const FullSizeModal: React.FC<FullSizeModalProps> = ({
       <button
         type="button"
         className={triggerClassName}
-        aria-label={label}
         onClick={() => dialogRef.current?.showModal()}
       >
+        <span className="sr-only">{label}</span>
         {trigger}
       </button>
-      <dialog ref={dialogRef} className="image-modal" aria-label={label}>
+      <dialog
+        ref={dialogRef}
+        className="image-modal"
+        aria-labelledby={dialogLabelId}
+      >
+        <span className="sr-only" id={dialogLabelId}>
+          {label}
+        </span>
         <button
           type="button"
           className="image-modal__close"

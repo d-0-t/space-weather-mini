@@ -5,7 +5,9 @@ const dataTimeout = 60_000;
 test("the app boots with navigation chrome on every page", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
-  await expect(page.getByText("Space Weather Mini")).toBeVisible();
+  await expect(
+    page.getByText("Space Weather Mini", { exact: true }),
+  ).toBeVisible();
   for (const label of ["Dashboard", "About", "Explainers"]) {
     await expect(
       page.getByRole("link", { name: label, exact: true }),

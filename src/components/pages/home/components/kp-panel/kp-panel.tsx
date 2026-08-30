@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 import {
   parsePlanetaryKIndex,
   parsePlanetaryKIndexForecast,
@@ -95,9 +97,14 @@ const KP_SEGMENT_CLASSES = [
 
 export const KpBar: React.FC<{ kp: number }> = ({ kp }) => {
   const filled = Math.min(9, kp);
+  const barLabelId = useId();
   return (
-    <div className="kp-bar" role="img" aria-label={`Kp ${kp} on a scale of 0 to 9`}>
-      <span className="sr-only">
+    <div
+      className="kp-bar"
+      role="img"
+      aria-labelledby={barLabelId}
+    >
+      <span className="sr-only" id={barLabelId}>
         {`Kp ${kp} on scale 0 to 9, ${filled} of 9 segments colored`}
       </span>
       <span aria-hidden="true" className="kp-bar__start" />

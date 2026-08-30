@@ -35,7 +35,6 @@ const WebcamHiddenDialog: React.FC<{
             <button
               type="button"
               className="btn--secondary"
-              aria-label={`Show ${entry.name}`}
               onClick={() => onRestore(entry.id)}
             >
               Show

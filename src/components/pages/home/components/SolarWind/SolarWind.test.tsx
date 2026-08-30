@@ -76,7 +76,7 @@ describe("SolarWind", () => {
     expect(screen.getAllByText(/South/).length).toBeGreaterThan(0);
   });
 
-  it("labels every chart with a descriptive aria-label", async () => {
+  it("labels every chart with a descriptive accessible name", async () => {
     renderSolarWind();
     await waitFor(() =>
       expect(
