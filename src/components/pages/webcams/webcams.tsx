@@ -7,9 +7,11 @@ import "./webcams.scss";
 import CollapsiblePanel from "../../CollapsiblePanel/CollapsiblePanel";
 import {
   loadAutoRefresh,
+  loadClosedPanels,
   loadFilteredRegions,
   loadHiddenSourceIds,
   saveAutoRefresh,
+  saveClosedPanels,
   saveFilteredRegions,
   saveHiddenSourceIds,
 } from "../../../data/webcam-storage";
@@ -136,6 +138,9 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
   const [autoRefresh, setAutoRefresh] = useState<boolean>(() =>
     loadAutoRefresh(localStorage),
   );
+  const [closedPanels, setClosedPanels] = useState<string[]>(() =>
+    loadClosedPanels(localStorage),
+  );
   const [refreshNonce, setRefreshNonce] = useState(0);
   const [draftRegions, setDraftRegions] = useState<WebcamRegion[]>([]);
   const filterButtonRef = useRef<HTMLButtonElement>(null);
@@ -194,6 +199,17 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
   };
 
   const openHiddenDialog = () => hiddenDialogRef.current?.showModal();
+
+  // Collapsed section ids persist across visits, so a visitor's layout
+  // survives a reload. Toggling is the only mutation, and a stale id of a
+  // region removed from the registry stays inert in storage.
+  const togglePanel = (panelId: string) => {
+    const next = closedPanels.includes(panelId)
+      ? closedPanels.filter((id) => id !== panelId)
+      : [...closedPanels, panelId];
+    saveClosedPanels(localStorage, next);
+    setClosedPanels(next);
+  };
 
   const toggleDraftRegion = (region: WebcamRegion) => {
     setDraftRegions((draft) =>
@@ -287,9 +303,6 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
             ref={filterButtonRef}
             onClick={openFilterDialog}
           >
-            {/* {appliedRegions.length > 0 ? (
-              <span className="btn__badge" aria-hidden="true" />
-            ) : null} */}
             <FilterListIcon fontSize="small" />
             <span className="btn__label">
               {appliedRegions.length > 0
@@ -305,9 +318,6 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
             ref={hiddenButtonRef}
             onClick={openHiddenDialog}
           >
-            {/* {hiddenSourceEntries.length > 0 ? (
-              <span className="btn__badge" aria-hidden="true" />
-            ) : null} */}
             <VisibilityOffIcon fontSize="small" />
             <span className="btn__label">
               Hidden sources ({hiddenSourceEntries.length})
@@ -369,6 +379,8 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
                   Jump to top
                 </a>
               }
+              open={!closedPanels.includes(sectionId(region))}
+              onToggle={() => togglePanel(sectionId(region))}
             >
               <div className="webcams__cards">
                 {orderedCards(media.cards).map((card) => (
@@ -412,6 +424,8 @@ const Webcams: React.FC<{ entries?: WebcamEntry[] }> = ({
                 Jump to top
               </a>
             }
+            open={!closedPanels.includes("webcams-links")}
+            onToggle={() => togglePanel("webcams-links")}
           >
             {linksByRegion.map(([region, rows]) => {
               // One flag on the group heading when every row shares a country

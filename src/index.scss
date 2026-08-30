@@ -13,8 +13,6 @@
   --color-light-lime: #a0e35f;
   --color-gold: #fcbe52;
   --color-orange: #ff5100;
-  // Status red – active-filter/hidden indicators (ticket 05)
-  --color-status-red: #e5484d;
 
   --color-bg-page: var(--color-black);
   // Slightly toned-down text white (ticket 05 follow-up) – softer than pure
@@ -112,7 +110,7 @@ code {
 /* ── Shared button system (ticket 05) ───────────────────────────────────────
    Three variants: primary (green CTA), secondary (dark pill, browser-alerts
    style), icon (emoji-only, Astro-mode style). Labels collapse to icons on
-   narrow screens; active-state controls carry a red corner dot. */
+   narrow screens. */
 
 .btn--primary {
   cursor: pointer;
@@ -186,18 +184,6 @@ code {
     opacity: 0.5;
     cursor: default;
   }
-}
-
-/* Red corner dot marking an active state (filter applied, sources hidden) */
-.btn__badge {
-  position: absolute;
-  top: -4px;
-  right: -4px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: var(--color-primary-violet);
-  border: 1px solid var(--color-black);
 }
 
 /* Below ~1000px icon+label buttons collapse to icons: the label becomes

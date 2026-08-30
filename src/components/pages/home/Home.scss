@@ -23,6 +23,12 @@
     }
   }
 
+  &__header-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
   &__compact-toggle {
     cursor: pointer;
     user-select: none;

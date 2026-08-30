@@ -8,7 +8,10 @@ import {
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import Webcams from "./webcams";
-import { AUTO_REFRESH_STORAGE_KEY } from "../../../data/webcam-storage";
+import {
+  AUTO_REFRESH_STORAGE_KEY,
+  WEBCAM_PANELS_STORAGE_KEY,
+} from "../../../data/webcam-storage";
 import type { WebcamEntry } from "../../../data/webcams";
 
 const fixtureEntries: WebcamEntry[] = [
@@ -145,6 +148,10 @@ const openFilter = () => {
 };
 
 describe("Webcams page", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
   it("renders a single level-1 heading", () => {
     renderPage();
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
@@ -419,6 +426,59 @@ describe("Webcams page", () => {
   });
 });
 
+describe("Webcams panel persistence", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("persists a collapsed region section and restores it on a fresh mount", () => {
+    const { unmount } = render(<Webcams entries={fixtureEntries} />);
+    fireEvent.click(screen.getByRole("button", { name: "Nordic" }));
+    expect(localStorage.getItem(WEBCAM_PANELS_STORAGE_KEY)).toBe(
+      JSON.stringify({ v: 1, closed: ["webcams-region-Nordic"] }),
+    );
+    unmount();
+    render(<Webcams entries={fixtureEntries} />);
+    const toggle = screen.getByRole("button", { name: "Nordic" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(
+      screen.queryByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
+    ).toBeNull();
+  });
+
+  it("persists the Webcam links section collapse across a fresh mount", () => {
+    const { unmount } = render(<Webcams entries={fixtureEntries} />);
+    fireEvent.click(screen.getByRole("button", { name: "Webcam links" }));
+    expect(localStorage.getItem(WEBCAM_PANELS_STORAGE_KEY)).toBe(
+      JSON.stringify({ v: 1, closed: ["webcams-links"] }),
+    );
+    unmount();
+    render(<Webcams entries={fixtureEntries} />);
+    expect(
+      screen.getByRole("button", { name: "Webcam links" }),
+    ).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("link", { name: "Midnight Glacier" })).toBeNull();
+  });
+
+  it("reopens a persisted collapsed section and clears it from storage", () => {
+    localStorage.setItem(
+      WEBCAM_PANELS_STORAGE_KEY,
+      JSON.stringify({ v: 1, closed: ["webcams-region-Nordic"] }),
+    );
+    render(<Webcams entries={fixtureEntries} />);
+    const toggle = screen.getByRole("button", { name: "Nordic" });
+    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(toggle);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    expect(localStorage.getItem(WEBCAM_PANELS_STORAGE_KEY)).toBe(
+      JSON.stringify({ v: 1, closed: [] }),
+    );
+    expect(
+      screen.getByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
+    ).toBeInTheDocument();
+  });
+});
+
 describe("Webcams auto-refresh header (ticket 03)", () => {
   beforeEach(() => {
     localStorage.clear();
@@ -435,10 +495,10 @@ describe("Webcams auto-refresh header (ticket 03)", () => {
     const hidden = within(headerRow).getByRole("button", {
       name: "Hidden sources (0)",
     });
-    // Every toolbar control is a secondary button with an icon, a tooltip
+    // Every toolbar control is an icon button with an icon, a tooltip
     // title, and a collapsible visible label
     for (const button of [refresh, filter, hidden]) {
-      expect(button).toHaveClass("btn--secondary");
+      expect(button).toHaveClass("btn--icon");
       expect(button).toHaveAttribute("title");
       expect(button.querySelector(".btn__label")).not.toBeNull();
       expect(button.querySelector("svg")).not.toBeNull();
@@ -465,37 +525,33 @@ describe("Webcams auto-refresh header (ticket 03)", () => {
     expect(checkbox.closest("label")!.querySelector("svg")).toBeNull();
   });
 
-  it("marks the Filter and Hidden sources buttons with an active badge only while something is applied", () => {
+  it("communicates active counts through the Filter and Hidden sources button labels, with no badge dot", () => {
     renderPage();
     const filter = screen.getByRole("button", { name: "Filter" });
     const hidden = screen.getByRole("button", { name: "Hidden sources (0)" });
     expect(filter.querySelector(".btn__badge")).toBeNull();
     expect(hidden.querySelector(".btn__badge")).toBeNull();
 
-    // A hidden source lights the Hidden sources badge
+    // A hidden source updates the Hidden sources label
     fireEvent.click(screen.getByRole("button", { name: "Hide North Star" }));
-    expect(
-      screen.getByRole("button", { name: "Hidden sources (1)" }).querySelector(
-        ".btn__badge",
-      ),
-    ).not.toBeNull();
+    const hiddenAfter = screen.getByRole("button", {
+      name: "Hidden sources (1)",
+    });
+    expect(hiddenAfter.querySelector(".btn__badge")).toBeNull();
 
-    // An applied filter lights the Filter badge
+    // An applied filter updates the Filter label
     const dialog = openFilter();
     fireEvent.click(
       within(dialog).getByRole("checkbox", { name: "Nordic" }),
     );
     fireEvent.click(within(dialog).getByRole("button", { name: "Apply" }));
-    expect(
-      screen.getByRole("button", { name: "Filter (1)" }).querySelector(
-        ".btn__badge",
-      ),
-    ).not.toBeNull();
+    const filterAfter = screen.getByRole("button", { name: "Filter (1)" });
+    expect(filterAfter.querySelector(".btn__badge")).toBeNull();
     expect(
       screen.getByRole("button", { name: "Hidden sources (1)" }).querySelector(
         ".btn__badge",
       ),
-    ).not.toBeNull();
+    ).toBeNull();
   });
 
   it("persists the auto-refresh setting and restores it on a fresh mount", () => {

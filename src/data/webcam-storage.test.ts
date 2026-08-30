@@ -4,10 +4,13 @@ import {
   AUTO_REFRESH_STORAGE_KEY,
   HIDDEN_WEBCAMS_STORAGE_KEY,
   WEBCAM_FILTER_STORAGE_KEY,
+  WEBCAM_PANELS_STORAGE_KEY,
   loadAutoRefresh,
+  loadClosedPanels,
   loadFilteredRegions,
   loadHiddenSourceIds,
   saveAutoRefresh,
+  saveClosedPanels,
   saveFilteredRegions,
   saveHiddenSourceIds,
 } from "./webcam-storage";
@@ -85,6 +88,50 @@ describe("Webcam preferences storage (ticket 02)", () => {
       JSON.stringify({ v: 1, regions: ["North America", "Atlantis"] }),
     );
     expect(loadFilteredRegions(localStorage)).toEqual(["North America"]);
+  });
+});
+
+describe("Webcam panel persistence", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("returns no closed panels when nothing is stored", () => {
+    expect(loadClosedPanels(localStorage)).toEqual([]);
+  });
+
+  it("round-trips the collapsed section ids as a versioned array", () => {
+    saveClosedPanels(localStorage, ["webcams-region-Nordic", "webcams-links"]);
+    expect(localStorage.getItem(WEBCAM_PANELS_STORAGE_KEY)).toBe(
+      JSON.stringify({
+        v: 1,
+        closed: ["webcams-region-Nordic", "webcams-links"],
+      }),
+    );
+    expect(loadClosedPanels(localStorage)).toEqual([
+      "webcams-region-Nordic",
+      "webcams-links",
+    ]);
+  });
+
+  it("falls back to no closed panels on corrupt, foreign-shaped, or unknown-version storage", () => {
+    localStorage.setItem(WEBCAM_PANELS_STORAGE_KEY, "not json");
+    expect(loadClosedPanels(localStorage)).toEqual([]);
+    localStorage.setItem(WEBCAM_PANELS_STORAGE_KEY, JSON.stringify({ v: 1 }));
+    expect(loadClosedPanels(localStorage)).toEqual([]);
+    localStorage.setItem(
+      WEBCAM_PANELS_STORAGE_KEY,
+      JSON.stringify({ v: 99, closed: ["webcams-region-Nordic"] }),
+    );
+    expect(loadClosedPanels(localStorage)).toEqual([]);
+  });
+
+  it("drops non-string junk from the closed panel ids", () => {
+    localStorage.setItem(
+      WEBCAM_PANELS_STORAGE_KEY,
+      JSON.stringify({ v: 1, closed: ["webcams-links", 42, null] }),
+    );
+    expect(loadClosedPanels(localStorage)).toEqual(["webcams-links"]);
   });
 });
 

@@ -50,6 +50,11 @@ describe("Home", () => {
     expect(screen.getByRole("heading", { level: 1, name: "Dashboard" })).toBeInTheDocument();
   });
 
+  it("hides the alert settings button while the feature flag is off", () => {
+    renderHome();
+    expect(screen.queryByRole("button", { name: "Alerts" })).toBeNull();
+  });
+
   it("toggles compact chart view from the Dashboard header", async () => {
     const user = userEvent.setup();
     const { container } = renderHome();

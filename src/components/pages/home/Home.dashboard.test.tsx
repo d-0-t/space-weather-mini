@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
@@ -17,6 +17,10 @@ import rtswWindFixture from "../../../products/fixtures/rtsw-wind-1m.json?raw";
 import rtswMagFixture from "../../../products/fixtures/rtsw-mag-1m.json?raw";
 import boulderFixture from "../../../products/fixtures/boulder-k-index-1m.json?raw";
 import Home from "./Home";
+
+// The alert settings modal sits behind a feature flag (src/features.ts); this
+// suite exercises it with the flag on.
+vi.mock("../../../features", () => ({ ALERTS_ENABLED: true }));
 
 const queryClient = () =>
   new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -190,17 +194,48 @@ describe("Home Live Now dashboard (ticket 01)", () => {
     ).toBe(true);
   });
 
-  it("shows the alerts banner on Home with matches from the fixture feed", async () => {
+  it("opens the alert settings modal from the Dashboard header with matches from the fixture feed", async () => {
+    const user = userEvent.setup();
     const { container } = renderHome();
-    await waitFor(() =>
-      expect(screen.getByRole("heading", { name: "Alerts" })).toBeInTheDocument(),
-    );
+    // The Alerts icon button sits next to the Compact view toggle in the
+    // Dashboard header, and the settings stay out of sight until it opens
+    const trigger = screen.getByRole("button", { name: "Alerts" });
     expect(
-      screen.getByRole("slider", { name: /Kp alert threshold/ }),
+      trigger.closest(".home__header")!.querySelector(".home__compact-toggle"),
+    ).not.toBeNull();
+    expect(screen.queryByRole("slider", { name: /Kp alert threshold/ })).toBeNull();
+
+    await user.click(trigger);
+    const dialog = document.querySelector(
+      "dialog.alerts-dialog",
+    ) as HTMLDialogElement;
+    expect(dialog.open).toBe(true);
+    expect(within(dialog).getByRole("heading", { name: "Alerts" })).toBeInTheDocument();
+    expect(
+      within(dialog).getByRole("slider", { name: /Kp alert threshold/ }),
     ).toHaveValue("5");
     await waitFor(() =>
-      expect(container.querySelector(".alerts__strip")).toBeInTheDocument(),
+      expect(dialog.querySelector(".alerts__strip")).toBeInTheDocument(),
     );
+
+    // Close hands focus back to the header trigger
+    await user.click(within(dialog).getByRole("button", { name: "Close" }));
+    expect(dialog.open).toBe(false);
+    expect(trigger).toHaveFocus();
+  });
+
+  it("closes the alert settings modal on Escape and returns focus to the Alerts button", async () => {
+    const user = userEvent.setup();
+    renderHome();
+    const trigger = screen.getByRole("button", { name: "Alerts" });
+    await user.click(trigger);
+    const dialog = document.querySelector(
+      "dialog.alerts-dialog",
+    ) as HTMLDialogElement;
+    expect(dialog.open).toBe(true);
+    await user.keyboard("{Escape}");
+    expect(dialog.open).toBe(false);
+    expect(trigger).toHaveFocus();
   });
 
   it("shows stale-cache warning when live fetch fails but cached data exists", async () => {

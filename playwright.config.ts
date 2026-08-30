@@ -13,5 +13,8 @@ export default defineConfig({
     url: "http://localhost:4173",
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
+    // Build with the alerts feature flag on – the alerts e2e spec drives the
+    // modal that the production default hides.
+    env: { VITE_ALERTS_ENABLED: "true" },
   },
 });

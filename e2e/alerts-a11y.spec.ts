@@ -8,7 +8,10 @@ const alertsFixture = readFileSync(
 );
 const dataTimeout = 60_000;
 
-test("alerts banner filters the fixture feed to the threshold and passes axe", async ({
+// The alert settings modal sits behind a feature flag; the e2e web server
+// builds with VITE_ALERTS_ENABLED=true (playwright.config.ts), so the Alerts
+// button is present in the Dashboard header here.
+test("alert settings modal filters the fixture feed to the threshold and passes axe", async ({
   page,
 }) => {
   await page.route("**/alerts.json", (route) =>
@@ -23,20 +26,24 @@ test("alerts banner filters the fixture feed to the threshold and passes axe", a
   });
 
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Alerts" })).toBeVisible({
-    timeout: dataTimeout,
-  });
+  const dialog = page.locator("dialog.alerts-dialog");
+  await expect(dialog).toBeHidden();
+  await page.getByRole("button", { name: "Alerts" }).click();
+  await expect(dialog).toBeVisible({ timeout: dataTimeout });
   await expect(
-    page.getByRole("slider", { name: /Kp alert threshold/ }),
-  ).toHaveValue("5");
-  await expect(page.locator(".alerts__strip")).toBeVisible();
-  await expect(page.locator(".alerts__strip")).toHaveCount(1);
-  await expect(page.locator(".alerts__strip__color")).toHaveCount(1);
-  await expect(
-    page.getByRole("button", { name: /browser alerts/i }),
+    dialog.getByRole("heading", { name: "Alerts" }),
   ).toBeVisible();
   await expect(
-    page.getByText(/Alerts while this tab is open\./),
+    dialog.getByRole("slider", { name: /Kp alert threshold/ }),
+  ).toHaveValue("5");
+  await expect(dialog.locator(".alerts__strip")).toBeVisible();
+  await expect(dialog.locator(".alerts__strip")).toHaveCount(1);
+  await expect(dialog.locator(".alerts__strip__color")).toHaveCount(1);
+  await expect(
+    dialog.getByRole("button", { name: /browser alerts/i }),
+  ).toBeVisible();
+  await expect(
+    dialog.getByText(/Alerts while this tab is open\./),
   ).toBeVisible();
 
   const results = await new AxeBuilder({ page }).analyze();

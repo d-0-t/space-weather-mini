@@ -6,7 +6,6 @@ import { formatAge } from "../../../../../products/live-helpers";
 import { ChartHelp } from "../live-panels/live-panels";
 import { getMoonPhase } from "../../../../moon/moon";
 import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
-import Alerts from "../Alerts/Alerts";
 import {
   KpBar,
   fetchKpObserved,
@@ -198,7 +197,6 @@ const AuroraNow: React.FC = () => {
             -old cache
           </p>
         ) : null}
-        <Alerts />
         <h3>Aurora Oval Forecast (30 min)</h3>
         <div className="aurora-images">
           <FullSizeModal
