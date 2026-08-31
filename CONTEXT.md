@@ -157,3 +157,21 @@ _Avoid_: live feed (without caveat), streaming cam
 **Live updates**:
 The per-card opt-in switch on the live cam that gates its SSE feed; it only takes effect while the global auto-refresh setting is on and the tab is visible.
 _Avoid_: live mode, live toggle (internal names only)
+
+### Local conditions
+
+**Local conditions**:
+A place-based view that shows whether tonight is dark and clear from a chosen location: daylight and twilight times plus weather cloud, temperature and humidity. The location is a stored geocoded place, not the user's device by default.
+_Avoid_: conditions in my area (as a term), local weather (when the dark window is meant)
+
+**Geocoded place**:
+A location the app resolved from freeform text via Nominatim into latitude, longitude and a display name, or from the browser geolocation. The app stores the last chosen place in localStorage; the user picks from up to five Nominatim matches. When nothing is stored the app defaults to Kiruna, Sweden.
+_Avoid_: location (without geocoded qualifier when the stored place is meant), pin, marker, coordinates (as a manual entry)
+
+**Dark window**:
+The interval at a geocoded place when the sun is below -18 degrees, between astronomical dusk and the next astronomical dawn. Distinct from bright twilight.
+_Avoid_: night, dark hours, nighttime (without -18 degree qualifier)
+
+**Civil twilight**:
+The interval when the sun is 0 to -6 degrees below the horizon at a geocoded place, between sunset and dusk and between dawn and sunrise. Still too bright for faint aurora.
+_Avoid_: twilight (without civil/nautical/astronomical qualifier), dusk (when the whole interval is meant)
