@@ -190,9 +190,10 @@ describe("Magnetosphere", () => {
     const tile = screen.getByRole("button", { name: /kiruna magnetogram/i });
     await user.click(tile);
     expect(dialog.open).toBe(true);
-    // Close button: visible × with an sr-only "Close" label and tooltip
+    // Close button: real SVG icon (never a text ×) with an sr-only "Close"
+    // label and tooltip
     const close = screen.getByRole("button", { name: /^Close$/ });
-    expect(close.querySelector("span[aria-hidden]")?.textContent).toBe("×");
+    expect(close.querySelector("svg[aria-hidden]")).not.toBeNull();
     expect(close.querySelector(".sr-only")?.textContent).toBe("Close");
     expect(close.getAttribute("title")).toBe("Close");
     await user.click(close);

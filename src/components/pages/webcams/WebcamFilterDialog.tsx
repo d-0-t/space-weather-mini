@@ -33,8 +33,7 @@ const WebcamFilterDialog: React.FC<{
       Filter webcams by region
     </h2>
     <p className="webcams__dialog-hint">
-      Check the regions to keep; leave every box unchecked to show all
-      webcams.
+      Check the regions to keep; leave every box unchecked to show all webcams.
     </p>
     <ul className="webcams__filter-list">
       {presentRegions.map((region) => (
@@ -65,8 +64,7 @@ const WebcamFilterDialog: React.FC<{
         title="Cancel"
         onClick={onCancel}
       >
-        <span aria-hidden="true">×</span>
-        <span className="sr-only">Cancel</span>
+        Cancel
       </button>
       <button type="button" className="btn--primary" onClick={onApply}>
         Apply

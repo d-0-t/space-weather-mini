@@ -178,7 +178,9 @@ describe("Forecast", () => {
       }),
     );
     const close = screen.getByRole("button", { name: /^Close$/ });
-    expect(close.querySelector("span[aria-hidden]")?.textContent).toBe("×");
+    // Close icon is a real SVG glyph (never a text ×), with an sr-only label
+    // and tooltip carrying the name
+    expect(close.querySelector("svg[aria-hidden]")).not.toBeNull();
     expect(close.querySelector(".sr-only")?.textContent).toBe("Close");
     expect(close.getAttribute("title")).toBe("Close");
     await user.click(close);

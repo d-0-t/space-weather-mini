@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, type ReactNode } from "react";
+import CloseIcon from "@mui/icons-material/Close";
 
 interface FullSizeModalProps {
   /** Accessible name for the trigger button and the dialog */
@@ -74,7 +75,7 @@ const FullSizeModal: React.FC<FullSizeModalProps> = ({
           title="Close"
           onClick={() => dialogRef.current?.close()}
         >
-          <span aria-hidden="true">×</span>
+          <CloseIcon fontSize="medium" />
           <span className="sr-only">Close</span>
         </button>
         {children}

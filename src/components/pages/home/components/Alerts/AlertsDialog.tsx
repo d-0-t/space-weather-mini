@@ -46,8 +46,7 @@ const AlertsDialog: React.FC<{
           title="Close"
           onClick={onClose}
         >
-          <span aria-hidden="true">×</span>
-          <span className="sr-only">Close</span>
+          Close
         </button>
       </div>
     </dialog>
