@@ -67,11 +67,16 @@ const WebcamImageCard: React.FC<
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoRefresh, card, tabVisible]);
 
+  const pinClass = pinMode
+    ? pinned
+      ? " webcam-card--pinned"
+      : " webcam-card--pin-unselected"
+    : "";
   return (
     <article
       className={`webcam-card${
         card.panoramic ? " webcam-card--panoramic" : ""
-      }`}
+      }${pinClass}`}
     >
       <div className="webcam-card__head">
         <WebcamCardTitle
@@ -79,7 +84,16 @@ const WebcamImageCard: React.FC<
           name={card.name}
           latitude={card.latitude}
         />
-        {canHide ? (
+        {pinMode ? (
+          <WebcamPinToggle
+            id={card.id}
+            name={card.name}
+            pinMode={pinMode}
+            pinned={pinned}
+            pinDisabled={pinDisabled}
+            onTogglePin={onTogglePin}
+          />
+        ) : canHide ? (
           <WebcamHideButton name={card.name} onHide={() => onHide(card.id)} />
         ) : null}
       </div>
@@ -93,14 +107,6 @@ const WebcamImageCard: React.FC<
         {card.note ? ` · ${card.note}` : ""}
       </p>
       <WebcamCardAttribution operator={card.operator} siteUrl={card.siteUrl} />
-      <WebcamPinToggle
-        id={card.id}
-        name={card.name}
-        pinMode={pinMode}
-        pinned={pinned}
-        pinDisabled={pinDisabled}
-        onTogglePin={onTogglePin}
-      />
     </article>
   );
 };

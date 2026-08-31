@@ -397,33 +397,56 @@
     font-size: 0.95rem;
   }
 
-  // "Pin {name} webcam" checkbox, only in pinning mode – a <label>, so its
-  // text stays visible at every screen size (never collapses like buttons).
-  // The 📌 glyph rides inline in the label text (aria-hidden).
+  // "Pin {name} webcam" selector in pinning mode – the entire card is the
+  // visual checkbox (border indicates checked), but the click target is a
+  // single .btn--icon pin button in the title row (replacing Hide). No
+  // visible text: title + sr-only span name the checkbox, keeping it WCAG
+  // as a native checkbox. Icon is large gold 30deg, accent--strong on hover,
+  // symmetric padding (unlike Hide's intentional asymmetry).
   &__pin {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    margin-top: 0.5rem;
-    cursor: pointer;
-    font-weight: 600;
+    margin: 0;
+    // btn--icon already gives 44px min-hit; keep it centered with no offset
+    padding: 0;
+    gap: 0;
 
-    &__checkbox {
-      position: relative;
-      accent-color: var(--color-accent-strong);
-      width: 1.1rem;
-      height: 1.1rem;
-
-      &__pin-icon {
-        position: relative;
-        top: 3px;
-        width: 0.5rem;
-        height: 0.5rem;
-        font-size: 0.5rem;
-        rotate: 30deg;
-        color: var(--color-gold);
-      }
+    &:focus-within {
+      outline: 3px solid var(--color-accent-strong);
+      outline-offset: 2px;
+      border-radius: 0.5rem;
     }
+
+    &__icon {
+      color: var(--color-gold);
+      rotate: 30deg;
+      // large pin – overrides MUI's inherited 1em
+      font-size: 3rem !important;
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+
+    &:hover &__icon {
+      color: var(--color-accent-strong);
+    }
+
+    &:has(input:disabled) {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    &:has(input:disabled) &__icon {
+      color: var(--color-gray);
+    }
+  }
+
+  // Card selection state during pinning: selected = thick solid accent,
+  // unselected = faint dashed (same color/width as default, just dashed).
+  &--pinned {
+    border: 3px solid var(--color-accent-strong);
+  }
+
+  &--pin-unselected {
+    border: 1px dashed var(--color-border-muted-transparent);
+    opacity: 0.9;
   }
 
   &__flag {
@@ -501,9 +524,12 @@
     max-width: 100%;
     border: none;
     border-radius: 8px;
+    margin-bottom: 0.5rem;
   }
 
   &__hide {
+    // Intentionally asymmetrical: larger touch target away from the cam image
+    // (top-right overhang) so the hit area doesn't obscure the picture.
     justify-content: flex-start;
     align-items: flex-end;
     align-content: flex-start;

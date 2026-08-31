@@ -64,11 +64,16 @@ const WebcamLiveCard: React.FC<
     if (!feeding) setSrc(entry.imageUrl);
   }, [feeding, entry]);
 
+  const pinClass = pinMode
+    ? pinned
+      ? " webcam-card--pinned"
+      : " webcam-card--pin-unselected"
+    : "";
   return (
     <article
       className={`webcam-card webcam-card--live${
         feeding ? " webcam-card--wide" : ""
-      }`}
+      }${pinClass}`}
     >
       <div className="webcam-card__head">
         <WebcamCardTitle
@@ -76,7 +81,16 @@ const WebcamLiveCard: React.FC<
           name={entry.name}
           latitude={entry.latitude}
         />
-        {canHide ? (
+        {pinMode ? (
+          <WebcamPinToggle
+            id={entry.id}
+            name={entry.name}
+            pinMode={pinMode}
+            pinned={pinned}
+            pinDisabled={pinDisabled}
+            onTogglePin={onTogglePin}
+          />
+        ) : canHide ? (
           <WebcamHideButton name={entry.name} onHide={() => onHide(entry.id)} />
         ) : null}
       </div>
@@ -121,14 +135,6 @@ const WebcamLiveCard: React.FC<
           </label>
         )}
       </div>
-      <WebcamPinToggle
-        id={entry.id}
-        name={entry.name}
-        pinMode={pinMode}
-        pinned={pinned}
-        pinDisabled={pinDisabled}
-        onTogglePin={onTogglePin}
-      />
     </article>
   );
 };

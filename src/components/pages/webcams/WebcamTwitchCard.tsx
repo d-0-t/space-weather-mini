@@ -15,33 +15,41 @@ const WebcamTwitchCard: React.FC<
     canHide: boolean;
     onHide: (id: string) => void;
   }
-> = ({ entry, parent, canHide, onHide, pinMode, pinned, pinDisabled, onTogglePin }) => (
-  <div className="webcam-card webcam-card--stream webcam-card--wide">
-    <div className="webcam-card__head">
-      <h3 className="webcam-card__title">{entry.name}</h3>
-      {canHide ? (
-        <WebcamHideButton name={entry.name} onHide={() => onHide(entry.id)} />
-      ) : null}
+> = ({ entry, parent, canHide, onHide, pinMode, pinned, pinDisabled, onTogglePin }) => {
+  const pinClass = pinMode
+    ? pinned
+      ? " webcam-card--pinned"
+      : " webcam-card--pin-unselected"
+    : "";
+  return (
+    <div className={`webcam-card webcam-card--stream webcam-card--wide${pinClass}`}>
+      <div className="webcam-card__head">
+        <h3 className="webcam-card__title">{entry.name}</h3>
+        {pinMode ? (
+          <WebcamPinToggle
+            id={entry.id}
+            name={entry.name}
+            pinMode={pinMode}
+            pinned={pinned}
+            pinDisabled={pinDisabled}
+            onTogglePin={onTogglePin}
+          />
+        ) : canHide ? (
+          <WebcamHideButton name={entry.name} onHide={() => onHide(entry.id)} />
+        ) : null}
+      </div>
+      <iframe
+        src={`https://player.twitch.tv/?channel=${entry.twitchChannel}&parent=${parent}&autoplay=false&muted=true`}
+        title={`${entry.name} – live on Twitch`}
+        height="360"
+        width="640"
+        allowFullScreen
+        className="webcam-card__twitch"
+      />
+      <WebcamCardAttribution operator={entry.operator} siteUrl={entry.siteUrl} />
+      {entry.note ? <p className="webcam-card__note">{entry.note}</p> : null}
     </div>
-    <iframe
-      src={`https://player.twitch.tv/?channel=${entry.twitchChannel}&parent=${parent}&autoplay=false&muted=true`}
-      title={`${entry.name} – live on Twitch`}
-      height="360"
-      width="640"
-      allowFullScreen
-      className="webcam-card__twitch"
-    />
-    <WebcamCardAttribution operator={entry.operator} siteUrl={entry.siteUrl} />
-    {entry.note ? <p className="webcam-card__note">{entry.note}</p> : null}
-    <WebcamPinToggle
-      id={entry.id}
-      name={entry.name}
-      pinMode={pinMode}
-      pinned={pinned}
-      pinDisabled={pinDisabled}
-      onTogglePin={onTogglePin}
-    />
-  </div>
-);
+  );
+};
 
 export default WebcamTwitchCard;

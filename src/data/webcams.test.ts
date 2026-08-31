@@ -156,11 +156,11 @@ describe("webcam registry contract", () => {
     }
   });
 
-  it("ships the AuroraMAX entry under its full station name (AuroraMAX – Yellowknife)", () => {
+  it("ships the AuroraMAX entry under its short station name (Yellowknife)", () => {
     const auroramax = webcamRegistry.find((e) => e.id === "auroramax");
     expect(auroramax?.type).toBe("image");
     if (auroramax?.type === "image") {
-      expect(auroramax.name).toBe("AuroraMAX – Yellowknife");
+      expect(auroramax.name).toBe("Yellowknife");
       expect(auroramax.alt).toBe(
         "AuroraMAX – Yellowknife, Canada – current sky view",
       );

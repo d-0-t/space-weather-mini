@@ -110,10 +110,12 @@ export interface WebcamPinProps {
 }
 
 /**
- * "Pin {name} webcam" checkbox shown on a card while the webcams page is in
- * pinning mode. A plain <label> with the visible text at every screen size –
- * never collapsed, unlike button labels. The 📌 glyph leads the text and is
- * aria-hidden, so the accessible name stays the plain text.
+ * "Pin {name} webcam" selector shown in the card title row while the webcams
+ * page is in pinning mode – replaces the Hide button. The entire card is the
+ * visual selector (border indicates checked), but the interactive target is a
+ * single .btn--icon pin button: no visible text, title + sr-only span name
+ * the control, and a native hidden checkbox keeps it WCAG-compliant (keyboard
+ * and screen-reader as checkbox).
  */
 export const WebcamPinToggle: React.FC<{
   id: string;
@@ -124,23 +126,22 @@ export const WebcamPinToggle: React.FC<{
   onTogglePin: (id: string) => void;
 }> = ({ id, name, pinMode, pinned, pinDisabled, onTogglePin }) => {
   if (!pinMode) return null;
+  const label = `Pin ${name} webcam`;
   return (
-    <label className="webcam-card__pin">
+    <label className="btn--icon webcam-card__pin" title={label}>
       <input
         type="checkbox"
-        className="webcam-card__pin__checkbox"
+        className="sr-only"
         checked={pinned}
         disabled={pinDisabled && !pinned}
         onChange={() => onTogglePin(id)}
       />
-      <span>
-        <PushPinIcon
-          className="webcam-card__pin__checkbox__pin-icon"
-          aria-hidden="true"
-          fontSize="inherit"
-        />{" "}
-        Pin {name} webcam
-      </span>
+      <PushPinIcon
+        className="webcam-card__pin__icon"
+        aria-hidden="true"
+        fontSize="inherit"
+      />
+      <span className="sr-only">{label}</span>
     </label>
   );
 };

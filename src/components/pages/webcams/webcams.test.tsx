@@ -1790,7 +1790,8 @@ describe("Webcams button polish (ticket 05)", () => {
       "Hide Poker Flat Live",
     ]) {
       const button = screen.getByRole("button", { name });
-      expect(button).toHaveClass("btn--secondary");
+      expect(button).toHaveClass("btn--icon");
+      expect(button).toHaveClass("webcam-card__hide");
       expect(button).toHaveAttribute("title", name);
       // Sits next to the card title, never in a bottom actions row
       expect(button.closest(".webcam-card__head")).not.toBeNull();
@@ -1843,7 +1844,8 @@ describe("Webcams pinning (dashboard pins)", () => {
     expect(screen.getByRole("button", { name: "Cancel" })).toHaveClass(
       "btn--secondary",
     );
-    // Card checkboxes appear – image, live and Twitch cards alike
+    // Card checkboxes appear – image, live and Twitch cards alike, as
+    // icon buttons in the title row replacing Hide, with hidden checkboxes
     fireEvent.click(
       screen.getByRole("checkbox", { name: "Pin Aurora Ridge webcam" }),
     );
@@ -1853,12 +1855,31 @@ describe("Webcams pinning (dashboard pins)", () => {
     expect(
       screen.getByRole("checkbox", { name: "Pin Night Sky Live webcam" }),
     ).toBeInTheDocument();
-    // Each label leads its text
-    // bottom, so the name stays the plain visible text
+    // Pin control is a .btn--icon label in the card head, with title +
+    // sr-only name, hidden checkbox, and the card border indicates selection
     const pinLabel = screen
       .getByRole("checkbox", { name: "Pin Aurora Ridge webcam" })
       .closest("label")!;
-    expect(pinLabel.closest("article")!.lastElementChild).toBe(pinLabel);
+    expect(pinLabel).toHaveClass("btn--icon");
+    expect(pinLabel).toHaveClass("webcam-card__pin");
+    expect(pinLabel).toHaveAttribute("title", "Pin Aurora Ridge webcam");
+    expect(pinLabel.querySelector("input")).toHaveClass("sr-only");
+    expect(pinLabel.querySelector("span.sr-only")).toHaveTextContent(
+      "Pin Aurora Ridge webcam",
+    );
+    expect(pinLabel.querySelector(".webcam-card__pin__icon")).not.toBeNull();
+    expect(pinLabel.closest(".webcam-card__head")).not.toBeNull();
+    // Entire card is the visual selector: pinned = thick solid accent,
+    // unselected = faint dashed while pinning
+    expect(pinLabel.closest(".webcam-card")).toHaveClass("webcam-card--pinned");
+    const unpinnedCard = screen
+      .getByRole("checkbox", { name: "Pin Night Sky Live webcam" })
+      .closest(".webcam-card")!;
+    expect(unpinnedCard).toHaveClass("webcam-card--pin-unselected");
+    // Hide buttons are replaced while pinning is active
+    expect(
+      screen.queryByRole("button", { name: "Hide Aurora Ridge" }),
+    ).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
     expect(localStorage.getItem("sw:webcams:pins:v1")).toBeNull();
     expect(pinButton).toHaveAttribute("aria-expanded", "false");
