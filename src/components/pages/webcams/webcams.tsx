@@ -80,7 +80,11 @@ const LINK_REGION_ORDER: readonly WebcamRegion[] = [
   ...WEBCAM_REGION_ORDER.filter((region) => region !== "UK"),
 ];
 
-const sectionId = (region: WebcamRegion): string => `webcams-region-${region}`;
+// Space-free id (North America → North-America): idrefs in aria-labelledby
+// and aria-controls split on whitespace, so a raw region name would parse as
+// two ids and leave the section and its disclosure unnamed.
+const sectionId = (region: WebcamRegion): string =>
+  `webcams-region-${region.replace(/\s+/g, "-")}`;
 
 /** Panoramic feeds render last, spanning the whole row. */
 const orderedCards = (cards: WebcamImageEntry[]): WebcamImageEntry[] =>

@@ -242,7 +242,7 @@ describe("Webcams page", () => {
     );
     // Within its region, the panoramic card comes after the regular ones
     const northAmericaSection = document
-      .getElementById("webcams-region-North America")!
+      .getElementById("webcams-region-North-America")!
       .closest("section")!;
     const cards = Array.from(
       northAmericaSection.querySelectorAll(".webcam-card"),
@@ -285,7 +285,7 @@ describe("Webcams page", () => {
     expect(within(jumps).getByText(/^Jump to:/)).toBeInTheDocument();
     for (const [label, id] of [
       ["Nordic", "webcams-region-Nordic"],
-      ["North America", "webcams-region-North America"],
+      ["North America", "webcams-region-North-America"],
       ["Webcam links", "webcams-links"],
     ]) {
       const pill = within(jumps).getByRole("link", { name: label });
