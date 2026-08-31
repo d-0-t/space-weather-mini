@@ -27,7 +27,18 @@ const WebcamImageCard: React.FC<
       card: WebcamImageEntry;
       refreshNonce: number;
     }
-> = ({ card, autoRefresh, tabVisible, canHide, refreshNonce, onHide, pinMode, pinned, pinDisabled, onTogglePin }) => {
+> = ({
+  card,
+  autoRefresh,
+  tabVisible,
+  canHide,
+  refreshNonce,
+  onHide,
+  pinMode,
+  pinned,
+  pinDisabled,
+  onTogglePin,
+}) => {
   const [src, setSrc] = useState(card.imageUrl);
   const [loadedAt, setLoadedAt] = useState(formatLoadedTime);
 

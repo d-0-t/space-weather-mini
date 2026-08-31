@@ -8,6 +8,10 @@
   article {
     padding: 0;
     margin-bottom: unset;
+
+    &:last-of-type {
+      margin-bottom: 1rem;
+    }
   }
 
   &__header {

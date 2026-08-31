@@ -28,7 +28,17 @@ const WebcamLiveCard: React.FC<
     WebcamPinProps & {
       entry: WebcamLiveEntry;
     }
-> = ({ entry, autoRefresh, tabVisible, canHide, onHide, pinMode, pinned, pinDisabled, onTogglePin }) => {
+> = ({
+  entry,
+  autoRefresh,
+  tabVisible,
+  canHide,
+  onHide,
+  pinMode,
+  pinned,
+  pinDisabled,
+  onTogglePin,
+}) => {
   const [liveEnabled, setLiveEnabled] = useState(true);
   const [src, setSrc] = useState(entry.imageUrl);
   const [loadedAt, setLoadedAt] = useState(formatLoadedTime);
@@ -60,24 +70,20 @@ const WebcamLiveCard: React.FC<
         feeding ? " webcam-card--wide" : ""
       }`}
     >
-<div className="webcam-card__head">
-      <WebcamCardTitle
-        country={entry.country}
-        name={entry.name}
-        latitude={entry.latitude}
-      />
-      {canHide ? (
-        <WebcamHideButton name={entry.name} onHide={() => onHide(entry.id)} />
-      ) : null}
-    </div>
-    {feedFailed ? (
+      <div className="webcam-card__head">
+        <WebcamCardTitle
+          country={entry.country}
+          name={entry.name}
+          latitude={entry.latitude}
+        />
+        {canHide ? (
+          <WebcamHideButton name={entry.name} onHide={() => onHide(entry.id)} />
+        ) : null}
+      </div>
+      {feedFailed ? (
         <p className="webcam-card__feed-fallback">
           Live feed unavailable –{" "}
-          <a
-            href={entry.siteUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href={entry.siteUrl} target="_blank" rel="noopener noreferrer">
             visit the operator's site
           </a>
         </p>
@@ -96,7 +102,10 @@ const WebcamLiveCard: React.FC<
         </p>
       )}
       {entry.note ? <p className="webcam-card__note">{entry.note}</p> : null}
-      <WebcamCardAttribution operator={entry.operator} siteUrl={entry.siteUrl} />
+      <WebcamCardAttribution
+        operator={entry.operator}
+        siteUrl={entry.siteUrl}
+      />
       <div className="webcam-card__actions">
         {feedFailed ? null : (
           <label className="btn--secondary webcam-card__live-toggle">

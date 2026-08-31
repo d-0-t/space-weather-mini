@@ -7,6 +7,10 @@
 }
 
 .webcams {
+  .collapsible-panel__body {
+    padding: 0;
+  }
+
   // The heading and the view tabs share one wrapping row on wide screens.
   &__header {
     display: flex;
@@ -460,8 +464,8 @@
   // heights don't leave ragged card bottoms.
   &__attribution {
     margin-top: auto;
-    padding-top: 0.5rem;
-    font-size: 0.85rem;
+    margin-bottom: 0;
+    font-size: 0.75rem;
   }
 
   &__actions {
@@ -497,6 +501,15 @@
     max-width: 100%;
     border: none;
     border-radius: 8px;
+  }
+
+  &__hide {
+    justify-content: flex-start;
+    align-items: flex-end;
+    align-content: flex-start;
+    text-align: left;
+    padding: 0;
+    margin: -1.35rem -1.75rem 0 0;
   }
 }
 

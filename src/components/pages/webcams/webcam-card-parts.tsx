@@ -81,11 +81,11 @@ export const WebcamHideButton: React.FC<{
   return (
     <button
       type="button"
-      className={`btn--secondary webcam-card__hide${className ? ` ${className}` : ""}`}
+      className={`btn--icon webcam-card__hide${className ? ` ${className}` : ""}`}
       title={label}
       onClick={onHide}
     >
-      <VisibilityOffIcon fontSize="medium" />
+      <VisibilityOffIcon fontSize="small" />
       <span className="sr-only">{label}</span>
     </button>
   );
