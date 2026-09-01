@@ -1,0 +1,29 @@
+.conditions {
+  &__current {
+    margin: 0 0 0.75rem;
+
+    &-main {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      margin: 0 0 0.25rem;
+    }
+
+    &-temp {
+      font-size: 1.6rem;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    &-wmo {
+      font-size: 1rem;
+    }
+
+    &-details {
+      margin: 0;
+      font-size: 0.9rem;
+      color: var(--color-text-primary);
+      font-variant-numeric: tabular-nums;
+    }
+  }
+}

@@ -1,0 +1,33 @@
+// Weather card (ticket 03): current conditions, the 24 h scrolling hourly
+// strip and the 3 day daily row from one Open-Meteo fetch, with the
+// always-enabled Refresh button and the fetched-at timestamp at the top.
+.conditions {
+  &__weather {
+    margin-top: 1.25rem;
+    padding: 1rem;
+    border: 1px solid var(--color-border-muted-transparent);
+    border-radius: 12px;
+    background: var(--gradient-card);
+  }
+
+  &__weather-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+
+  &__weather-fetched {
+    margin: 0.25rem 0 0.75rem;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  // Shared status text used inside the weather card for stale-data notice,
+  // loading and error states.
+  &__status {
+    margin: 0.5rem 0 0;
+    color: var(--color-gold);
+    font-size: 0.9rem;
+  }
+}

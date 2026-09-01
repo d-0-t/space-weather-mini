@@ -1,0 +1,61 @@
+// The 3 day daily row as a semantic table; each row is a card. Six columns
+// never fit a narrow viewport, so the table keeps its natural width and
+// scrolls inside this region (the established mobile-table pattern).
+.conditions {
+  &__daily-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+
+    &:focus-visible {
+      outline: 3px solid var(--color-accent-strong);
+      outline-offset: 2px;
+    }
+  }
+
+  &__daily {
+    width: 100%;
+    min-width: 32rem;
+    border-collapse: separate;
+    border-spacing: 0 1rem;
+    font-size: 0.9rem;
+    font-variant-numeric: tabular-nums;
+
+    caption {
+      margin-bottom: 0.25rem;
+      text-align: left;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    th,
+    td {
+      padding: 0.5rem 0.6rem;
+      text-align: left;
+
+      &:first-child {
+        border-radius: 8px 0 0 8px;
+      }
+
+      &:last-child {
+        border-radius: 0 8px 8px 0;
+      }
+    }
+
+    th {
+      background: transparent;
+      border: none;
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: var(--color-text-muted);
+    }
+
+    td:first-child {
+      font-weight: 600;
+    }
+  }
+
+  &__daily-wmo {
+    margin-left: 0.4rem;
+  }
+}

@@ -1,0 +1,64 @@
+.conditions {
+  &__hourly-block {
+    margin: 1rem 0;
+  }
+
+  // The 24 h strip: a horizontally scrollable row of fixed-width hour cards,
+  // time-first so the time label reads first per the spec. The strip itself
+  // is focusable so keyboard users can scroll it (scrollable-region-focusable).
+  &__hourly {
+    display: flex;
+    gap: 0.6rem;
+    margin: 0.5rem 0 0;
+    padding: 0.6rem;
+    overflow-x: auto;
+    list-style: none;
+    border: 1px solid var(--color-border-muted-transparent);
+    border-radius: 8px;
+
+    &:focus-visible {
+      outline: 3px solid var(--color-accent-strong);
+      outline-offset: 2px;
+    }
+  }
+
+  &__hour {
+    display: flex;
+    flex: 0 0 auto;
+    flex-direction: column;
+    gap: 0.2rem;
+    width: 9.5rem;
+    padding: 0.5rem;
+    border: 1px solid var(--color-border-muted-transparent);
+    border-radius: 8px;
+    background: var(--color-bg-page);
+    font-size: 0.8rem;
+
+    &-time {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--color-gold);
+      font-variant-numeric: tabular-nums;
+    }
+
+    &-main {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    &-temp {
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    &-wmo {
+      min-height: 1.2em;
+    }
+
+    &-detail {
+      color: var(--color-text-primary);
+      font-variant-numeric: tabular-nums;
+    }
+  }
+}
