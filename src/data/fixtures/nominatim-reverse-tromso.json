@@ -1,0 +1,27 @@
+{
+  "place_id": 269666551,
+  "licence": "Data © OpenStreetMap contributors, ODbL 1.0. http://osm.org/copyright",
+  "osm_type": "way",
+  "osm_id": 10529695,
+  "lat": "69.6491081",
+  "lon": "18.9553774",
+  "category": "highway",
+  "type": "pedestrian",
+  "place_rank": 26,
+  "importance": 0.05340032272831308,
+  "addresstype": "road",
+  "name": "Storgata",
+  "display_name": "Storgata, Nerstranda, Sørbyen, Tromsø, Troms, 9008, Norge",
+  "address": {
+    "road": "Storgata",
+    "neighbourhood": "Nerstranda",
+    "suburb": "Sørbyen",
+    "city": "Tromsø",
+    "county": "Troms",
+    "ISO3166-2-lvl4": "NO-55",
+    "postcode": "9008",
+    "country": "Norge",
+    "country_code": "no"
+  },
+  "boundingbox": ["69.6487303", "69.6496023", "18.9549653", "18.9558758"]
+}

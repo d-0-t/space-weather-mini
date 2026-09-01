@@ -16,6 +16,91 @@
     font-weight: 500;
   }
 
+  // Find-a-place block: freeform Nominatim search, match pick list, ODbL
+  // attribution and the browser geolocation button (ticket 02).
+  &__finder {
+    margin-top: 1.5rem;
+  }
+
+  &__label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+
+  &__search-row {
+    display: flex;
+    gap: 0.5rem;
+    align-items: stretch;
+  }
+
+  &__field {
+    flex: 1;
+    min-width: 0;
+    padding: 0.6rem 0.8rem;
+    border: 1px solid var(--color-border-muted-transparent);
+    border-radius: 8px;
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    font-size: 1rem;
+
+    &::placeholder {
+      color: var(--color-text-muted);
+    }
+  }
+
+  &__status {
+    margin: 0.5rem 0 0;
+    color: var(--color-gold);
+    font-size: 0.9rem;
+  }
+
+  &__matches {
+    margin: 0.75rem 0 0;
+    padding: 0.5rem;
+    border: 1px solid var(--color-border-muted-transparent);
+    border-radius: 8px;
+    background: var(--color-surface);
+  }
+
+  &__match-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__match {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    padding: 0.35rem 0.25rem;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+
+  &__match-input {
+    accent-color: var(--color-accent);
+  }
+
+  &__attribution {
+    margin: 0.5rem 0 0;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+
+    a {
+      color: var(--color-accent);
+    }
+  }
+
+  &__locate {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 0.75rem;
+  }
+
   &__day {
     margin-top: 1.25rem;
   }

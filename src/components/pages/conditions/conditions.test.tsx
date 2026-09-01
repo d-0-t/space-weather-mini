@@ -3,10 +3,19 @@
 process.env.TZ = "Europe/Stockholm";
 
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import LocalConditions from "./conditions";
 import { PLACE_STORAGE_KEY } from "../../../data/place-storage";
+import kirunaFixture from "../../../data/fixtures/nominatim-kiruna.json";
+import springfieldFixture from "../../../data/fixtures/nominatim-springfield.json";
+import reverseTromsoFixture from "../../../data/fixtures/nominatim-reverse-tromso.json";
+import {
+  jsonResponse,
+  restoreGeolocation,
+  stubGeolocation,
+} from "../../../test/nominatim-test-utils";
 
 const atNoon = (iso: string): void => {
   vi.useFakeTimers({ toFake: ["Date"] } as unknown as Parameters<
@@ -193,5 +202,168 @@ describe("Local conditions page (ticket 01)", () => {
     expect(last.querySelector(".conditions__band-time--end")?.textContent).toBe(
       "24:00",
     );
+  });
+});
+
+describe("Local conditions search (ticket 02)", () => {
+  const mockFetch = vi.fn();
+
+  beforeEach(() => {
+    localStorage.clear();
+    mockFetch.mockReset();
+    vi.stubGlobal("fetch", mockFetch);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+    restoreGeolocation();
+  });
+
+  it("queries Nominatim only on Enter, never per keystroke", async () => {
+    mockFetch.mockResolvedValue(jsonResponse(springfieldFixture));
+    const user = userEvent.setup();
+    render(<LocalConditions />);
+    const field = screen.getByRole("searchbox", {
+      name: "Search for a place",
+    });
+    await user.type(field, "Springfield");
+    expect(mockFetch).not.toHaveBeenCalled();
+    await user.keyboard("{Enter}");
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const url = new URL(String(mockFetch.mock.calls[0][0]));
+    expect(url.searchParams.get("q")).toBe("Springfield");
+  });
+
+  it("shows up to five matches as a radio pick list on submit", async () => {
+    mockFetch.mockResolvedValue(jsonResponse(springfieldFixture));
+    const user = userEvent.setup();
+    render(<LocalConditions />);
+    await user.type(
+      screen.getByRole("searchbox", { name: "Search for a place" }),
+      "Springfield",
+    );
+    await user.click(screen.getByRole("button", { name: "Search" }));
+    const radios = screen.getAllByRole("radio");
+    expect(radios).toHaveLength(5);
+    expect(
+      screen.getByRole("radio", {
+        name: "Springfield, Sangamon County, Illinois, United States",
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("writes the picked match to the versioned store and updates the daylight", async () => {
+    atNoon("2026-06-21T12:00:00Z");
+    mockFetch.mockResolvedValue(jsonResponse(kirunaFixture));
+    const user = userEvent.setup();
+    render(<LocalConditions />);
+    await user.type(
+      screen.getByRole("searchbox", { name: "Search for a place" }),
+      "Kiruna",
+    );
+    await user.click(screen.getByRole("button", { name: "Search" }));
+    await user.click(
+      screen.getByRole("radio", {
+        name: "Kiruna, Kiruna kommun, Norrbottens län, 981 30, Sverige",
+      }),
+    );
+    const stored = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
+    expect(stored.v).toBe(1);
+    expect(stored.place.displayName).toBe(
+      "Kiruna, Kiruna kommun, Norrbottens län, 981 30, Sverige",
+    );
+    expect(stored.place.latitude).toBe(67.8496111);
+    expect(stored.place.longitude).toBe(20.30625);
+    expect(stored.place.fetchedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
+    // The daylight recomputes for the picked place: midnight sun in June.
+    expect(
+      screen.getAllByText("Sun does not set today").length,
+    ).toBeGreaterThan(0);
+    expect(bandNames()).toEqual(["Day"]);
+  });
+
+  it("shows the no-match copy for an empty result", async () => {
+    mockFetch.mockResolvedValue(jsonResponse([]));
+    const user = userEvent.setup();
+    render(<LocalConditions />);
+    await user.type(
+      screen.getByRole("searchbox", { name: "Search for a place" }),
+      "zzz nowhere",
+    );
+    await user.keyboard("{Enter}");
+    expect(
+      screen.getByText("No match – try adding a country"),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the busy copy on 429", async () => {
+    mockFetch.mockResolvedValue(
+      jsonResponse({}, 429).withRetryAfter(5),
+    );
+    const user = userEvent.setup();
+    render(<LocalConditions />);
+    await user.type(
+      screen.getByRole("searchbox", { name: "Search for a place" }),
+      "Kiruna",
+    );
+    await user.keyboard("{Enter}");
+    expect(
+      screen.getByText("Search is busy – wait a second"),
+    ).toBeInTheDocument();
+  });
+
+  it("shows a plain retryable copy on a network failure", async () => {
+    mockFetch.mockRejectedValue(new Error("network down"));
+    const user = userEvent.setup();
+    render(<LocalConditions />);
+    await user.type(
+      screen.getByRole("searchbox", { name: "Search for a place" }),
+      "Kiruna",
+    );
+    await user.keyboard("{Enter}");
+    expect(screen.getByText("Search failed – try again")).toBeInTheDocument();
+  });
+
+  it("always shows the OpenStreetMap attribution linked to osm.org under the field", () => {
+    render(<LocalConditions />);
+    const link = screen.getByRole("link", {
+      name: "© OpenStreetMap contributors",
+    });
+    expect(link).toHaveAttribute(
+      "href",
+      "https://www.openstreetmap.org/copyright",
+    );
+  });
+
+  it("shows the honest device location copy on geolocation denial", async () => {
+    stubGeolocation({ kind: "error", code: 1 });
+    const user = userEvent.setup();
+    render(<LocalConditions />);
+    await user.click(screen.getByRole("button", { name: "Find my location" }));
+    expect(
+      screen.getByText(
+        "Could not get your device location – type a place like 'Tromsø, Norway'",
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("reverse geocodes the device fix and writes the geocoded place", async () => {
+    stubGeolocation({ kind: "ok", latitude: 69.6492, longitude: 18.9553 });
+    mockFetch.mockResolvedValue(jsonResponse(reverseTromsoFixture));
+    const user = userEvent.setup();
+    render(<LocalConditions />);
+    await user.click(screen.getByRole("button", { name: "Find my location" }));
+    const stored = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
+    expect(stored.place.displayName).toBe(
+      "Storgata, Nerstranda, Sørbyen, Tromsø, Troms, 9008, Norge",
+    );
+    // The stored place keeps the fix's own high-accuracy coordinates; the
+    // reverse response only supplies the display name for verification.
+    expect(stored.place.latitude).toBe(69.6492);
+    expect(stored.place.longitude).toBe(18.9553);
+    expect(
+      screen.getByText("Storgata, Nerstranda, Sørbyen, Tromsø, Troms, 9008, Norge"),
+    ).toBeInTheDocument();
   });
 });

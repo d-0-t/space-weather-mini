@@ -168,6 +168,10 @@ _Avoid_: conditions in my area (as a term), local weather (when the dark window 
 A location the app resolved from freeform text via Nominatim into latitude, longitude and a display name, or from the browser geolocation. The app stores the last chosen place in localStorage; the user picks from up to five Nominatim matches. When nothing is stored the app defaults to Kiruna, Sweden.
 _Avoid_: location (without geocoded qualifier when the stored place is meant), pin, marker, coordinates (as a manual entry)
 
+**Device location**:
+The coordinates from a single shot of the browser geolocation via the find my location button, shown as a geocoded place whose display name comes from Nominatim reverse geocoding (fallback "My location"). Distinct from the stored geocoded place: it is a fresh fix, not a persisted pick.
+_Avoid_: my position, GPS fix (as a user-facing term), location (without the device qualifier)
+
 **Night**:
 The interval at a geocoded place when the sun is below -18 degrees, between astronomical dusk and the next astronomical dawn. Distinct from bright twilight. The darkest band of the Local conditions luminosity timeline.
 _Avoid_: dark hours, nighttime (without the -18 degree qualifier)

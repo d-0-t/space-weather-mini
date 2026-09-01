@@ -1,0 +1,48 @@
+[
+  {
+    "place_id": 272170021,
+    "osm_type": "node",
+    "osm_id": 12245954798,
+    "lat": "67.8496111",
+    "lon": "20.3062500",
+    "category": "place",
+    "type": "town",
+    "place_rank": 18,
+    "importance": 0.5458604344150237,
+    "addresstype": "town",
+    "name": "Kiruna",
+    "display_name": "Kiruna, Kiruna kommun, Norrbottens län, 981 30, Sverige",
+    "address": {
+      "town": "Kiruna",
+      "municipality": "Kiruna kommun",
+      "county": "Norrbottens län",
+      "ISO3166-2-lvl4": "SE-BD",
+      "postcode": "981 30",
+      "country": "Sverige",
+      "country_code": "se"
+    },
+    "boundingbox": ["67.8096111", "67.8896111", "20.2662500", "20.3462500"]
+  },
+  {
+    "place_id": 273272292,
+    "osm_type": "relation",
+    "osm_id": 935541,
+    "lat": "68.1666670",
+    "lon": "19.5000000",
+    "category": "boundary",
+    "type": "administrative",
+    "place_rank": 14,
+    "importance": 0.5424573538051337,
+    "addresstype": "municipality",
+    "name": "Kiruna kommun",
+    "display_name": "Kiruna kommun, Norrbottens län, Sverige",
+    "address": {
+      "municipality": "Kiruna kommun",
+      "county": "Norrbottens län",
+      "ISO3166-2-lvl4": "SE-BD",
+      "country": "Sverige",
+      "country_code": "se"
+    },
+    "boundingbox": ["67.3015745", "69.0599735", "17.8997626", "23.2864496"]
+  }
+]
