@@ -1,9 +1,11 @@
 import "./ExternalLinks.scss";
+import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
 import type { GeocodedPlace } from "../../../../../data/place-storage";
 import {
   cloudCoverMapUrl,
   lightPollutionMapUrl,
 } from "../../../../../data/external-links";
+import OpenInNew from "@mui/icons-material/OpenInNew";
 
 interface ExternalLinksProps {
   place: GeocodedPlace;
@@ -20,31 +22,25 @@ const ExternalLinks: React.FC<ExternalLinksProps> = ({ place }) => {
   const cloudHref = cloudCoverMapUrl(place.latitude, place.longitude);
   return (
     <section className="conditions__external">
-      <h2>External maps</h2>
-      <p>
-        No numeric light pollution value is shown – these yearly VIIRS and live
-        satellite viewers let you check the sky yourself.
-      </p>
-      <ul>
-        <li>
-          <a
-            href={pollutionHref}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            See light pollution at this spot on lightpollutionmap.info
-          </a>
-        </li>
-        <li>
-          <a
-            href={cloudHref}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            See live cloud cover on weather-radar-live.com
-          </a>
-        </li>
-      </ul>
+      <CollapsiblePanel
+        heading={<h2>External maps</h2>}
+        bodyId="conditions-external-body"
+      >
+        <ul>
+          <li>
+            <a href={pollutionHref} target="_blank" rel="noopener noreferrer">
+              See light pollution at this spot on lightpollutionmap.info{" "}
+              <OpenInNew aria-hidden="true" fontSize="inherit" />
+            </a>
+          </li>
+          <li>
+            <a href={cloudHref} target="_blank" rel="noopener noreferrer">
+              See live cloud cover on weather-radar-live.com{" "}
+              <OpenInNew aria-hidden="true" fontSize="inherit" />
+            </a>
+          </li>
+        </ul>
+      </CollapsiblePanel>
     </section>
   );
 };

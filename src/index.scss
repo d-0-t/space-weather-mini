@@ -318,3 +318,21 @@ textarea:focus-visible {
     scroll-behavior: auto !important;
   }
 }
+
+a > svg {
+  position: relative;
+  top: 3px;
+}
+
+input {
+  background-color: unset;
+  color: var(--color-text-primary);
+  padding: 0.6rem 0.8rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border-muted);
+  font-size: 1rem;
+
+  &::placeholder {
+    color: var(--color-gray);
+  }
+}

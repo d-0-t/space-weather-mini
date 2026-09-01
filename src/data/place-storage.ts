@@ -9,10 +9,16 @@
 export interface GeocodedPlace {
   /** Display name as shown to the visitor, e.g. "Kiruna, Norrbotten County, Sweden". */
   displayName: string;
+  /** A shorter version of the displayName. */
+  shortName: string;
   latitude: number;
   longitude: number;
   /** ISO 8601 instant when the place was geocoded or picked. */
   fetchedAt: string;
+  /** Country name as returned by Nominatim address, e.g. "Sverige". */
+  country?: string;
+  /** ISO 3166-1 alpha-2 lowercased, e.g. "se". */
+  countryCode?: string;
 }
 
 export const PLACE_STORAGE_KEY = "sw:local-conditions:place:v1";
@@ -25,17 +31,23 @@ export const PLACE_STORAGE_KEY = "sw:local-conditions:place:v1";
  */
 export const KIRUNA_PLACE: GeocodedPlace = {
   displayName: "Kiruna, Norrbotten County, Sweden",
+  shortName: "Kiruna, Norrbotten County",
   latitude: 67.8558,
   longitude: 20.2253,
   fetchedAt: "",
+  country: "Sweden",
+  countryCode: "se",
 };
 
 /** Second preset place, added 2026-09-01. */
 export const LULEA_PLACE: GeocodedPlace = {
   displayName: "Luleå, Norrbotten County, Sweden",
+  shortName: "Luleå, Norrbotten County",
   latitude: 65.5848,
   longitude: 22.1546,
   fetchedAt: "",
+  country: "Sweden",
+  countryCode: "se",
 };
 
 /** The preset places a visitor can jump to; the first open shows the default below. */
@@ -51,13 +63,19 @@ export const PLACE_PRESETS: readonly GeocodedPlace[] = [
  */
 export const DEFAULT_PLACE: GeocodedPlace = {
   displayName: "Östersund, Jämtland County, Sweden",
+  shortName: "Östersund, Jämtland County",
   latitude: 63.1792,
   longitude: 14.6357,
   fetchedAt: "",
+  country: "Sweden",
+  countryCode: "se",
 };
 
 const isPlausibleLatitude = (value: unknown): value is number =>
-  typeof value === "number" && Number.isFinite(value) && value >= -90 && value <= 90;
+  typeof value === "number" &&
+  Number.isFinite(value) &&
+  value >= -90 &&
+  value <= 90;
 
 const isPlausibleLongitude = (value: unknown): value is number =>
   typeof value === "number" &&
@@ -78,19 +96,36 @@ export function loadGeocodedPlace(
     if (v !== 1 || typeof place !== "object" || place === null) {
       return DEFAULT_PLACE;
     }
-    const { displayName, latitude, longitude, fetchedAt } = place as Record<
-      string,
-      unknown
-    >;
+    const {
+      displayName,
+      shortName,
+      latitude,
+      longitude,
+      fetchedAt,
+      country,
+      countryCode,
+    } = place as Record<string, unknown>;
     if (
       typeof displayName !== "string" ||
       !isPlausibleLatitude(latitude) ||
       !isPlausibleLongitude(longitude) ||
-      typeof fetchedAt !== "string"
+      typeof fetchedAt !== "string" ||
+      typeof shortName !== "string"
     ) {
       return DEFAULT_PLACE;
     }
-    return { displayName, latitude, longitude, fetchedAt };
+    const maybeCountry = typeof country === "string" ? country : undefined;
+    const maybeCountryCode =
+      typeof countryCode === "string" ? countryCode.toLowerCase() : undefined;
+    return {
+      displayName,
+      shortName,
+      latitude,
+      longitude,
+      fetchedAt,
+      country: maybeCountry,
+      countryCode: maybeCountryCode,
+    };
   } catch {
     return DEFAULT_PLACE;
   }

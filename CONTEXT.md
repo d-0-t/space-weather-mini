@@ -165,7 +165,7 @@ A place-based view that shows whether tonight is dark and clear from a chosen lo
 _Avoid_: conditions in my area (as a term), local weather (when the dark window is meant)
 
 **Geocoded place**:
-A location the app resolved from freeform text via Nominatim into latitude, longitude and a display name, or from the browser geolocation. The app stores the last chosen place in localStorage; the user picks from up to five Nominatim matches. When nothing is stored the app defaults to Kiruna, Sweden.
+A location the app resolved from freeform text via Nominatim into latitude, longitude, display name and short name, or from the browser geolocation. The app stores the last chosen place in localStorage; the user picks from up to five Nominatim matches. When nothing is stored the app defaults to Östersund, Sweden.
 _Avoid_: location (without geocoded qualifier when the stored place is meant), pin, marker, coordinates (as a manual entry)
 
 **Device location**:
@@ -197,7 +197,7 @@ The luminosity band of the Local conditions timeline when the sun is above the h
 _Avoid_: daylight (when the band is meant), daytime
 
 **Weather (Local conditions)**:
-The Open-Meteo view at the geocoded place: current conditions, a 24-hour horizontally scrolling hourly strip and a 3-day daily row, each with temperature, humidity, cloud cover (total plus the low/mid/high split where the contract carries it) and a WMO weather code rendered through the local lookup. Fetched once per place change plus each Refresh tap, with the "Data from Open-Meteo at HH:MM local" fetched-at timestamp.
+The Open-Meteo view at the geocoded place: current conditions, a 24-hour horizontally scrolling hourly strip and a 3-day daily row, each with temperature, humidity, cloud cover (total plus the low/mid/high split where the contract carries it) and a WMO weather code rendered through the local lookup. Fetched once per place change plus each Refresh tap, with the "Updated at HH:MM, near {shortName}" fetched-at timestamp and a "Source: Open-Meteo" attribution.
 _Avoid_: local weather (when the Local conditions weather card is meant), forecast (the NOAA products own that word)
 
 **WMO weather code**:

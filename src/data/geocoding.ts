@@ -8,10 +8,16 @@
  * referrer names the hosting app and `accept-language` follows the browser.
  */
 
+import { shortDisplayName } from "../components/pages/conditions/utils/short-display-name";
 import type { GeocodedPlace } from "./place-storage";
 
 /** One Nominatim match, ready to be picked and stored as a geocoded place. */
-export type GeocodeMatch = Omit<GeocodedPlace, "fetchedAt">;
+export type GeocodeMatch = Omit<GeocodedPlace, "fetchedAt"> & {
+  /** Country name from Nominatim address, e.g. "Sverige" / "Norway". */
+  country?: string;
+  /** ISO 3166-1 alpha-2 code, lowercased, e.g. "se" / "no". */
+  countryCode?: string;
+};
 
 export type SearchResult =
   | { status: "ok"; matches: GeocodeMatch[] }
@@ -54,13 +60,36 @@ export function mapNominatimSearchResponse(raw: unknown): GeocodeMatch[] {
   const matches: GeocodeMatch[] = [];
   for (const entry of raw) {
     if (typeof entry !== "object" || entry === null) continue;
-    const { display_name, lat, lon } = entry as Record<string, unknown>;
+    const { display_name, lat, lon, address } = entry as Record<
+      string,
+      unknown
+    >;
     if (typeof display_name !== "string" || display_name === "") continue;
     const latitude = parseCoordinate(lat);
     const longitude = parseCoordinate(lon);
     if (latitude === null || longitude === null) continue;
     if (Math.abs(latitude) > 90 || Math.abs(longitude) > 180) continue;
-    matches.push({ displayName: display_name, latitude, longitude });
+    const addr =
+      typeof address === "object" && address !== null
+        ? (address as Record<string, unknown>)
+        : null;
+    const country =
+      typeof addr?.["country"] === "string"
+        ? (addr["country"] as string)
+        : undefined;
+    const countryCode =
+      typeof addr?.["country_code"] === "string"
+        ? (addr["country_code"] as string).toLowerCase()
+        : undefined;
+    const match: GeocodeMatch = {
+      displayName: display_name,
+      shortName: shortDisplayName(display_name),
+      latitude,
+      longitude,
+    };
+    if (country) match.country = country;
+    if (countryCode) match.countryCode = countryCode;
+    matches.push(match);
   }
   return matches;
 }
@@ -68,12 +97,32 @@ export function mapNominatimSearchResponse(raw: unknown): GeocodeMatch[] {
 /** Maps a Nominatim jsonv2 reverse response to one typed match. */
 export function mapNominatimReverseResponse(raw: unknown): GeocodeMatch | null {
   if (typeof raw !== "object" || raw === null) return null;
-  const { display_name, lat, lon } = raw as Record<string, unknown>;
+  const { display_name, lat, lon, address } = raw as Record<string, unknown>;
   if (typeof display_name !== "string" || display_name === "") return null;
   const latitude = parseCoordinate(lat);
   const longitude = parseCoordinate(lon);
   if (latitude === null || longitude === null) return null;
-  return { displayName: display_name, latitude, longitude };
+  const addr =
+    typeof address === "object" && address !== null
+      ? (address as Record<string, unknown>)
+      : null;
+  const country =
+    typeof addr?.["country"] === "string"
+      ? (addr["country"] as string)
+      : undefined;
+  const countryCode =
+    typeof addr?.["country_code"] === "string"
+      ? (addr["country_code"] as string).toLowerCase()
+      : undefined;
+  const match: GeocodeMatch = {
+    displayName: display_name,
+    shortName: shortDisplayName(display_name),
+    latitude,
+    longitude,
+  };
+  if (country) match.country = country;
+  if (countryCode) match.countryCode = countryCode;
+  return match;
 }
 
 const retryAfterSecondsOf = (response: Response): number | null => {
@@ -116,7 +165,10 @@ export function createGeocodingClient(
       const response = await fetchImpl(url, { referrer: location.origin });
       if (response.status === 429) {
         const retryAfterSeconds = retryAfterSecondsOf(response);
-        minGapMs = Math.max(MIN_REQUEST_GAP_MS, (retryAfterSeconds ?? 1) * 1000);
+        minGapMs = Math.max(
+          MIN_REQUEST_GAP_MS,
+          (retryAfterSeconds ?? 1) * 1000,
+        );
         return { kind: "busy", retryAfterSeconds };
       }
       minGapMs = MIN_REQUEST_GAP_MS;

@@ -1,4 +1,5 @@
 import "./DayBlock.scss";
+import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
 import type { DaylightDay } from "../../../../../data/sun";
 import LuminosityTimeline from "../LuminosityTimeline/LuminosityTimeline";
 
@@ -12,14 +13,18 @@ interface DayBlockProps {
   day: DaylightDay;
 }
 
-const DayBlock: React.FC<DayBlockProps> = ({ heading, day }) => (
-  <section className="conditions__day">
-    <h2>{heading}</h2>
-    {day.polar !== null ? (
-      <p className="conditions__polar-note">{POLAR_COPY[day.polar]}</p>
-    ) : null}
-    <LuminosityTimeline day={day} />
-  </section>
-);
+const DayBlock: React.FC<DayBlockProps> = ({ heading, day }) => {
+  const bodyId = `conditions-day-${heading.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-body`;
+  return (
+    <section className="conditions__day">
+      <CollapsiblePanel heading={<h2>{heading}</h2>} bodyId={bodyId}>
+        {day.polar !== null ? (
+          <p className="conditions__polar-note">{POLAR_COPY[day.polar]}</p>
+        ) : null}
+        <LuminosityTimeline day={day} />
+      </CollapsiblePanel>
+    </section>
+  );
+};
 
 export default DayBlock;

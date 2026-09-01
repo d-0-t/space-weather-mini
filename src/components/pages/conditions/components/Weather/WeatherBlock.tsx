@@ -1,6 +1,7 @@
 import "./WeatherBlock.scss";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { useQuery } from "@tanstack/react-query";
+import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
 import type { GeocodedPlace } from "../../../../../data/place-storage";
 import { fetchWeather } from "../../../../../data/weather";
 import { formatTime } from "../../utils/format";
@@ -27,43 +28,60 @@ const WeatherBlock: React.FC<{ place: GeocodedPlace }> = ({ place }) => {
     refetchOnWindowFocus: false,
   });
   const { data, isPending, isError, refetch } = query;
+  const refreshButton = (
+    <button
+      type="button"
+      className="btn--secondary"
+      title="Refresh"
+      onClick={() => void refetch()}
+    >
+      <RefreshIcon fontSize="small" aria-hidden="true" />
+      <span className="btn__label">Refresh</span>
+    </button>
+  );
   return (
     <section className="conditions__weather">
-      <div className="conditions__weather-header">
-        <h2>Weather</h2>
-        <button
-          type="button"
-          className="btn--secondary"
-          title="Refresh"
-          onClick={() => void refetch()}
-        >
-          <RefreshIcon fontSize="small" aria-hidden="true" />
-          <span className="btn__label">Refresh</span>
-        </button>
-      </div>
-      {data ? (
-        <>
-          <p className="conditions__weather-fetched">
-            Data from Open-Meteo at {formatTime(new Date(data.fetchedAt))} local
-          </p>
-          {isError ? (
-            <p className="conditions__status" role="status">
-              Couldn't refresh the weather – showing the last data.
+      <CollapsiblePanel
+        heading={<h2>Weather</h2>}
+        bodyId="conditions-weather-body"
+        adornment={refreshButton}
+      >
+        {data ? (
+          <>
+            {isError ? (
+              <p className="weather-block__status" role="status">
+                Couldn't refresh the weather – showing the last data.
+              </p>
+            ) : null}
+            <WeatherCurrent data={data} />
+            <p className="weather-block__fetched">
+              Updated at {formatTime(new Date(data.fetchedAt))}, near{" "}
+              {place.shortName}.
             </p>
-          ) : null}
-          <WeatherCurrent data={data} />
-          <WeatherHourly data={data} />
-          <WeatherDaily data={data} place={place} />
-        </>
-      ) : isPending ? (
-        <p className="conditions__status" aria-busy="true">
-          Loading weather…
-        </p>
-      ) : (
-        <p className="conditions__status">
-          Couldn't load the weather – check back later.
-        </p>
-      )}
+            <WeatherHourly data={data} />
+            <WeatherDaily data={data} place={place} />
+
+            <p className="weather-block__attribution">
+              Source:{" "}
+              <a
+                href="https://open-meteo.com/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Open-Meteo
+              </a>{" "}
+            </p>
+          </>
+        ) : isPending ? (
+          <p className="weather-block__status" aria-busy="true">
+            Loading weather…
+          </p>
+        ) : (
+          <p className="weather-block__status">
+            Couldn't load the weather – check back later.
+          </p>
+        )}
+      </CollapsiblePanel>
     </section>
   );
 };

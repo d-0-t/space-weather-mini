@@ -12,6 +12,7 @@ import {
 
 const TROMSO: Parameters<typeof saveGeocodedPlace>[1] = {
   displayName: "Tromsø, Troms og Finnmark, Norway",
+  shortName: "Tromsø, Troms og Finnmark",
   latitude: 69.6492,
   longitude: 18.9553,
   fetchedAt: "2026-09-01T12:00:00.000Z",
@@ -47,7 +48,11 @@ describe("Geocoded place storage (ticket 01)", () => {
 
   it("overwrites the stored place on every new pick", () => {
     saveGeocodedPlace(localStorage, TROMSO);
-    const rovaniemi = { ...TROMSO, displayName: "Rovaniemi, Finland" };
+    const rovaniemi = {
+      ...TROMSO,
+      displayName: "Rovaniemi, Finland",
+      shortName: "Rovaniemi",
+    };
     saveGeocodedPlace(localStorage, rovaniemi);
     expect(loadGeocodedPlace(localStorage)).toEqual(rovaniemi);
   });

@@ -9,10 +9,15 @@ a span {
 }
 
 .container {
+  width: 100%;
+  box-sizing: border-box;
   padding: 10px;
   max-width: 800px;
   // Flex item of #main-content: allow shrinking below content min-width,
-  // otherwise wide tables blow the page past the viewport on mobile
+  // otherwise wide tables blow the page past the viewport on mobile.
+  // Width 100% keeps the shell stable when collapsible panels are closed:
+  // without it the container shrink-wraps to the heading width (~300 px)
+  // instead of filling to max-width.
   min-width: 0;
 }
 

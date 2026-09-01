@@ -86,16 +86,45 @@ test("the local conditions page renders the weather card from the Kiruna fixture
   await page.goto("/conditions");
 
   // Current conditions: temperature, WMO text, humidity and the total cloud
-  // with the low/mid/high split.
-  await expect(page.getByText("10.6°C").first()).toBeVisible();
+  // with the low/mid/high split – humidity and cloud now icons with sr-only
+  // labels and low/mid/high on separate lines. WMO icon carries title and an
+  // sr-only span before the temp.
+  await expect(page.getByText("11°C").first()).toBeVisible();
   await expect(page.getByText("Moderate rain").first()).toBeVisible();
   await expect(
-    page.getByText(
-      "Humidity 97% · Cloud 100% · low 100% / mid 22% / high 17%",
-    ),
+    page.locator(".weather-current").getByText("97%").first(),
   ).toBeVisible();
   await expect(
-    page.getByText(/Data from Open-Meteo at \d{2}:\d{2} local/),
+    page.locator(".weather-current").getByText("low: 100%"),
+  ).toBeVisible();
+  await expect(
+    page.locator(".weather-current").getByText("mid: 22%"),
+  ).toBeVisible();
+  await expect(
+    page.locator(".weather-current").getByText("high: 17%"),
+  ).toBeVisible();
+  await expect(page.locator(".weather-current-wrap")).toBeVisible();
+  await expect(
+    page.locator('.weather-icon[title="Moderate rain"]').first(),
+  ).toBeVisible();
+  await expect(
+    page.locator(".weather-current__main .sr-only", {
+      hasText: "Moderate rain",
+    }),
+  ).toBeVisible();
+  await expect(page.getByRole("link", { name: "Open-Meteo" })).toHaveAttribute(
+    "href",
+    "https://open-meteo.com/",
+  );
+  await expect(
+    page.getByText(/Updated at \d{2}:\d{2}, near/),
+  ).toBeVisible();
+  // h2 sections are now collapsible via CollapsiblePanel – the headings are
+  // toggle buttons with aria-expanded
+  await expect(page.getByRole("button", { name: "Weather" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Location" })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "External maps" }),
   ).toBeVisible();
 
   // The 24 h hourly strip is a scrollable list of hour cards, time first.
@@ -124,9 +153,7 @@ test("the local conditions page renders the weather card from the Kiruna fixture
   const fetchesBefore = weatherFetches();
   await refresh.click();
   await expect(refresh).toBeEnabled();
-  await expect(
-    page.getByText(/Data from Open-Meteo at \d{2}:\d{2} local/),
-  ).toBeVisible();
+  await expect(page.getByText(/Updated at \d{2}:\d{2}, near/)).toBeVisible();
   await expect.poll(() => weatherFetches()).toBe(fetchesBefore + 1);
 });
 

@@ -1,35 +1,44 @@
 // Find-a-place block: freeform Nominatim search, match pick list, ODbL
-// attribution and the browser geolocation button (ticket 02).
-.conditions {
-  &__finder {
-    margin-top: 1.5rem;
-  }
+// attribution and the browser geolocation button (ticket 02). The search
+// row wraps so the input never gets too small - the field keeps a minimum
+// width and the Search button flows to the next row when needed.
+.conditions__finder .collapsible-panel__body {
+  margin-top: 0;
+}
 
-  &__label {
-    display: block;
-    margin-bottom: 0.4rem;
-    font-size: 0.9rem;
-    font-weight: 600;
-  }
+.place-finder {
+  &__search {
+    &__label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
 
-  &__search-row {
-    display: flex;
-    gap: 0.5rem;
-    align-items: stretch;
-  }
+    &__row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: stretch;
 
-  &__field {
-    flex: 1;
-    min-width: 0;
-    padding: 0.6rem 0.8rem;
-    border: 1px solid var(--color-border-muted-transparent);
-    border-radius: 8px;
-    background: var(--color-surface);
-    color: var(--color-text-primary);
-    font-size: 1rem;
+      button {
+        flex: 0 0 auto;
+      }
 
-    &::placeholder {
-      color: var(--color-text-muted);
+      &__field {
+        flex: 1 1 220px;
+        min-width: 220px;
+        padding: 0.6rem 0.8rem;
+        border: 1px solid var(--color-border-muted-transparent);
+        border-radius: 8px;
+        background: var(--color-surface);
+        color: var(--color-text-primary);
+        font-size: 1rem;
+
+        &::placeholder {
+          color: var(--color-text-muted);
+        }
+      }
     }
   }
 
@@ -45,35 +54,32 @@
     border: 1px solid var(--color-border-muted-transparent);
     border-radius: 8px;
     background: var(--color-surface);
-  }
 
-  &__match-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
+    ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
 
-  &__match {
-    display: flex;
-    gap: 0.5rem;
-    align-items: center;
-    padding: 0.35rem 0.25rem;
-    font-size: 0.9rem;
-    cursor: pointer;
-  }
+      label {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        padding: 0.35rem 0.25rem;
+        font-size: 0.9rem;
+        cursor: pointer;
+      }
+    }
 
-  &__match-input {
-    accent-color: var(--color-accent);
+    input {
+      accent-color: var(--color-accent);
+    }
   }
 
   &__attribution {
-    margin: 0.5rem 0 0;
+    padding: 0rem 0.2rem;
     font-size: 0.75rem;
     color: var(--color-text-muted);
-
-    a {
-      color: var(--color-accent);
-    }
+    opacity: 0.8;
   }
 
   &__locate {

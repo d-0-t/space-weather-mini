@@ -1,3 +1,4 @@
+import OpenInNew from "@mui/icons-material/OpenInNew";
 import "./Pages.scss";
 
 const About: React.FC = () => {
@@ -19,7 +20,7 @@ const About: React.FC = () => {
             rel="noopener noreferrer"
             target="_blank"
           >
-            GitHub page
+            GitHub page <OpenInNew aria-hidden="true" fontSize="inherit" />
           </a>
           .
         </p>
@@ -47,9 +48,9 @@ const About: React.FC = () => {
         <h2>Data &amp; Sources</h2>
         <p>
           I used NOAA SWPC&apos;s space weather data, parsed from their public
-          endpoints, plus live feeds from the Swedish Institute of Space
-          Physics and the World Data Center for Geomagnetism in Kyoto. All data
-          is freely available from its source:
+          endpoints, plus live feeds from the Swedish Institute of Space Physics
+          and the World Data Center for Geomagnetism in Kyoto. All data is
+          freely available from its source:
         </p>
         <h3 className="aboutDataLinksTitle">Sources:</h3>
         <ul className="aboutDataLinks">
@@ -59,7 +60,19 @@ const About: React.FC = () => {
               rel="noopener noreferrer"
               target="_blank"
             >
-              NOAA/SWPC
+              SWPC NOAA <OpenInNew aria-hidden="true" fontSize="inherit" />
+            </a>{" "}
+            - Space Weather Prediction Center - National Oceanic and Atmospheric
+            Administration
+          </li>
+          <li>
+            <a
+              href="https://www.swpc.noaa.gov/content/space-weather-glossary"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              SWPC NOAA Glossary and Terminology{" "}
+              <OpenInNew aria-hidden="true" fontSize="inherit" />
             </a>
           </li>
           <li>
@@ -68,7 +81,8 @@ const About: React.FC = () => {
               rel="noopener noreferrer"
               target="_blank"
             >
-              Swedish space weather center (IRF)
+              IRF - Swedish space weather center{" "}
+              <OpenInNew aria-hidden="true" fontSize="inherit" />
             </a>
           </li>
           <li>
@@ -77,39 +91,30 @@ const About: React.FC = () => {
               rel="noopener noreferrer"
               target="_blank"
             >
-              WDC for Geomagnetism, Kyoto
-            </a>
-          </li>
-        </ul>
-
-        <h3 className="aboutDataLinksTitle">Useful / related links:</h3>
-        <ul className="aboutDataLinks">
-          <li>
-            <a
-              href="https://www.swpc.noaa.gov/products/planetary-k-index"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              SWPC NOAA Planetary K-index Graph (3 days)
+              WDC for Geomagnetism, Kyoto{" "}
+              <OpenInNew aria-hidden="true" fontSize="inherit" />
             </a>
           </li>
           <li>
             <a
-              href="https://www.swpc.noaa.gov/products/aurora-30-minute-forecast"
+              href="https://www.openstreetmap.org/copyright"
               rel="noopener noreferrer"
               target="_blank"
             >
-              SWPC NOAA Aurora - 30 minute forecast
-            </a>
+              © OpenStreetMap contributors{" "}
+              <OpenInNew aria-hidden="true" fontSize="inherit" />
+            </a>{" "}
+            – Geocoding via Nominatim
           </li>
           <li>
             <a
-              href="https://www.swpc.noaa.gov/content/space-weather-glossary"
+              href="https://open-meteo.com/"
               rel="noopener noreferrer"
               target="_blank"
             >
-              SWPC NOAA Glossary and Terminology
-            </a>
+              Open-Meteo <OpenInNew aria-hidden="true" fontSize="inherit" />
+            </a>{" "}
+            – Weather data (CC BY 4.0)
           </li>
         </ul>
       </article>

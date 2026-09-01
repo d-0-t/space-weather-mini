@@ -22,10 +22,15 @@ describe("Nominatim response mapping (ticket 02)", () => {
     expect(matches).toHaveLength(2);
     expect(matches[0]).toEqual({
       displayName: "Kiruna, Kiruna kommun, Norrbottens län, 981 30, Sverige",
+      shortName: "Kiruna, Kiruna kommun",
       latitude: 67.8496111,
       longitude: 20.30625,
+      country: "Sverige",
+      countryCode: "se",
     });
     expect(matches[1].displayName).toBe("Kiruna kommun, Norrbottens län, Sverige");
+    expect(matches[1].country).toBe("Sverige");
+    expect(matches[1].countryCode).toBe("se");
   });
 
   it("keeps up to five matches by display name", () => {
@@ -46,7 +51,7 @@ describe("Nominatim response mapping (ticket 02)", () => {
       { display_name: "No lon", lat: "59.91" },
     ]);
     expect(matches).toEqual([
-      { displayName: "Good", latitude: 59.91, longitude: 10.75 },
+      { displayName: "Good", shortName: "Good", latitude: 59.91, longitude: 10.75 },
     ]);
   });
 
@@ -55,7 +60,7 @@ describe("Nominatim response mapping (ticket 02)", () => {
       { display_name: "Numeric", lat: 67.85, lon: 20.22 },
     ]);
     expect(matches).toEqual([
-      { displayName: "Numeric", latitude: 67.85, longitude: 20.22 },
+      { displayName: "Numeric", shortName: "Numeric", latitude: 67.85, longitude: 20.22 },
     ]);
   });
 
@@ -68,8 +73,11 @@ describe("Nominatim response mapping (ticket 02)", () => {
     const match = mapNominatimReverseResponse(reverseTromsoFixture);
     expect(match).toEqual({
       displayName: "Storgata, Nerstranda, Sørbyen, Tromsø, Troms, 9008, Norge",
+      shortName: "Storgata, Nerstranda",
       latitude: 69.6491081,
       longitude: 18.9553774,
+      country: "Norge",
+      countryCode: "no",
     });
   });
 
@@ -241,8 +249,11 @@ describe("Nominatim search client (ticket 02)", () => {
     expect(url.searchParams.get("lon")).toBe("18.9553");
     expect(result).toEqual({
       displayName: "Storgata, Nerstranda, Sørbyen, Tromsø, Troms, 9008, Norge",
+      shortName: "Storgata, Nerstranda",
       latitude: 69.6491081,
       longitude: 18.9553774,
+      country: "Norge",
+      countryCode: "no",
     });
   });
 

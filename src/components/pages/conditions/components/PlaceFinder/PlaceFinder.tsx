@@ -1,10 +1,13 @@
 import "./PlaceFinder.scss";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState, type KeyboardEvent } from "react";
+import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
 import {
   createGeocodingClient,
   getDeviceLocation,
   type GeocodeMatch,
 } from "../../../../../data/geocoding";
+import { OpenInNew } from "@mui/icons-material";
+import { shortDisplayName } from "../../utils/short-display-name";
 
 const OSM_COPYRIGHT_URL = "https://www.openstreetmap.org/copyright";
 
@@ -37,6 +40,7 @@ const PlaceFinder: React.FC<{
   const [locating, setLocating] = useState(false);
   const [locationError, setLocationError] = useState(false);
   const client = useMemo(() => createGeocodingClient(), []);
+  const radioRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   const handleSubmit = async (event: React.FormEvent): Promise<void> => {
     event.preventDefault();
@@ -65,6 +69,46 @@ const PlaceFinder: React.FC<{
     setError(null);
   };
 
+  const handleMatchesKeyDown = (
+    event: KeyboardEvent<HTMLFieldSetElement>,
+  ): void => {
+    if (matches === null || matches.length === 0) return;
+    const active = document.activeElement as HTMLElement | null;
+    const currentIndex = radioRefs.current.findIndex((el) => el === active);
+    // Only handle keys when focus is inside the radio group
+    if (currentIndex === -1) return;
+    let next: number | null = null;
+    switch (event.key) {
+      case "ArrowDown":
+      case "ArrowRight":
+        event.preventDefault();
+        next = (currentIndex + 1) % matches.length;
+        break;
+      case "ArrowUp":
+      case "ArrowLeft":
+        event.preventDefault();
+        next = (currentIndex - 1 + matches.length) % matches.length;
+        break;
+      case "Home":
+        event.preventDefault();
+        next = 0;
+        break;
+      case "End":
+        event.preventDefault();
+        next = matches.length - 1;
+        break;
+      case "Enter":
+        event.preventDefault();
+        handlePick(matches[currentIndex]);
+        return;
+      default:
+        return;
+    }
+    if (next !== null) {
+      radioRefs.current[next]?.focus();
+    }
+  };
+
   const handleFindMyLocation = async (): Promise<void> => {
     setLocating(true);
     setLocationError(false);
@@ -80,6 +124,9 @@ const PlaceFinder: React.FC<{
     // "My location" is the honest fallback when Nominatim cannot name it.
     onPick({
       displayName: match?.displayName ?? "My location",
+      shortName: match?.displayName
+        ? shortDisplayName(match?.displayName)
+        : "My location",
       latitude: fix.latitude,
       longitude: fix.longitude,
     });
@@ -87,70 +134,81 @@ const PlaceFinder: React.FC<{
 
   return (
     <section className="conditions__finder">
-      <h2>Find a place</h2>
-      <form className="conditions__search" onSubmit={handleSubmit}>
-        <label className="conditions__label" htmlFor="conditions-search-field">
-          Search for a place
-        </label>
-        <div className="conditions__search-row">
-          <input
-            id="conditions-search-field"
-            type="search"
-            className="conditions__field"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="e.g. Tromsø, Norway"
-          />
-          <button type="submit" className="btn--primary" disabled={searching}>
-            {searching ? "Searching…" : "Search"}
-          </button>
-        </div>
-        {error !== null ? (
-          <p className="conditions__status" role="status">
-            {SEARCH_ERROR_COPY[error]}
-          </p>
-        ) : null}
-        {matches !== null ? (
-          <fieldset className="conditions__matches">
-            <legend className="sr-only">Places matching “{query}”</legend>
-            <ul className="conditions__match-list">
-              {matches.map((match) => (
-                <li key={match.displayName}>
-                  <label className="conditions__match">
-                    <input
-                      className="conditions__match-input"
-                      type="radio"
-                      name="conditions-place-match"
-                      onChange={() => handlePick(match)}
-                    />
-                    {match.displayName}
-                  </label>
-                </li>
-              ))}
-            </ul>
-          </fieldset>
-        ) : null}
-        <p className="conditions__attribution">
-          <a href={OSM_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">
-            © OpenStreetMap contributors
-          </a>
-        </p>
-      </form>
-      <div className="conditions__locate">
-        <button
-          type="button"
-          className="btn--secondary"
-          disabled={locating}
-          onClick={handleFindMyLocation}
-        >
-          {locating ? "Locating…" : "Find my location"}
-        </button>
+      <CollapsiblePanel
+        heading={<h2>Location</h2>}
+        bodyId="conditions-finder-body"
+      >
+        <form className="place-finder__search" onSubmit={handleSubmit}>
+          <label
+            className="place-finder__search__label"
+            htmlFor="conditions-search-field"
+          >
+            Search for a place
+          </label>
+          <div className="place-finder__search__row">
+            <input
+              id="conditions-search-field"
+              type="search"
+              className="place-finder__search__row__field"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="e.g. Tromsø, Norway"
+            />
+            <button type="submit" className="btn--primary" disabled={searching}>
+              {searching ? "Searching…" : "Search"}
+            </button>
+            <button
+              type="button"
+              className="btn--secondary"
+              disabled={locating}
+              onClick={handleFindMyLocation}
+            >
+              {locating ? "Locating…" : "Find my location"}
+            </button>
+          </div>
+          {error !== null ? (
+            <p className="place-finder__status" role="status">
+              {SEARCH_ERROR_COPY[error]}
+            </p>
+          ) : null}
+          {matches !== null ? (
+            <fieldset
+              className="place-finder__matches"
+              onKeyDown={handleMatchesKeyDown}
+            >
+              <legend className="sr-only">Places matching “{query}”</legend>
+              <ul>
+                {matches.map((match, index) => (
+                  <li key={match.displayName}>
+                    <label>
+                      <input
+                        ref={(element) => {
+                          radioRefs.current[index] = element;
+                        }}
+                        type="radio"
+                        name="conditions-place-match"
+                        onClick={() => handlePick(match)}
+                      />
+                      {match.displayName}
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            </fieldset>
+          ) : null}
+        </form>
         {locationError ? (
-          <p className="conditions__status" role="status">
+          <p className="place-finder__status" role="status">
             {LOCATION_ERROR_COPY}
           </p>
         ) : null}
-      </div>
+        <p className="place-finder__attribution">
+          <a href={OSM_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">
+            © OpenStreetMap contributors{" "}
+            <OpenInNew aria-hidden="true" fontSize="inherit" />
+          </a>
+        </p>
+      </CollapsiblePanel>
     </section>
   );
 };

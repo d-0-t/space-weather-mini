@@ -73,6 +73,7 @@ const seedOslo = (): void => {
       v: 1,
       place: {
         displayName: "Oslo, Norway",
+        shortName: "Oslo",
         latitude: 59.91,
         longitude: 10.75,
         fetchedAt: "2026-09-15T10:00:00.000Z",
@@ -88,6 +89,7 @@ const seedKiruna = (): void => {
       v: 1,
       place: {
         displayName: "Kiruna, Norrbotten County, Sweden",
+        shortName: "Kiruna, Norrbotten County",
         latitude: 67.8558,
         longitude: 20.2253,
         fetchedAt: "2026-06-01T10:00:00.000Z",
@@ -149,9 +151,13 @@ describe("Local conditions page (ticket 01)", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: "Local conditions" }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("Östersund, Jämtland County, Sweden"),
-    ).toBeInTheDocument();
+    const chip = document.querySelector(".conditions__place") as HTMLElement;
+    expect(chip).toHaveTextContent("Östersund, Jämtland County");
+    expect(chip.getAttribute("title")).toBe(
+      "Östersund, Jämtland County, Sweden",
+    );
+    expect(chip.querySelector('img[alt="Sweden"]')).toBeInTheDocument();
+    expect(chip.querySelector('img[title="Sweden"]')).toBeInTheDocument();
   });
 
   it("persists the Östersund default as the geocoded place on first open", () => {
@@ -160,6 +166,7 @@ describe("Local conditions page (ticket 01)", () => {
     const stored = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
     expect(stored.v).toBe(1);
     expect(stored.place.displayName).toBe("Östersund, Jämtland County, Sweden");
+    expect(stored.place.shortName).toBe("Östersund, Jämtland County");
     expect(stored.place.fetchedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });
 
@@ -224,10 +231,13 @@ describe("Local conditions page (ticket 01)", () => {
     atNoon("2026-09-01T12:00:00Z");
     seedOslo();
     renderPage();
-    expect(screen.getByText("Oslo, Norway")).toBeInTheDocument();
+    const chip = document.querySelector(".conditions__place") as HTMLElement;
+    expect(chip).toHaveTextContent("Oslo");
+    expect(chip.getAttribute("title")).toBe("Oslo, Norway");
+    expect(chip.querySelector('img[alt="Norway"]')).toBeInTheDocument();
     expect(
-      screen.queryByText("Östersund, Jämtland County, Sweden"),
-    ).not.toBeInTheDocument();
+      document.querySelector(".conditions__place")?.textContent,
+    ).not.toContain("Östersund, Jämtland County, Sweden");
   });
 
   it("opens with the Night band at 00:00 and never wraps it past midnight at Östersund in early September", () => {
@@ -307,6 +317,33 @@ describe("Local conditions search (ticket 02)", () => {
     ).toBeInTheDocument();
   });
 
+  it("moves focus with arrow keys without selecting, and selects only on Enter", async () => {
+    mockFetch.mockResolvedValue(jsonResponse(springfieldFixture));
+    const user = userEvent.setup();
+    renderPage();
+    await user.type(
+      screen.getByRole("searchbox", { name: "Search for a place" }),
+      "Springfield",
+    );
+    await user.click(screen.getByRole("button", { name: "Search" }));
+    const radios = screen.getAllByRole("radio") as HTMLInputElement[];
+    expect(radios).toHaveLength(5);
+    radios[0].focus();
+    expect(document.activeElement).toBe(radios[0]);
+    await user.keyboard("{ArrowDown}");
+    expect(document.activeElement).toBe(radios[1]);
+    // No selection yet - still default
+    const before = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
+    expect(before.place.displayName).toBe(
+      "Östersund, Jämtland County, Sweden",
+    );
+    await user.keyboard("{Enter}");
+    const stored = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
+    expect(stored.place.displayName).toBe(
+      "Springfield, Hampden County, Massachusetts, United States",
+    );
+  });
+
   it("writes the picked match to the versioned store and updates the daylight", async () => {
     atNoon("2026-06-21T12:00:00Z");
     mockFetch.mockResolvedValue(jsonResponse(kirunaFixture));
@@ -327,6 +364,7 @@ describe("Local conditions search (ticket 02)", () => {
     expect(stored.place.displayName).toBe(
       "Kiruna, Kiruna kommun, Norrbottens län, 981 30, Sverige",
     );
+    expect(stored.place.shortName).toBe("Kiruna, Kiruna kommun");
     expect(stored.place.latitude).toBe(67.8496111);
     expect(stored.place.longitude).toBe(20.30625);
     expect(stored.place.fetchedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
@@ -412,13 +450,17 @@ describe("Local conditions search (ticket 02)", () => {
     expect(stored.place.displayName).toBe(
       "Storgata, Nerstranda, Sørbyen, Tromsø, Troms, 9008, Norge",
     );
+    expect(stored.place.shortName).toBe("Storgata, Nerstranda");
     // The stored place keeps the fix's own high-accuracy coordinates; the
     // reverse response only supplies the display name for verification.
     expect(stored.place.latitude).toBe(69.6492);
     expect(stored.place.longitude).toBe(18.9553);
-    expect(
-      screen.getByText("Storgata, Nerstranda, Sørbyen, Tromsø, Troms, 9008, Norge"),
-    ).toBeInTheDocument();
+    const chip = document.querySelector(".conditions__place") as HTMLElement;
+    expect(chip).toHaveTextContent("Storgata, Nerstranda");
+    expect(chip.getAttribute("title")).toBe(
+      "Storgata, Nerstranda, Sørbyen, Tromsø, Troms, 9008, Norge",
+    );
+    expect(chip.querySelector('img[alt="Norge"]')).toBeInTheDocument();
   });
 });
 
@@ -442,15 +484,31 @@ describe("Local conditions weather (ticket 03)", () => {
     seedKiruna();
     mockFetch.mockResolvedValue(jsonResponse(openMeteoKirunaFixture));
     renderPage();
-    expect((await screen.findAllByText("10.6°C")).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText("11°C")).length).toBeGreaterThan(0);
     expect(screen.getAllByText("Moderate rain").length).toBeGreaterThan(0);
+    // Humidity and cloud are now icons with sr-only labels, low/mid/high on separate lines
+    const current = document.querySelector(".weather-current") as HTMLElement;
+    expect(current).toBeInTheDocument();
+    expect(current.textContent).toContain("97%");
+    expect(within(current).getByText("low: 100%")).toBeInTheDocument();
+    expect(within(current).getByText("mid: 22%")).toBeInTheDocument();
+    expect(within(current).getByText("high: 17%")).toBeInTheDocument();
+    expect(current.querySelector(".sr-only")?.textContent).toBeDefined();
+    expect(current.querySelector(".weather-icon[title=\"Moderate rain\"]")).toBeInTheDocument();
+    expect(
+      current.querySelector(".weather-current__main .sr-only")?.textContent,
+    ).toBe("Moderate rain");
+    expect(
+      screen.getByRole("link", { name: "Open-Meteo" }),
+    ).toHaveAttribute("href", "https://open-meteo.com/");
     expect(
       screen.getByText(
-        "Humidity 97% · Cloud 100% · low 100% / mid 22% / high 17%",
+        (_, el) =>
+          el?.classList.contains("weather-block__fetched") === true &&
+          (el?.textContent ?? "").includes(
+            "Updated at 14:00, near Kiruna, Norrbotten County",
+          ),
       ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Data from Open-Meteo at 14:00 local"),
     ).toBeInTheDocument();
   });
 
@@ -465,11 +523,12 @@ describe("Local conditions weather (ticket 03)", () => {
     const hours = within(strip).getAllByRole("listitem");
     expect(hours).toHaveLength(24);
     expect(within(hours[0]).getByText("00:00")).toBeInTheDocument();
-    expect(within(hours[0]).getByText("10.6°C")).toBeInTheDocument();
-    expect(within(hours[0]).getByText("Overcast")).toBeInTheDocument();
-    expect(within(hours[0]).getByText("Humidity 98%")).toBeInTheDocument();
+    expect(within(hours[0]).getByText("11°C")).toBeInTheDocument();
+    expect(within(hours[0]).getAllByText("Overcast").length).toBeGreaterThan(0);
+    expect(within(hours[0]).getByText("98%")).toBeInTheDocument();
+    // low/mid/high split is shown in current only; hourly shows total cloud only
     expect(
-      within(hours[0]).getByText("Cloud 100% · low 5% / mid 94% / high 100%"),
+      hours[0].querySelector(".weather-icon[title=\"Overcast\"]"),
     ).toBeInTheDocument();
     expect(within(hours[23]).getByText("23:00")).toBeInTheDocument();
   });
@@ -479,14 +538,18 @@ describe("Local conditions weather (ticket 03)", () => {
     seedKiruna();
     mockFetch.mockResolvedValue(jsonResponse(openMeteoKirunaFixture));
     renderPage();
-    const table = await screen.findByRole("table", {
-      name: /3-day weather forecast/,
-    });
+    const table = await screen.findByRole("table");
+    expect(table.querySelector("caption")?.textContent).toMatch(
+      /3-day weather forecast/,
+    );
+    expect(table.querySelector("caption")?.getAttribute("title")).toBe(
+      "Kiruna, Norrbotten County, Sweden",
+    );
     expect(within(table).getAllByRole("row")).toHaveLength(4);
     expect(within(table).getByText("2026-09-01")).toBeInTheDocument();
-    expect(within(table).getByText("Heavy rain")).toBeInTheDocument();
-    expect(within(table).getByText("12.8°C")).toBeInTheDocument();
-    expect(within(table).getByText("9.4°C")).toBeInTheDocument();
+    expect(within(table).getAllByText("Heavy rain").length).toBeGreaterThan(0);
+    expect(within(table).getByText("13°C")).toBeInTheDocument();
+    expect(within(table).getByText("9°C")).toBeInTheDocument();
     expect(within(table).getByText("05:06")).toBeInTheDocument();
     expect(within(table).getByText("20:11")).toBeInTheDocument();
   });
@@ -498,12 +561,24 @@ describe("Local conditions weather (ticket 03)", () => {
     const user = userEvent.setup();
     renderPage();
     expect(
-      await screen.findByText("Data from Open-Meteo at 14:00 local"),
+      await screen.findByText(
+        (_, el) =>
+          el?.classList.contains("weather-block__fetched") === true &&
+          (el?.textContent ?? "").includes(
+            "Updated at 14:00, near Kiruna, Norrbotten County",
+          ),
+      ),
     ).toBeInTheDocument();
     vi.setSystemTime(new Date("2026-09-01T12:05:00Z"));
     await user.click(screen.getByRole("button", { name: "Refresh" }));
     expect(
-      await screen.findByText("Data from Open-Meteo at 14:05 local"),
+      await screen.findByText(
+        (_, el) =>
+          el?.classList.contains("weather-block__fetched") === true &&
+          (el?.textContent ?? "").includes(
+            "Updated at 14:05, near Kiruna, Norrbotten County",
+          ),
+      ),
     ).toBeInTheDocument();
     const weatherCalls = mockFetch.mock.calls.filter(
       ([input]) => new URL(String(input)).host === OPEN_METEO_HOST,
@@ -518,7 +593,13 @@ describe("Local conditions weather (ticket 03)", () => {
     const user = userEvent.setup();
     renderPage();
     expect(
-      await screen.findByText("Data from Open-Meteo at 14:00 local"),
+      await screen.findByText(
+        (_, el) =>
+          el?.classList.contains("weather-block__fetched") === true &&
+          (el?.textContent ?? "").includes(
+            "Updated at 14:00, near Kiruna, Norrbotten County",
+          ),
+      ),
     ).toBeInTheDocument();
     const refresh = screen.getByRole("button", { name: "Refresh" });
     expect(refresh).toBeEnabled();
@@ -541,7 +622,13 @@ describe("Local conditions weather (ticket 03)", () => {
     ).toBeInTheDocument();
     resolveFetch(jsonResponse(openMeteoKirunaFixture));
     expect(
-      await screen.findByText("Data from Open-Meteo at 14:00 local"),
+      await screen.findByText(
+        (_, el) =>
+          el?.classList.contains("weather-block__fetched") === true &&
+          (el?.textContent ?? "").includes(
+            "Updated at 14:00, near Kiruna, Norrbotten County",
+          ),
+      ),
     ).toBeInTheDocument();
   });
 
@@ -554,7 +641,11 @@ describe("Local conditions weather (ticket 03)", () => {
     expect(
       await screen.findByText("Couldn't load the weather – check back later."),
     ).toBeInTheDocument();
-    expect(screen.getByText("Oslo, Norway")).toBeInTheDocument();
+    {
+      const chip = document.querySelector(".conditions__place") as HTMLElement;
+      expect(chip).toHaveTextContent("Oslo");
+      expect(chip.querySelector('img[alt="Norway"]')).toBeInTheDocument();
+    }
     expect(
       screen.getByRole("heading", { name: "Today's daylight chart" }),
     ).toBeInTheDocument();
@@ -564,7 +655,11 @@ describe("Local conditions weather (ticket 03)", () => {
     mockFetch.mockResolvedValue(jsonResponse(openMeteoKirunaFixture));
     await user.click(refresh);
     expect(
-      await screen.findByText("Data from Open-Meteo at 14:00 local"),
+      await screen.findByText(
+        (_, el) =>
+          el?.classList.contains("weather-block__fetched") === true &&
+          (el?.textContent ?? "").includes("Updated at 14:00, near Oslo"),
+      ),
     ).toBeInTheDocument();
   });
 });
@@ -592,19 +687,15 @@ describe("Local conditions full composition (ticket 04)", () => {
     expect(
       screen.getByRole("heading", { name: "Today's daylight chart" }),
     ).toBeInTheDocument();
+    // Tomorrow's chart removed per user request – only Today remains
     expect(
-      screen.getByRole("heading", { name: "Tomorrow's daylight chart" }),
-    ).toBeInTheDocument();
+      screen.queryByRole("heading", { name: "Tomorrow's daylight chart" }),
+    ).not.toBeInTheDocument();
     const todayTotal = bandsInDay("Today's daylight chart").reduce(
       (sum, li) => sum + Number(li.style.flexGrow),
       0,
     );
-    const tomorrowTotal = bandsInDay("Tomorrow's daylight chart").reduce(
-      (sum, li) => sum + Number(li.style.flexGrow),
-      0,
-    );
     expect(todayTotal).toBeCloseTo(1440, 6);
-    expect(tomorrowTotal).toBeCloseTo(1440, 6);
   });
 
   it("keeps the dark window for tomorrow visible even when today still has a long Day", () => {
@@ -612,9 +703,13 @@ describe("Local conditions full composition (ticket 04)", () => {
     seedOslo();
     mockFetch.mockResolvedValue(jsonResponse(openMeteoKirunaFixture));
     renderPage();
-    const tomorrowBands = bandNames("Tomorrow's daylight chart");
-    expect(tomorrowBands).toContain("Night");
-    expect(tomorrowBands.join(" ")).toContain("Astronomical twilight");
+    // Tomorrow removed – verify Today still shows its dark window
+    expect(
+      screen.queryByRole("heading", { name: "Tomorrow's daylight chart" }),
+    ).not.toBeInTheDocument();
+    const todayBands = bandNames("Today's daylight chart");
+    expect(todayBands).toContain("Night");
+    expect(todayBands.join(" ")).toContain("Astronomical twilight");
   });
 
   it("shows polar copy for both days at midnight sun (June at 69 N)", () => {
@@ -622,9 +717,9 @@ describe("Local conditions full composition (ticket 04)", () => {
     seedKiruna();
     mockFetch.mockResolvedValue(jsonResponse(openMeteoKirunaFixture));
     renderPage();
-    expect(screen.getAllByText("Sun does not set today")).toHaveLength(2);
+    // Only Today rendered now
+    expect(screen.getAllByText("Sun does not set today")).toHaveLength(1);
     expect(bandNames("Today's daylight chart")).toEqual(["Day"]);
-    expect(bandNames("Tomorrow's daylight chart")).toEqual(["Day"]);
   });
 
   it("shows polar copy for both days at polar night (December at 69 N)", () => {
@@ -632,17 +727,8 @@ describe("Local conditions full composition (ticket 04)", () => {
     seedKiruna();
     mockFetch.mockResolvedValue(jsonResponse(openMeteoKirunaFixture));
     renderPage();
-    expect(screen.getAllByText("Sun does not rise today")).toHaveLength(2);
+    expect(screen.getAllByText("Sun does not rise today")).toHaveLength(1);
     expect(bandNames("Today's daylight chart")).toEqual([
-      "Night",
-      "Astronomical twilight",
-      "Nautical twilight",
-      "Civil twilight",
-      "Nautical twilight",
-      "Astronomical twilight",
-      "Night",
-    ]);
-    expect(bandNames("Tomorrow's daylight chart")).toEqual([
       "Night",
       "Astronomical twilight",
       "Nautical twilight",
@@ -695,8 +781,8 @@ describe("Local conditions full composition (ticket 04)", () => {
         name: "Kiruna, Kiruna kommun, Norrbottens län, 981 30, Sverige",
       }),
     );
-    // Daylight recomputes: midnight sun for the new place
-    expect(screen.getAllByText("Sun does not set today")).toHaveLength(2);
+    // Daylight recomputes: midnight sun for the new place (only Today now)
+    expect(screen.getAllByText("Sun does not set today")).toHaveLength(1);
     // Links re-bake with the new lat/lon
     const pollution = screen.getByRole("link", {
       name: "See light pollution at this spot on lightpollutionmap.info",
@@ -716,11 +802,20 @@ describe("Local conditions full composition (ticket 04)", () => {
     renderPage();
     const strip = await screen.findByRole("list", { name: "24-hour hourly strip" });
     expect(within(strip).getAllByRole("listitem")).toHaveLength(24);
-    const table = await screen.findByRole("table", { name: /3-day weather forecast/ });
+    const table = await screen.findByRole("table");
+    expect(table.querySelector("caption")?.textContent).toMatch(
+      /3-day weather forecast/,
+    );
     expect(within(table).getAllByRole("row")).toHaveLength(4);
     expect(screen.getByRole("button", { name: "Refresh" })).toBeEnabled();
     expect(
-      await screen.findByText("Data from Open-Meteo at 14:00 local"),
+      await screen.findByText(
+        (_, el) =>
+          el?.classList.contains("weather-block__fetched") === true &&
+          (el?.textContent ?? "").includes(
+            "Updated at 14:00, near Kiruna, Norrbotten County",
+          ),
+      ),
     ).toBeInTheDocument();
   });
 

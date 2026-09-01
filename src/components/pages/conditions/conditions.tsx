@@ -12,6 +12,8 @@ import DayBlock from "./components/DayBlock/DayBlock";
 import ExternalLinks from "./components/ExternalLinks/ExternalLinks";
 import PlaceFinder from "./components/PlaceFinder/PlaceFinder";
 import WeatherBlock from "./components/Weather/WeatherBlock";
+import { flagSrc } from "../webcams/webcam-card-parts";
+import { shortPlace } from "./utils/short-display-name";
 
 /**
  * Local conditions – daylight for the stored geocoded place, derived on
@@ -30,7 +32,8 @@ const LocalConditions: React.FC = () => {
       });
     }
   }, [place]);
-  const { today, tomorrow } = daylightTimes(
+  const { today } = daylightTimes(
+    // tomorrow
     place.latitude,
     place.longitude,
     new Date(),
@@ -43,11 +46,27 @@ const LocalConditions: React.FC = () => {
     saveGeocodedPlace(localStorage, picked);
     setPlace(picked);
   };
+  const { shortName, country, countryCode } = shortPlace(place);
   return (
     <div className="container conditions">
-      <h1>Local conditions</h1>
-      <p className="conditions__intro">Daylight chart in your time zone.</p>
-      <p className="conditions__place">{place.displayName}</p>
+      <div className="conditions__header">
+        <h1>Local conditions</h1>
+        <p className="conditions__place" title={place.displayName}>
+          {countryCode ? (
+            <img
+              className="conditions__place-flag"
+              src={flagSrc(countryCode, "16x12")}
+              srcSet={`${flagSrc(countryCode, "32x24")} 2x, ${flagSrc(countryCode, "48x36")} 3x`}
+              width={16}
+              height={12}
+              alt={country}
+              title={country}
+              loading="lazy"
+            />
+          ) : null}{" "}
+          {shortName}
+        </p>
+      </div>
       <PlaceFinder onPick={handlePick} />
       <DayBlock heading="Today's daylight chart" day={today} />
       {/* <DayBlock heading="Tomorrow's daylight chart" day={tomorrow} /> */}

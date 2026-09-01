@@ -6,7 +6,8 @@ export const formatTime = (date: Date): string =>
   }).format(date);
 
 /** Celsius with one decimal, e.g. "10.6°C" – the v1 unit everywhere. */
-export const formatCelsius = (value: number): string => `${value.toFixed(1)}°C`;
+export const formatCelsius = (value: number): string =>
+  `${Math.round(value)}°C`; //`${value.toFixed(1)}°C`;
 
 /** Total cloud with the low/mid/high split, e.g. "Cloud 100% · low 5% / mid 94% / high 100%". */
 export const cloudSplitText = (

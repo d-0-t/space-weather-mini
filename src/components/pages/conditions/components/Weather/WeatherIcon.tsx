@@ -40,11 +40,13 @@ const WEATHER_ICON_BY_NAME: Record<string, SvgIconComponent> = {
 /** The WMO icon for a weather code; the text label sits beside it. */
 const WeatherIcon: React.FC<{ code: number }> = ({ code }) => {
   const Icon = WEATHER_ICON_BY_NAME[wmoWeather(code).icon] ?? HelpIcon;
+  const text = wmoWeather(code).text;
   return (
     <Icon
       aria-hidden="true"
-      className="conditions__wmo-icon"
+      className="weather-icon"
       fontSize="inherit"
+      {...({ title: text } as unknown as Record<string, string>)}
     />
   );
 };
