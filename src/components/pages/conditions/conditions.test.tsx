@@ -97,26 +97,30 @@ const seedKiruna = (): void => {
 };
 
 /** The day-section names of the luminosity timeline, in order. */
-const bandNames = (): string[] =>
-  screen
-    .getAllByRole("listitem")
+const bandsInDay = (heading: string): HTMLElement[] => {
+  const headingEl = screen.getByRole("heading", { name: heading });
+  const section = headingEl.closest("section") as HTMLElement;
+  return within(section).getAllByRole("listitem");
+};
+
+const bandNames = (heading = "Today's daylight chart"): string[] =>
+  bandsInDay(heading)
     .map((li) => li.querySelector(".conditions__band-name")?.textContent ?? "")
     .filter(Boolean);
 
 /** The flex-grow ratio (duration in minutes) of the named band. */
-const bandGrow = (name: string): number => {
-  const li = screen
-    .getAllByRole("listitem")
-    .find(
-      (item) =>
-        item.querySelector(".conditions__band-name")?.textContent === name,
-    )!;
+const bandGrow = (name: string, heading = "Today's daylight chart"): number => {
+  const li = bandsInDay(heading).find(
+    (item) => item.querySelector(".conditions__band-name")?.textContent === name,
+  )!;
   return Number(li.style.flexGrow);
 };
 
-const bandTime = (name: string): string | null =>
-  screen
-    .getAllByRole("listitem")
+const bandTime = (
+  name: string,
+  heading = "Today's daylight chart",
+): string | null =>
+  bandsInDay(heading)
     .find(
       (item) =>
         item.querySelector(".conditions__band-name")?.textContent === name,
@@ -165,9 +169,10 @@ describe("Local conditions page (ticket 01)", () => {
     renderPage();
     // Band widths are duration ratios: they sum to one full day (1440 min)
     // and the Day band at Oslo in mid-September runs about 12 h 54 m.
-    const total = screen
-      .getAllByRole("listitem")
-      .reduce((sum, li) => sum + Number(li.style.flexGrow), 0);
+    const total = bandsInDay("Today's daylight chart").reduce(
+      (sum, li) => sum + Number(li.style.flexGrow),
+      0,
+    );
     expect(total).toBeCloseTo(1440, 6);
     expect(bandGrow("Day")).toBeGreaterThan(760);
     expect(bandGrow("Day")).toBeLessThan(790);
@@ -179,7 +184,7 @@ describe("Local conditions page (ticket 01)", () => {
     renderPage();
     expect(bandTime("Night")).toMatch(/^\d{2}:\d{2}$/);
     expect(bandTime("Day")).toMatch(/^\d{2}:\d{2}$/);
-    const last = screen.getAllByRole("listitem").at(-1)!;
+    const last = bandsInDay("Today's daylight chart").at(-1)!;
     expect(last.querySelector(".conditions__band-time--end")?.textContent).toBe(
       "24:00",
     );
@@ -243,7 +248,7 @@ describe("Local conditions page (ticket 01)", () => {
     ]);
     expect(bandNames().filter((name) => name === "Night")).toHaveLength(1);
     expect(bandTime("Night")).toBe("00:00");
-    const last = screen.getAllByRole("listitem").at(-1)!;
+    const last = bandsInDay("Today's daylight chart").at(-1)!;
     expect(last.querySelector(".conditions__band-name")?.textContent).toBe(
       "Astronomical twilight",
     );
@@ -561,5 +566,171 @@ describe("Local conditions weather (ticket 03)", () => {
     expect(
       await screen.findByText("Data from Open-Meteo at 14:00 local"),
     ).toBeInTheDocument();
+  });
+});
+
+describe("Local conditions full composition (ticket 04)", () => {
+  const mockFetch = vi.fn();
+
+  beforeEach(() => {
+    localStorage.clear();
+    mockFetch.mockReset();
+    vi.stubGlobal("fetch", mockFetch);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+    restoreGeolocation();
+  });
+
+  it("renders Today's and Tomorrow's daylight charts together and each sums to 24h", () => {
+    atNoon("2026-09-15T12:00:00Z");
+    seedOslo();
+    mockFetch.mockResolvedValue(jsonResponse(openMeteoKirunaFixture));
+    renderPage();
+    expect(
+      screen.getByRole("heading", { name: "Today's daylight chart" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Tomorrow's daylight chart" }),
+    ).toBeInTheDocument();
+    const todayTotal = bandsInDay("Today's daylight chart").reduce(
+      (sum, li) => sum + Number(li.style.flexGrow),
+      0,
+    );
+    const tomorrowTotal = bandsInDay("Tomorrow's daylight chart").reduce(
+      (sum, li) => sum + Number(li.style.flexGrow),
+      0,
+    );
+    expect(todayTotal).toBeCloseTo(1440, 6);
+    expect(tomorrowTotal).toBeCloseTo(1440, 6);
+  });
+
+  it("keeps the dark window for tomorrow visible even when today still has a long Day", () => {
+    atNoon("2026-09-15T12:00:00Z");
+    seedOslo();
+    mockFetch.mockResolvedValue(jsonResponse(openMeteoKirunaFixture));
+    renderPage();
+    const tomorrowBands = bandNames("Tomorrow's daylight chart");
+    expect(tomorrowBands).toContain("Night");
+    expect(tomorrowBands.join(" ")).toContain("Astronomical twilight");
+  });
+
+  it("shows polar copy for both days at midnight sun (June at 69 N)", () => {
+    atNoon("2026-06-21T12:00:00Z");
+    seedKiruna();
+    mockFetch.mockResolvedValue(jsonResponse(openMeteoKirunaFixture));
+    renderPage();
+    expect(screen.getAllByText("Sun does not set today")).toHaveLength(2);
+    expect(bandNames("Today's daylight chart")).toEqual(["Day"]);
+    expect(bandNames("Tomorrow's daylight chart")).toEqual(["Day"]);
+  });
+
+  it("shows polar copy for both days at polar night (December at 69 N)", () => {
+    atNoon("2026-12-21T12:00:00Z");
+    seedKiruna();
+    mockFetch.mockResolvedValue(jsonResponse(openMeteoKirunaFixture));
+    renderPage();
+    expect(screen.getAllByText("Sun does not rise today")).toHaveLength(2);
+    expect(bandNames("Today's daylight chart")).toEqual([
+      "Night",
+      "Astronomical twilight",
+      "Nautical twilight",
+      "Civil twilight",
+      "Nautical twilight",
+      "Astronomical twilight",
+      "Night",
+    ]);
+    expect(bandNames("Tomorrow's daylight chart")).toEqual([
+      "Night",
+      "Astronomical twilight",
+      "Nautical twilight",
+      "Civil twilight",
+      "Nautical twilight",
+      "Astronomical twilight",
+      "Night",
+    ]);
+  });
+
+  it("renders two external links baked with the current lat and lon, zoom/centre, B0 and pin, opening in a new tab", async () => {
+    atNoon("2026-09-01T12:00:00Z");
+    seedOslo();
+    mockFetch.mockResolvedValue(jsonResponse(openMeteoKirunaFixture));
+    renderPage();
+    await screen.findByRole("heading", { name: "Weather" });
+    const pollution = screen.getByRole("link", {
+      name: "See light pollution at this spot on lightpollutionmap.info",
+    });
+    expect(pollution).toHaveAttribute(
+      "href",
+      "https://www.lightpollutionmap.info/#zoom=15&lat=59.91&lon=10.75&layers=B0FFFFFFTFFFFFFFFFF",
+    );
+    expect(pollution).toHaveAttribute("target", "_blank");
+    expect(pollution).toHaveAttribute("rel", "noopener noreferrer");
+    const cloud = screen.getByRole("link", {
+      name: "See live cloud cover on weather-radar-live.com",
+    });
+    expect(cloud).toHaveAttribute(
+      "href",
+      "https://www.weather-radar-live.com/cloud-cover-map/#zoom=8&lat=59.91&lon=10.75",
+    );
+    expect(cloud).toHaveAttribute("target", "_blank");
+    expect(cloud).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("updates both daylight and external links when the geocoded place is picked", async () => {
+    atNoon("2026-06-21T12:00:00Z");
+    // start from the default (Östersund) then pick Kiruna
+    mockFetch.mockResolvedValue(jsonResponse(kirunaFixture));
+    const user = userEvent.setup();
+    renderPage();
+    await user.type(
+      screen.getByRole("searchbox", { name: "Search for a place" }),
+      "Kiruna",
+    );
+    await user.click(screen.getByRole("button", { name: "Search" }));
+    await user.click(
+      screen.getByRole("radio", {
+        name: "Kiruna, Kiruna kommun, Norrbottens län, 981 30, Sverige",
+      }),
+    );
+    // Daylight recomputes: midnight sun for the new place
+    expect(screen.getAllByText("Sun does not set today")).toHaveLength(2);
+    // Links re-bake with the new lat/lon
+    const pollution = screen.getByRole("link", {
+      name: "See light pollution at this spot on lightpollutionmap.info",
+    });
+    expect(pollution.getAttribute("href")).toContain("67.8496111");
+    expect(pollution.getAttribute("href")).toContain("20.30625");
+    const cloud = screen.getByRole("link", {
+      name: "See live cloud cover on weather-radar-live.com",
+    });
+    expect(cloud.getAttribute("href")).toContain("67.8496111");
+  });
+
+  it("keeps the 24 hour strip horizontally scrollable and the 3-day row at three cards alongside the new composition", async () => {
+    atNoon("2026-09-01T12:00:00Z");
+    seedKiruna();
+    mockFetch.mockResolvedValue(jsonResponse(openMeteoKirunaFixture));
+    renderPage();
+    const strip = await screen.findByRole("list", { name: "24-hour hourly strip" });
+    expect(within(strip).getAllByRole("listitem")).toHaveLength(24);
+    const table = await screen.findByRole("table", { name: /3-day weather forecast/ });
+    expect(within(table).getAllByRole("row")).toHaveLength(4);
+    expect(screen.getByRole("button", { name: "Refresh" })).toBeEnabled();
+    expect(
+      await screen.findByText("Data from Open-Meteo at 14:00 local"),
+    ).toBeInTheDocument();
+  });
+
+  it("does not render any map widget or Bortle number", () => {
+    atNoon("2026-09-01T12:00:00Z");
+    mockFetch.mockResolvedValue(jsonResponse(openMeteoKirunaFixture));
+    renderPage();
+    expect(screen.queryByText(/Bortle/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/SQM/i)).not.toBeInTheDocument();
+    expect(document.querySelector("iframe")).toBeNull();
+    expect(document.querySelector("canvas")).toBeNull();
   });
 });

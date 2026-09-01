@@ -9,6 +9,7 @@ import {
 import { daylightTimes } from "../../../data/sun";
 import type { GeocodeMatch } from "../../../data/geocoding";
 import DayBlock from "./components/DayBlock/DayBlock";
+import ExternalLinks from "./components/ExternalLinks/ExternalLinks";
 import PlaceFinder from "./components/PlaceFinder/PlaceFinder";
 import WeatherBlock from "./components/Weather/WeatherBlock";
 
@@ -29,7 +30,11 @@ const LocalConditions: React.FC = () => {
       });
     }
   }, [place]);
-  const { today } = daylightTimes(place.latitude, place.longitude, new Date());
+  const { today, tomorrow } = daylightTimes(
+    place.latitude,
+    place.longitude,
+    new Date(),
+  );
   const handlePick = (match: GeocodeMatch): void => {
     const picked: GeocodedPlace = {
       ...match,
@@ -45,11 +50,9 @@ const LocalConditions: React.FC = () => {
       <p className="conditions__place">{place.displayName}</p>
       <PlaceFinder onPick={handlePick} />
       <DayBlock heading="Today's daylight chart" day={today} />
+      {/* <DayBlock heading="Tomorrow's daylight chart" day={tomorrow} /> */}
       <WeatherBlock place={place} />
-      {/* Only Today renders for now (2026-09-01) – the Tomorrow block is
-          kept in case the day-pair view returns. daylightTimes still
-          computes tomorrow: today's Night ends at tomorrow's dawn. */}
-      {/* <DayBlock heading="Tomorrow" day={tomorrow} /> */}
+      <ExternalLinks place={place} />
     </div>
   );
 };
