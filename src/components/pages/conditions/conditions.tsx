@@ -1,5 +1,19 @@
 import "./conditions.scss";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import AcUnitIcon from "@mui/icons-material/AcUnit";
+import CloudIcon from "@mui/icons-material/Cloud";
+import CloudQueueIcon from "@mui/icons-material/CloudQueue";
+import FoggyIcon from "@mui/icons-material/Foggy";
+import GrainIcon from "@mui/icons-material/Grain";
+import HelpIcon from "@mui/icons-material/Help";
+import RefreshIcon from "@mui/icons-material/Refresh";
+import SevereColdIcon from "@mui/icons-material/SevereCold";
+import ThunderstormIcon from "@mui/icons-material/Thunderstorm";
+import UmbrellaIcon from "@mui/icons-material/Umbrella";
+import WaterDropIcon from "@mui/icons-material/WaterDrop";
+import WbSunnyIcon from "@mui/icons-material/WbSunny";
+import type { SvgIconComponent } from "@mui/icons-material";
 import {
   PLACE_STORAGE_KEY,
   loadGeocodedPlace,
@@ -12,6 +26,8 @@ import {
   getDeviceLocation,
   type GeocodeMatch,
 } from "../../../data/geocoding";
+import { fetchWeather, type WeatherData } from "../../../data/weather";
+import { wmoWeather } from "../../../data/wmo-codes";
 
 const OSM_COPYRIGHT_URL = "https://www.openstreetmap.org/copyright";
 
@@ -21,6 +37,18 @@ const formatTime = (date: Date): string =>
     minute: "2-digit",
     hour12: false,
   }).format(date);
+
+/** Celsius with one decimal, e.g. "10.6°C" – the v1 unit everywhere. */
+const formatCelsius = (value: number): string => `${value.toFixed(1)}°C`;
+
+/** Total cloud with the low/mid/high split, e.g. "Cloud 100% · low 5% / mid 94% / high 100%". */
+const cloudSplitText = (
+  totalPercent: number,
+  lowPercent: number,
+  midPercent: number,
+  highPercent: number,
+): string =>
+  `Cloud ${totalPercent}% · low ${lowPercent}% / mid ${midPercent}% / high ${highPercent}%`;
 
 /** Visible label for the end of the day – midnight at the day's close. */
 const DAY_END_LABEL = "24:00";
@@ -288,11 +316,7 @@ const PlaceFinder: React.FC<{
           </fieldset>
         ) : null}
         <p className="conditions__attribution">
-          <a
-            href={OSM_COPYRIGHT_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href={OSM_COPYRIGHT_URL} target="_blank" rel="noopener noreferrer">
             © OpenStreetMap contributors
           </a>
         </p>
@@ -313,6 +337,229 @@ const PlaceFinder: React.FC<{
         ) : null}
       </div>
     </section>
+  );
+};
+
+/**
+ * The WMO icon-name to glyph map for the weather blocks (ticket 03). The
+ * lookup file owns the names; this map owns the rendering, so the data
+ * stays pure text and the icons stay a page concern.
+ */
+const WEATHER_ICON_BY_NAME: Record<string, SvgIconComponent> = {
+  clear: WbSunnyIcon,
+  "mostly-clear": WbSunnyIcon,
+  "partly-cloudy": CloudQueueIcon,
+  overcast: CloudIcon,
+  fog: FoggyIcon,
+  drizzle: WaterDropIcon,
+  "freezing-drizzle": SevereColdIcon,
+  rain: UmbrellaIcon,
+  "freezing-rain": SevereColdIcon,
+  snow: AcUnitIcon,
+  "snow-grains": GrainIcon,
+  "rain-showers": UmbrellaIcon,
+  "snow-showers": AcUnitIcon,
+  thunderstorm: ThunderstormIcon,
+  "thunderstorm-hail": ThunderstormIcon,
+  unknown: HelpIcon,
+};
+
+/** The WMO icon for a weather code; the text label sits beside it. */
+const WeatherIcon: React.FC<{ code: number }> = ({ code }) => {
+  const Icon = WEATHER_ICON_BY_NAME[wmoWeather(code).icon] ?? HelpIcon;
+  return (
+    <Icon
+      aria-hidden="true"
+      className="conditions__wmo-icon"
+      fontSize="inherit"
+    />
+  );
+};
+
+/**
+ * Weather for the geocoded place (ticket 03): current conditions, a 24 hour
+ * horizontally scrolling hourly strip and a 3 day daily row from one
+ * Open-Meteo fetch, refreshed only on the always-enabled Refresh tap – no
+ * polling and no refetch on focus (ADR 0003 exception, ADR 0005). Failure
+ * swaps only this block to a plain retryable error; the place and daylight
+ * stay visible.
+ */
+const WeatherBlock: React.FC<{ place: GeocodedPlace }> = ({ place }) => {
+  const query = useQuery({
+    queryKey: ["open-meteo-weather", place.latitude, place.longitude],
+    queryFn: () => fetchWeather(place.latitude, place.longitude),
+    // The cache is shown between manual refreshes; every refetch trigger
+    // except the Refresh tap is off, so one call per place change plus user
+    // pulls is all the free tier ever sees.
+    staleTime: 60_000,
+    refetchOnWindowFocus: false,
+  });
+  const { data, isPending, isError, refetch } = query;
+  return (
+    <section className="conditions__weather">
+      <div className="conditions__weather-header">
+        <h2>Weather</h2>
+        <button
+          type="button"
+          className="btn--secondary"
+          title="Refresh"
+          onClick={() => void refetch()}
+        >
+          <RefreshIcon fontSize="small" aria-hidden="true" />
+          <span className="btn__label">Refresh</span>
+        </button>
+      </div>
+      {data ? (
+        <>
+          <p className="conditions__weather-fetched">
+            Data from Open-Meteo at {formatTime(new Date(data.fetchedAt))} local
+          </p>
+          {isError ? (
+            <p className="conditions__status" role="status">
+              Couldn't refresh the weather – showing the last data.
+            </p>
+          ) : null}
+          <WeatherCurrent data={data} />
+          <WeatherHourly data={data} />
+          <WeatherDaily data={data} place={place} />
+        </>
+      ) : isPending ? (
+        <p className="conditions__status" aria-busy="true">
+          Loading weather…
+        </p>
+      ) : (
+        <p className="conditions__status">
+          Couldn't load the weather – check back later.
+        </p>
+      )}
+    </section>
+  );
+};
+
+/** Current conditions: temperature, humidity, total cloud with the low/mid/high split and the WMO code as icon plus text. */
+const WeatherCurrent: React.FC<{ data: WeatherData }> = ({ data }) => {
+  const { current } = data;
+  return (
+    <div className="conditions__current">
+      <p className="conditions__current-main">
+        <WeatherIcon code={current.weatherCode} />
+        <span className="conditions__current-temp">
+          {formatCelsius(current.temperatureC)}
+        </span>
+        <span className="conditions__current-wmo">
+          {wmoWeather(current.weatherCode).text}
+        </span>
+      </p>
+      <p className="conditions__current-details">
+        Humidity {current.humidityPercent}% ·{" "}
+        {cloudSplitText(
+          current.cloudCoverPercent,
+          current.cloudLowPercent,
+          current.cloudMidPercent,
+          current.cloudHighPercent,
+        )}
+      </p>
+    </div>
+  );
+};
+
+/**
+ * The 24 hour hourly strip: a horizontally scrollable row, one entry per
+ * hour with time, temperature, humidity, total cloud with the low/mid/high
+ * split and the WMO code as icon plus text.
+ */
+const WeatherHourly: React.FC<{ data: WeatherData }> = ({ data }) => {
+  const stripLabelId = useId();
+  return (
+    <div className="conditions__hourly-block">
+      <h3 className="sr-only" id={stripLabelId}>
+        24-hour hourly strip
+      </h3>
+      <ul
+        className="conditions__hourly"
+        aria-labelledby={stripLabelId}
+        // Keyboard access for the scrollable region (axe scrollable-region-focusable).
+        tabIndex={0}
+      >
+        {data.hourly.map((hour) => (
+          <li key={hour.time} className="conditions__hour">
+            <span className="conditions__hour-time">{hour.time.slice(11)}</span>
+            <span className="conditions__hour-main">
+              <WeatherIcon code={hour.weatherCode} />
+              <span className="conditions__hour-temp">
+                {formatCelsius(hour.temperatureC)}
+              </span>
+            </span>
+            <span className="conditions__hour-wmo">
+              {wmoWeather(hour.weatherCode).text}
+            </span>
+            <span className="conditions__hour-detail">
+              Humidity {hour.humidityPercent}%
+            </span>
+            <span className="conditions__hour-detail">
+              {cloudSplitText(
+                hour.cloudCoverPercent,
+                hour.cloudLowPercent,
+                hour.cloudMidPercent,
+                hour.cloudHighPercent,
+              )}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+/** The 3 day daily row as a semantic table: one card per day with max and min, WMO icon and text and sunrise and sunset for reference. */
+const WeatherDaily: React.FC<{ data: WeatherData; place: GeocodedPlace }> = ({
+  data,
+  place,
+}) => {
+  const tableLabelId = useId();
+  return (
+    <div
+      className="conditions__daily-scroll"
+      role="region"
+      aria-labelledby={tableLabelId}
+      // Keyboard access for the scrollable table region on narrow screens
+      // (scrollable-region-focusable); named by the sr-only span below.
+      tabIndex={0}
+    >
+      <span className="sr-only" id={tableLabelId}>
+        3-day weather forecast table, scrollable
+      </span>
+      <table className="conditions__daily">
+        <caption>3-day weather forecast at {place.displayName}</caption>
+        <thead>
+          <tr>
+            <th scope="col">Date</th>
+            <th scope="col">Conditions</th>
+            <th scope="col">Max</th>
+            <th scope="col">Min</th>
+            <th scope="col">Sunrise</th>
+            <th scope="col">Sunset</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.daily.map((day) => (
+            <tr key={day.date}>
+              <td>{day.date}</td>
+              <td>
+                <WeatherIcon code={day.weatherCode} />
+                <span className="conditions__daily-wmo">
+                  {wmoWeather(day.weatherCode).text}
+                </span>
+              </td>
+              <td>{formatCelsius(day.temperatureMaxC)}</td>
+              <td>{formatCelsius(day.temperatureMinC)}</td>
+              <td>{day.sunrise.slice(11)}</td>
+              <td>{day.sunset.slice(11)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
   );
 };
 
@@ -349,6 +596,7 @@ const LocalConditions: React.FC = () => {
       <p className="conditions__place">{place.displayName}</p>
       <PlaceFinder onPick={handlePick} />
       <DayBlock heading="Today's daylight chart" day={today} />
+      <WeatherBlock place={place} />
       {/* Only Today renders for now (2026-09-01) – the Tomorrow block is
           kept in case the day-pair view returns. daylightTimes still
           computes tomorrow: today's Night ends at tomorrow's dawn. */}

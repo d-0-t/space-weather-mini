@@ -195,3 +195,15 @@ _Avoid_: twilight (without the nautical qualifier)
 **Day (Local conditions)**:
 The luminosity band of the Local conditions timeline when the sun is above the horizon at a geocoded place, between sunrise and sunset. During midnight sun it spans the whole day.
 _Avoid_: daylight (when the band is meant), daytime
+
+**Weather (Local conditions)**:
+The Open-Meteo view at the geocoded place: current conditions, a 24-hour horizontally scrolling hourly strip and a 3-day daily row, each with temperature, humidity, cloud cover (total plus the low/mid/high split where the contract carries it) and a WMO weather code rendered through the local lookup. Fetched once per place change plus each Refresh tap, with the "Data from Open-Meteo at HH:MM local" fetched-at timestamp.
+_Avoid_: local weather (when the Local conditions weather card is meant), forecast (the NOAA products own that word)
+
+**WMO weather code**:
+The World Meteorological Organization code (0–99) Open-Meteo returns for current, hourly and daily conditions, rendered through the closed local lookup file as short English text plus an icon name. Codes outside the lookup fall back to the safe "Unknown" entry.
+_Avoid_: weather code (without WMO), WMO icon (the icon is a presentation of the code)
+
+**Weather refresh**:
+The always-enabled Refresh button at the top of the weather card that reissues the same Open-Meteo fetch for the same place and updates the fetched-at timestamp. Manual only – no polling and no refetch on focus, an intentional exception to the live polling discipline (ADR 0003, ADR 0005).
+_Avoid_: refresh button (as a term), weather refresh (as a synonym for the timestamp)
