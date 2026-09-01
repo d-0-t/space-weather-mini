@@ -105,4 +105,15 @@ describe("App shell accessibility", () => {
     ).toBeInTheDocument();
     expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
   });
+
+  it("renders the local conditions page at /conditions with a single h1", async () => {
+    renderShell("/conditions");
+    expect(
+      await screen.findByRole("heading", {
+        level: 1,
+        name: "Local conditions",
+      }),
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole("heading", { level: 1 })).toHaveLength(1);
+  });
 });

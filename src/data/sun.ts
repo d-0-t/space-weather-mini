@@ -11,7 +11,12 @@
  * hidden only while the sun is actually up (including midnight-sun seasons).
  */
 
+import { getTimes } from "suncalc";
+
 const DEG = Math.PI / 180;
+
+/** Milliseconds in one day – the step between today and tomorrow. */
+const DAY_MS = 86_400_000;
 
 /** Day of year 1–366 for a UTC date. */
 const dayOfYear = (date: Date): number => {
@@ -84,4 +89,125 @@ export function isSunBelowHorizon(
   date: Date,
 ): boolean {
   return solarElevationDegrees(latitudeDeg, longitudeDeg, date) < 0;
+}
+
+/** The daylight events of one calendar day at a place, for Local conditions. */
+export interface DaylightDay {
+  /** UTC midnight of the day the events belong to. */
+  date: Date;
+  sunrise: Date | null;
+  sunset: Date | null;
+  solarNoon: Date | null;
+  /** Morning and evening civil twilight boundaries (sun at −6°). */
+  civilDawn: Date | null;
+  civilDusk: Date | null;
+  /** Morning and evening nautical twilight boundaries (sun at −12°). */
+  nauticalDawn: Date | null;
+  nauticalDusk: Date | null;
+  /** Morning and evening astronomical twilight boundaries (sun at −18°). */
+  astronomicalDawn: Date | null;
+  astronomicalDusk: Date | null;
+  /** Night: astronomical dusk (−18°) until the next astronomical dawn. */
+  darkWindowStart: Date | null;
+  darkWindowEnd: Date | null;
+  /** Sunset minus sunrise in minutes; null during polar day or polar night. */
+  dayLengthMinutes: number | null;
+  /**
+   * "midnight-sun" while the sun never sets, "polar-night" while it never
+   * rises, else null – drives the short polar copy in the Local conditions
+   * view when sunrise and sunset are both null.
+   */
+  polar: "midnight-sun" | "polar-night" | null;
+}
+
+/** Today's and tomorrow's daylight events at a place, computed together. */
+export interface DaylightTimes {
+  today: DaylightDay;
+  tomorrow: DaylightDay;
+}
+
+/**
+ * suncalc's published types claim every event is a Date, but at the poles
+ * (midnight sun, polar night) it returns null – the same nulls the polar
+ * copy in the Local conditions view relies on. Normalise to nullable Dates.
+ */
+type SuncalcTimes = Record<keyof ReturnType<typeof getTimes>, Date | null> & {
+  alwaysUp?: true;
+  alwaysDown?: true;
+};
+
+const suncalcDayTimes = (
+  latitudeDeg: number,
+  longitudeDeg: number,
+  date: Date,
+): SuncalcTimes =>
+  getTimes(date, latitudeDeg, longitudeDeg) as unknown as SuncalcTimes;
+
+const dayTimes = (
+  latitudeDeg: number,
+  longitudeDeg: number,
+  day: Date,
+): DaylightDay => {
+  // suncalc keys its event set to the solar cycle around the nearest
+  // transit, so the civil noon of the day always resolves to that day's
+  // events – local midnight can fall in the previous solar cycle and
+  // return yesterday's times.
+  const times = suncalcDayTimes(
+    latitudeDeg,
+    longitudeDeg,
+    new Date(day.getTime() + DAY_MS / 2),
+  );
+  const next = new Date(day.getTime() + DAY_MS);
+  const nextTimes = suncalcDayTimes(
+    latitudeDeg,
+    longitudeDeg,
+    new Date(next.getTime() + DAY_MS / 2),
+  );
+  const sunrise = times.sunrise;
+  const sunset = times.sunset;
+  return {
+    date: day,
+    sunrise,
+    sunset,
+    solarNoon: times.solarNoon,
+    civilDawn: times.dawn,
+    civilDusk: times.dusk,
+    nauticalDawn: times.nauticalDawn,
+    nauticalDusk: times.nauticalDusk,
+    astronomicalDawn: times.nightEnd,
+    astronomicalDusk: times.night,
+    darkWindowStart: times.night,
+    darkWindowEnd: nextTimes.nightEnd,
+    dayLengthMinutes:
+      sunrise !== null && sunset !== null
+        ? Math.round((sunset.getTime() - sunrise.getTime()) / 60_000)
+        : null,
+    polar: times.alwaysUp
+      ? "midnight-sun"
+      : times.alwaysDown
+        ? "polar-night"
+        : null,
+  };
+};
+
+/**
+ * Daylight for today and tomorrow at a place, derived on device with suncalc
+ * (ADR 0005): sunrise, sunset, solar noon, the three twilight intervals and
+ * the Night interval between astronomical dusk and the next astronomical
+ * dawn. The reference day is the device-local calendar day of `now`, so the
+ * returned events belong to the same 00:00–24:00 day the Local conditions
+ * timeline renders. During polar day and polar night the affected events
+ * are null so the view can render the short polar copy instead of blank or
+ * invalid dates.
+ */
+export function daylightTimes(
+  latitudeDeg: number,
+  longitudeDeg: number,
+  now: Date,
+): DaylightTimes {
+  const day = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  return {
+    today: dayTimes(latitudeDeg, longitudeDeg, day),
+    tomorrow: dayTimes(latitudeDeg, longitudeDeg, new Date(day.getTime() + DAY_MS)),
+  };
 }

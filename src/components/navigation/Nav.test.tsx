@@ -97,17 +97,21 @@ describe("Header brand link", () => {
 });
 
 describe("Top-level nav entries", () => {
-  it("sits the Webcams entry between Dashboard and Details", () => {
+  it("sits the Webcams and Local conditions entries between Dashboard and Details", () => {
     renderNav();
     const nav = screen.getByRole("navigation", { name: /primary/i });
     const items = Array.from(nav.querySelectorAll("li > a, li > button"));
     const labels = items.map((el) => el.textContent?.trim() ?? "");
     const dashboard = labels.indexOf("Dashboard");
     const webcams = labels.indexOf("Webcams");
+    const conditions = labels.indexOf("Local conditions");
     const details = labels.indexOf("Details");
     expect(webcams).toBeGreaterThan(dashboard);
     expect(webcams).toBeLessThan(details);
+    expect(conditions).toBeGreaterThan(webcams);
+    expect(conditions).toBeLessThan(details);
     expect(nav.querySelector('a[href="/webcams"]')).not.toBeNull();
+    expect(nav.querySelector('a[href="/conditions"]')).not.toBeNull();
   });
 });
 

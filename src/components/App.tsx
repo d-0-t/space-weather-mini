@@ -3,6 +3,7 @@ import Home from "./pages/home/Home";
 import Forecasts from "./pages/Forecasts";
 import About from "./pages/About";
 import { Routes, Route } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import ForecastDiscussion from "./pages/forecasts/forecast-discussion";
 import GeophysicalAlert from "./pages/forecasts/geophysical-alert";
 import WeeklyReport from "./pages/forecasts/weekly-report";
@@ -12,12 +13,22 @@ import DailyGeomagneticIndices from "./pages/forecasts/daily-geomagnetic-indices
 import Webcams from "./pages/webcams/webcams";
 import Explainers from "./pages/explainers";
 
+const LocalConditions = lazy(() => import("./pages/conditions/conditions"));
+
 const App: React.FC = () => {
   return (
     <Routes>
       <Route path={""} element={<Home />} />
       <Route path={"home"} element={<Home />} />
       <Route path={"webcams"} element={<Webcams />} />
+      <Route
+        path={"conditions"}
+        element={
+          <Suspense fallback={null}>
+            <LocalConditions />
+          </Suspense>
+        }
+      />
       <Route path={"forecasts"} element={<Forecasts />}>
         <Route index element={<ForecastDiscussion />} />
         <Route path={"discussion"} element={<ForecastDiscussion />} />

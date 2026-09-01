@@ -44,6 +44,9 @@
 
   --text-stroke-black:
     1px 1px 1px #000, -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000;
+  --text-stroke-black-half:
+    1px 1px 1px #000000aa, -1px -1px 1px #000000aa, 1px -1px 1px #000000aa,
+    -1px 1px 1px #000000aa;
 
   --stroke-color: color-mix(
     in srgb,

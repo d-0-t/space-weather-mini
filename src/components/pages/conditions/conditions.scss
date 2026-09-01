@@ -1,0 +1,204 @@
+.conditions {
+  &__intro {
+    margin: 0.5rem 0 1rem;
+    font-size: 0.95rem;
+    color: var(--color-text-primary);
+  }
+
+  &__place {
+    display: inline-block;
+    margin: 0 0 0.5rem;
+    padding: 0.35rem 0.9rem;
+    border: 1px solid var(--color-border-muted-transparent);
+    border-radius: 15px;
+    background: var(--gradient-card);
+    color: var(--color-white);
+    font-weight: 500;
+  }
+
+  &__day {
+    margin-top: 1.25rem;
+  }
+
+  &__polar-note {
+    margin: 0.5rem 0;
+    color: var(--color-gold);
+    font-weight: 600;
+  }
+
+  // Luminosity timeline: the 24 h day as duration-ratio bands, darkest
+  // (Dark window) to brightest (Day). Row layout on wide screens, a
+  // vertical scale on narrow ones so labels and break times stay readable.
+  // The ramp is one desaturated blue (deep indigo lightened toward white)
+  // so the bands differ in luminosity only, never in hue.
+  &__timeline {
+    display: flex;
+    height: 7rem;
+    margin: 2rem 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid var(--color-border-muted-transparent);
+  }
+
+  &__band {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    outline: 1px solid var(--color-black);
+
+    &--l0 {
+      background: var(--color-deep-indigo);
+      color: var(--color-white);
+    }
+    &--l1 {
+      background: color-mix(
+        in srgb,
+        var(--color-deep-indigo) 100%,
+        var(--color-white) 25%
+      );
+      color: var(--color-white);
+      text-shadow: var(--text-stroke-black-half);
+    }
+    &--l2 {
+      background: color-mix(
+        in srgb,
+        var(--color-deep-indigo) 100%,
+        var(--color-white) 80%
+      );
+      color: var(--color-black);
+      text-shadow: 0px 0px 3px rgba(255, 227, 253, 0.583);
+    }
+    &--l3 {
+      background: color-mix(
+        in srgb,
+        var(--color-deep-indigo) 75%,
+        var(--color-white) 90%
+      );
+      color: var(--color-black);
+    }
+    &--l4 {
+      background: color-mix(
+        in srgb,
+        var(--color-deep-indigo) 50%,
+        var(--color-white) 100%
+      );
+      color: var(--color-black);
+    }
+  }
+
+  &__band-time {
+    position: absolute;
+    top: 0.25rem;
+    left: 0.35rem;
+    font-size: 0.65rem;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.9;
+
+    &--end {
+      top: auto;
+      right: 0.35rem;
+      bottom: 0.25rem;
+      left: auto;
+    }
+  }
+
+  &__band-name {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: 0.85rem;
+    font-weight: 500;
+    // Wide screens: bands are short but tall, so names read vertically,
+    // rotated 180° from the plain vertical flow, wrapping at the band
+    // height so even the longest name spans the whole band.
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+  }
+
+  // Wide screens only: alternate the break times top/bottom between
+  // neighbouring bands so they never collide, and set the closing 24:00
+  // opposite its band's start time. A pure visual displacement – the
+  // markup order is unchanged.
+  @media (min-width: 481px) {
+    &__band:nth-child(odd)
+      > .conditions__band-time:not(.conditions__band-time--end) {
+      display: flex; // prevents the pipe from separating
+      left: 0;
+      top: -1rem;
+      bottom: auto;
+      color: var(--color-white);
+
+      &::before {
+        display: inline-block;
+        position: relative;
+        content: "|\00a0";
+      }
+    }
+    &__band:nth-child(even)
+      > .conditions__band-time:not(.conditions__band-time--end) {
+      display: flex; // prevents the pipe from separating
+      top: 100%;
+      left: 0;
+      bottom: -1rem;
+      color: var(--color-white);
+
+      &::before {
+        display: inline-block;
+        position: relative;
+        content: "|\00a0";
+      }
+    }
+    //24:00
+    &__band:nth-child(odd) > .conditions__band-time--end {
+      display: flex; // prevents the pipe from separating
+      top: auto;
+      bottom: -1rem;
+      right: 0;
+      color: var(--color-white);
+
+      &::before {
+        display: inline-block;
+        position: relative;
+        content: " |";
+      }
+    }
+    &__band:nth-child(even) > .conditions__band-time--end {
+      display: flex; // prevents the pipe from separating
+      top: -1rem;
+      bottom: auto;
+      color: var(--color-white);
+    }
+  }
+
+  @media (max-width: 480px) {
+    &__timeline {
+      flex-direction: column;
+      height: min(70vh, 16rem);
+    }
+
+    &__band-name {
+      height: auto;
+      white-space: nowrap;
+      writing-mode: horizontal-tb;
+      transform: none;
+    }
+
+    // Every break time sits at its band's top edge on the vertical scale
+    &__band:nth-child(odd)
+      > .conditions__band-time:not(.conditions__band-time--end),
+    &__band:nth-child(even)
+      > .conditions__band-time:not(.conditions__band-time--end) {
+      top: 0.25rem;
+      bottom: auto;
+    }
+    &__band:nth-child(odd) > .conditions__band-time--end,
+    &__band:nth-child(even) > .conditions__band-time--end {
+      top: auto;
+      bottom: 0.25rem;
+    }
+  }
+}

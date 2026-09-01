@@ -8,12 +8,13 @@ test("the app boots with navigation chrome on every page", async ({ page }) => {
   await expect(
     page.getByText("Space Weather Mini", { exact: true }),
   ).toBeVisible();
-  for (const label of ["Dashboard", "Webcams", "About", "Explainers"]) {
+  for (const label of ["Dashboard", "Webcams", "Local conditions", "About", "Explainers"]) {
     await expect(
       page.getByRole("link", { name: label, exact: true }),
     ).toBeVisible();
   }
   await expect(page.getByRole("link", { name: "Webcams", exact: true })).toHaveAttribute("href", "/webcams");
+  await expect(page.getByRole("link", { name: "Local conditions", exact: true })).toHaveAttribute("href", "/conditions");
   await expect(page.getByRole("button", { name: "Details" })).toBeVisible();
   await page.getByRole("button", { name: "Details" }).click();
   for (const label of [

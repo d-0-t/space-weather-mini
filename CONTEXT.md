@@ -168,10 +168,26 @@ _Avoid_: conditions in my area (as a term), local weather (when the dark window 
 A location the app resolved from freeform text via Nominatim into latitude, longitude and a display name, or from the browser geolocation. The app stores the last chosen place in localStorage; the user picks from up to five Nominatim matches. When nothing is stored the app defaults to Kiruna, Sweden.
 _Avoid_: location (without geocoded qualifier when the stored place is meant), pin, marker, coordinates (as a manual entry)
 
-**Dark window**:
-The interval at a geocoded place when the sun is below -18 degrees, between astronomical dusk and the next astronomical dawn. Distinct from bright twilight.
-_Avoid_: night, dark hours, nighttime (without -18 degree qualifier)
+**Night**:
+The interval at a geocoded place when the sun is below -18 degrees, between astronomical dusk and the next astronomical dawn. Distinct from bright twilight. The darkest band of the Local conditions luminosity timeline.
+_Avoid_: dark hours, nighttime (without the -18 degree qualifier)
 
 **Civil twilight**:
 The interval when the sun is 0 to -6 degrees below the horizon at a geocoded place, between sunset and dusk and between dawn and sunrise. Still too bright for faint aurora.
 _Avoid_: twilight (without civil/nautical/astronomical qualifier), dusk (when the whole interval is meant)
+
+**Day length**:
+The interval between sunrise and sunset at a geocoded place on one calendar day, shown as the width of the Day band in the Local conditions luminosity timeline. Distinct from Night.
+_Avoid_: daylight hours (as a displayed value)
+
+**Astronomical twilight**:
+The interval when the sun is 12 to 18 degrees below the horizon at a geocoded place, between nautical dusk and Night and between Night and nautical dawn. One of the luminosity bands of the Local conditions timeline.
+_Avoid_: deep twilight (when astronomical twilight is meant)
+
+**Nautical twilight**:
+The interval when the sun is 6 to 12 degrees below the horizon at a geocoded place, between civil dusk and nautical dusk and between nautical dawn and civil dawn. One of the luminosity bands of the Local conditions timeline.
+_Avoid_: twilight (without the nautical qualifier)
+
+**Day (Local conditions)**:
+The luminosity band of the Local conditions timeline when the sun is above the horizon at a geocoded place, between sunrise and sunset. During midnight sun it spans the whole day.
+_Avoid_: daylight (when the band is meant), daytime
