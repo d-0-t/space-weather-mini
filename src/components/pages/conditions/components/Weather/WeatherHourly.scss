@@ -20,6 +20,11 @@
   }
 
   &__hour {
+    // Positioned ancestor for the sr-only spans inside each card: without
+    // this the absolute 1px labels in scrolled-off cards position against
+    // the viewport and stretch document.scrollWidth by the full strip width
+    // (~1900 px overflow on narrow screens).
+    position: relative;
     display: flex;
     flex: 0 0 auto;
     flex-direction: column;
