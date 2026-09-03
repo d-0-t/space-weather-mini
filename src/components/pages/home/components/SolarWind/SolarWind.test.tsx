@@ -1,11 +1,15 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import rtswWindFixture from "../../../../../products/fixtures/rtsw-wind-1m.json?raw";
 import rtswMagFixture from "../../../../../products/fixtures/rtsw-mag-1m.json?raw";
 import SolarWind from "./SolarWind";
+import {
+  COULDNT_LOAD_COPY,
+  STALE_DATA_NOTICE,
+} from "../offline/offline";
 
 const queryClient = () =>
   new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -185,8 +189,17 @@ describe("SolarWind", () => {
     renderSolarWind();
     await waitFor(() =>
       expect(
-        screen.getByText(/Couldn't load space weather/i),
+        screen.getByText(COULDNT_LOAD_COPY),
       ).toBeInTheDocument(),
     );
+  });
+
+  it("marks every card as showing saved data when the browser is offline", async () => {
+    renderSolarWind();
+    await waitFor(() => expect(screen.getByText("Speed")).toBeInTheDocument());
+    act(() => {
+      window.dispatchEvent(new Event("offline"));
+    });
+    expect(screen.getAllByText(STALE_DATA_NOTICE).length).toBeGreaterThanOrEqual(4);
   });
 });

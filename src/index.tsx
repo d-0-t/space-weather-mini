@@ -10,7 +10,13 @@ import reportWebVitals from "./reportWebVitals";
 
 const container = document.getElementById("root");
 const root = createRoot(container!);
-const queryClient = new QueryClient();
+// networkMode "always" keeps offline fetches honest: the Service Worker
+// answers cached requests (stale data) and genuine misses reject so the
+// "Couldn't load – connect to refresh" error shows. The default "online" mode
+// would pause queries while offline, leaving live cards stuck on "Loading…".
+const queryClient = new QueryClient({
+  defaultOptions: { queries: { networkMode: "always" } },
+});
 
 root.render(
   // NOTE: React.StrictMode will render everything twice in development, but not in production

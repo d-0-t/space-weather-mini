@@ -97,4 +97,21 @@ describe("Explainers page", () => {
       screen.getAllByRole("heading", { level: 2 }).length,
     ).toBeGreaterThanOrEqual(15);
   });
+
+  it("explains the offline PWA honestly: first visit online, iOS eviction, no invented data", async () => {
+    renderPage();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Offline (PWA)" }),
+    ).toBeInTheDocument();
+    const article = document.getElementById("offline-pwa")!;
+    expect(article).toBeInTheDocument();
+    const body = article.textContent ?? "";
+    // First visit must be online
+    expect(body).toMatch(/first visit must be online/i);
+    // Honest stale copy and no-data-invented promise
+    expect(body).toMatch(/couldn't reach NOAA/i);
+    expect(body).toMatch(/no data is invented/i);
+    // iOS 7-day eviction is documented
+    expect(body).toMatch(/7 days/i);
+  });
 });

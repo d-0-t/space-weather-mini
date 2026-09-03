@@ -35,6 +35,11 @@ import {
   formatKp,
   kpClass,
 } from "../kp-panel/kp-panel";
+import {
+  COULDNT_LOAD_COPY,
+  StaleDataNotice,
+  useIsOffline,
+} from "../offline/offline";
 
 import "./Forecast.scss";
 
@@ -80,6 +85,7 @@ const KpChartTick = (props: {
  */
 const Forecast: React.FC = () => {
   const forecastChartLabelId = useId();
+  const offline = useIsOffline();
   const { data } = useQuery({
     queryKey: ["3-day-forecast"],
     queryFn: fetchThreeDay,
@@ -116,7 +122,7 @@ const Forecast: React.FC = () => {
     return (
       <article className="forecast">
         <CollapsiblePanel heading={<h2>Forecast</h2>} bodyId="forecast-panel-body">
-          <p>Couldn&apos;t load Kp forecast. Please check back later.</p>
+          <p>{COULDNT_LOAD_COPY}</p>
         </CollapsiblePanel>
       </article>
     );
@@ -125,6 +131,9 @@ const Forecast: React.FC = () => {
 
   const observed = observedQuery.data;
   const forecast = forecastQuery.data;
+
+  const showingSaved =
+    (observedQuery.isError || offline) && Boolean(observed);
 
   // Mini table groups planetary JSON observed+forecast by UTC calendar day for
   // today/tomorrow/dayAfter (UTC) so "today" is never missing; the 3-day text
@@ -214,6 +223,7 @@ const Forecast: React.FC = () => {
   return (
     <article className="forecast">
       <CollapsiblePanel heading={<h2>Forecast</h2>} bodyId="forecast-panel-body">
+      {showingSaved ? <StaleDataNotice /> : null}
       <div
         role="img"
         aria-labelledby={forecastChartLabelId}

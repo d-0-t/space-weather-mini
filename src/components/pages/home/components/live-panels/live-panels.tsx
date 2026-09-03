@@ -18,6 +18,12 @@ import {
 
 import type { Source } from "../../../../sources";
 import { SourceAttribution } from "../../../../sources";
+import {
+  COULDNT_LOAD_COPY,
+  FreshnessLine,
+  StaleDataNotice,
+  type LiveDataState,
+} from "../offline/offline";
 
 import "./live-panels.scss";
 
@@ -672,7 +678,8 @@ export const SparklineCard: React.FC<{
   ariaLabel: string;
   unit: string;
   help: ChartHelpContent;
-  warning?: string | null;
+  /** Honesty state: stale saved data, or nothing ever loaded */
+  state?: LiveDataState;
   anchorOffset?: number;
   /** Colors the line per value via the shared severity ramp */
   colorBy?: (value: number) => string;
@@ -701,7 +708,7 @@ export const SparklineCard: React.FC<{
   ariaLabel,
   unit,
   help,
-  warning,
+  state,
   anchorOffset,
   colorBy,
   second,
@@ -714,12 +721,16 @@ export const SparklineCard: React.FC<{
       <h3>{title}</h3>
       <ChartHelp content={help} />
     </div>
-    {warning ? <p className="live-panel__warning">{warning}</p> : null}
-    {valueBlock ?? (
-      <p className="live-panel__value">
-        {value}
-        {note ? <span className="live-panel__note"> {note}</span> : null}
-      </p>
+    {state === "stale" ? <StaleDataNotice /> : null}
+    {state === "never-loaded" ? (
+      <p className="live-panel__warning">{COULDNT_LOAD_COPY}</p>
+    ) : (
+      valueBlock ?? (
+        <p className="live-panel__value">
+          {value}
+          {note ? <span className="live-panel__note"> {note}</span> : null}
+        </p>
+      )
     )}
     {points.length > 1 ? (
       <MiniSparkline
@@ -735,9 +746,7 @@ export const SparklineCard: React.FC<{
         primaryName={primaryName}
       />
     ) : null}
-    <p className="live-panel__fresh">
-      Updated {updated} ({asOf !== "–" ? formatLocalTime(asOf) : "–"})
-    </p>
+    <FreshnessLine asOf={asOf} updated={updated} />
     {source ? (
       <SourceAttribution source={source} />
     ) : null}

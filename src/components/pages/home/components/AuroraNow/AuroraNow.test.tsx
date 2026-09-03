@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
@@ -7,6 +7,10 @@ import { MemoryRouter } from "react-router-dom";
 import kpObservedFixture from "../../../../../products/fixtures/noaa-planetary-k-index.json?raw";
 import AuroraNow from "./AuroraNow";
 import { AlertsProvider } from "../Alerts/AlertsContext";
+import {
+  COULDNT_LOAD_COPY,
+  STALE_DATA_NOTICE,
+} from "../offline/offline";
 
 const queryClient = () => new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
@@ -104,6 +108,34 @@ describe("AuroraNow", () => {
     const source = screen.getByRole("link", { name: /^NOAA\/SWPC$/ });
     expect(source.getAttribute("href")).toBe(
       "https://www.swpc.noaa.gov/products/aurora-30-minute-forecast",
+    );
+  });
+
+  it("shows the freshness line as 'As of {time} • Updated {age}'", async () => {
+    renderAuroraNow();
+    await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
+    // Fixture's latest observed reading is at 2026-08-25T12:00:00
+    expect(
+      screen.getByText(/As of Aug 25 12:00 UTC • Updated/),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the stale notice with saved data when the browser goes offline", async () => {
+    renderAuroraNow();
+    await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
+    act(() => {
+      window.dispatchEvent(new Event("offline"));
+    });
+    expect(screen.getByText(STALE_DATA_NOTICE)).toBeInTheDocument();
+  });
+
+  it("shows the plain never-cached error when the Kp feed never loaded", async () => {
+    mockFetch.mockImplementation(() =>
+      Promise.resolve({ ok: false, status: 500, text: async () => "" }),
+    );
+    renderAuroraNow();
+    await waitFor(() =>
+      expect(screen.getByText(COULDNT_LOAD_COPY)).toBeInTheDocument(),
     );
   });
 });

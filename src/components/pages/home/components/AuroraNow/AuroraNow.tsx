@@ -4,6 +4,12 @@ import FullSizeModal from "../../../../FullSizeModal";
 import { SourceAttribution } from "../../../../sources";
 import { formatAge } from "../../../../../products/live-helpers";
 import { ChartHelp } from "../live-panels/live-panels";
+import {
+  COULDNT_LOAD_COPY,
+  FreshnessLine,
+  StaleDataNotice,
+  useIsOffline,
+} from "../offline/offline";
 import { getMoonPhase } from "../../../../moon/moon";
 import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
 import {
@@ -118,6 +124,7 @@ const AuroraCurtain: React.FC<{ kp: number }> = ({ kp }) => {
  * 30-minute aurora oval forecast images for both hemispheres.
  */
 const AuroraNow: React.FC = () => {
+  const offline = useIsOffline();
   const observedQuery = useQuery({
     queryKey: ["planetary-k-index", "live"],
     queryFn: fetchKpObserved,
@@ -151,7 +158,7 @@ const AuroraNow: React.FC = () => {
           bodyId="aurora-now-panel-body"
           adornment={badge}
         >
-          <p>Couldn&apos;t load Kp forecast. Please check back later.</p>
+          <p>{COULDNT_LOAD_COPY}</p>
         </CollapsiblePanel>
       </article>
     );
@@ -190,12 +197,12 @@ const AuroraNow: React.FC = () => {
           </span>
         </div>
         <KpBar kp={currentKpRounded} />
-        {observedQuery.isError && observed ? (
-          <p aria-live="polite">
-            ⚠ Live data unavailable – showing{" "}
-            {formatAge(latestObserved.time_tag)}
-            -old cache
-          </p>
+        <FreshnessLine
+          asOf={latestObserved.time_tag}
+          updated={formatAge(latestObserved.time_tag)}
+        />
+        {(observedQuery.isError || offline) && observed ? (
+          <StaleDataNotice />
         ) : null}
         <h3>Aurora Oval Forecast (30 min)</h3>
         <div className="aurora-images">

@@ -28,6 +28,12 @@ import {
   smoothPoints,
 } from "../live-panels/live-panels";
 import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
+import {
+  COULDNT_LOAD_COPY,
+  liveDataState,
+  StaleDataNotice,
+  useIsOffline,
+} from "../offline/offline";
 
 const KIRUNA_MAGNETOGRAM_URL =
   "https://spaceweather.irf.se/data/irf-kir-mag.png";
@@ -50,40 +56,48 @@ const fetchBoulder = async () => {
   return parseBoulderKIndex(await response.text());
 };
 
-const KirunaMagnetogramCard: React.FC = () => (
-  <section className="live-panel__card">
-    <div className="live-panel__head">
-      <h3>Kiruna magnetometer</h3>
-      <ChartHelp
-        content={{
-          label: "About the Kiruna magnetogram",
-          text: "IRF's live magnetogram for Kiruna (68°N, Sweden) plots the X, Y and Z field components in nT over 24 hours. Gentle wiggles are normal. Large swings – especially 100+ nT in the X component – mean substorms are overhead, so bright aurora is likely at high latitudes.",
-        }}
-      />
-    </div>
-    <div className="live-panel__panel">
-      <FullSizeModal
-        label="Kiruna magnetogram, full size"
-        triggerClassName="live-panel__image-tile"
-        trigger={
-          <img
-            src={KIRUNA_MAGNETOGRAM_URL}
-            alt="Kiruna magnetogram, X Y and Z components in nT over the last 24 hours"
-          />
-        }
-      >
-        <img
-          src={KIRUNA_MAGNETOGRAM_URL}
-          alt="Kiruna magnetogram, X Y and Z components in nT over the last 24 hours"
-          className="image-modal__img--invert"
+const KirunaMagnetogramCard: React.FC = () => {
+  const offline = useIsOffline();
+  return (
+    <section className="live-panel__card">
+      <div className="live-panel__head">
+        <h3>Kiruna magnetometer</h3>
+        <ChartHelp
+          content={{
+            label: "About the Kiruna magnetogram",
+            text: "IRF's live magnetogram for Kiruna (68°N, Sweden) plots the X, Y and Z field components in nT over 24 hours. Gentle wiggles are normal. Large swings – especially 100+ nT in the X component – mean substorms are overhead, so bright aurora is likely at high latitudes.",
+          }}
         />
-      </FullSizeModal>
-    </div>
-    <SourceAttribution source={SOURCES.irf} />
-  </section>
-);
+      </div>
+      {offline ? (
+        <p className="live-panel__warning">{COULDNT_LOAD_COPY}</p>
+      ) : (
+        <div className="live-panel__panel">
+          <FullSizeModal
+            label="Kiruna magnetogram, full size"
+            triggerClassName="live-panel__image-tile"
+            trigger={
+              <img
+                src={KIRUNA_MAGNETOGRAM_URL}
+                alt="Kiruna magnetogram, X Y and Z components in nT over the last 24 hours"
+              />
+            }
+          >
+            <img
+              src={KIRUNA_MAGNETOGRAM_URL}
+              alt="Kiruna magnetogram, X Y and Z components in nT over the last 24 hours"
+              className="image-modal__img--invert"
+            />
+          </FullSizeModal>
+        </div>
+      )}
+      <SourceAttribution source={SOURCES.irf} />
+    </section>
+  );
+};
 
 const BoulderMagnetometerCard: React.FC = () => {
+  const offline = useIsOffline();
   const boulderQuery = useQuery({
     queryKey: ["boulder-k-index", "live"],
     queryFn: fetchBoulder,
@@ -102,10 +116,7 @@ const BoulderMagnetometerCard: React.FC = () => {
     SMOOTHING.boulder,
   );
   const latest = latestValue(boulderRows);
-  const warning =
-    boulderQuery.isError && boulderQuery.data
-      ? "⚠ Live data unavailable – showing cache"
-      : null;
+  const state = liveDataState(boulderQuery, offline);
 
   return (
     <section className="live-panel__card">
@@ -124,11 +135,15 @@ const BoulderMagnetometerCard: React.FC = () => {
           }}
         />
       </div>
-      {warning ? <p className="live-panel__warning">{warning}</p> : null}
-      <p className="live-panel__value">
-        K {latest.value !== null ? latest.value.toFixed(1) : "–"}
-        <span className="live-panel__note"> (local ground)</span>
-      </p>
+      {state === "stale" ? <StaleDataNotice /> : null}
+      {state === "never-loaded" ? (
+        <p className="live-panel__warning">{COULDNT_LOAD_COPY}</p>
+      ) : (
+        <p className="live-panel__value">
+          K {latest.value !== null ? latest.value.toFixed(1) : "–"}
+          <span className="live-panel__note"> (local ground)</span>
+        </p>
+      )}
       {points.length > 1 ? (
         <MiniSparkline
           title="Boulder K index"
@@ -150,6 +165,7 @@ const BoulderMagnetometerCard: React.FC = () => {
 
 /** Magnetosphere – auroral hemispheric power, Dst and ground magnetometers. */
 const Magnetosphere: React.FC = () => {
+  const offline = useIsOffline();
   const hemiQuery = useQuery({
     queryKey: ["hemi-power", "live"],
     queryFn: fetchHemiPower,
@@ -170,10 +186,8 @@ const Magnetosphere: React.FC = () => {
   const latestHemi = hemiQuery.data?.points[hemiQuery.data.points.length - 1];
   const latestDst = dstQuery.data?.points[dstQuery.data.points.length - 1];
 
-  const stale = (query: { isError: boolean; data?: unknown }) =>
-    query.isError && query.data
-      ? "⚠ Live data unavailable – showing cache"
-      : null;
+  const state = (query: { isError: boolean; data?: unknown }) =>
+    liveDataState(query, offline);
 
   return (
     <article className="live-panel magnetosphere">
@@ -248,7 +262,7 @@ const Magnetosphere: React.FC = () => {
           accent="plum"
           colorBy={(v) => severityColor("hemi", v)}
           ariaLabel="Hemispheric power, north and south mirrored around zero, all available data, gigawatts"
-          warning={stale(hemiQuery)}
+          state={state(hemiQuery)}
           source={SOURCES.noaaSwpc}
         />
         <SparklineCard
@@ -279,7 +293,7 @@ const Magnetosphere: React.FC = () => {
           accent="cyan"
           colorBy={(v) => severityColor("dst", v)}
           ariaLabel="Disturbance storm index, last 24 hours, nT"
-          warning={stale(dstQuery)}
+          state={state(dstQuery)}
           source={SOURCES.kyoto}
         />
         <KirunaMagnetogramCard />

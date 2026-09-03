@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -7,6 +7,10 @@ import hemiFixture from "../../../../../products/fixtures/hemi-power.txt?raw";
 import dstFixture from "../../../../../products/fixtures/kyoto-dst.json?raw";
 import boulderFixture from "../../../../../products/fixtures/boulder-k-index-1m.json?raw";
 import Magnetosphere from "./Magnetosphere";
+import {
+  COULDNT_LOAD_COPY,
+  STALE_DATA_NOTICE,
+} from "../offline/offline";
 
 const queryClient = () =>
   new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -230,5 +234,40 @@ describe("Magnetosphere", () => {
     expect(dstCard.textContent).toMatch(/Source: WDC for Geomagnetism, Kyoto/);
     const kirunaCard = screen.getByText("Kiruna magnetometer").closest("section")!;
     expect(kirunaCard.textContent).toMatch(/Source: IRF/);
+  });
+
+  it("marks the live cards as showing saved data when offline", async () => {
+    renderMagnetosphere();
+    await waitFor(() =>
+      expect(screen.getByText("Hemispheric power")).toBeInTheDocument(),
+    );
+    act(() => {
+      window.dispatchEvent(new Event("offline"));
+    });
+    // Hemi, Dst and Boulder cards carry the stale notice; Kiruna is an image.
+    expect(screen.getAllByText(STALE_DATA_NOTICE).length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("shows the never-cached error on the Kiruna magnetogram card when offline", async () => {
+    renderMagnetosphere();
+    await waitFor(() =>
+      expect(screen.getByText("Kiruna magnetometer")).toBeInTheDocument(),
+    );
+    act(() => {
+      window.dispatchEvent(new Event("offline"));
+    });
+    // The IRF image is not runtime-cached, so offline it is honestly unavailable
+    expect(screen.getAllByText(COULDNT_LOAD_COPY).length).toBeGreaterThanOrEqual(1);
+    expect(document.querySelector(".live-panel__image-tile")).toBeNull();
+  });
+
+  it("shows the plain never-cached error on every live card when no data ever loaded", async () => {
+    mockFetch.mockImplementation(() =>
+      Promise.resolve({ ok: false, status: 500, text: async () => "" }),
+    );
+    renderMagnetosphere();
+    await waitFor(() =>
+      expect(screen.getAllByText(COULDNT_LOAD_COPY).length).toBeGreaterThanOrEqual(3),
+    );
   });
 });

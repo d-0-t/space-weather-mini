@@ -19,6 +19,11 @@ import {
 import { formatAge } from "../../../../../products/live-helpers";
 import { severityColor } from "../../../../../styles/severity";
 import GlossaryTerm from "../../../../explainers/GlossaryTerm";
+import {
+  COULDNT_LOAD_COPY,
+  StaleDataNotice,
+  useIsOffline,
+} from "../offline/offline";
 
 import "./LiveBanner.scss";
 
@@ -47,6 +52,7 @@ const fetchDst = async () => {
 };
 
 const LiveBanner: React.FC = () => {
+  const offline = useIsOffline();
   const [expanded, setExpanded] = useState(false);
   const magQuery = useQuery({
     queryKey: ["solar-wind-mag", "live"],
@@ -107,7 +113,7 @@ const LiveBanner: React.FC = () => {
       return (
         <article className="live-banner">
           <h2>Live Solar Wind &amp; IMF</h2>
-          <p>Couldn&apos;t load solar wind. Please check back later.</p>
+          <p>{COULDNT_LOAD_COPY}</p>
         </article>
       );
     }
@@ -132,9 +138,7 @@ const LiveBanner: React.FC = () => {
   const bSharp =
     bz < -5 ? "southward – aurora enabler" : bz < 0 ? "southward" : "northward";
   const staleWarning =
-    isError && (mag || speed) ? (
-      <p aria-live="polite">⚠ Live data unavailable – showing cache</p>
-    ) : null;
+    (isError || offline) && (mag || speed) ? <StaleDataNotice /> : null;
 
   return (
     <article className="live-banner">

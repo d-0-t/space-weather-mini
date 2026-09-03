@@ -6,7 +6,7 @@ import {
   getDeviceLocation,
   type GeocodeMatch,
 } from "../../../../../data/geocoding";
-import { OpenInNew } from "@mui/icons-material";
+import OpenInNew from "@mui/icons-material/OpenInNew";
 import { shortDisplayName } from "../../utils/short-display-name";
 
 const OSM_COPYRIGHT_URL = "https://www.openstreetmap.org/copyright";

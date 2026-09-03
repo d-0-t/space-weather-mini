@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 
@@ -8,6 +8,10 @@ import speedFixture from "../../../../../products/fixtures/solar-wind-speed.json
 import hemiFixture from "../../../../../products/fixtures/hemi-power.txt?raw";
 import dstFixture from "../../../../../products/fixtures/kyoto-dst.json?raw";
 import LiveBanner from "./LiveBanner";
+import {
+  COULDNT_LOAD_COPY,
+  STALE_DATA_NOTICE,
+} from "../offline/offline";
 
 const queryClient = () => new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
@@ -41,5 +45,24 @@ describe("LiveBanner", () => {
     await waitFor(() => expect(screen.getAllByText(/Bz/).length).toBeGreaterThan(0));
     expect(screen.getByRole("heading", { name: /Live Solar Wind/i })).toBeInTheDocument();
     expect(screen.getByText(/Hemispheric power/)).toBeInTheDocument();
+  });
+
+  it("shows the stale notice with saved data when offline", async () => {
+    renderBanner();
+    await waitFor(() => expect(screen.getAllByText(/Bz/).length).toBeGreaterThan(0));
+    act(() => {
+      window.dispatchEvent(new Event("offline"));
+    });
+    expect(screen.getByText(STALE_DATA_NOTICE)).toBeInTheDocument();
+  });
+
+  it("shows the plain never-cached error when the feeds never loaded", async () => {
+    mockFetch.mockImplementation(() =>
+      Promise.resolve({ ok: false, status: 500, text: async () => "" }),
+    );
+    renderBanner();
+    await waitFor(() =>
+      expect(screen.getByText(COULDNT_LOAD_COPY)).toBeInTheDocument(),
+    );
   });
 });

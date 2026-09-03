@@ -22,6 +22,11 @@ import {
   valueAt,
 } from "../live-panels/live-panels";
 import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
+import {
+  COULDNT_LOAD_COPY,
+  liveDataState,
+  useIsOffline,
+} from "../offline/offline";
 
 const fetchWind = async () => {
   const response = await fetch(RTSW_WIND_URL);
@@ -37,6 +42,7 @@ const fetchMagField = async () => {
 
 /** Solar Wind – live L1 solar wind speed, density and IMF (Bt, Bz). */
 const SolarWind: React.FC = () => {
+  const offline = useIsOffline();
   const windQuery = useQuery({
     queryKey: ["rtsw-wind", "live"],
     queryFn: fetchWind,
@@ -70,7 +76,7 @@ const SolarWind: React.FC = () => {
     return (
       <article className="live-panel solar-wind">
         <CollapsiblePanel heading={<h2>Solar Wind</h2>} bodyId="solar-wind-panel-body">
-          <p>Couldn&apos;t load space weather. Please check back later.</p>
+          <p>{COULDNT_LOAD_COPY}</p>
         </CollapsiblePanel>
       </article>
     );
@@ -112,10 +118,8 @@ const SolarWind: React.FC = () => {
   const btNow = valueAt(btRows, magNowTag);
   const bzNow = valueAt(bzRows, magNowTag);
 
-  const stale = (query: { isError: boolean; data?: unknown }) =>
-    query.isError && query.data
-      ? "⚠ Live data unavailable – showing cache"
-      : null;
+  const state = (query: { isError: boolean; data?: unknown }) =>
+    liveDataState(query, offline);
 
   return (
     <article className="live-panel solar-wind">
@@ -152,7 +156,7 @@ const SolarWind: React.FC = () => {
           accent="greenyellow"
           colorBy={(v) => severityColor("speed", v)}
           ariaLabel="Solar wind speed, km/s, 2 hours before Now plus upcoming"
-          warning={stale(windQuery)}
+          state={state(windQuery)}
         />
         <SparklineCard
           title="Particle density"
@@ -177,7 +181,7 @@ const SolarWind: React.FC = () => {
           accent="cyan"
           colorBy={(v) => severityColor("density", v)}
           ariaLabel="Proton density, p per cubic cm, 2 hours before Now plus upcoming"
-          warning={stale(windQuery)}
+          state={state(windQuery)}
         />
         <SparklineCard
           title="Bt"
@@ -202,7 +206,7 @@ const SolarWind: React.FC = () => {
           accent="plum"
           colorBy={(v) => severityColor("bt", v)}
           ariaLabel="Total magnetic field strength Bt, nT, 2 hours before Now plus upcoming"
-          warning={stale(magQuery)}
+          state={state(magQuery)}
         />
         <SparklineCard
           title="Bz"
@@ -237,7 +241,7 @@ const SolarWind: React.FC = () => {
           accent="orange"
           colorBy={(v) => severityColor("bz", v)}
           ariaLabel="Bz GSM magnetic field, nT, 2 hours before Now plus upcoming, south or north"
-          warning={stale(magQuery)}
+          state={state(magQuery)}
         />
       </div>
       <SourceAttribution source={SOURCES.noaaSwpc} />

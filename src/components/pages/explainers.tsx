@@ -56,6 +56,11 @@ const ENTRIES: ExplainerEntry[] = [
     body: "The aurora forecast shows the OVATION 30-minute aurora images for the north and south polar regions. Green bands near the poles mean a higher chance of visible aurora if skies are dark and clear.",
   },
   {
+    id: "offline-pwa",
+    title: "Offline (PWA)",
+    body: "The app opens without internet after you have visited once while online: the app shell and the last fetched NOAA products are saved on your device by the Service Worker. When the network is unreachable every live card shows the last data with `As of` and its age plus “⚠ Showing saved data – couldn't reach NOAA”; if nothing was ever fetched it shows “Couldn't load – connect to refresh”. No data is invented. Your first visit must be online, and on iOS the saved copy may be removed after 7 days without launching the app.",
+  },
+  {
     id: "space-weather-product",
     title: "Space weather product",
     body: "A space weather product is a data source published by NOAA SWPC that the app fetches and displays: the forecast discussion, 3-day forecast, weekly report, 27-day outlook, daily geomagnetic indices, or geophysical alert. Each product covers a different time span and measure.",

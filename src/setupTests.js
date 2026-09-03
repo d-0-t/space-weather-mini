@@ -3,6 +3,7 @@
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
 import "@testing-library/jest-dom/vitest";
+import { onlineManager } from "@tanstack/react-query";
 import { cleanup } from "@testing-library/react";
 import { afterEach } from "vitest";
 
@@ -60,4 +61,8 @@ if (typeof EventSource === "undefined") {
 
 afterEach(() => {
   cleanup();
+  // TanStack Query's OnlineManager is a module singleton: a test that fires a
+  // window "offline" event leaves every later query in the file blocked (the
+  // default networkMode "online" never fetches). Reset it between tests.
+  onlineManager.setOnline(true);
 });

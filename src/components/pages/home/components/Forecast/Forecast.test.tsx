@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
@@ -8,6 +8,10 @@ import threeDayFixture from "../../../../../products/fixtures/3-day-forecast.txt
 import kpObservedFixture from "../../../../../products/fixtures/noaa-planetary-k-index.json?raw";
 import kpForecastFixture from "../../../../../products/fixtures/noaa-planetary-k-index-forecast.json?raw";
 import Forecast from "./Forecast";
+import {
+  COULDNT_LOAD_COPY,
+  STALE_DATA_NOTICE,
+} from "../offline/offline";
 
 const queryClient = () => new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
@@ -205,5 +209,24 @@ describe("Forecast", () => {
     await waitFor(() => expect(screen.getByRole("table", { name: /Kp-index forecast/i })).toBeInTheDocument());
     const source = screen.getByRole("link", { name: /^NOAA\/SWPC$/ });
     expect(source.getAttribute("href")).toBe("https://www.swpc.noaa.gov/");
+  });
+
+  it("shows the stale notice with saved data when the browser is offline", async () => {
+    renderForecast();
+    await waitFor(() => expect(screen.getByRole("table", { name: /Kp-index forecast/i })).toBeInTheDocument());
+    act(() => {
+      window.dispatchEvent(new Event("offline"));
+    });
+    expect(screen.getByText(STALE_DATA_NOTICE)).toBeInTheDocument();
+  });
+
+  it("shows the plain never-cached error when the Kp feed never loaded", async () => {
+    mockFetch.mockImplementation(() =>
+      Promise.resolve({ ok: false, status: 500, text: async () => "" }),
+    );
+    renderForecast();
+    await waitFor(() =>
+      expect(screen.getByText(COULDNT_LOAD_COPY)).toBeInTheDocument(),
+    );
   });
 });
