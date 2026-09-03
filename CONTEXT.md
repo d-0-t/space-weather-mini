@@ -207,3 +207,21 @@ _Avoid_: weather code (without WMO), WMO icon (the icon is a presentation of the
 **Weather refresh**:
 The always-enabled Refresh button at the top of the weather card that reissues the same Open-Meteo fetch for the same place and updates the fetched-at timestamp. Manual only – no polling and no refetch on focus, an intentional exception to the live polling discipline (ADR 0003, ADR 0005).
 _Avoid_: refresh button (as a term), weather refresh (as a synonym for the timestamp)
+
+### Offline and personal oval
+
+**Offline (PWA)**:
+The app shell and last fetched products cached by the Service Worker so the app opens without internet after one online visit. Data is shown as stale with `As of` plus `⚠ Showing saved data — couldn't reach NOAA` when the network fails; no data is invented. First visit must be online; iOS may evict the cache after 7 days without launch.
+_Avoid_: offline mode (as a toggle name), available offline (without As of qualifier)
+
+**Oval**:
+The forecast glow painted from `ovation_aurora_latest.json` per 1° cell. `Aurora 0` is transparent (no forecast). `1-5` faint, `6-10` moderate, `11-15` strong, `16+` intense (calibrated live; `max 25` quiet, higher in storm) colored via the frozen Kp palette in default mode or a color-blind safe ramp in color-blind mode. Each cell is a 30-minute forecast, not a live photo; cloud, moon and light pollution can still hide it.
+_Avoid_: ovation map (when the forecast cells are meant), aurora oval (without forecast qualifier when the model is meant)
+
+**View distance**:
+The estimated band from the stored geocoded place to the nearest forecast oval cell with `Aurora ≥6` within 600 km: `Overhead / Nearby ~0-100 km • Likely / Distant ~100-300 km • Possible / Far ~300-600 km • Unlikely / Not in range` with a confidence label. A forecast estimate for the `Forecast Time` 30–90 min ahead, not a sighting guarantee.
+_Avoid_: distance to aurora (without view / band qualifier), aurora x km away (as a single-number fact)
+
+**Color-blind mode**:
+The per-user toggle that keeps the oval readable without color: default shows color wash only; when on, the same intensity bands are remapped to a color-blind safe palette plus alternating hatch (`\` vs `/` vs `X`, neighbours never share) and a thin contour per band edge. The same hatch+contour guarantee the map works for deutan, protan, tritan and greyscale/night-vision.
+_Avoid_: color blind palette (as a persistent theme), accessible map (without the toggle name)
