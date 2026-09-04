@@ -24,6 +24,20 @@ beforeEach(() => {
   mockFetch.mockImplementation((url: string) => {
     const u = typeof url === "string" ? url : "";
     if (u.includes("noaa-planetary-k-index.json")) return Promise.resolve({ ok: true, text: async () => kpObservedFixture });
+    if (u.includes("ovation_aurora_latest.json"))
+      return Promise.resolve({
+        ok: true,
+        text: async () =>
+          JSON.stringify({
+            "Observation Time": "2026-09-04T13:20:00Z",
+            "Forecast Time": "2026-09-04T14:33:00Z",
+            "Data Format": "[Longitude, Latitude, Aurora]",
+            coordinates: [
+              [0, 70, 3],
+              [10, 65, 8],
+            ],
+          }),
+      });
     return Promise.resolve({ ok: true, text: async () => "" });
   });
   vi.stubGlobal("fetch", mockFetch);
@@ -126,7 +140,7 @@ describe("AuroraNow", () => {
     act(() => {
       window.dispatchEvent(new Event("offline"));
     });
-    expect(screen.getByText(STALE_DATA_NOTICE)).toBeInTheDocument();
+    expect(screen.getAllByText(STALE_DATA_NOTICE).length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows the plain never-cached error when the Kp feed never loaded", async () => {
@@ -137,5 +151,18 @@ describe("AuroraNow", () => {
     await waitFor(() =>
       expect(screen.getByText(COULDNT_LOAD_COPY)).toBeInTheDocument(),
     );
+  });
+
+  it("embeds the Oval glow with Forecast Time below the JPG images", async () => {
+    renderAuroraNow();
+    await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(
+        screen.getAllByRole("img", { name: /oval glow/i }),
+      ).toHaveLength(2),
+    );
+    expect(
+      screen.getByText(/Forecast Time Sep 4 14:33 UTC/i),
+    ).toBeInTheDocument();
   });
 });

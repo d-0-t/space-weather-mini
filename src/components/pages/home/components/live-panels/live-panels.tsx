@@ -15,6 +15,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import InfoIcon from "@mui/icons-material/Info";
 
 import type { Source } from "../../../../sources";
 import { SourceAttribution } from "../../../../sources";
@@ -638,12 +639,14 @@ export const ChartHelp: React.FC<{
       onKeyDown={handleKeyDown}
     >
       <summary
-        className={summary ? undefined : "btn--secondary"}
+        className={summary ? undefined : "btn--icon"}
         title={summary ? undefined : content.label}
       >
         {summary ?? (
           <>
-            <span aria-hidden="true">?</span>
+            <span aria-hidden="true">
+              <InfoIcon fontSize="small" />
+            </span>
             <span className="sr-only">{content.label}</span>
           </>
         )}

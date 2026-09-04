@@ -83,10 +83,12 @@ describe("Magnetosphere", () => {
     await waitFor(() =>
       expect(screen.getByText("Hemispheric power")).toBeInTheDocument(),
     );
-    // One "?" help per card – 4 cards, all collapsible via native <details>
+    // One info-icon help per card – 4 cards, all collapsible via native <details>
     const helps = document.querySelectorAll(".live-panel__help");
     expect(helps.length).toBeGreaterThanOrEqual(4);
-    expect(screen.getAllByText("?").length).toBeGreaterThanOrEqual(4);
+    expect(
+      document.querySelectorAll(".live-panel__help > summary.btn--icon").length,
+    ).toBeGreaterThanOrEqual(4);
     expect(screen.getByText("About hemispheric power")).toBeInTheDocument();
     expect(screen.getByText("About Dst")).toBeInTheDocument();
     expect(screen.getByText("About the Kiruna magnetogram")).toBeInTheDocument();

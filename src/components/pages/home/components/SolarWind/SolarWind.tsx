@@ -66,7 +66,10 @@ const SolarWind: React.FC = () => {
   if (windQuery.isPending && !wind) {
     return (
       <article className="live-panel solar-wind" aria-busy="true">
-        <CollapsiblePanel heading={<h2>Solar Wind</h2>} bodyId="solar-wind-panel-body">
+        <CollapsiblePanel
+          heading={<h2>Solar Wind</h2>}
+          bodyId="solar-wind-panel-body"
+        >
           <p>Loading solar wind…</p>
         </CollapsiblePanel>
       </article>
@@ -75,7 +78,10 @@ const SolarWind: React.FC = () => {
   if ((windQuery.isError && !wind) || (magQuery.isError && !mag)) {
     return (
       <article className="live-panel solar-wind">
-        <CollapsiblePanel heading={<h2>Solar Wind</h2>} bodyId="solar-wind-panel-body">
+        <CollapsiblePanel
+          heading={<h2>Solar Wind</h2>}
+          bodyId="solar-wind-panel-body"
+        >
           <p>{COULDNT_LOAD_COPY}</p>
         </CollapsiblePanel>
       </article>
@@ -123,128 +129,133 @@ const SolarWind: React.FC = () => {
 
   return (
     <article className="live-panel solar-wind">
-      <CollapsiblePanel heading={<h2>Solar Wind</h2>} bodyId="solar-wind-panel-body">
-      {transit > 0 ? (
-        <p className="live-panel__explain">
-          We are {transit} minutes behind{" "}
-          {latestSource ? `${latestSource}'s` : "the L1 spacecraft's"} data,
-          based on solar wind speed.
-        </p>
-      ) : null}
-      <div className="live-panel__grid">
-        <SparklineCard
-          title="Speed"
-          value={speedNow.value !== null ? speedNow.value.toFixed(0) : "–"}
-          note="km/s"
-          unit="km/s"
-          help={{
-            label: "About solar wind",
-            rows: [
-              ["< 400 km/s", "normal"],
-              ["400 km/s", "elevated"],
-              ["500 km/s", "moderate"],
-              ["700 km/s", "high"],
-              ["900 km/s", "very high"],
-            ],
-            text: "Solar wind speed – how fast the stream of charged particles from the Sun flows past Earth. Faster wind, especially 500+ km/s, compresses Earth's magnetic field and can trigger aurora.",
-          }}
-          asOf={speed.timeTag ?? "–"}
-          updated={speed.timeTag ? formatAge(speed.timeTag) : "–"}
-          points={smoothPoints(speedRows, l1Window, SMOOTHING.solarWind)}
-          nowLabel={windNowLabel}
-          anchorOffset={l1AnchorOffset}
-          accent="greenyellow"
-          colorBy={(v) => severityColor("speed", v)}
-          ariaLabel="Solar wind speed, km/s, 2 hours before Now plus upcoming"
-          state={state(windQuery)}
-        />
-        <SparklineCard
-          title="Particle density"
-          value={densityNow.value !== null ? densityNow.value.toFixed(1) : "–"}
-          note="p/cm³"
-          unit="p/cm³"
-          help={{
-            label: "About particle density",
-            rows: [
-              ["1-10 p/cm³", "low"],
-              ["10-20 p/cm³", "moderate"],
-              ["40+ p/cm³", "high"],
-              ["60+ p/cm³", "very high"],
-            ],
-            text: "Particle density – how many protons per cubic centimetre the solar wind carries. Denser wind pushes harder against Earth's magnetic field, and combined with high speed it makes storms more likely.",
-          }}
-          asOf={density.timeTag ?? "–"}
-          updated={density.timeTag ? formatAge(density.timeTag) : "–"}
-          points={smoothPoints(densityRows, l1Window, SMOOTHING.solarWind)}
-          nowLabel={windNowLabel}
-          anchorOffset={l1AnchorOffset}
-          accent="cyan"
-          colorBy={(v) => severityColor("density", v)}
-          ariaLabel="Proton density, p per cubic cm, 2 hours before Now plus upcoming"
-          state={state(windQuery)}
-        />
-        <SparklineCard
-          title="Bt"
-          unit="nT"
-          help={{
-            label: "About Bt",
-            rows: [
-              ["< 5 nT", "quiet"],
-              ["5-15 nT", "elevated"],
-              ["15-30 nT", "strong"],
-              ["30+ nT", "very strong"],
-            ],
-            text: "Interplanetary magnetic field (IMF), Bt component – the total strength of the Sun's magnetic field carried by the solar wind. Higher Bt means more energy is available to drive geomagnetic activity.",
-          }}
-          value={btNow.value !== null ? btNow.value.toFixed(1) : "–"}
-          note="nT"
-          asOf={bt.timeTag ?? "–"}
-          updated={bt.timeTag ? formatAge(bt.timeTag) : "–"}
-          points={smoothPoints(btRows, l1Window, SMOOTHING.solarWind)}
-          nowLabel={magNowLabel}
-          anchorOffset={l1AnchorOffset}
-          accent="plum"
-          colorBy={(v) => severityColor("bt", v)}
-          ariaLabel="Total magnetic field strength Bt, nT, 2 hours before Now plus upcoming"
-          state={state(magQuery)}
-        />
-        <SparklineCard
-          title="Bz"
-          unit="nT"
-          help={{
-            label: "About Bz",
-            rows: [
-              ["+ (northward)", "quiet"],
-              ["- (southward)", "potential"],
-              ["0 to −5 nT", "mild"],
-              ["−5 to −10 nT", "active (Kp3-4)"],
-              ["−10 to −20 nT", "storm (Kp5-7)"],
-              ["< −20 nT", "major storm (Kp7+)"],
-            ],
-            text: "Interplanetary magnetic field (IMF), Bz (GSM) component – the north-south component of the solar wind's magnetic field in GSM coordinates. Southward (negative) Bz reconnects with Earth's magnetic field, coupling energy into the magnetosphere and driving aurora.",
-          }}
-          value={
-            bzNow.value !== null
-              ? `${bzNow.value >= 0 ? "+" : ""}${bzNow.value.toFixed(1)}`
-              : "–"
-          }
-          note={
-            bzNow.value !== null
-              ? `nT (${bzNow.value < 0 ? "South" : "North"})`
-              : "nT"
-          }
-          asOf={bz.timeTag ?? "–"}
-          updated={bz.timeTag ? formatAge(bz.timeTag) : "–"}
-          points={smoothPoints(bzRows, l1Window, SMOOTHING.solarWind)}
-          nowLabel={magNowLabel}
-          anchorOffset={l1AnchorOffset}
-          accent="orange"
-          colorBy={(v) => severityColor("bz", v)}
-          ariaLabel="Bz GSM magnetic field, nT, 2 hours before Now plus upcoming, south or north"
-          state={state(magQuery)}
-        />
-      </div>
-      <SourceAttribution source={SOURCES.noaaSwpc} />
+      <CollapsiblePanel
+        heading={<h2>Solar wind</h2>}
+        bodyId="solar-wind-panel-body"
+      >
+        {transit > 0 ? (
+          <p className="live-panel__explain">
+            We are {transit} minutes behind{" "}
+            {latestSource ? `${latestSource}'s` : "the L1 spacecraft's"} data,
+            based on solar wind speed.
+          </p>
+        ) : null}
+        <div className="live-panel__grid">
+          <SparklineCard
+            title="Speed"
+            value={speedNow.value !== null ? speedNow.value.toFixed(0) : "–"}
+            note="km/s"
+            unit="km/s"
+            help={{
+              label: "About solar wind",
+              rows: [
+                ["< 400 km/s", "normal"],
+                ["400 km/s", "elevated"],
+                ["500 km/s", "moderate"],
+                ["700 km/s", "high"],
+                ["900 km/s", "very high"],
+              ],
+              text: "Solar wind speed – how fast the stream of charged particles from the Sun flows past Earth. Faster wind, especially 500+ km/s, compresses Earth's magnetic field and can trigger aurora.",
+            }}
+            asOf={speed.timeTag ?? "–"}
+            updated={speed.timeTag ? formatAge(speed.timeTag) : "–"}
+            points={smoothPoints(speedRows, l1Window, SMOOTHING.solarWind)}
+            nowLabel={windNowLabel}
+            anchorOffset={l1AnchorOffset}
+            accent="greenyellow"
+            colorBy={(v) => severityColor("speed", v)}
+            ariaLabel="Solar wind speed, km/s, 2 hours before Now plus upcoming"
+            state={state(windQuery)}
+          />
+          <SparklineCard
+            title="Particle density"
+            value={
+              densityNow.value !== null ? densityNow.value.toFixed(1) : "–"
+            }
+            note="p/cm³"
+            unit="p/cm³"
+            help={{
+              label: "About particle density",
+              rows: [
+                ["1-10 p/cm³", "low"],
+                ["10-20 p/cm³", "moderate"],
+                ["40+ p/cm³", "high"],
+                ["60+ p/cm³", "very high"],
+              ],
+              text: "Particle density – how many protons per cubic centimetre the solar wind carries. Denser wind pushes harder against Earth's magnetic field, and combined with high speed it makes storms more likely.",
+            }}
+            asOf={density.timeTag ?? "–"}
+            updated={density.timeTag ? formatAge(density.timeTag) : "–"}
+            points={smoothPoints(densityRows, l1Window, SMOOTHING.solarWind)}
+            nowLabel={windNowLabel}
+            anchorOffset={l1AnchorOffset}
+            accent="cyan"
+            colorBy={(v) => severityColor("density", v)}
+            ariaLabel="Proton density, p per cubic cm, 2 hours before Now plus upcoming"
+            state={state(windQuery)}
+          />
+          <SparklineCard
+            title="Bt"
+            unit="nT"
+            help={{
+              label: "About Bt",
+              rows: [
+                ["< 5 nT", "quiet"],
+                ["5-15 nT", "elevated"],
+                ["15-30 nT", "strong"],
+                ["30+ nT", "very strong"],
+              ],
+              text: "Interplanetary magnetic field (IMF), Bt component – the total strength of the Sun's magnetic field carried by the solar wind. Higher Bt means more energy is available to drive geomagnetic activity.",
+            }}
+            value={btNow.value !== null ? btNow.value.toFixed(1) : "–"}
+            note="nT"
+            asOf={bt.timeTag ?? "–"}
+            updated={bt.timeTag ? formatAge(bt.timeTag) : "–"}
+            points={smoothPoints(btRows, l1Window, SMOOTHING.solarWind)}
+            nowLabel={magNowLabel}
+            anchorOffset={l1AnchorOffset}
+            accent="plum"
+            colorBy={(v) => severityColor("bt", v)}
+            ariaLabel="Total magnetic field strength Bt, nT, 2 hours before Now plus upcoming"
+            state={state(magQuery)}
+          />
+          <SparklineCard
+            title="Bz"
+            unit="nT"
+            help={{
+              label: "About Bz",
+              rows: [
+                ["+ (northward)", "quiet"],
+                ["- (southward)", "potential"],
+                ["0 to −5 nT", "mild"],
+                ["−5 to −10 nT", "active (Kp3-4)"],
+                ["−10 to −20 nT", "storm (Kp5-7)"],
+                ["< −20 nT", "major storm (Kp7+)"],
+              ],
+              text: "Interplanetary magnetic field (IMF), Bz (GSM) component – the north-south component of the solar wind's magnetic field in GSM coordinates. Southward (negative) Bz reconnects with Earth's magnetic field, coupling energy into the magnetosphere and driving aurora.",
+            }}
+            value={
+              bzNow.value !== null
+                ? `${bzNow.value >= 0 ? "+" : ""}${bzNow.value.toFixed(1)}`
+                : "–"
+            }
+            note={
+              bzNow.value !== null
+                ? `nT (${bzNow.value < 0 ? "South" : "North"})`
+                : "nT"
+            }
+            asOf={bz.timeTag ?? "–"}
+            updated={bz.timeTag ? formatAge(bz.timeTag) : "–"}
+            points={smoothPoints(bzRows, l1Window, SMOOTHING.solarWind)}
+            nowLabel={magNowLabel}
+            anchorOffset={l1AnchorOffset}
+            accent="orange"
+            colorBy={(v) => severityColor("bz", v)}
+            ariaLabel="Bz GSM magnetic field, nT, 2 hours before Now plus upcoming, south or north"
+            state={state(magQuery)}
+          />
+        </div>
+        <SourceAttribution source={SOURCES.noaaSwpc} />
       </CollapsiblePanel>
     </article>
   );

@@ -101,10 +101,12 @@ describe("SolarWind", () => {
     const user = userEvent.setup();
     renderSolarWind();
     await waitFor(() => expect(screen.getByText("Speed")).toBeInTheDocument());
-    // One "?" help per card – 4 cards, all collapsible via native <details>
+    // One info-icon help per card – 4 cards, all collapsible via native <details>
     const helps = document.querySelectorAll(".live-panel__help");
     expect(helps.length).toBeGreaterThanOrEqual(4);
-    expect(screen.getAllByText("?").length).toBeGreaterThanOrEqual(4);
+    expect(
+      document.querySelectorAll(".live-panel__help > summary.btn--icon").length,
+    ).toBeGreaterThanOrEqual(4);
     // Per-card sr-only labels
     expect(screen.getByText("About solar wind")).toBeInTheDocument();
     expect(screen.getByText("About particle density")).toBeInTheDocument();
@@ -122,7 +124,7 @@ describe("SolarWind", () => {
     expect(speedHelp.open).toBe(true);
     expect(speedHelp.querySelector("li b")?.textContent).toBe("< 400 km/s");
     expect(speedHelp.textContent).toMatch(/900 km\/s.*very high/);
-    // Escape closes it and returns focus to the "?" trigger
+    // Escape closes it and returns focus to the info trigger
     await user.keyboard("{Escape}");
     expect(speedHelp.open).toBe(false);
     expect(speedHelp.querySelector("summary")).toHaveFocus();

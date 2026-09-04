@@ -4,8 +4,9 @@ import { defineConfig } from "vitest/config";
 
 /**
  * Offline PWA options (ADR-0006): a build-time `generateSW` service worker
- * that precaches the shell and runtime-caches NOAA data, Stadia map tiles and
- * OVATION aurora JPGs. The app ships its own `public/manifest.json`
+ * that precaches the shell and runtime-caches NOAA data, Stadia dark map
+ * tiles (keyed via `VITE_STADIA_API_KEY`, 4 tiles cached 7 days) and OVATION
+ * aurora JPGs. The app ships its own `public/manifest.json`
  * (`manifest: false`); `includeAssets` precaches the favicon and the icon
  * assets that manifest references. Workbox matches runtime routes in order,
  * so the OVATION image route is kept free of the broader data route's shadow.
@@ -29,7 +30,9 @@ export const PWA_OPTIONS = {
         },
       },
       {
-        urlPattern: /tiles\.stadiamaps\.com/,
+        // Keyed Stadia dark tiles behind the Oval glow (key from
+        // VITE_STADIA_API_KEY, sent as ?api_key=). 20 entries, 7 days.
+        urlPattern: /tiles\.stadiamaps\.com\/tiles\/alidade_smooth_dark/,
         handler: "CacheFirst",
         options: {
           cacheName: "stadia",

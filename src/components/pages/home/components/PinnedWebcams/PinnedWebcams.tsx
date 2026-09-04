@@ -138,7 +138,9 @@ const PinnedWebcams: React.FC<{ entries?: WebcamEntry[] }> = ({
   const pinned = loadPinnedIds(localStorage)
     .map((id) => entries.find((entry) => entry.id === id))
     .filter(
-      (entry): entry is WebcamImageEntry | WebcamLiveEntry | WebcamTwitchEntry =>
+      (
+        entry,
+      ): entry is WebcamImageEntry | WebcamLiveEntry | WebcamTwitchEntry =>
         entry !== undefined && entry.type !== "link",
     );
 
@@ -155,7 +157,7 @@ const PinnedWebcams: React.FC<{ entries?: WebcamEntry[] }> = ({
   return (
     <article className="pinned-webcams">
       <CollapsiblePanel
-        heading={<h2>Pinned Webcams</h2>}
+        heading={<h2>Pinned webcams</h2>}
         bodyId="pinned-webcams-panel-body"
       >
         <label className="pinned-webcams__autorefresh">

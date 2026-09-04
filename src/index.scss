@@ -179,6 +179,18 @@ code {
   }
 }
 
+/* Info/help disclosures share the heading color and invert to white on
+   hover like links – scoped to help triggers so the other .btn--icon
+   controls (Hide, toolbar) keep their quiet gray. */
+.live-panel__help > summary.btn--icon,
+.oval-glow__info > summary.btn--icon {
+  color: var(--color-accent-strong);
+
+  &:hover {
+    color: var(--color-white);
+  }
+}
+
 /* Below ~1000px buttons with icon+label collapse to icons: the label becomes
    visually-hidden (still announced), the title attribute names the control
    for mouse users, and icon buttons go square again. Only <button> elements

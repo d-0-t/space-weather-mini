@@ -54,7 +54,7 @@ describe("PWA build configuration", () => {
     ).toBe(false);
   });
 
-  it("cache-firsts Stadia map tiles (20 entries, 7 days)", () => {
+  it("cache-firsts keyed Stadia dark tiles (20 entries, 7 days)", () => {
     const [, stadia] = PWA_OPTIONS.workbox.runtimeCaching;
     expect(stadia.handler).toBe("CacheFirst");
     expect(stadia.options?.cacheName).toBe("stadia");
@@ -64,7 +64,7 @@ describe("PWA build configuration", () => {
     });
     expect(
       pattern(stadia.urlPattern).test(
-        "https://tiles.stadiamaps.com/styles/alidade_smooth_dark/2/2/2.png",
+        "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/1/0/0.png?api_key=abc",
       ),
     ).toBe(true);
   });

@@ -112,7 +112,10 @@ const Forecast: React.FC = () => {
   if (observedQuery.isPending && !observedQuery.data) {
     return (
       <article className="forecast" aria-busy="true">
-        <CollapsiblePanel heading={<h2>Forecast</h2>} bodyId="forecast-panel-body">
+        <CollapsiblePanel
+          heading={<h2>Forecast</h2>}
+          bodyId="forecast-panel-body"
+        >
           <p>Loading Kp forecast…</p>
         </CollapsiblePanel>
       </article>
@@ -121,7 +124,10 @@ const Forecast: React.FC = () => {
   if (observedQuery.isError && !observedQuery.data) {
     return (
       <article className="forecast">
-        <CollapsiblePanel heading={<h2>Forecast</h2>} bodyId="forecast-panel-body">
+        <CollapsiblePanel
+          heading={<h2>Forecast</h2>}
+          bodyId="forecast-panel-body"
+        >
           <p>{COULDNT_LOAD_COPY}</p>
         </CollapsiblePanel>
       </article>
@@ -132,8 +138,7 @@ const Forecast: React.FC = () => {
   const observed = observedQuery.data;
   const forecast = forecastQuery.data;
 
-  const showingSaved =
-    (observedQuery.isError || offline) && Boolean(observed);
+  const showingSaved = (observedQuery.isError || offline) && Boolean(observed);
 
   // Mini table groups planetary JSON observed+forecast by UTC calendar day for
   // today/tomorrow/dayAfter (UTC) so "today" is never missing; the 3-day text
@@ -222,220 +227,220 @@ const Forecast: React.FC = () => {
 
   return (
     <article className="forecast">
-      <CollapsiblePanel heading={<h2>Forecast</h2>} bodyId="forecast-panel-body">
-      {showingSaved ? <StaleDataNotice /> : null}
-      <div
-        role="img"
-        aria-labelledby={forecastChartLabelId}
-        className="forecast__chart"
+      <CollapsiblePanel
+        heading={<h2>Forecast</h2>}
+        bodyId="forecast-panel-body"
       >
-        <span className="sr-only" id={forecastChartLabelId}>
-          {`Kp observed (green circles) and forecast (plum squares) merged, vertical Now at ${nowLabel.replace("\n", " ")}; Moon illumination (blue, right axis, percent)`}
-        </span>
-        <ResponsiveContainer width="100%" height={220}>
-          <LineChart data={mergedData} margin={{ bottom: 20 }}>
-            <CartesianGrid
-              strokeDasharray="3 3"
-              stroke="var(--color-border-muted-transparent)"
-            />
-            {firstLabel && nowLabel ? (
-              <ReferenceArea
-                x1={firstLabel}
-                x2={nowLabel}
-                fill="var(--color-dark-green)"
-                fillOpacity={0.18}
-                ifOverflow="extendDomain"
-                strokeOpacity={0}
-              />
-            ) : null}
-            {nowLabel && lastLabel ? (
-              <ReferenceArea
-                x1={nowLabel}
-                x2={lastLabel}
-                fill="var(--color-black)"
-                fillOpacity={0.35}
-                ifOverflow="extendDomain"
-                strokeOpacity={0}
-              />
-            ) : null}
-            <XAxis
-              dataKey="label"
-              interval="preserveStartEnd"
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              tick={KpChartTick as any}
-              height={36}
-              tickMargin={4}
-            />
-            <YAxis
-              domain={[0, 9]}
-              tick={{ fill: "var(--color-white)", fontSize: 11 }}
-              width={24}
-            />
-            <MoonYAxis />
-            <Tooltip
-              contentStyle={{
-                backgroundColor: "var(--color-black)",
-                border: "1px solid var(--color-border-muted)",
-              }}
-              formatter={moonTooltipFormatter}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              labelFormatter={(label: any) =>
-                typeof label === "string"
-                  ? label.replace("\n", " ")
-                  : String(label)
-              }
-            />
-            <Legend
-              // Keep the legend in series order regardless of recharts'
-              // payload registration order: observed → forecast → moon
-              itemSorter={(item) => {
-                switch (item.value) {
-                  case "Kp observed":
-                    return 0;
-                  case "Kp forecast":
-                    return 1;
-                  case "Moon illumination":
-                    return 2;
-                  default:
-                    return 3;
-                }
-              }}
-            />
-            <ReferenceLine
-              x={nowLabel}
-              stroke="var(--color-white)"
-              strokeWidth={2.5}
-              ifOverflow="extendDomain"
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              label={
-                {
-                  value: "Now",
-                  position: "insideTop",
-                  fill: "var(--color-white)",
-                  stroke: "var(--color-black)",
-                  strokeWidth: 4,
-                  paintOrder: "stroke",
-                  strokeLinejoin: "round",
-                  fontSize: 13,
-                  fontWeight: 800,
-                  dy: 10,
-                } as any
-              }
-            />
-            <Line
-              type="monotone"
-              dataKey="observed"
-              name="Kp observed"
-              stroke="greenyellow"
-              strokeWidth={2}
-              dot={({ cx, cy, stroke }) => (
-                <Symbols
-                  cx={cx}
-                  cy={cy}
-                  type="circle"
-                  size={64}
-                  fill={stroke}
-                />
-              )}
-              activeDot={false}
-              legendType="circle"
-              connectNulls={false}
-            />
-            <Line
-              type="monotone"
-              dataKey="forecast"
-              name="Kp forecast"
-              stroke="plum"
-              strokeWidth={2}
-              dot={({ cx, cy, stroke }) => (
-                <Symbols
-                  cx={cx}
-                  cy={cy}
-                  type="square"
-                  size={64}
-                  fill={stroke}
-                />
-              )}
-              activeDot={false}
-              legendType="square"
-              connectNulls={false}
-            />
-            <MoonLine />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-      <h3 className="mini-table-heading">3-Day Kp-index forecast</h3>
-      <table>
-        <caption className="sr-only">3-Day Kp-index forecast</caption>
-        <thead>
-          <tr>
-            <th scope="col">Day</th>
-            <th scope="col">Min</th>
-            <th scope="col">Max</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r) => {
-            const label = formatDayLabel(r.day);
-            const parts = label.split("\n");
-            return (
-              <tr key={r.day}>
-                <th scope="row" className="forecast__day">
-                  {parts[0]}
-                  {parts[1] ? (
-                    <>
-                      <br />
-                      {parts[1]}
-                    </>
-                  ) : null}
-                </th>
-                <td className={kpClass(r.min)}>
-                  {formatKp(r.min)}
-                </td>
-                <td className={kpClass(r.max)}>
-                  {formatKp(r.max)}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
-      <SourceAttribution source={SOURCES.noaaSwpc} />
-      <h3>Predicted solar wind</h3>
-      <figure className="forecast__figure">
-        <FullSizeModal
-          label="Predicted solar wind video, full size"
-          triggerClassName="forecast__video-tile"
-          trigger={
-            <video
-              aria-hidden="true"
-              muted
-              preload="metadata"
-              src={ENLIL_VIDEO_URL}
-            />
-          }
+        {showingSaved ? <StaleDataNotice /> : null}
+        <div
+          role="img"
+          aria-labelledby={forecastChartLabelId}
+          className="forecast__chart"
         >
-          <video controls preload="metadata" src={ENLIL_VIDEO_URL}>
-            <p>
-              Your browser can&apos;t play this video – see the{" "}
-              <Link to="/forecasts/27days">27-day outlook</Link> and the{" "}
-              <Link to="/forecasts/3days">3-day forecast</Link> panels instead.
-            </p>
-          </video>
-        </FullSizeModal>
-        <figcaption>
-          Visualization of the predicted solar wind speed over the coming days.
-          The Solar Wind panel shows the wind arriving at Earth right now; the{" "}
-          <Link to="/forecasts/27days">27-day outlook</Link> and{" "}
-          <Link to="/forecasts/3days">3-day forecast</Link> panels give the
-          numbers behind this video.
-        </figcaption>
-      </figure>
-      <SourceAttribution source={{ label: "IRF", href: ENLIL_SOURCE_URL }} />
-      <div className="forecast__links">
-        <Link to="/forecasts/3days">Full 3-day forecast →</Link>
-        <Link to="/forecasts/daily">Daily observations →</Link>
-      </div>
+          <span className="sr-only" id={forecastChartLabelId}>
+            {`Kp observed (green circles) and forecast (plum squares) merged, vertical Now at ${nowLabel.replace("\n", " ")}; Moon illumination (blue, right axis, percent)`}
+          </span>
+          <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={mergedData} margin={{ bottom: 20 }}>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="var(--color-border-muted-transparent)"
+              />
+              {firstLabel && nowLabel ? (
+                <ReferenceArea
+                  x1={firstLabel}
+                  x2={nowLabel}
+                  fill="var(--color-dark-green)"
+                  fillOpacity={0.18}
+                  ifOverflow="extendDomain"
+                  strokeOpacity={0}
+                />
+              ) : null}
+              {nowLabel && lastLabel ? (
+                <ReferenceArea
+                  x1={nowLabel}
+                  x2={lastLabel}
+                  fill="var(--color-black)"
+                  fillOpacity={0.35}
+                  ifOverflow="extendDomain"
+                  strokeOpacity={0}
+                />
+              ) : null}
+              <XAxis
+                dataKey="label"
+                interval="preserveStartEnd"
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                tick={KpChartTick as any}
+                height={36}
+                tickMargin={4}
+              />
+              <YAxis
+                domain={[0, 9]}
+                tick={{ fill: "var(--color-white)", fontSize: 11 }}
+                width={24}
+              />
+              <MoonYAxis />
+              <Tooltip
+                contentStyle={{
+                  backgroundColor: "var(--color-black)",
+                  border: "1px solid var(--color-border-muted)",
+                }}
+                formatter={moonTooltipFormatter}
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                labelFormatter={(label: any) =>
+                  typeof label === "string"
+                    ? label.replace("\n", " ")
+                    : String(label)
+                }
+              />
+              <Legend
+                // Keep the legend in series order regardless of recharts'
+                // payload registration order: observed → forecast → moon
+                itemSorter={(item) => {
+                  switch (item.value) {
+                    case "Kp observed":
+                      return 0;
+                    case "Kp forecast":
+                      return 1;
+                    case "Moon illumination":
+                      return 2;
+                    default:
+                      return 3;
+                  }
+                }}
+              />
+              <ReferenceLine
+                x={nowLabel}
+                stroke="var(--color-white)"
+                strokeWidth={2.5}
+                ifOverflow="extendDomain"
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                label={
+                  {
+                    value: "Now",
+                    position: "insideTop",
+                    fill: "var(--color-white)",
+                    stroke: "var(--color-black)",
+                    strokeWidth: 4,
+                    paintOrder: "stroke",
+                    strokeLinejoin: "round",
+                    fontSize: 13,
+                    fontWeight: 800,
+                    dy: 10,
+                  } as any
+                }
+              />
+              <Line
+                type="monotone"
+                dataKey="observed"
+                name="Kp observed"
+                stroke="greenyellow"
+                strokeWidth={2}
+                dot={({ cx, cy, stroke }) => (
+                  <Symbols
+                    cx={cx}
+                    cy={cy}
+                    type="circle"
+                    size={64}
+                    fill={stroke}
+                  />
+                )}
+                activeDot={false}
+                legendType="circle"
+                connectNulls={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="forecast"
+                name="Kp forecast"
+                stroke="plum"
+                strokeWidth={2}
+                dot={({ cx, cy, stroke }) => (
+                  <Symbols
+                    cx={cx}
+                    cy={cy}
+                    type="square"
+                    size={64}
+                    fill={stroke}
+                  />
+                )}
+                activeDot={false}
+                legendType="square"
+                connectNulls={false}
+              />
+              <MoonLine />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+        <h3 className="mini-table-heading">3-day Kp-index forecast</h3>
+        <table>
+          <caption className="sr-only">3-day Kp-index forecast</caption>
+          <thead>
+            <tr>
+              <th scope="col">Day</th>
+              <th scope="col">Min</th>
+              <th scope="col">Max</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => {
+              const label = formatDayLabel(r.day);
+              const parts = label.split("\n");
+              return (
+                <tr key={r.day}>
+                  <th scope="row" className="forecast__day">
+                    {parts[0]}
+                    {parts[1] ? (
+                      <>
+                        <br />
+                        {parts[1]}
+                      </>
+                    ) : null}
+                  </th>
+                  <td className={kpClass(r.min)}>{formatKp(r.min)}</td>
+                  <td className={kpClass(r.max)}>{formatKp(r.max)}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+        <SourceAttribution source={SOURCES.noaaSwpc} />
+        <h3>Predicted solar wind</h3>
+        <figure className="forecast__figure">
+          <FullSizeModal
+            label="Predicted solar wind video, full size"
+            triggerClassName="forecast__video-tile"
+            trigger={
+              <video
+                aria-hidden="true"
+                muted
+                preload="metadata"
+                src={ENLIL_VIDEO_URL}
+              />
+            }
+          >
+            <video controls preload="metadata" src={ENLIL_VIDEO_URL}>
+              <p>
+                Your browser can&apos;t play this video – see the{" "}
+                <Link to="/forecasts/27days">27-day outlook</Link> and the{" "}
+                <Link to="/forecasts/3days">3-day forecast</Link> panels
+                instead.
+              </p>
+            </video>
+          </FullSizeModal>
+          <figcaption>
+            Visualization of the predicted solar wind speed over the coming
+            days. The Solar Wind panel shows the wind arriving at Earth right
+            now; the <Link to="/forecasts/27days">27-day outlook</Link> and{" "}
+            <Link to="/forecasts/3days">3-day forecast</Link> panels give the
+            numbers behind this video.
+          </figcaption>
+        </figure>
+        <SourceAttribution source={{ label: "IRF", href: ENLIL_SOURCE_URL }} />
+        <div className="forecast__links">
+          <Link to="/forecasts/3days">Full 3-day forecast →</Link>
+          <Link to="/forecasts/daily">Daily observations →</Link>
+        </div>
       </CollapsiblePanel>
     </article>
   );

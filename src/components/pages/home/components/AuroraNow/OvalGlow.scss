@@ -1,0 +1,146 @@
+// Oval glow lives directly in the Aurora Now panel: no card chrome of its
+// own, only layout. All non-data color comes from tokens; glow colors reuse
+// the frozen Kp data classes in the legend (see OvalGlow.tsx).
+.oval-glow {
+  margin-top: 1rem;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  &__title {
+    margin: 0;
+  }
+
+  &__info {
+    position: relative;
+
+    &[open] {
+      z-index: 30;
+    }
+
+    summary {
+      list-style: none;
+      cursor: pointer;
+      user-select: none;
+
+      &::-webkit-details-marker {
+        display: none;
+      }
+    }
+  }
+
+  &__popover {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    width: min(300px, 70vw);
+    margin: 0;
+    padding: 0.6rem;
+    background: var(--gradient-card);
+    border: 1px solid var(--color-border-muted);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    z-index: 30;
+    box-shadow: 0 4px 12px var(--color-black);
+
+    p {
+      margin: 0 0 0.4rem;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  &__fresh {
+    margin: 0.25rem 0;
+    font-size: 0.85rem;
+  }
+
+  // License fine print: required while Stadia tiles render, kept quiet.
+  &__attr {
+    margin: 0.25rem 0;
+    font-size: 0.75rem;
+    line-height: 1rem;
+  }
+
+  &__cap {
+    margin: 0.5rem 0;
+  }
+
+  &__cap__label {
+    margin-bottom: 0.25rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+
+  &__stage {
+    position: relative;
+    background-color: var(--color-black);
+  }
+
+  // Flush tile pair behind the canvas: no gap, so adjacent tiles join
+  // without a seam line for the glow to expose.
+  &__tiles {
+    position: absolute;
+    inset: 0;
+    display: flex;
+  }
+
+  &__tile {
+    display: block;
+    width: 50%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.9;
+  }
+
+  &__canvas {
+    position: relative;
+    display: block;
+    width: 100%;
+    height: auto;
+    border: 1px solid var(--color-border-muted-transparent);
+    border-radius: 4px;
+    background-color: transparent;
+    image-rendering: pixelated;
+  }
+
+  &__legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin: 0.5rem 0;
+    padding: 0;
+    list-style: none;
+    text-align: center;
+
+    &__item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+
+    &__text {
+      font-size: 0.85rem;
+    }
+  }
+
+  &__swatch {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 1px solid var(--color-border-muted);
+    border-radius: 2px;
+
+    // Absence indicator: no glow forecast in the cell.
+    &--none {
+      background-color: var(--color-gray);
+    }
+  }
+}

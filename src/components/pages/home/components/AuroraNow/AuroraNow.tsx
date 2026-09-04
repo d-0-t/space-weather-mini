@@ -18,6 +18,7 @@ import {
   formatKp,
   formatTimeSlot,
 } from "../kp-panel/kp-panel";
+import OvalGlow from "./OvalGlow";
 
 import "./AuroraNow.scss";
 
@@ -59,6 +60,10 @@ const MoonPhaseBadge: React.FC = () => {
 const AURORA_VIEWBOX = "0 0 300 190";
 
 const AURORA_LAYER_COUNT = 9;
+
+// Stadia key from the build env (local `.env`, deploy env on Netlify).
+// Without it the tile layer is omitted and the glow paints on black.
+const stadiaKey = import.meta.env.VITE_STADIA_API_KEY?.trim() ?? "";
 
 /** Smooth constant-thickness wavy band for one curtain layer; i = 0 is the bottom layer. */
 function auroraRibbonPath(i: number): string {
@@ -134,7 +139,7 @@ const AuroraNow: React.FC = () => {
     gcTime: 10 * 60 * 1000,
   });
 
-  const header = <h2>Aurora Now</h2>;
+  const header = <h2>Aurora now</h2>;
   const badge = <MoonPhaseBadge />;
 
   if (observedQuery.isPending && !observedQuery.data) {
@@ -204,7 +209,7 @@ const AuroraNow: React.FC = () => {
         {(observedQuery.isError || offline) && observed ? (
           <StaleDataNotice />
         ) : null}
-        <h3>Aurora Oval Forecast (30 min)</h3>
+        <h3>Aurora oval forecast (30 min)</h3>
         <div className="aurora-images">
           <FullSizeModal
             label="Aurora forecast, latest, North Pole, full size"
@@ -225,7 +230,17 @@ const AuroraNow: React.FC = () => {
             <img alt={auroraAlt("South")} src={AURORA_IMAGE_URLS.south} />
           </FullSizeModal>
         </div>
+        <OvalGlow />
         <SourceAttribution source={AURORA_SOURCE} />
+        {stadiaKey ? (
+          <p className="oval-glow__attr source-attribution">
+            Map tiles: ©<a href="https://stadiamaps.com/">Stadia Maps</a> ©
+            <a href="https://openmaptiles.org/">OpenMapTiles</a> ©
+            <a href="https://www.openstreetmap.org/copyright">
+              OpenStreetMap contributors
+            </a>
+          </p>
+        ) : null}
       </CollapsiblePanel>
     </article>
   );
