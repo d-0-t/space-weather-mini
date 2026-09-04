@@ -31,6 +31,17 @@ const renderPage = (): ReturnType<typeof render> =>
     </QueryClientProvider>,
   );
 
+/** The header place button that opens the shared Change location modal. */
+const placeTrigger = (): HTMLElement =>
+  document.querySelector(".place-finder__trigger") as HTMLElement;
+
+/** Opens the shared modal from the page header button. */
+const openModal = async (
+  user: ReturnType<typeof userEvent.setup>,
+): Promise<void> => {
+  await user.click(placeTrigger());
+};
+
 /** The Open-Meteo host the weather query fetches from on mount. */
 const OPEN_METEO_HOST = "api.open-meteo.com";
 
@@ -145,19 +156,18 @@ describe("Local conditions page (ticket 01)", () => {
     vi.unstubAllGlobals();
   });
 
-  it("renders the page heading and the default Östersund place chip", () => {
+  it("renders the page heading and the default Östersund place button", () => {
     atNoon("2026-09-01T12:00:00Z");
     renderPage();
     expect(
       screen.getByRole("heading", { level: 1, name: "Local conditions" }),
     ).toBeInTheDocument();
-    const chip = document.querySelector(".conditions__place") as HTMLElement;
-    expect(chip).toHaveTextContent("Östersund, Jämtland County");
-    expect(chip.getAttribute("title")).toBe(
+    const button = placeTrigger();
+    expect(button).toHaveTextContent("Östersund, Jämtland County");
+    expect(button.getAttribute("title")).toBe(
       "Östersund, Jämtland County, Sweden",
     );
-    expect(chip.querySelector('img[alt="Sweden"]')).toBeInTheDocument();
-    expect(chip.querySelector('img[title="Sweden"]')).toBeInTheDocument();
+    expect(button.querySelector('img[title="Sweden"]')).toBeInTheDocument();
   });
 
   it("persists the Östersund default as the geocoded place on first open", () => {
@@ -231,13 +241,13 @@ describe("Local conditions page (ticket 01)", () => {
     atNoon("2026-09-01T12:00:00Z");
     seedOslo();
     renderPage();
-    const chip = document.querySelector(".conditions__place") as HTMLElement;
-    expect(chip).toHaveTextContent("Oslo");
-    expect(chip.getAttribute("title")).toBe("Oslo, Norway");
-    expect(chip.querySelector('img[alt="Norway"]')).toBeInTheDocument();
-    expect(
-      document.querySelector(".conditions__place")?.textContent,
-    ).not.toContain("Östersund, Jämtland County, Sweden");
+    const button = placeTrigger();
+    expect(button).toHaveTextContent("Oslo");
+    expect(button.getAttribute("title")).toBe("Oslo, Norway");
+    expect(button.querySelector('img[title="Norway"]')).toBeInTheDocument();
+    expect(button.textContent).not.toContain(
+      "Östersund, Jämtland County, Sweden",
+    );
   });
 
   it("opens with the Night band at 00:00 and never wraps it past midnight at Östersund in early September", () => {
@@ -269,7 +279,7 @@ describe("Local conditions page (ticket 01)", () => {
   });
 });
 
-describe("Local conditions search (ticket 02)", () => {
+describe("Local conditions search (shared modal, ticket 02)", () => {
   const mockFetch = vi.fn();
 
   beforeEach(() => {
@@ -288,6 +298,7 @@ describe("Local conditions search (ticket 02)", () => {
     routeWeather(mockFetch, () => jsonResponse(springfieldFixture));
     const user = userEvent.setup();
     renderPage();
+    await openModal(user);
     const field = screen.getByRole("searchbox", {
       name: "Search for a place",
     });
@@ -303,6 +314,7 @@ describe("Local conditions search (ticket 02)", () => {
     mockFetch.mockResolvedValue(jsonResponse(springfieldFixture));
     const user = userEvent.setup();
     renderPage();
+    await openModal(user);
     await user.type(
       screen.getByRole("searchbox", { name: "Search for a place" }),
       "Springfield",
@@ -317,10 +329,11 @@ describe("Local conditions search (ticket 02)", () => {
     ).toBeInTheDocument();
   });
 
-  it("moves focus with arrow keys without selecting, and selects only on Enter", async () => {
+  it("moves focus with arrow keys without selecting, stages on Enter, stores on Apply", async () => {
     mockFetch.mockResolvedValue(jsonResponse(springfieldFixture));
     const user = userEvent.setup();
     renderPage();
+    await openModal(user);
     await user.type(
       screen.getByRole("searchbox", { name: "Search for a place" }),
       "Springfield",
@@ -338,6 +351,16 @@ describe("Local conditions search (ticket 02)", () => {
       "Östersund, Jämtland County, Sweden",
     );
     await user.keyboard("{Enter}");
+    // Enter only stages: still the default, modal still open
+    const staged = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
+    expect(staged.place.displayName).toBe(
+      "Östersund, Jämtland County, Sweden",
+    );
+    expect(
+      (document.querySelector("dialog.place-finder__modal") as HTMLDialogElement)
+        .open,
+    ).toBe(true);
+    await user.click(screen.getByRole("button", { name: "Apply and close" }));
     const stored = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
     expect(stored.place.displayName).toBe(
       "Springfield, Hampden County, Massachusetts, United States",
@@ -349,6 +372,7 @@ describe("Local conditions search (ticket 02)", () => {
     mockFetch.mockResolvedValue(jsonResponse(kirunaFixture));
     const user = userEvent.setup();
     renderPage();
+    await openModal(user);
     await user.type(
       screen.getByRole("searchbox", { name: "Search for a place" }),
       "Kiruna",
@@ -359,6 +383,12 @@ describe("Local conditions search (ticket 02)", () => {
         name: "Kiruna, Kiruna kommun, Norrbottens län, 981 30, Sverige",
       }),
     );
+    // Clicking only stages: the store still holds the default
+    const pending = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
+    expect(pending.place.displayName).toBe(
+      "Östersund, Jämtland County, Sweden",
+    );
+    await user.click(screen.getByRole("button", { name: "Apply and close" }));
     const stored = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
     expect(stored.v).toBe(1);
     expect(stored.place.displayName).toBe(
@@ -373,12 +403,18 @@ describe("Local conditions search (ticket 02)", () => {
       screen.getAllByText("Sun does not set today").length,
     ).toBeGreaterThan(0);
     expect(bandNames()).toEqual(["Day"]);
+    // The pick is confirmed - the modal closes behind it
+    expect(
+      (document.querySelector("dialog.place-finder__modal") as HTMLDialogElement)
+        .open,
+    ).toBe(false);
   });
 
   it("shows the no-match copy for an empty result", async () => {
     mockFetch.mockResolvedValue(jsonResponse([]));
     const user = userEvent.setup();
     renderPage();
+    await openModal(user);
     await user.type(
       screen.getByRole("searchbox", { name: "Search for a place" }),
       "zzz nowhere",
@@ -395,6 +431,7 @@ describe("Local conditions search (ticket 02)", () => {
     );
     const user = userEvent.setup();
     renderPage();
+    await openModal(user);
     await user.type(
       screen.getByRole("searchbox", { name: "Search for a place" }),
       "Kiruna",
@@ -409,6 +446,7 @@ describe("Local conditions search (ticket 02)", () => {
     mockFetch.mockRejectedValue(new Error("network down"));
     const user = userEvent.setup();
     renderPage();
+    await openModal(user);
     await user.type(
       screen.getByRole("searchbox", { name: "Search for a place" }),
       "Kiruna",
@@ -417,8 +455,10 @@ describe("Local conditions search (ticket 02)", () => {
     expect(screen.getByText("Search failed – try again")).toBeInTheDocument();
   });
 
-  it("always shows the OpenStreetMap attribution linked to osm.org under the field", () => {
+  it("always shows the OpenStreetMap attribution linked to osm.org under the field", async () => {
+    const user = userEvent.setup();
     renderPage();
+    await openModal(user);
     const link = screen.getByRole("link", {
       name: "© OpenStreetMap contributors",
     });
@@ -432,6 +472,7 @@ describe("Local conditions search (ticket 02)", () => {
     stubGeolocation({ kind: "error", code: 1 });
     const user = userEvent.setup();
     renderPage();
+    await openModal(user);
     await user.click(screen.getByRole("button", { name: "Find my location" }));
     expect(
       screen.getByText(
@@ -440,12 +481,26 @@ describe("Local conditions search (ticket 02)", () => {
     ).toBeInTheDocument();
   });
 
-  it("reverse geocodes the device fix and writes the geocoded place", async () => {
-    stubGeolocation({ kind: "ok", latitude: 69.6492, longitude: 18.9553 });
+  it("proposes the device fix with ±m and writes the geocoded place only on confirm", async () => {
+    stubGeolocation({ kind: "ok", latitude: 69.6492, longitude: 18.9553, accuracy: 12 });
     mockFetch.mockResolvedValue(jsonResponse(reverseTromsoFixture));
     const user = userEvent.setup();
     renderPage();
+    await openModal(user);
     await user.click(screen.getByRole("button", { name: "Find my location" }));
+    // The fix is proposed, not stored: the place is still the default
+    const proposed = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
+    expect(proposed.place.displayName).toBe(
+      "Östersund, Jämtland County, Sweden",
+    );
+    expect(screen.getByText("±12m")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Use this location" }));
+    // Staging the fix stores nothing yet
+    const staged = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
+    expect(staged.place.displayName).toBe(
+      "Östersund, Jämtland County, Sweden",
+    );
+    await user.click(screen.getByRole("button", { name: "Apply and close" }));
     const stored = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
     expect(stored.place.displayName).toBe(
       "Storgata, Nerstranda, Sørbyen, Tromsø, Troms, 9008, Norge",
@@ -455,12 +510,12 @@ describe("Local conditions search (ticket 02)", () => {
     // reverse response only supplies the display name for verification.
     expect(stored.place.latitude).toBe(69.6492);
     expect(stored.place.longitude).toBe(18.9553);
-    const chip = document.querySelector(".conditions__place") as HTMLElement;
-    expect(chip).toHaveTextContent("Storgata, Nerstranda");
-    expect(chip.getAttribute("title")).toBe(
+    const button = placeTrigger();
+    expect(button).toHaveTextContent("Storgata, Nerstranda");
+    expect(button.getAttribute("title")).toBe(
       "Storgata, Nerstranda, Sørbyen, Tromsø, Troms, 9008, Norge",
     );
-    expect(chip.querySelector('img[alt="Norge"]')).toBeInTheDocument();
+    expect(button.querySelector('img[title="Norge"]')).toBeInTheDocument();
   });
 });
 
@@ -642,9 +697,9 @@ describe("Local conditions weather (ticket 03)", () => {
       await screen.findByText("Couldn't load the weather – check back later."),
     ).toBeInTheDocument();
     {
-      const chip = document.querySelector(".conditions__place") as HTMLElement;
-      expect(chip).toHaveTextContent("Oslo");
-      expect(chip.querySelector('img[alt="Norway"]')).toBeInTheDocument();
+      const button = placeTrigger();
+      expect(button).toHaveTextContent("Oslo");
+      expect(button.querySelector('img[title="Norway"]')).toBeInTheDocument();
     }
     expect(
       screen.getByRole("heading", { name: "Today's daylight chart" }),
@@ -771,6 +826,7 @@ describe("Local conditions full composition (ticket 04)", () => {
     mockFetch.mockResolvedValue(jsonResponse(kirunaFixture));
     const user = userEvent.setup();
     renderPage();
+    await openModal(user);
     await user.type(
       screen.getByRole("searchbox", { name: "Search for a place" }),
       "Kiruna",
@@ -781,6 +837,7 @@ describe("Local conditions full composition (ticket 04)", () => {
         name: "Kiruna, Kiruna kommun, Norrbottens län, 981 30, Sverige",
       }),
     );
+    await user.click(screen.getByRole("button", { name: "Apply and close" }));
     // Daylight recomputes: midnight sun for the new place (only Today now)
     expect(screen.getAllByText("Sun does not set today")).toHaveLength(1);
     // Links re-bake with the new lat/lon

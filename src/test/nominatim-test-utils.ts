@@ -27,18 +27,24 @@ export const jsonResponse = (
   }) as RetryAfterResponse;
 
 export type GeolocationStub =
-  | { kind: "ok"; latitude: number; longitude: number }
+  | { kind: "ok"; latitude: number; longitude: number; accuracy: number }
   | { kind: "error"; code: number };
 
 /** Replaces navigator.geolocation with a single-shot stub; returns the mock. */
 export const stubGeolocation = (impl: GeolocationStub): ReturnType<typeof vi.fn> => {
   const getCurrentPosition = vi.fn(
     (
-      success: (p: { coords: { latitude: number; longitude: number } }) => void,
+      success: (p: { coords: { latitude: number; longitude: number; accuracy: number } }) => void,
       error: (e: { code: number }) => void,
     ) => {
       if (impl.kind === "ok") {
-        success({ coords: { latitude: impl.latitude, longitude: impl.longitude } });
+        success({
+          coords: {
+            latitude: impl.latitude,
+            longitude: impl.longitude,
+            accuracy: impl.accuracy,
+          },
+        });
       } else {
         error({ code: impl.code });
       }

@@ -1,0 +1,172 @@
+// Shared place picker: the icon+shortName trigger button and the
+// Change location modal (ticket 02 offline-personal-oval). The search row
+// wraps so the input never gets too small - the field keeps a minimum width
+// and the Search button flows to the next row when needed. The label span
+// collapses to sr-only below 1000px via the shared button system in
+// index.scss, leaving icon+flag only.
+.place-finder {
+  &__trigger {
+    gap: 0.45rem;
+    max-width: 100%;
+  }
+
+  &__trigger__flag {
+    display: inline-block;
+    width: 16px;
+    height: 12px;
+    border-radius: 2px;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+
+  &__modal {
+    position: fixed;
+    inset: 0;
+    margin: auto;
+    width: min(92vw, 34rem);
+    max-height: 85vh;
+    overflow: auto;
+    padding: 1rem 1.25rem 1.25rem;
+    border: 1px solid var(--color-border-muted);
+    border-radius: 8px;
+    background: var(--gradient-card);
+    color: var(--color-text-primary);
+
+    h2 {
+      margin: 0 0 0.75rem;
+      padding-right: 3rem;
+      font-size: 1.15rem;
+    }
+
+    &::backdrop {
+      background: color-mix(in srgb, var(--color-black) 75%, transparent);
+    }
+  }
+
+  &__close {
+    // Pinned to the modal box corner (the dialog is the positioned
+    // ancestor), never the viewport corner; the h2 keeps right padding so
+    // the heading text never slides under the button. The button chrome
+    // itself comes from .btn--secondary.
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 1;
+  }
+
+  &__search {
+    &__label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    &__row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      align-items: stretch;
+
+      button {
+        flex: 0 0 auto;
+      }
+
+      &__field {
+        flex: 1 1 220px;
+        min-width: 220px;
+        padding: 0.6rem 0.8rem;
+        border: 1px solid var(--color-border-muted-transparent);
+        border-radius: 8px;
+        background: var(--color-surface);
+        color: var(--color-text-primary);
+        font-size: 1rem;
+
+        &::placeholder {
+          color: var(--color-text-muted);
+        }
+      }
+    }
+  }
+
+  &__status {
+    margin: 0.5rem 0 0;
+    color: var(--color-gold);
+    font-size: 0.9rem;
+  }
+
+  &__matches {
+    margin: 0.75rem 0 0;
+    padding: 0.5rem;
+    border: 1px solid var(--color-border-muted-transparent);
+    border-radius: 8px;
+    background: var(--color-surface);
+
+    ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+
+      label {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        padding: 0.35rem 0.25rem;
+        font-size: 0.9rem;
+        cursor: pointer;
+      }
+    }
+
+    input {
+      accent-color: var(--color-accent);
+    }
+  }
+
+  &__fix {
+    margin-top: 0.75rem;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--color-border-muted-transparent);
+    border-radius: 8px;
+    background: var(--color-surface);
+
+    p {
+      margin: 0 0 0.35rem;
+    }
+
+    &__name {
+      font-weight: 600;
+      overflow-wrap: anywhere;
+    }
+
+    &__accuracy {
+      color: var(--color-text-muted);
+      font-size: 0.9rem;
+    }
+
+    button {
+      margin-top: 0.4rem;
+    }
+  }
+
+  &__pending {
+    margin: 0.75rem 0 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+  }
+
+  &__attribution {
+    margin: 0.75rem 0 0;
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    opacity: 0.8;
+  }
+}

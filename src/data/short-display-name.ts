@@ -1,8 +1,5 @@
-import {
-  webcamCountryCode,
-  WEBCAM_COUNTRY_CODES,
-} from "../../../../data/webcams";
-import type { GeocodedPlace } from "../../../../data/place-storage";
+import { webcamCountryCode, WEBCAM_COUNTRY_CODES } from "./webcams";
+import type { GeocodedPlace } from "./place-storage";
 
 /**
  * Extra country name → code mappings for Nominatim display_name variants

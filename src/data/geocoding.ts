@@ -8,7 +8,7 @@
  * referrer names the hosting app and `accept-language` follows the browser.
  */
 
-import { shortDisplayName } from "../components/pages/conditions/utils/short-display-name";
+import { shortDisplayName } from "./short-display-name";
 import type { GeocodedPlace } from "./place-storage";
 
 /** One Nominatim match, ready to be picked and stored as a geocoded place. */
@@ -224,7 +224,13 @@ export function createGeocodingClient(
 export type DeviceLocationErrorKind = "denied" | "timeout" | "unavailable";
 
 export type DeviceLocationResult =
-  | { status: "ok"; latitude: number; longitude: number }
+  | {
+      status: "ok";
+      latitude: number;
+      longitude: number;
+      /** Fix accuracy in meters, from the browser GeolocationCoordinates. */
+      accuracy: number;
+    }
   | { status: "error"; kind: DeviceLocationErrorKind };
 
 const GEOLOCATION_OPTIONS: PositionOptions = {
@@ -263,6 +269,7 @@ export function getDeviceLocation(): Promise<DeviceLocationResult> {
           status: "ok",
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
         }),
       (error) => resolve({ status: "error", kind: errorKindOf(error.code) }),
       GEOLOCATION_OPTIONS,

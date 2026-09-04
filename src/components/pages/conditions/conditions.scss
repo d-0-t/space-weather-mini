@@ -1,7 +1,10 @@
-// Page shell for Local conditions – only the top-level intro and place chip.
+// Page shell for Local conditions – only the top-level layout. The header
+// place button and its modal own their styles next to the shared component:
+//
+//   ../../../PlaceFinder/PlaceFinder.scss
+//
 // All other blocks own their own SCSS next to their TSX:
 //
-//   components/PlaceFinder/PlaceFinder.scss
 //   components/DayBlock/DayBlock.scss
 //   components/LuminosityTimeline/LuminosityTimeline.scss
 //   components/Weather/WeatherBlock.scss
@@ -31,30 +34,6 @@
     }
   }
 
-  &__place {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    margin: 0;
-    padding: 0.35rem 0.9rem;
-    border: 1px solid var(--color-border-muted-transparent);
-    border-radius: 15px;
-    background: var(--gradient-card);
-    color: var(--color-white);
-    font-weight: 500;
-  }
-
-  &__place-flag {
-    display: inline-block;
-    width: 16px;
-    height: 12px;
-    border-radius: 2px;
-    object-fit: cover;
-    flex-shrink: 0;
-  }
-
-  &__weather,
-  &__finder,
   &__weather,
   &__day,
   &__external {

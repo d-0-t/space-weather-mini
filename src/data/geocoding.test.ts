@@ -268,12 +268,18 @@ describe("Browser geolocation (ticket 02)", () => {
     restoreGeolocation();
   });
 
-  it("resolves the device coordinates on success", async () => {
-    stubGeolocation({ kind: "ok", latitude: 69.6492, longitude: 18.9553 });
+  it("resolves the device coordinates on success with the fix accuracy", async () => {
+    stubGeolocation({
+      kind: "ok",
+      latitude: 69.6492,
+      longitude: 18.9553,
+      accuracy: 17,
+    });
     expect(await getDeviceLocation()).toEqual({
       status: "ok",
       latitude: 69.6492,
       longitude: 18.9553,
+      accuracy: 17,
     });
   });
 
@@ -300,6 +306,7 @@ describe("Browser geolocation (ticket 02)", () => {
       kind: "ok",
       latitude: 1,
       longitude: 2,
+      accuracy: 10,
     });
     await getDeviceLocation();
     const options = getCurrentPosition.mock.calls[0][2];
