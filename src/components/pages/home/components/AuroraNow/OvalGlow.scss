@@ -1,8 +1,9 @@
 // Oval glow lives directly in the Aurora Now panel: no card chrome of its
-// own, only layout. All non-data color comes from tokens; glow colors reuse
-// the frozen Kp data classes in the legend (see OvalGlow.tsx).
+// own, only layout. All non-data color comes from tokens; the glow ramp is
+// data encoding (see OVAL_RAMP_STOPS in OvalGlow.tsx), not UI chrome.
 .oval-glow {
   margin-top: 1rem;
+  text-shadow: var(--text-stroke-black);
 
   &__head {
     display: flex;
@@ -61,13 +62,6 @@
     font-size: 0.85rem;
   }
 
-  // License fine print: required while Stadia tiles render, kept quiet.
-  &__attr {
-    margin: 0.25rem 0;
-    font-size: 0.75rem;
-    line-height: 1rem;
-  }
-
   &__cap {
     margin: 0.5rem 0;
   }
@@ -80,30 +74,32 @@
 
   &__stage {
     position: relative;
-    background-color: var(--color-black);
+    // Explicit ratio: stage height comes from CSS, never from the canvas's
+    // intrinsic size or the tile's load state.
+    aspect-ratio: 360 / 181;
+    overflow: hidden;
+    background-color: rgb(1, 3, 11);
   }
 
-  // Flush tile pair behind the canvas: no gap, so adjacent tiles join
-  // without a seam line for the glow to expose.
-  &__tiles {
+  // Natural Earth land basemap: painted on its own canvas through the same
+  // projection as the glow (`ovalCellPoint`), so continents and glow cells
+  // are pixel-aligned by construction. No tile server involved - the
+  // geometry cannot drift or arrive corrupt anymore.
+  &__land {
     position: absolute;
     inset: 0;
-    display: flex;
-  }
-
-  &__tile {
     display: block;
-    width: 50%;
+    width: 100%;
     height: 100%;
-    object-fit: cover;
-    opacity: 0.9;
+    background-color: transparent;
+    image-rendering: pixelated;
   }
 
   &__canvas {
     position: relative;
     display: block;
     width: 100%;
-    height: auto;
+    height: 100%;
     border: 1px solid var(--color-border-muted-transparent);
     border-radius: 4px;
     background-color: transparent;
@@ -111,36 +107,24 @@
   }
 
   &__legend {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 0.75rem;
     margin: 0.5rem 0;
-    padding: 0;
-    list-style: none;
-    text-align: center;
-
-    &__item {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.35rem;
-    }
-
-    &__text {
-      font-size: 0.85rem;
-    }
   }
 
-  &__swatch {
-    display: inline-block;
-    width: 1rem;
-    height: 1rem;
+  // Gradient bar derived from OVAL_RAMP_STOPS via an inline style, so the
+  // legend and the painted glow share one source of stops.
+  &__legend__bar {
+    height: 0.75rem;
     border: 1px solid var(--color-border-muted);
-    border-radius: 2px;
+    border-radius: 3px;
+  }
 
-    // Absence indicator: no glow forecast in the cell.
-    &--none {
-      background-color: var(--color-gray);
-    }
+  &__legend__labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.25rem;
+  }
+
+  &__legend__label {
+    font-size: 0.85rem;
   }
 }

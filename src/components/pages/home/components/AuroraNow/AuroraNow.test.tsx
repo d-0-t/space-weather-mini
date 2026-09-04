@@ -159,7 +159,7 @@ describe("AuroraNow", () => {
     await waitFor(() =>
       expect(
         screen.getAllByRole("img", { name: /oval glow/i }),
-      ).toHaveLength(2),
+      ).toHaveLength(1),
     );
     expect(
       screen.getByText(/Forecast Time Sep 4 14:33 UTC/i),

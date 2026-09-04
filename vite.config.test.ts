@@ -14,10 +14,11 @@ describe("PWA build configuration", () => {
     expect(PWA_OPTIONS.manifest).toBe(false);
     expect(PWA_OPTIONS.workbox.skipWaiting).toBe(true);
     expect(PWA_OPTIONS.workbox.clientsClaim).toBe(true);
-    // Precache the shell: JS, CSS, HTML and the woff2 fonts only – data
-    // products and images are runtime-cached, never precached.
+    // Precache the shell: JS, CSS, HTML, the woff2 fonts and the bundled
+    // Natural Earth land asset – data products and images are
+    // runtime-cached, never precached.
     expect(PWA_OPTIONS.workbox.globPatterns).toEqual([
-      "**/*.{js,css,html,woff2}",
+      "**/*.{js,css,html,woff2,geojson}",
     ]);
   });
 
@@ -26,7 +27,7 @@ describe("PWA build configuration", () => {
   });
 
   it("stale-while-revalidates NOAA SWPC data (50 entries, 1 hour)", () => {
-    const [swpc, , ] = PWA_OPTIONS.workbox.runtimeCaching;
+    const [swpc] = PWA_OPTIONS.workbox.runtimeCaching;
     expect(swpc.handler).toBe("StaleWhileRevalidate");
     expect(swpc.options?.cacheName).toBe("swpc");
     expect(swpc.options?.expiration).toEqual({
@@ -54,23 +55,16 @@ describe("PWA build configuration", () => {
     ).toBe(false);
   });
 
-  it("cache-firsts keyed Stadia dark tiles (20 entries, 7 days)", () => {
-    const [, stadia] = PWA_OPTIONS.workbox.runtimeCaching;
-    expect(stadia.handler).toBe("CacheFirst");
-    expect(stadia.options?.cacheName).toBe("stadia");
-    expect(stadia.options?.expiration).toEqual({
-      maxEntries: 20,
-      maxAgeSeconds: 604800,
-    });
+  it("keeps no GIBS tile route - the Oval basemap is a bundled asset now", () => {
     expect(
-      pattern(stadia.urlPattern).test(
-        "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/1/0/0.png?api_key=abc",
+      PWA_OPTIONS.workbox.runtimeCaching.find((entry) =>
+        String(entry.urlPattern).includes("gibs"),
       ),
-    ).toBe(true);
+    ).toBeUndefined();
   });
 
   it("cache-firsts OVATION aurora JPGs", () => {
-    const [, , ovation] = PWA_OPTIONS.workbox.runtimeCaching;
+    const [, ovation] = PWA_OPTIONS.workbox.runtimeCaching;
     expect(ovation.handler).toBe("CacheFirst");
     expect(ovation.options?.cacheName).toBe("ovation-jpg");
     expect(ovation.options?.expiration).toEqual({

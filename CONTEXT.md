@@ -213,9 +213,9 @@ _Avoid_: refresh button (as a term), weather refresh (as a synonym for the times
 **Offline (PWA)**:
 The app shell and last fetched products cached by the Service Worker so the app opens without internet after one online visit. Data is shown as stale with `As of` plus `⚠ Showing saved data — couldn't reach NOAA` when the network fails; no data is invented. First visit must be online; iOS may evict the cache after 7 days without launch.
 _Avoid_: offline mode (as a toggle name), available offline (without As of qualifier)
-
 **Oval**:
-The forecast glow painted from `ovation_aurora_latest.json` per 1° cell. `Aurora 0` is transparent (no forecast). `1-5` faint, `6-10` moderate, `11-15` strong, `16+` intense (calibrated live; `max 25` quiet, higher in storm) colored via the frozen Kp palette in default mode or a color-blind safe ramp in color-blind mode. Each cell is a 30-minute forecast, not a live photo; cloud, moon and light pollution can still hide it.
+
+The forecast glow painted from `ovation_aurora_latest.json` per 1° cell on one pole-to-pole world canvas (ADR-0007). `Aurora 0` is transparent (no forecast). `1-5` faint, `6-10` moderate, `11-15` strong, `16+` intense (calibrated live; `max 25` quiet, higher in storm) are the semantic bands for the hidden table, view distance and color-blind mode; the default paint is a continuous color ramp that fades low values toward transparent, over a land basemap rendered from bundled Natural Earth data through the same projection. OVATION's grid-edge rows (lat `0`, `-1`, `90`, `-90`) are clipped as model artifacts. Each cell is a 30-minute forecast, not a live photo; cloud, moon and light pollution can still hide it.
 _Avoid_: ovation map (when the forecast cells are meant), aurora oval (without forecast qualifier when the model is meant)
 
 **View distance**:
