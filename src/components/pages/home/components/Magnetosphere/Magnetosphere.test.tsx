@@ -193,7 +193,11 @@ describe("Magnetosphere", () => {
       "dialog.image-modal",
     ) as HTMLDialogElement;
     expect(dialog.open).toBe(false);
-    const tile = screen.getByRole("button", { name: /kiruna magnetogram/i });
+    // The help popover's close X is also named "…Kiruna magnetogram…", so
+    // match the tile by its own alt text
+    const tile = screen.getByRole("button", {
+      name: /kiruna magnetogram, x y and z components/i,
+    });
     await user.click(tile);
     expect(dialog.open).toBe(true);
     // Close button: real SVG icon (never a text ×) with an sr-only "Close"

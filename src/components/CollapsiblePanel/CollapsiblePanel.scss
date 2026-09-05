@@ -35,6 +35,13 @@
     h2 {
       margin: 0;
       font-size: 1.5em;
+
+      // Very narrow screens: the longest panel name ("Magnetosphere") at
+      // 1.5em plus the chevron exceeds the toggle and would push the page
+      // horizontally wide – step the title down instead
+      @media (max-width: 419px) {
+        font-size: 1.2em;
+      }
     }
 
     &:focus-visible {

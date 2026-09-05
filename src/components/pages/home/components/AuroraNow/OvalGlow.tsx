@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
-import InfoIcon from "@mui/icons-material/Info";
+
+import HelpPopover from "../../../../HelpPopover/HelpPopover";
 
 import {
   OVATION_QUERY_KEY,
@@ -379,10 +380,8 @@ function paintGlow(
  */
 const OvalGlow: React.FC = () => {
   const offline = useIsOffline();
-  const [infoOpen, setInfoOpen] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const landCanvasRef = useRef<HTMLCanvasElement>(null);
-  const infoRef = useRef<HTMLDetailsElement>(null);
 
   const ovalQuery = useQuery({
     queryKey: [...OVATION_QUERY_KEY],
@@ -392,19 +391,6 @@ const OvalGlow: React.FC = () => {
     staleTime: OVATION_STALE_TIME_MS,
     gcTime: 10 * 60 * 1000,
   });
-
-  // The info popover follows the ChartHelp discipline: Escape closes it and
-  // returns focus, a primary click elsewhere closes it.
-  useEffect(() => {
-    const el = infoRef.current;
-    if (!el) return;
-    const onPointerDown = (event: PointerEvent): void => {
-      if (event.button !== 0) return;
-      if (infoOpen && !el.contains(event.target as Node)) setInfoOpen(false);
-    };
-    document.addEventListener("pointerdown", onPointerDown);
-    return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, [infoOpen]);
 
   const state = liveDataState(ovalQuery, offline);
   const product = ovalQuery.data ?? null;
@@ -460,57 +446,21 @@ const OvalGlow: React.FC = () => {
     );
   }
 
-  const closeInfoOnEscape: React.KeyboardEventHandler<HTMLElement> = (
-    event,
-  ) => {
-    if (event.key === "Escape" && infoOpen) {
-      event.preventDefault();
-      setInfoOpen(false);
-      infoRef.current?.querySelector("summary")?.focus();
-    }
-  };
-
   return (
     <section className="oval-glow">
       <div className="oval-glow__head">
         <h3 className="oval-glow__title">Oval glow intensity</h3>
-        <details
-          className="oval-glow__info"
-          ref={infoRef}
-          open={infoOpen}
-          onKeyDown={closeInfoOnEscape}
-        >
-          <summary
-            className="btn--icon"
-            title="About this map"
-            role="button"
-            aria-expanded={infoOpen}
-            onClick={(event) => {
-              // Drive the popover from state so jsdom and browsers agree;
-              // suppress the native toggle to avoid double-flipping.
-              event.preventDefault();
-              setInfoOpen((open) => !open);
-            }}
-          >
-            <span aria-hidden="true">
-              <InfoIcon fontSize="small" />
-            </span>
-            <span className="sr-only">About this map</span>
-          </summary>
-          <div className="oval-glow__popover">
-            <p>
-              Cloud coverage, moon phase and light pollution affect visibility.
-            </p>
-            <p>
-              Glow levels are local brightness per 1-degree cell – not the Kp
-              storm scale.
-            </p>
-            <p>
-              Dim green spreading beyond the bright ring is diffuse glow;
-              transparent areas have no glow forecast.
-            </p>
-          </div>
-        </details>
+        <HelpPopover
+          popoverClassName="oval-glow__popover"
+          content={{
+            label: "About this map",
+            paragraphs: [
+              "Cloud coverage, moon phase and light pollution affect visibility.",
+              "Glow levels are local brightness per 1-degree cell – not the Kp storm scale.",
+              "Dim green spreading beyond the bright ring is diffuse glow; transparent areas have no glow forecast.",
+            ],
+          }}
+        />
       </div>
       <p className="oval-glow__fresh">
         Forecast Time {formatUtcShort(product.forecastTime)} – 30–90 min lead.
@@ -555,7 +505,7 @@ const OvalGlow: React.FC = () => {
           ))}
         </div>
       </div>
-      <table className="oval-glow__table sr-only">
+      {/* <table className="oval-glow__table">
         <caption>Oval glow levels by hemisphere</caption>
         <thead>
           <tr>
@@ -578,7 +528,7 @@ const OvalGlow: React.FC = () => {
             </tr>
           ))}
         </tbody>
-      </table>
+      </table> */}
     </section>
   );
 };

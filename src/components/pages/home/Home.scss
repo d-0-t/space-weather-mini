@@ -21,6 +21,10 @@
     gap: 1rem;
     max-width: 1200px;
     margin: 0 auto;
+    // Very narrow screens: the 32px title's longest word plus the header
+    // controls exceed the viewport – wrap the controls under the title
+    // instead of forcing the whole page horizontally scrollable
+    flex-wrap: wrap;
 
     h1 {
       margin: 0.67em 0;
@@ -60,14 +64,18 @@
 
   &--compact .live-panel__grid .live-panel__card {
     flex: 1 1 calc(50% - 0.5rem);
-    min-width: 0;
+    // Floor at the card's own min-content (title's longest word + info
+    // icon + padding): on very narrow screens two such cards no longer fit
+    // side by side and the flex-wrap grid falls back to one per row,
+    // instead of squeezing cards below their content and pushing the
+    // headers (and the page) wide
+    min-width: min-content;
   }
 
   // Two columns: Aurora Now + Forecast on the left, Solar Wind + Magnetosphere
   // on the right. On narrow viewports the grid collapses to one column, so the
   // right-column panels wrap around and come after the left-column ones.
   &__flow {
-    min-width: 300px;
     max-width: 1200px;
     margin: 0 auto;
     display: grid;

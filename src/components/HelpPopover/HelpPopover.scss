@@ -1,0 +1,25 @@
+// Chrome for the HelpPopover close button: a small X in the popover body's
+// top-right corner. Each popover family (.live-panel__popover,
+// .oval-glow__popover) reserves the corner with padding-right so text never
+// runs under it. Colors come from tokens; the hover inverts to white like
+// the other help controls.
+.help-popover__close {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0.3rem;
+  background: transparent;
+  color: var(--color-gray);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--color-white);
+  }
+}

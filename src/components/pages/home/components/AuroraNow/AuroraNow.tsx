@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 
 import FullSizeModal from "../../../../FullSizeModal";
+import HelpPopover from "../../../../HelpPopover/HelpPopover";
 import { SourceAttribution } from "../../../../sources";
 import { formatAge } from "../../../../../products/live-helpers";
-import { ChartHelp } from "../live-panels/live-panels";
 import {
   COULDNT_LOAD_COPY,
   FreshnessLine,
@@ -40,7 +40,7 @@ const auroraAlt = (pole: string) => `Aurora Forecast (latest) - ${pole} Pole`;
 const MoonPhaseBadge: React.FC = () => {
   const phase = getMoonPhase();
   return (
-    <ChartHelp
+    <HelpPopover
       className="live-panel__help--moon"
       content={{
         label: "About the current Moon phase",
@@ -49,7 +49,9 @@ const MoonPhaseBadge: React.FC = () => {
       }}
       summary={
         <>
-          <span aria-hidden="true">{phase.emoji}</span>
+          <span aria-hidden="true" title={phase.name}>
+            {phase.emoji}
+          </span>
           <span className="sr-only">{`Current Moon phase: ${phase.name}`}</span>
         </>
       }

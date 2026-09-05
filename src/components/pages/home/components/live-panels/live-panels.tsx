@@ -1,10 +1,4 @@
-import {
-  useEffect,
-  useId,
-  useRef,
-  type CSSProperties,
-  type ReactNode,
-} from "react";
+import { useId, type CSSProperties, type ReactNode } from "react";
 import {
   CartesianGrid,
   Line,
@@ -15,7 +9,9 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import InfoIcon from "@mui/icons-material/Info";
+import HelpPopover, {
+  type HelpPopoverContent,
+} from "../../../../HelpPopover/HelpPopover";
 
 import type { Source } from "../../../../sources";
 import { SourceAttribution } from "../../../../sources";
@@ -592,83 +588,6 @@ export const MiniSparkline: React.FC<{
   );
 };
 
-interface ChartHelpContent {
-  /** sr-only summary label, e.g. "About solar wind" */
-  label: string;
-  /** Compact threshold rows: value → meaning */
-  rows?: [string, string][];
-  /** Prose fallback (magnetograms) */
-  text?: string;
-}
-
-export const ChartHelp: React.FC<{
-  content: ChartHelpContent;
-  /** Custom summary trigger content (defaults to the "?" badge). When set, the caller must include the sr-only label. */
-  summary?: ReactNode;
-  /** Extra class on the <details> root (e.g. to opt out of the "?" circle chrome) */
-  className?: string;
-}> = ({ content, summary, className }) => {
-  const detailsRef = useRef<HTMLDetailsElement>(null);
-  // Escape closes the popover and returns focus to the "?" trigger
-  const handleKeyDown: React.KeyboardEventHandler<HTMLElement> = (event) => {
-    if (event.key === "Escape" && detailsRef.current?.open) {
-      event.preventDefault();
-      detailsRef.current.open = false;
-      detailsRef.current.querySelector("summary")?.focus();
-    }
-  };
-  // A click outside the trigger or the popover closes it
-  useEffect(() => {
-    const el = detailsRef.current;
-    if (!el) return;
-    const onPointerDown = (event: PointerEvent) => {
-      // Only the primary (left) button closes – right-clicking outside the
-      // popover (e.g. to inspect its content) must not dismiss it
-      if (event.button !== 0) return;
-      if (el.open && !el.contains(event.target as Node)) {
-        el.open = false;
-      }
-    };
-    document.addEventListener("pointerdown", onPointerDown);
-    return () => document.removeEventListener("pointerdown", onPointerDown);
-  }, []);
-  return (
-    <details
-      ref={detailsRef}
-      className={`live-panel__help${className ? ` ${className}` : ""}`}
-      onKeyDown={handleKeyDown}
-    >
-      <summary
-        className={summary ? undefined : "btn--icon"}
-        title={summary ? undefined : content.label}
-      >
-        {summary ?? (
-          <>
-            <span aria-hidden="true">
-              <InfoIcon fontSize="small" />
-            </span>
-            <span className="sr-only">{content.label}</span>
-          </>
-        )}
-      </summary>
-      {content.rows || content.text ? (
-        <div className="live-panel__popover">
-          {content.rows ? (
-            <ul className="live-panel__scale">
-              {content.rows.map(([value, meaning]) => (
-                <li key={value}>
-                  <b>{value}</b> – {meaning}
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          {content.text ? <p>{content.text}</p> : null}
-        </div>
-      ) : null}
-    </details>
-  );
-};
-
 export const SparklineCard: React.FC<{
   title: string;
   value: string;
@@ -680,7 +599,7 @@ export const SparklineCard: React.FC<{
   accent: string;
   ariaLabel: string;
   unit: string;
-  help: ChartHelpContent;
+  help: HelpPopoverContent;
   /** Honesty state: stale saved data, or nothing ever loaded */
   state?: LiveDataState;
   anchorOffset?: number;
@@ -722,7 +641,7 @@ export const SparklineCard: React.FC<{
   <section className="live-panel__card">
     <div className="live-panel__head">
       <h3>{title}</h3>
-      <ChartHelp content={help} />
+      <HelpPopover content={help} />
     </div>
     {state === "stale" ? <StaleDataNotice /> : null}
     {state === "never-loaded" ? (

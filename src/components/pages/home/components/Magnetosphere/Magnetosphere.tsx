@@ -17,8 +17,8 @@ import { severityColor } from "../../../../../styles/severity";
 import { SOURCES } from "../../../../sources";
 import { SourceAttribution } from "../../../../sources";
 import FullSizeModal from "../../../../FullSizeModal";
+import HelpPopover from "../../../../HelpPopover/HelpPopover";
 import {
-  ChartHelp,
   DATA_WINDOWS,
   MiniSparkline,
   SMOOTHING,
@@ -62,7 +62,7 @@ const KirunaMagnetogramCard: React.FC = () => {
     <section className="live-panel__card">
       <div className="live-panel__head">
         <h3>Kiruna magnetometer</h3>
-        <ChartHelp
+        <HelpPopover
           content={{
             label: "About the Kiruna magnetogram",
             text: "IRF's live magnetogram for Kiruna (68°N, Sweden) plots the X, Y and Z field components in nT over 24 hours. Gentle wiggles are normal. Large swings – especially 100+ nT in the X component – mean substorms are overhead, so bright aurora is likely at high latitudes.",
@@ -122,7 +122,7 @@ const BoulderMagnetometerCard: React.FC = () => {
     <section className="live-panel__card">
       <div className="live-panel__head">
         <h3>NOAA magnetometer (Boulder)</h3>
-        <ChartHelp
+        <HelpPopover
           content={{
             label: "About the NOAA magnetometer",
             rows: [

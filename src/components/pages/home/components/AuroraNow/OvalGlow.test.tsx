@@ -391,7 +391,7 @@ describe("OvalGlow", () => {
         /Cloud coverage, moon phase and light pollution affect visibility/i,
       );
     expect(note()).not.toBeVisible();
-    const info = screen.getByRole("button", { name: /about this map/i });
+    const info = screen.getByTitle("About this map");
     expect(info.classList.contains("btn--icon")).toBe(true);
     await user.click(info);
     expect(note()).toBeVisible();
