@@ -79,7 +79,7 @@ describe("Pinned Webcams panel", () => {
     setPins("aurora-ridge");
     render(<PinnedWebcams entries={fixtureEntries} />);
     expect(
-      screen.getByRole("heading", { level: 2, name: "Pinned Webcams" }),
+      screen.getByRole("heading", { level: 2, name: "Pinned webcams" }),
     ).toBeInTheDocument();
     const title = screen.getByRole("heading", {
       level: 3,
@@ -101,7 +101,7 @@ describe("Pinned Webcams panel", () => {
   it("collapses and expands via the disclosure toggle", () => {
     setPins("aurora-ridge");
     render(<PinnedWebcams entries={fixtureEntries} />);
-    const toggle = screen.getByRole("button", { name: "Pinned Webcams" });
+    const toggle = screen.getByRole("button", { name: "Pinned webcams" });
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     fireEvent.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "false");

@@ -10,13 +10,14 @@
     max-width: 100%;
   }
 
-  &__trigger__flag {
+  &__trigger img {
     display: inline-block;
     width: 16px;
     height: 12px;
     border-radius: 2px;
     object-fit: cover;
     flex-shrink: 0;
+    margin-left: 0.45rem;
   }
 
   &__modal {

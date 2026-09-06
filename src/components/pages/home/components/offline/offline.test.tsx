@@ -80,15 +80,15 @@ describe("StaleDataNotice", () => {
 });
 
 describe("FreshnessLine", () => {
-  it("renders 'As of {time} • Updated {age}' in UTC", () => {
+  it("renders 'As of {time}. Updated {age}.' in UTC, punctuation not bullets", () => {
     render(<FreshnessLine asOf="2026-08-26T16:36:00" updated="5m ago" />);
     expect(
-      screen.getByText("As of Aug 26 16:36 UTC • Updated 5m ago"),
+      screen.getByText("As of Aug 26 16:36 UTC. Updated 5m ago."),
     ).toBeInTheDocument();
   });
 
   it("keeps the dash placeholder when there is no as-of time yet", () => {
     render(<FreshnessLine asOf="–" updated="–" />);
-    expect(screen.getByText("As of – • Updated –")).toBeInTheDocument();
+    expect(screen.getByText("As of –. Updated –.")).toBeInTheDocument();
   });
 });

@@ -48,8 +48,8 @@ const goOffline = async (page: Page, context: import("@playwright/test").Browser
 
 /** SWPC endpoints the offline stale view depends on, as full URLs. */
 const REQUIRED_CACHED_URLS = [
-  "https://services.swpc.noaa.gov/json/noaa-planetary-k-index.json",
-  "https://services.swpc.noaa.gov/json/noaa-planetary-k-index-forecast.json",
+  "https://services.swpc.noaa.gov/products/noaa-planetary-k-index.json",
+  "https://services.swpc.noaa.gov/products/noaa-planetary-k-index-forecast.json",
   "https://services.swpc.noaa.gov/text/3-day-forecast.txt",
   "https://services.swpc.noaa.gov/json/rtsw/rtsw_wind_1m.json",
   "https://services.swpc.noaa.gov/json/rtsw/rtsw_mag_1m.json",
@@ -64,15 +64,23 @@ const REQUIRED_CACHED_URLS = [
  * Guarantees the live data is in the Service Worker's runtime cache. The SW
  * only intercepts requests once it controls the page, so we write the cached
  * responses directly (online fetch + cache.put) – deterministic, no reliance
- * on the SW catching a warm reload's multi-MB fetches in time.
+ * on the SW catching a warm reload's multi-MB fetches in time. A slow or
+ * failing endpoint is skipped rather than aborting the whole warm-up: the
+ * app's own fetches during the online visit are the primary warm-up, this
+ * loop is the deterministic belt-and-braces.
  */
 const warmLiveCache = async (page: Page) => {
   await waitForServiceWorker(page);
   await page.evaluate(async (urls) => {
     const cache = await caches.open("swpc");
     for (const url of urls) {
-      const response = await fetch(url);
-      if (response.ok) await cache.put(url, response);
+      try {
+        const response = await fetch(url);
+        if (response.ok) await cache.put(url, response);
+      } catch {
+        // Endpoint unreachable right now – the app's own fetches may still
+        // have warmed it; the offline assertions judge what is actually shown.
+      }
     }
   }, REQUIRED_CACHED_URLS);
 };

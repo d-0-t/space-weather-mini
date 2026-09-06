@@ -1,43 +1,66 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 
 import kpObservedFixture from "../../../../../products/fixtures/noaa-planetary-k-index.json?raw";
+import kirunaFixture from "../../../../../data/fixtures/nominatim-kiruna.json";
 import AuroraNow from "./AuroraNow";
 import { AlertsProvider } from "../Alerts/AlertsContext";
 import {
   COULDNT_LOAD_COPY,
   STALE_DATA_NOTICE,
 } from "../offline/offline";
+import { PLACE_STORAGE_KEY } from "../../../../../data/place-storage";
+import { saveViewDistanceThreshold } from "../../../../../products/view-distance";
+import {
+  jsonResponse,
+} from "../../../../../test/nominatim-test-utils";
+import { ovationJson } from "../../../../../test/ovation-test-utils";
 
 const queryClient = () => new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
 const mockFetch = vi.fn();
 
+/** The synthetic Oval grid the OVATION fetch mock serves; tests override it. */
+let ovationGrid: Array<[number, number, number]> = [
+  [0, 70, 3],
+  [10, 65, 8],
+];
+
+/** Seeds the stored geocoded place (the one shared key, versioned). */
+const seedPlace = (place: Record<string, unknown>): void => {
+  localStorage.setItem(
+    PLACE_STORAGE_KEY,
+    JSON.stringify({ v: 1, place }),
+  );
+};
+
+/** Oslo – far enough from the default grid for a clean Not-in-range. */
+const OSLO_PLACE = {
+  displayName: "Oslo, Norway",
+  shortName: "Oslo",
+  latitude: 59.9139,
+  longitude: 10.7522,
+  fetchedAt: "2026-09-04T12:00:00Z",
+};
+
 beforeEach(() => {
   // Fix today to Aug26 2026 (Wednesday) UTC so moon phase is deterministic
   vi.useFakeTimers({ toFake: ["Date"] } as unknown as Parameters<typeof vi.useFakeTimers>[0]);
   vi.setSystemTime(new Date("2026-08-26T12:00:00Z"));
+  localStorage.clear();
+  ovationGrid = [
+    [0, 70, 3],
+    [10, 65, 8],
+  ];
   mockFetch.mockReset();
   mockFetch.mockImplementation((url: string) => {
     const u = typeof url === "string" ? url : "";
     if (u.includes("noaa-planetary-k-index.json")) return Promise.resolve({ ok: true, text: async () => kpObservedFixture });
     if (u.includes("ovation_aurora_latest.json"))
-      return Promise.resolve({
-        ok: true,
-        text: async () =>
-          JSON.stringify({
-            "Observation Time": "2026-09-04T13:20:00Z",
-            "Forecast Time": "2026-09-04T14:33:00Z",
-            "Data Format": "[Longitude, Latitude, Aurora]",
-            coordinates: [
-              [0, 70, 3],
-              [10, 65, 8],
-            ],
-          }),
-      });
+      return Promise.resolve({ ok: true, text: async () => ovationJson(ovationGrid) });
     return Promise.resolve({ ok: true, text: async () => "" });
   });
   vi.stubGlobal("fetch", mockFetch);
@@ -59,20 +82,16 @@ const renderAuroraNow = () =>
   );
 
 describe("AuroraNow", () => {
-  it("renders heading Aurora Now, current Kp with bar and the oval forecast images", async () => {
+  it("renders heading Aurora Now, current Kp with bar and the oval glow", async () => {
     renderAuroraNow();
     await waitFor(() => expect(screen.getByRole("heading", { name: /^Aurora Now$/i })).toBeInTheDocument());
     await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
     expect(document.querySelector(".aurora-now__current")).toBeInTheDocument();
-    expect(
-      screen.getByRole("heading", { name: /^Aurora Oval Forecast \(30 min\)$/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getAllByAltText(/Aurora Forecast.*North Pole/i).length,
-    ).toBeGreaterThan(0);
-    expect(
-      screen.getAllByAltText(/Aurora Forecast.*South Pole/i).length,
-    ).toBeGreaterThan(0);
+    await waitFor(() =>
+      expect(
+        screen.getAllByRole("img", { name: /oval glow/i }),
+      ).toHaveLength(1),
+    );
   });
 
   it("derives the current 3h slot label from the observed time_tag", async () => {
@@ -80,14 +99,6 @@ describe("AuroraNow", () => {
     await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
     // Fixture's latest observed reading is at 12:00 UTC → the 12-15 UT slot
     expect(screen.getByText("12:00 - 15:00 UTC")).toBeInTheDocument();
-  });
-
-  it("opens the aurora images full size in a modal and closes on Escape", async () => {
-    renderAuroraNow();
-    await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
-    const dialogs = document.querySelectorAll("dialog.image-modal");
-    expect(dialogs.length).toBe(2); // aurora north + aurora south
-    expect((dialogs[0] as HTMLDialogElement).open).toBe(false);
   });
 
   it("shows the current moon phase emoji in a help popover with sr-only label", async () => {
@@ -125,12 +136,12 @@ describe("AuroraNow", () => {
     );
   });
 
-  it("shows the freshness line as 'As of {time} • Updated {age}'", async () => {
+  it("shows the freshness line as 'As of {time}. Updated {age}.', no bullet", async () => {
     renderAuroraNow();
     await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
     // Fixture's latest observed reading is at 2026-08-25T12:00:00
     expect(
-      screen.getByText(/As of Aug 25 12:00 UTC • Updated/),
+      screen.getByText(/As of Aug 25 12:00 UTC\. Updated/),
     ).toBeInTheDocument();
   });
 
@@ -153,7 +164,7 @@ describe("AuroraNow", () => {
     );
   });
 
-  it("embeds the Oval glow with Forecast Time below the JPG images", async () => {
+  it("embeds the Oval glow with Forecast Time", async () => {
     renderAuroraNow();
     await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
     await waitFor(() =>
@@ -163,6 +174,164 @@ describe("AuroraNow", () => {
     );
     expect(
       screen.getByText(/Forecast Time Sep 4 14:33 UTC/i),
+    ).toBeInTheDocument();
+  });
+
+  it("renders the band line: info, place in text and one Change location button", async () => {
+    // Oslo with a qualifying cell half a degree north (~56 km) => likely.
+    seedPlace(OSLO_PLACE);
+    ovationGrid = [[10.7522, 60.4139, 12]];
+    renderAuroraNow();
+    await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
+    expect(await screen.findByText(/Aurora likely/)).toBeInTheDocument();
+    // The place is plain text next to the info, never a button of its own.
+    const place = document.querySelector(".view-distance__place");
+    expect(place?.textContent).toBe("Oslo");
+    // One Change location button (btn--secondary) opens the shared modal.
+    const change = screen.getByRole("button", { name: "Change location" });
+    expect(change).toHaveClass("btn--secondary");
+    expect(screen.queryByRole("button", { name: /Oslo/ })).toBeNull();
+  });
+
+  it("reads not in range without a preposition and in lowercase", async () => {
+    // Oslo is ~1180 km from the only grid cell: out of range.
+    seedPlace(OSLO_PLACE);
+    ovationGrid = [[20.2253, 68.3558, 12]];
+    renderAuroraNow();
+    await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
+    await screen.findByText(/Aurora not in range/);
+    // The line's own text (excluding the hidden (i) popover inside it) never
+    // uses a preposition - `from`/`at` do not work for every band; the place
+    // is separate text after the dash.
+    const line = document.querySelector(".view-distance__line");
+    const lineText = [...(line?.childNodes ?? [])]
+      .filter((node) => node.nodeType === Node.TEXT_NODE)
+      .map((node) => node.textContent)
+      .join(" ")
+      .replace(/\s+/g, " ");
+    expect(lineText).toMatch(/Aurora not in range/);
+    expect(lineText).not.toMatch(/from|at /);
+    expect(
+      document.querySelector(".view-distance__place")?.textContent,
+    ).toBe("Oslo");
+  });
+
+  it("opens the shared Change location modal from the Change location button", async () => {
+    const user = userEvent.setup();
+    seedPlace(OSLO_PLACE);
+    renderAuroraNow();
+    await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
+    const change = await screen.findByRole("button", { name: "Change location" });
+    await user.click(change);
+    const dialog = document.querySelector(
+      "dialog.place-finder__modal",
+    ) as HTMLDialogElement;
+    expect(dialog.open).toBe(true);
+    expect(
+      screen.getByRole("heading", { name: "Change location" }),
+    ).toBeInTheDocument();
+  });
+
+  it("explains the band behind the (i) popover with the approved copy", async () => {
+    const user = userEvent.setup();
+    seedPlace(OSLO_PLACE);
+    renderAuroraNow();
+    await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
+    const info = await screen.findByTitle("About view distance");
+    await user.click(info);
+    const popover = document.querySelector(
+      ".view-distance__popover",
+    ) as HTMLElement;
+    expect(popover).not.toBeNull();
+    // The approved plain-language copy (ticket 05).
+    expect(popover.textContent).toContain(
+      "Each colored square is a 30-min forecast (1°).",
+    );
+    expect(popover.textContent).toContain(
+      "0 = no color = no forecast there.",
+    );
+    expect(popover.textContent).toContain("1 faint → 16+ bright.");
+    expect(popover.textContent).toContain(
+      "Nearest square ≥6 is the band, not a single km.",
+    );
+    expect(popover.textContent).toContain(
+      "Cloud/moon/town lights can still hide it.",
+    );
+    expect(popover.textContent).toContain("Forecast Time 30-90 min ahead.");
+    // The full band table with confidence per band.
+    expect(popover.textContent).toContain("Overhead / Nearby ~0-100 km – Likely");
+    expect(popover.textContent).toContain("Distant ~100-300 km – Possible");
+    expect(popover.textContent).toContain("Far ~300-600 km – Unlikely");
+    expect(popover.textContent).toContain("Over 600 km – Not in range");
+    // Provenance footnote: the NOAA product page the forecast comes from.
+    const provenance = popover.querySelector("a");
+    expect(provenance?.getAttribute("href")).toBe(
+      "https://www.swpc.noaa.gov/products/aurora-30-minute-forecast",
+    );
+    expect(provenance?.textContent).toContain("aurora 30-minute forecast");
+  });
+
+  it("recomputes the band when a place picked in the modal is applied", async () => {
+    const user = userEvent.setup();
+    // Oslo is ~1180 km from the only grid cell, which sits ~56 km from
+    // Kiruna: the line must flip from not in range to likely after the pick.
+    seedPlace(OSLO_PLACE);
+    ovationGrid = [[20.2253, 68.3558, 12]];
+    mockFetch.mockImplementation((input: unknown) => {
+      const url = new URL(String(input));
+      if (url.host === "nominatim.openstreetmap.org")
+        return Promise.resolve(jsonResponse(kirunaFixture));
+      return Promise.resolve({
+        ok: true,
+        text: async () =>
+          url.href.includes("noaa-planetary-k-index.json")
+            ? kpObservedFixture
+            : ovationJson(ovationGrid),
+      });
+    });
+    renderAuroraNow();
+    await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
+    expect(
+      await screen.findByText(/Aurora not in range/),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Change location" }));
+    await user.type(
+      screen.getByRole("searchbox", { name: "Search for a place" }),
+      "Kiruna",
+    );
+    await user.click(screen.getByRole("button", { name: "Search" }));
+    await user.click(screen.getAllByRole("radio")[0]);
+    await user.click(screen.getByRole("button", { name: "Apply and close" }));
+    expect(await screen.findByText(/Aurora likely/)).toBeInTheDocument();
+    expect(
+      document.querySelector(".view-distance__place")?.textContent,
+    ).toContain("Kiruna");
+  });
+
+  it("shows As of the Forecast Time on the band line", async () => {
+    seedPlace(OSLO_PLACE);
+    renderAuroraNow();
+    await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
+    expect(
+      await screen.findByText(/As of Sep 4 14:33 UTC\. Updated/),
+    ).toBeInTheDocument();
+  });
+
+  it("honors the stored view distance threshold", async () => {
+    // Aurora 5 is below the default threshold 6 (not in range); once the
+    // versioned stored threshold is 5, the next mount reads likely.
+    seedPlace(OSLO_PLACE);
+    ovationGrid = [[10.7522, 60.4139, 5]];
+    renderAuroraNow();
+    await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
+    expect(
+      await screen.findByText(/Aurora not in range/),
+    ).toBeInTheDocument();
+    cleanup();
+    saveViewDistanceThreshold(localStorage, 5);
+    renderAuroraNow();
+    expect(
+      await screen.findByText(/Aurora likely/),
     ).toBeInTheDocument();
   });
 });

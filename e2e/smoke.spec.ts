@@ -59,37 +59,25 @@ test("the skip link is the first focusable element and targets main", async ({
   await expect(page.locator("#main-content")).toBeFocused();
 });
 
-test("aurora ovals sit side by side at half width, never stacked", async ({
+test("the oval glow map renders full width in Aurora Now", async ({
   page,
 }) => {
   await page.goto("/");
-  await expect(
-    page
-      .getByRole("img", { name: /Aurora Forecast.*North Pole/i })
-      .first(),
-  ).toBeVisible({ timeout: dataTimeout });
-  const tiles = page.locator(".aurora-images__tile");
-  await expect(tiles).toHaveCount(2);
-  const [north, south] = await tiles.evaluateAll((els) =>
-    els.map((el) => {
-      const r = el.getBoundingClientRect();
-      return { x: r.x, y: r.y, w: r.width };
-    }),
-  );
-  // Same row, equal halves of the container, adjacent – never wrapped
-  expect(north.y).toBe(south.y);
-  expect(Math.abs(north.w - south.w)).toBeLessThanOrEqual(2);
-  const container = await page.locator(".aurora-images").boundingBox();
-  expect(container).not.toBeNull();
-  expect(north.w + south.w).toBeGreaterThan(container!.width - 6);
-  expect(south.x).toBeGreaterThanOrEqual(north.x + north.w - 2);
+  const oval = page.getByRole("img", { name: /oval glow/i });
+  await expect(oval).toBeVisible({ timeout: dataTimeout });
+  // One pole-to-pole world map painted across the full stage width
+  const box = await oval.boundingBox();
+  const stage = await page.locator(".oval-glow__stage").boundingBox();
+  expect(box).not.toBeNull();
+  expect(stage).not.toBeNull();
+  expect(Math.abs(box!.width - stage!.width)).toBeLessThanOrEqual(2);
 });
 
 test("home panels collapse and expand via their chevron toggle", async ({
   page,
 }) => {
   await page.goto("/");
-  const toggle = page.getByRole("button", { name: "Solar Wind", exact: true });
+  const toggle = page.getByRole("button", { name: "Solar wind", exact: true });
   const chart = page.getByRole("img", {
     name: /Solar wind speed.*2 hours before Now/i,
   });
@@ -184,17 +172,21 @@ test("the geophysical alert page renders", async ({ page }) => {
 
 test("home shows live now dashboard with Kp, mini charts and Kp min/max table", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /^Aurora Now$/ })).toBeVisible({ timeout: dataTimeout });
+  await expect(page.getByRole("heading", { name: /^Aurora now$/ })).toBeVisible({ timeout: dataTimeout });
   await expect(page.getByRole("heading", { name: /^Forecast$/ })).toBeVisible();
-  await expect(page.getByRole("heading", { name: /Solar Wind/ })).toBeVisible();
-  await expect(page.getByRole("heading", { name: /Magnetosphere/ })).toBeVisible();
+  // The Solar Wind panel swaps its loading heading for the loaded one once
+  // the live feeds arrive - both need the data timeout.
+  await expect(page.getByRole("heading", { name: /^Solar wind$/ })).toBeVisible({ timeout: dataTimeout });
+  await expect(page.getByRole("heading", { name: /Magnetosphere/ })).toBeVisible({ timeout: dataTimeout });
   await expect(page.getByRole("table", { name: /Kp-index forecast/ })).toBeVisible();
   // Live freshness
   await expect(page.getByText(/Updated/ ).first()).toBeVisible();
   // Charts paired with tables
   await expect(page.getByRole("img", { name: /Kp observed.*forecast.*Now/ })).toBeVisible();
   await expect(page.getByRole("img", { name: /Solar wind speed.*2 hours before Now/ })).toBeVisible();
-  await expect(page.getByRole("img", { name: /Kiruna magnetogram/i })).toBeVisible();
+  await expect(page.getByRole("img", { name: /Kiruna magnetogram/i })).toBeVisible({
+    timeout: dataTimeout,
+  });
   // Mini charts carry a vertical axis; the four L1 charts carry a Now line
   await expect(page.locator(".live-panel .recharts-yAxis")).toHaveCount(7);
   // Solar Wind: 4 Now lines (one per L1 chart); Magnetosphere: 1 (hemi mirror zero)
@@ -213,7 +205,8 @@ test("home shows live now dashboard with Kp, mini charts and Kp min/max table", 
   await expect(page.locator(".live-panel .live-panel__help").first()).toBeVisible();
   await page.locator(".live-panel .live-panel__help").first().locator("summary").click();
   await expect(page.getByText(/< 400 km\/s/)).toBeVisible();
-  await expect(page.getByText("About solar wind")).toBeAttached();
+  // The popover label (and its "Close:" twin) stay attached
+  await expect(page.getByText("About solar wind").first()).toBeAttached();
   // Source attributions at the bottom of the panels
   await expect(page.getByRole("link", { name: "NOAA/SWPC" }).first()).toBeVisible();
 });

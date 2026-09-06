@@ -27,7 +27,8 @@ The conventions every change to this repo must follow. Enforced by review, not t
 
 ## Charts
 
-- Recharts, always paired with the semantic table that carries the same data — the table is the source of truth for screen readers. The chart container gets `role="img"` named by a sr-only span inside it (`aria-labelledby`), never `aria-label`, naming every series. Established visualisations: Kp history timeline, 27-day radio flux/A index trend, 3-day Kp forecast line.
+- Recharts, named by a sr-only span inside the container (`aria-labelledby`), never `aria-label`, naming every series. Established visualisations: Kp history timeline, 27-day radio flux/A index trend, 3-day Kp forecast line.
+- **No sr-only tables — ever (user rule, re-confirmed 2026-09-06)**: a chart's data alternative must be available to all users. If a tabular alternative is warranted, it is visible to everyone in a minimized area (for example hidden behind an icon button in a modal) — never a `sr-only`/hidden table. A chart without a visible table must carry the full reading in its accessible name instead.
 - **No color-only encoding**: each series must differ by shape as well as color (Recharts `legendType` circle/square/triangle plus `Symbols` dot markers), so the chart stays legible without color.
 - Placement: full-width, stacked **above** the table (never side-by-side).
 - Series colors are distinct named colors set on the `<Line>` (`greenyellow`, `plum`, `cyan` are the established palette); the `.kp01`–`.kp9` token classes are for tables only.
@@ -37,6 +38,7 @@ The conventions every change to this repo must follow. Enforced by review, not t
 
 - WCAG 2.1 AA, plus: skip link, visible focus, `prefers-reduced-motion` respected.
 - **No `aria-label`**: interactive elements (buttons, links), dialogs, landmarks and `role="img"` containers are named by text — a visible label when one exists, otherwise a `.sr-only` span inside the element. Only use reference via `aria-labelledby` where content text can't name it (dialog, nav, region) and never in buttons, input types or similar. An `aria-label` attribute is only acceptable where text cannot work at all.
+- **No bullets in copy separators (user rule, 2026-09-06)**: screen readers announce every bullet. Separate clauses with periods, commas, colons or dashes only — the things that introduce a pause. Freshness lines read `As of {time}. Updated {age}.`
 - Playwright runs an axe audit per page as part of the test suite.
 
 ## Testing

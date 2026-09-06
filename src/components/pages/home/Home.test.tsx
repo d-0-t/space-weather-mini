@@ -7,6 +7,7 @@ import { MemoryRouter } from "react-router-dom";
 import threeDayFixture from "../../../products/fixtures/3-day-forecast.txt?raw";
 import kpObservedFixture from "../../../products/fixtures/noaa-planetary-k-index.json?raw";
 import kpForecastFixture from "../../../products/fixtures/noaa-planetary-k-index-forecast.json?raw";
+import { ovationJson } from "../../../test/ovation-test-utils";
 import Home from "./Home";
 
 const queryClient = () =>
@@ -29,6 +30,16 @@ beforeEach(() => {
     }
     if (typeof url === "string" && url.includes("noaa-planetary-k-index.json")) {
       return Promise.resolve({ ok: true, text: async () => kpObservedFixture });
+    }
+    if (typeof url === "string" && url.includes("ovation_aurora_latest.json")) {
+      return Promise.resolve({
+        ok: true,
+        text: async () =>
+          ovationJson([
+            [0, 70, 3],
+            [10, 65, 8],
+          ]),
+      });
     }
     return Promise.resolve({ ok: true, text: async () => "" });
   });
@@ -81,16 +92,13 @@ describe("Home", () => {
     expect(container.querySelector(".home")).toHaveClass("home--compact");
   });
 
-  it("renders the aurora forecast images", async () => {
+  it("renders the oval glow map", async () => {
     renderHome();
     await waitFor(() =>
       expect(
-        screen.getAllByAltText(/Aurora Forecast.*North Pole/i).length,
+        screen.getAllByRole("img", { name: /oval glow/i }).length,
       ).toBeGreaterThan(0),
     );
-    expect(
-      screen.getAllByAltText(/Aurora Forecast.*South Pole/i).length,
-    ).toBeGreaterThan(0);
   });
 
   it("renders the Aurora Now and Forecast panels", async () => {
@@ -110,7 +118,7 @@ describe("Home", () => {
     renderHome();
     await waitFor(() =>
       expect(
-        screen.getByRole("img", { name: /Aurora Forecast.*North Pole/i }),
+        screen.getByRole("img", { name: /oval glow/i }),
       ).toBeInTheDocument(),
     );
     const toggle = screen.getByRole("button", { name: /^Aurora Now$/i });
@@ -119,13 +127,13 @@ describe("Home", () => {
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     expect(
-      screen.queryByRole("img", { name: /Aurora Forecast.*North Pole/i }),
+      screen.queryByRole("img", { name: /oval glow/i }),
     ).not.toBeInTheDocument();
 
     await user.click(toggle);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
     expect(
-      screen.getByRole("img", { name: /Aurora Forecast.*North Pole/i }),
+      screen.getByRole("img", { name: /oval glow/i }),
     ).toBeInTheDocument();
   });
 

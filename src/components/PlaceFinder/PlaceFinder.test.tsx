@@ -18,9 +18,10 @@ import {
 } from "../../test/nominatim-test-utils";
 
 /** Harness: shows what the page would receive so picks are observable. */
-const Harness: React.FC<{ pickedRef?: (match: GeocodeMatch | null) => void }> = ({
-  pickedRef,
-}) => {
+const Harness: React.FC<{
+  pickedRef?: (match: GeocodeMatch | null) => void;
+  actionLabel?: string;
+}> = ({ pickedRef, actionLabel }) => {
   const [picked, setPicked] = useState<GeocodeMatch | null>(null);
   pickedRef?.(picked);
   return (
@@ -31,15 +32,16 @@ const Harness: React.FC<{ pickedRef?: (match: GeocodeMatch | null) => void }> = 
           setPicked(match);
           pickedRef?.(match);
         }}
+        actionLabel={actionLabel}
       />
       {picked ? <p>Picked: {picked.displayName}</p> : null}
     </>
   );
 };
 
-const renderFinder = (): { picked: () => GeocodeMatch | null } => {
+const renderFinder = (props?: { actionLabel?: string }): { picked: () => GeocodeMatch | null } => {
   let latest: GeocodeMatch | null = null;
-  render(<Harness pickedRef={(match) => (latest = match)} />);
+  render(<Harness pickedRef={(match) => (latest = match)} {...props} />);
   return { picked: () => latest };
 };
 
@@ -81,6 +83,21 @@ describe("PlaceFinder modal (shared place, ticket 02 offline-personal-oval)", ()
     expect(button.getAttribute("title")).toBe(
       "Östersund, Jämtland County, Sweden",
     );
+    expect(modal().open).toBe(false);
+  });
+
+  it("renders the action label as the whole trigger when actionLabel is set", () => {
+    // The View distance line uses this: info + place in text + one
+    // `Change location` button, so the pill must not repeat the place.
+    renderFinder({ actionLabel: "Change location" });
+    const button = screen.getByRole("button", {
+      name: "Change location",
+    }) as HTMLButtonElement;
+    expect(button.querySelector(".btn__label")?.textContent).toBe(
+      "Change location",
+    );
+    // No flag on an action trigger - the place lives in the line's text.
+    expect(button.querySelector("img")).toBeNull();
     expect(modal().open).toBe(false);
   });
 

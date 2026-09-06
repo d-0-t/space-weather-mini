@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 
-import FullSizeModal from "../../../../FullSizeModal";
 import HelpPopover from "../../../../HelpPopover/HelpPopover";
 import { SourceAttribution } from "../../../../sources";
 import { formatAge } from "../../../../../products/live-helpers";
@@ -19,22 +18,14 @@ import {
   formatTimeSlot,
 } from "../kp-panel/kp-panel";
 import OvalGlow from "./OvalGlow";
+import ViewDistanceLine from "./ViewDistanceLine";
 
 import "./AuroraNow.scss";
-
-const AURORA_IMAGE_URLS = {
-  north:
-    "https://services.swpc.noaa.gov/images/animations/ovation/north/latest.jpg",
-  south:
-    "https://services.swpc.noaa.gov/images/animations/ovation/south/latest.jpg",
-};
 
 const AURORA_SOURCE = {
   label: "NOAA/SWPC",
   href: "https://www.swpc.noaa.gov/products/aurora-30-minute-forecast",
 };
-
-const auroraAlt = (pole: string) => `Aurora Forecast (latest) - ${pole} Pole`;
 
 /** Emoji-only moon badge – opens a help popover with the phase label and what it means for aurora. */
 const MoonPhaseBadge: React.FC = () => {
@@ -207,28 +198,8 @@ const AuroraNow: React.FC = () => {
         {(observedQuery.isError || offline) && observed ? (
           <StaleDataNotice />
         ) : null}
-        {/* <h3>Aurora oval forecast (30 min)</h3>
-        <div className="aurora-images">
-          <FullSizeModal
-            label="Aurora forecast, latest, North Pole, full size"
-            triggerClassName="aurora-images__tile"
-            trigger={
-              <img alt={auroraAlt("North")} src={AURORA_IMAGE_URLS.north} />
-            }
-          >
-            <img alt={auroraAlt("North")} src={AURORA_IMAGE_URLS.north} />
-          </FullSizeModal>
-          <FullSizeModal
-            label="Aurora forecast, latest, South Pole, full size"
-            triggerClassName="aurora-images__tile"
-            trigger={
-              <img alt={auroraAlt("South")} src={AURORA_IMAGE_URLS.south} />
-            }
-          >
-            <img alt={auroraAlt("South")} src={AURORA_IMAGE_URLS.south} />
-          </FullSizeModal>
-        </div> */}
         <OvalGlow />
+        <ViewDistanceLine />
         <SourceAttribution source={AURORA_SOURCE} />
       </CollapsiblePanel>
     </article>

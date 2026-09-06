@@ -43,6 +43,14 @@ interface PlaceFinderProps {
   place: GeocodedPlace;
   /** Called with the confirmed pick – a search match or a confirmed device fix. */
   onPick: (match: GeocodeMatch) => void;
+  /**
+   * The action the trigger performs, e.g. `Change location` on the View
+   * distance line: the trigger then reads as a plain action button (icon +
+   * label, no flag and no place name – the line already carries the place as
+   * text). Unset (default), the trigger is the `icon+shortName+flag` place
+   * pill used by the page headers.
+   */
+  actionLabel?: string;
 }
 
 /**
@@ -56,7 +64,11 @@ interface PlaceFinderProps {
  * `Apply and close` tap, and `Cancel` (or X / backdrop / Escape) discards
  * the staged pick and resets the field, keeping the current place.
  */
-const PlaceFinder: React.FC<PlaceFinderProps> = ({ place, onPick }) => {
+const PlaceFinder: React.FC<PlaceFinderProps> = ({
+  place,
+  onPick,
+  actionLabel,
+}) => {
   const [query, setQuery] = useState("");
   const [matches, setMatches] = useState<GeocodeMatch[] | null>(null);
   const [error, setError] = useState<keyof typeof SEARCH_ERROR_COPY | null>(
@@ -242,23 +254,25 @@ const PlaceFinder: React.FC<PlaceFinderProps> = ({ place, onPick }) => {
       <button
         type="button"
         className="btn--secondary place-finder__trigger"
-        title={place.displayName}
+        title={actionLabel ?? place.displayName}
         onClick={open}
       >
         <LocationOnIcon aria-hidden="true" fontSize="small" />
-        <span className="btn__label">{shortName}</span>
-        {countryCode ? (
-          <img
-            className="place-finder__trigger__flag"
-            src={flagSrc(countryCode, "16x12")}
-            srcSet={`${flagSrc(countryCode, "32x24")} 2x, ${flagSrc(countryCode, "48x36")} 3x`}
-            width={16}
-            height={12}
-            alt=""
-            title={country}
-            loading="lazy"
-          />
-        ) : null}
+        <span className="btn__label">
+          {actionLabel ?? shortName}
+
+          {!actionLabel && countryCode ? (
+            <img
+              src={flagSrc(countryCode, "16x12")}
+              srcSet={`${flagSrc(countryCode, "32x24")} 2x, ${flagSrc(countryCode, "48x36")} 3x`}
+              width={16}
+              height={12}
+              alt=""
+              title={country}
+              loading="lazy"
+            />
+          ) : null}
+        </span>
       </button>
       <dialog
         ref={dialogRef}

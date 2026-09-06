@@ -16,6 +16,7 @@ import dstFixture from "../../../products/fixtures/kyoto-dst.json?raw";
 import rtswWindFixture from "../../../products/fixtures/rtsw-wind-1m.json?raw";
 import rtswMagFixture from "../../../products/fixtures/rtsw-mag-1m.json?raw";
 import boulderFixture from "../../../products/fixtures/boulder-k-index-1m.json?raw";
+import { ovationJson } from "../../../test/ovation-test-utils";
 import Home from "./Home";
 
 // The alert settings modal sits behind a feature flag (src/features.ts); this
@@ -39,6 +40,15 @@ beforeEach(() => {
       return Promise.resolve({ ok: true, text: async () => kpForecastFixture });
     if (u.includes("noaa-planetary-k-index.json"))
       return Promise.resolve({ ok: true, text: async () => kpObservedFixture });
+    if (u.includes("ovation_aurora_latest.json"))
+      return Promise.resolve({
+        ok: true,
+        text: async () =>
+          ovationJson([
+            [0, 70, 3],
+            [10, 65, 8],
+          ]),
+      });
     if (u.includes("solar-wind-mag-field.json"))
       return Promise.resolve({ ok: true, text: async () => magFixture });
     if (u.includes("solar-wind-speed.json"))
@@ -105,44 +115,43 @@ describe("Home Live Now dashboard (ticket 01)", () => {
     expect(screen.getByText(/Full 3-day forecast/)).toBeInTheDocument();
   });
 
-  it("keeps OVATION aurora images between live strips and forecast", async () => {
+  it("keeps the oval glow map between live strips and forecast", async () => {
     renderHome();
     await waitFor(() =>
       expect(
-        screen.getAllByAltText(/Aurora Forecast.*North Pole/i).length,
+        screen.getAllByRole("img", { name: /oval glow/i }).length,
       ).toBeGreaterThan(0),
     );
-    expect(
-      screen.getAllByAltText(/Aurora Forecast.*South Pole/i).length,
-    ).toBeGreaterThan(0);
   });
 
-  it("opens aurora images full size in a modal and closes on Escape", async () => {
+  it("opens a media modal full size and closes on Escape", async () => {
     const user = userEvent.setup();
     renderHome();
     await waitFor(() =>
       expect(
-        screen.getAllByAltText(/Aurora Forecast.*North Pole/i).length,
-      ).toBeGreaterThan(0),
+        screen.getByRole("img", { name: /oval glow/i }),
+      ).toBeInTheDocument(),
     );
-    const northTile = screen.getByRole("button", {
-      name: /Aurora Forecast.*North Pole/i,
+    const videoTile = screen.getByRole("button", {
+      name: "Predicted solar wind video, full size",
     });
+    // One media modal per media on the Dashboard: predicted solar wind
+    // video + the Kiruna pinned webcam still.
     const dialogs = document.querySelectorAll("dialog.image-modal");
-    // One per media: aurora north, aurora south, predicted solar wind video, Kiruna
-    expect(dialogs.length).toBe(4);
-    expect((dialogs[0] as HTMLDialogElement).open).toBe(false);
-    await user.click(northTile);
-    expect((dialogs[0] as HTMLDialogElement).open).toBe(true);
+    expect(dialogs.length).toBe(2);
+    const videoDialog = videoTile.nextElementSibling as HTMLDialogElement;
+    expect(videoDialog.open).toBe(false);
+    await user.click(videoTile);
+    expect(videoDialog.open).toBe(true);
     await user.keyboard("{Escape}");
-    expect((dialogs[0] as HTMLDialogElement).open).toBe(false);
+    expect(videoDialog.open).toBe(false);
   });
 
   it("shows the Solar Wind and Magnetosphere mini charts in the right column", async () => {
     renderHome();
     await waitFor(() => expect(screen.getByText("Speed")).toBeInTheDocument());
     expect(
-      screen.getByRole("heading", { name: /Solar Wind/ }),
+      screen.getByRole("heading", { name: /^Solar wind$/ }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("heading", { name: /Magnetosphere/ }),

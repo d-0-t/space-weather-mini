@@ -8,7 +8,7 @@
 
 - [x] New reusable `PlaceFinder` modal component (search input, `Search` on Enter, up to five Nominatim matches with `display_name`, `© OpenStreetMap contributors` attribution, `Find my location` button)
 - [x] Single storage `localStorage["sw:local-conditions:place:v1"]` versioned, default `Östersund, Sweden` when empty; `device location` via `getCurrentPosition({enableHighAccuracy:true, timeout:8000, maximumAge:60000})` + Nominatim reverse (fallback `My location`), `±{Math.round(accuracy)}m` shown and `>200m` warning, only becomes stored place on confirm
-- [ ] Home `AuroraNow` header shows `icon+shortName` button (icon-only + `sr-only` on narrow) that opens the modal — deferred to ticket 05 (see Comments 2026-09-04); `/conditions` large place section refactored to the same button+modal
+- [x] Home `AuroraNow` place opening the modal — superseded by the user-review redesign (2026-09-06, ticket 05): Home's band line shows the place as plain text plus one `Change location` action button (icon + label, no flag, no place pill); the `icon+shortName` pill stays the `/conditions` header pattern. `/conditions` large place section refactored to the same button+modal
 - [x] Nominatim queried only on Enter, `limit=5`, `addressdetails=1`, 1/s cap respected, no per-keystroke calls per ADR-0005
 - [x] Component test: button renders, opens modal, Enter mocks Nominatim at URL boundary and shows five matches, `Find my location` mocks `geolocation` success/deny/absence and `±m`, picking writes the single key and is readable from both routes, focus trapped in modal
 
@@ -30,3 +30,9 @@ Implemented 2026-09-04 via TDD (red→green slices), then two-axis code review. 
 - **Close button anchored to the modal** — `place-finder__close` was `position: fixed` (viewport top-right); now `position: absolute` against the positioned dialog box, heading keeps its right padding so text never slides under it.
 - **Staged Apply flow (TDD red→green)** — selecting a match (click/Enter/Space) or the device fix (`Use this location`) only stages it into `pending` (radios are controlled `checked` + `onChange`; new searches clear the stage). Nothing is stored until `Apply and close` (disabled while nothing staged, with a `Selected: {displayName}` status line); `Cancel` and the X button `reset()` + close, discarding the stage and the typed query while the stored place stays untouched. Backdrop/Escape still discard via `onClose={reset}`.
 - **Tests** — `PlaceFinder.test.tsx` (16: stage-without-close, Cancel-resets-clean, device stage-then-Apply, fallback-then-Apply, Kiruna-on-Apply, close-inside-modal); `conditions.test.tsx` updated (stage-then-Apply for arrow/Enter, radio pick, device fix, daylight+links). Suite green: `tsc --noEmit`, 578 Vitest (64 files). Still not committed — review first.
+
+## Comments (2026-09-06)
+
+- The Home attachment landed with ticket 05: the shared PlaceFinder pill is the Aurora ~band from [shortName] (i) • Update location line's place button (ctionLabel prop, titled Update location: {place}), replacing the removed header adornment as planned. Both pages stay on the one stored key.
+
+- Update 2026-09-06 (ticket 05 user review): the Home trigger is no longer a place pill. The band line reads Aurora {band} (i) - {place} [Change location] with the place as text and one tn--secondary Change location button (PlaceFinder ctionLabel, which renders the trigger as icon+label without the flag/shortName). The shared modal, storage key and hook are unchanged.

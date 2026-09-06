@@ -85,9 +85,10 @@ describe("UI palette final sweep – ticket 03 contract", () => {
     // Tooltip background must be via token, not keyword black/rgb
     expect(indexScss).not.toMatch(/\.recharts-default-tooltip\s*\{[^}]*background-color\s*:\s*black/);
     expect(indexScss).toMatch(/\.recharts-default-tooltip\s*\{[^}]*background-color\s*:\s*var\(--color-/);
-    // Aurora image borders already via token (AuroraNow.scss)
-    const auroraNowScss = read("../components/pages/home/components/AuroraNow/AuroraNow.scss");
-    expect(auroraNowScss).toContain("border: 3px solid var(--color-border-muted)");
+    // The oval glow canvas border is via token (OvalGlow.scss); the JPG-era
+    // aurora image tiles are gone (single oval canvas since ticket 04).
+    const ovalGlowScss = read("../components/pages/home/components/AuroraNow/OvalGlow.scss");
+    expect(ovalGlowScss).toContain("border: 1px solid var(--color-border-muted-transparent)");
     // Home mini-card borders already via token (live-panels.scss)
     const livePanelsScss = read("../components/pages/home/components/live-panels/live-panels.scss");
     expect(livePanelsScss).toContain("border: 1px solid var(--color-border-muted)");
@@ -117,6 +118,10 @@ describe("UI palette final sweep – ticket 03 contract", () => {
       // Aurora curtain (AuroraNow.scss): physical aurora emission colours keyed
       // to Kp level – the same frozen data-token mechanism as .kp01–.kp9
       /\$aurora-kp-colors:\s*\([^;]*?\);/,
+      // Oval stage background (OvalGlow.scss): the deep-space map background,
+      // user-restored 2026-09-06 – data-adjacent canvas-adjacent paint like
+      // the glow ramp, not UI chrome
+      /&__stage\s*\{[^}]*?background-color:\s*rgb\(1, 3, 11\);[\s\S]*?\}/,
     ];
     for (const file of files) {
       let content = normalize(readFileSync(file, "utf8"));

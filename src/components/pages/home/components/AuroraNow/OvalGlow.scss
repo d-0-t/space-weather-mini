@@ -56,25 +56,6 @@
     margin: 0.5rem 0;
   }
 
-  // The sr-only counts table: sr-only gives width:1px + overflow:hidden, but
-  // it also forces white-space: nowrap – which makes the caption ("Oval glow
-  // levels by hemisphere") and every cell an unbreakable line, and Chromium
-  // then refuses to size the table below that unwrapped width (~274px) no
-  // matter what width says. The hidden table pushed the whole page wide on
-  // narrow screens (the flex .home then laid its charts out against the
-  // inflated width). Letting the hidden text wrap collapses it again; the
-  // doubled specificity beats the global Tables.scss cell widths (100px /
-  // 125px first column) regardless of bundle order.
-  & &__table {
-    table-layout: fixed;
-    white-space: normal;
-
-    th,
-    td {
-      width: auto;
-    }
-  }
-
   &__cap__label {
     margin-bottom: 0.25rem;
     font-size: 0.85rem;
@@ -87,6 +68,9 @@
     // intrinsic size or the tile's load state.
     aspect-ratio: 360 / 181;
     overflow: hidden;
+    // Deep-space background, user-restored (2026-09-06): the map must not be
+    // flat black - this near-black is the proper value and part of the
+    // palette contract's frozen carve-outs (ui-palette-final.test.ts).
     background-color: rgb(1, 3, 11);
   }
 

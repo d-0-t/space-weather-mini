@@ -44,6 +44,21 @@ export const OVATION_BAND_VERSION = 1 as const;
 const EXPECTED_DATA_FORMAT = "[Longitude, Latitude, Aurora]";
 
 /**
+ * Grid-edge rows the OVATION model fills with a nonzero floor: isolated
+ * 1-degree rings at the equator (lat 0 and -1, surrounded by all-zero lat 1
+ * and -2) and the pole points (lat -90, next to an all-zero -89; verified
+ * live 2026-09-04). No physical aurora reaches the geographic equator or the
+ * pole points, and equirectangular projection smears each row across the
+ * full map width, so painting them draws phantom lines NOAA's own render
+ * never shows. Clipped from the paint, the counts and the View distance.
+ */
+export function isBoundaryRow(latitude: number): boolean {
+  return (
+    latitude === 0 || latitude === -1 || latitude === 90 || latitude === -90
+  );
+}
+
+/**
  * Maps one Aurora intensity to its band: `0` transparent, `1-5` faint,
  * `6-10` moderate, `11-15` strong, `16+` intense.
  */
@@ -57,6 +72,16 @@ export function auroraBand(aurora: number): AuroraBand {
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Fetches the live Oval grid text from NOAA and parses it. Mocked at the
+ * URL boundary in tests; the single swap point for the data layer (ADR-0003).
+ */
+export async function fetchOvation(): Promise<OvationProduct> {
+  const response = await fetch(OVATION_URL);
+  if (!response.ok) throw new Error(`NOAA returned ${response.status}`);
+  return parseOvation(await response.text());
 }
 
 /**

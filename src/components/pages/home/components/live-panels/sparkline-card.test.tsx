@@ -21,10 +21,10 @@ const baseProps = {
 };
 
 describe("SparklineCard offline honesty", () => {
-  it("renders the freshness line as 'As of {time} • Updated {age}'", () => {
+  it("renders the freshness line as 'As of {time}. Updated {age}.'", () => {
     render(<SparklineCard {...baseProps} />);
     expect(
-      screen.getByText("As of Aug 26 16:36 UTC • Updated 5m ago"),
+      screen.getByText("As of Aug 26 16:36 UTC. Updated 5m ago."),
     ).toBeInTheDocument();
   });
 

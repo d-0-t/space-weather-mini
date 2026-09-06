@@ -1,26 +1,21 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import HelpPopover from "../../../../HelpPopover/HelpPopover";
 
 import {
-  OVATION_QUERY_KEY,
-  OVATION_REFETCH_IN_BACKGROUND,
-  OVATION_REFETCH_INTERVAL_MS,
-  OVATION_STALE_TIME_MS,
-  OVATION_URL,
-  auroraBand,
+  isBoundaryRow,
   parseOvation,
   type AuroraBand,
   type OvationProduct,
 } from "../../../../../products/ovation";
+import { useOvationQuery } from "./useOvationQuery";
 import {
   WORLD_LAND_URL,
   type LandRing,
   fetchWorldLand,
 } from "../../../../../products/world-land";
 import {
-  formatAge,
   formatUtcShort,
 } from "../../../../../products/live-helpers";
 import {
@@ -31,16 +26,6 @@ import {
 } from "../offline/offline";
 
 import "./OvalGlow.scss";
-
-/** Hemisphere split for the hidden counts table; `north` is lat > 0. */
-export type OvalHemisphere = "north" | "south";
-
-/** Fetches the live Oval grid; mocked at the URL boundary in tests. */
-export async function fetchOvation(): Promise<OvationProduct> {
-  const response = await fetch(OVATION_URL);
-  if (!response.ok) throw new Error(`NOAA returned ${response.status}`);
-  return parseOvation(await response.text());
-}
 
 /**
  * Glow levels, dimmest first. The levels name local brightness per 1-degree
@@ -102,21 +87,6 @@ export const OVAL_CANVAS_WIDTH = 360;
 export const OVAL_CANVAS_HEIGHT = 181;
 
 /**
- * Grid-edge rows the OVATION model fills with a nonzero floor: isolated
- * 1-degree rings at the equator (lat 0 and -1, surrounded by all-zero lat 1
- * and -2) and the south pole point (lat -90, next to an all-zero -89;
- * verified live 2026-09-04). No physical aurora reaches the geographic
- * equator or the pole point, and equirectangular projection smears each row
- * across the full map width, so painting them draws phantom lines NOAA's own
- * render never shows. Clipped from both the paint and the counts table.
- */
-export function isBoundaryRow(latitude: number): boolean {
-  return (
-    latitude === 0 || latitude === -1 || latitude === 90 || latitude === -90
-  );
-}
-
-/**
  * Maps one Aurora value to its ramp color [r, g, b, a-byte] through a
  * precomputed lookup table; alpha stops are stored scaled to 0-255 (the
  * demo's original bug rounded 0-1 floats straight into a Uint8Array, which
@@ -173,10 +143,11 @@ export function ovalLegendGradientCss(): string {
 }
 
 /**
- * Land fill for the basemap: #444444 on the black ocean per user pick -
- * 3.66:1 against black (the previous deep-indigo fill measured 1.36:1).
- * A constant, not a token - it is data-adjacent canvas paint like the ramp
- * stops, and the ui-palette contract governs SCSS.
+ * Land fill for the basemap: #444444 on the rgb(1, 3, 11) deep-space stage,
+ * re-confirmed per user pick 2026-09-06 - the oval must read at maximum
+ * brightness, and a lighter land fill washed it out. A constant, not a
+ * token: it is data-adjacent canvas paint like the ramp stops, and the
+ * ui-palette contract governs SCSS.
  */
 export const OVAL_LAND_FILL = "#444444";
 
@@ -286,28 +257,6 @@ export function ovalCellPoint(
   };
 }
 
-/** Per-level cell counts for one hemisphere; the hidden table's source of
- * truth. Boundary rows are excluded so the numbers match the painted map. */
-export function countGlowLevels(
-  product: OvationProduct,
-  hemisphere: OvalHemisphere,
-): Record<"none" | Exclude<AuroraBand, "none">, number> {
-  const counts: Record<"none" | Exclude<AuroraBand, "none">, number> = {
-    none: 0,
-    faint: 0,
-    moderate: 0,
-    strong: 0,
-    intense: 0,
-  };
-  for (const cell of product.coordinates) {
-    if (isBoundaryRow(cell.latitude)) continue;
-    const north = cell.latitude > 0;
-    if (hemisphere === "north" ? !north : north) continue;
-    counts[auroraBand(cell.aurora)] += 1;
-  }
-  return counts;
-}
-
 /**
  * 3x3 box blur over the raw grid frame, NOAA-render style. The OVATION grid
  * carries sparse value-1 speckle near the poles and hard-edged full-width
@@ -383,28 +332,10 @@ const OvalGlow: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const landCanvasRef = useRef<HTMLCanvasElement>(null);
 
-  const ovalQuery = useQuery({
-    queryKey: [...OVATION_QUERY_KEY],
-    queryFn: fetchOvation,
-    refetchInterval: OVATION_REFETCH_INTERVAL_MS,
-    refetchIntervalInBackground: OVATION_REFETCH_IN_BACKGROUND,
-    staleTime: OVATION_STALE_TIME_MS,
-    gcTime: 10 * 60 * 1000,
-  });
+  const ovalQuery = useOvationQuery();
 
   const state = liveDataState(ovalQuery, offline);
   const product = ovalQuery.data ?? null;
-
-  const counts = useMemo(
-    () =>
-      product
-        ? {
-            north: countGlowLevels(product, "north"),
-            south: countGlowLevels(product, "south"),
-          }
-        : null,
-    [product],
-  );
 
   useEffect(() => {
     paintGlow(canvasRef.current, product);
@@ -464,7 +395,6 @@ const OvalGlow: React.FC = () => {
       </div>
       <p className="oval-glow__fresh">
         Forecast Time {formatUtcShort(product.forecastTime)} – 30–90 min lead.
-        {/* Updated {formatAge(product.observationTime)}. */}
       </p>
       {state === "stale" ? <StaleDataNotice /> : null}
       <figure className="oval-glow__cap">
@@ -505,30 +435,6 @@ const OvalGlow: React.FC = () => {
           ))}
         </div>
       </div>
-      {/* <table className="oval-glow__table">
-        <caption>Oval glow levels by hemisphere</caption>
-        <thead>
-          <tr>
-            <th scope="col">Glow level</th>
-            <th scope="col">North cells</th>
-            <th scope="col">South cells</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <th scope="row">None</th>
-            <td>{counts?.north.none ?? 0}</td>
-            <td>{counts?.south.none ?? 0}</td>
-          </tr>
-          {OVAL_LEVELS.map(({ level, label }) => (
-            <tr key={level}>
-              <th scope="row">{label}</th>
-              <td>{counts?.north[level] ?? 0}</td>
-              <td>{counts?.south[level] ?? 0}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table> */}
     </section>
   );
 };

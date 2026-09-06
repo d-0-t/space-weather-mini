@@ -4,10 +4,9 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 
-import { OVATION_URL } from "../../../../../products/ovation";
+import { OVATION_URL, isBoundaryRow } from "../../../../../products/ovation";
 import { WORLD_LAND_URL } from "../../../../../products/world-land";
 import OvalGlow, {
-  isBoundaryRow,
   ovalCellPoint,
   ovalLegendGradientCss,
   rampColor,
@@ -125,7 +124,7 @@ describe("OvalGlow", () => {
     expect(screen.queryByText("Northern hemisphere")).toBeNull();
     expect(screen.queryByText("Southern hemisphere")).toBeNull();
     expect(
-      screen.queryByText("North pole (top) to south pole (bottom)"),
+      screen.queryByText("World map with the overlayed aurora rings."),
     ).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /^North$/ })).toBeNull();
     expect(screen.queryByRole("button", { name: /^South$/ })).toBeNull();
@@ -154,15 +153,17 @@ describe("OvalGlow", () => {
     expect(screen.queryByText(/Kp1/i)).toBeNull();
   });
 
-  it("shows Forecast Time, lead and age on one line with no repeated date", async () => {
+  it("shows Forecast Time and lead on one line, with the age only on the view-distance line", async () => {
     renderGlow();
     await canvases();
     expect(
       screen.getByText(
-        /Forecast Time Sep 4 14:33 UTC – 30–90 min lead • Updated/,
+        /Forecast Time Sep 4 14:33 UTC – 30–90 min lead\./,
       ),
     ).toBeInTheDocument();
-    expect(screen.getAllByText(/Sep 4 14:33 UTC/)).toHaveLength(1);
+    // The `Updated {age}` lives once, on the View distance As-of line –
+    // never twice on the same panel (user review 2026-09-06).
+    expect(screen.queryByText(/Updated/)).toBeNull();
     expect(screen.queryByText(/Observation Time/)).toBeNull();
   });
 
@@ -186,41 +187,6 @@ describe("OvalGlow", () => {
     expect(container.querySelector(".oval-glow__hatch")).toBeNull();
     // Legend and canvas share the same ramp source.
     expect(ovalLegendGradientCss()).toContain("rgba(0,90,55,0.42) 15%");
-  });
-
-  it("pairs the map with a hidden table carrying the same levels", async () => {
-    const { container } = renderGlow();
-    await canvases();
-    const table = container.querySelector(
-      "table.oval-glow__table",
-    ) as HTMLTableElement;
-    expect(table).not.toBeNull();
-    const text = table.textContent ?? "";
-    for (const level of ["None", "Faint", "Moderate", "Strong", "Intense"]) {
-      expect(text).toContain(level);
-    }
-  });
-
-  it("counts cells per hemisphere with the boundary rows excluded", async () => {
-    const { container } = renderGlow();
-    await canvases();
-    const table = container.querySelector(
-      "table.oval-glow__table",
-    ) as HTMLTableElement;
-    const rowCells = (label: string): string[] => {
-      const row = [...table.querySelectorAll("tbody tr")].find(
-        (tr) => tr.querySelector("th")?.textContent === label,
-      );
-      return [...(row?.querySelectorAll("td") ?? [])].map(
-        (td) => td.textContent ?? "",
-      );
-    };
-    // Boundary cells (lat 0, -1, 90, -90) never reach the counts.
-    expect(rowCells("None")).toEqual(["1", "0"]);
-    expect(rowCells("Faint")).toEqual(["1", "1"]);
-    expect(rowCells("Moderate")).toEqual(["1", "1"]);
-    expect(rowCells("Strong")).toEqual(["1", "0"]);
-    expect(rowCells("Intense")).toEqual(["1", "0"]);
   });
 
   it("paints the land basemap on a decorative canvas beneath the glow", async () => {
@@ -319,15 +285,13 @@ describe("OvalGlow", () => {
     expect(PWA_OPTIONS.workbox.globPatterns.join(",")).toContain("geojson");
   });
 
-  it("keeps the land fill readable against the black ocean", () => {
-    // #444444 on black per user pick; the previous deep-indigo fill
-    // measured 1.36:1 and read as a void.
+  it("keeps the user-picked #444444 land fill on the deep-space background", () => {
+    // #444444 on the rgb(1, 3, 11) deep-space stage, per user pick: the oval
+    // must read at max brightness - a lighter land fill washed the oval out.
+    // Recorded as a deliberate legibility decision; it measures 2.16:1
+    // against pure black (the once-claimed 3.66:1 was a miscalculation) and
+    // is not asserted against the WCAG non-text contrast bar.
     expect(OVAL_LAND_FILL).toBe("#444444");
-    const channel = parseInt(OVAL_LAND_FILL.slice(1, 3), 16) / 255;
-    const linear =
-      channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4;
-    const luminance = 0.2126 * linear + 0.7152 * linear + 0.0722 * linear;
-    expect((luminance + 0.05) / 0.05).toBeGreaterThanOrEqual(3);
   });
 
   it("unwraps antimeridian-wrapping rings so fills cannot self-intersect", () => {

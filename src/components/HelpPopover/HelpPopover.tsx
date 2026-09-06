@@ -15,6 +15,8 @@ export interface HelpPopoverContent {
   text?: string;
   /** Several prose paragraphs (oval glow map reading) */
   paragraphs?: string[];
+  /** Optional footnote after the prose, e.g. a provenance link */
+  footnote?: ReactNode;
 }
 
 /** Distance (px) the clamped popover keeps from the viewport edges. */
@@ -176,6 +178,9 @@ const HelpPopover: React.FC<{
           {content.paragraphs?.map((paragraph) => (
             <p key={paragraph}>{paragraph}</p>
           ))}
+          {content.footnote ? (
+            <p className="help-popover__footnote">{content.footnote}</p>
+          ) : null}
         </div>
       ) : null}
     </details>

@@ -5,8 +5,8 @@ const dataTimeout = 60_000;
 
 test("home page passes axe audit with live dashboard", async ({ page }) => {
   await page.goto("/");
-  await expect(page.getByRole("heading", { name: /^Aurora Now$/ })).toBeVisible({ timeout: dataTimeout });
-  await expect(page.getByRole("heading", { name: /Solar Wind/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^Aurora now$/ })).toBeVisible({ timeout: dataTimeout });
+  await expect(page.getByRole("heading", { name: /^Solar wind$/ })).toBeVisible();
   const results = await new AxeBuilder({ page }).analyze();
   expect(results.violations).toEqual([]);
 });

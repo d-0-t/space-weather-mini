@@ -1,0 +1,66 @@
+/* View distance – the Aurora band line under the oval glow (ticket 05). */
+
+.view-distance {
+  display: flex;
+  flex-direction: column;
+  text-shadow: var(--text-stroke-black);
+
+  &__probability {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.4rem;
+    margin-bottom: 0.5rem;
+
+    &__location {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.4rem;
+      line-height: 1.25rem;
+
+      &__text {
+        & > span:first-of-type {
+          font-weight: 500;
+        }
+        & > span:nth-of-type(2) {
+          font-size: 0.85rem;
+        }
+      }
+    }
+  }
+
+  &__location {
+    overflow-wrap: anywhere;
+  }
+
+  // The (i) popover anchors to its trigger like the oval-glow family's:
+  // absolutely positioned below the (i) icon, clamped by HelpPopover so it
+  // never leaves the viewport – never an in-flow text block flooding the
+  // panel.
+  &__popover {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    box-sizing: border-box;
+    width: min(300px, 70vw);
+    margin: 0;
+    padding: 0.6rem;
+    padding-right: 2.25rem;
+    background: var(--gradient-card);
+    border: 1px solid var(--color-border-muted);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    z-index: 30;
+    box-shadow: 0 4px 12px var(--color-black);
+
+    p {
+      margin: 0 0 0.4rem;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+}

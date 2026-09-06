@@ -3,8 +3,7 @@ import { useEffect, useState } from "react";
 import { formatUtcShort } from "../../../../../products/live-helpers";
 
 /** Honest stale copy for every live card when its data cannot be reached. */
-export const STALE_DATA_NOTICE =
-  "⚠ Showing saved data – couldn't reach NOAA";
+export const STALE_DATA_NOTICE = "⚠ Showing saved data – couldn't reach NOAA";
 
 /** Honest error copy for a live card that has never loaded any data. */
 export const COULDNT_LOAD_COPY = "Couldn't load – connect to refresh";
@@ -60,12 +59,13 @@ export const StaleDataNotice: React.FC = () => (
   </p>
 );
 
-/** Honest freshness line: "As of {time} • Updated {age}". */
+/** Honest freshness line: "As of {time}. Updated {age}." – sentences with
+ *  periods, never bullets (screen readers announce every bullet). */
 export const FreshnessLine: React.FC<{
   asOf: string;
   updated: string;
 }> = ({ asOf, updated }) => (
   <p className="live-panel__fresh">
-    As of {formatUtcShort(asOf)} • Updated {updated}
+    As of {formatUtcShort(asOf)}. Updated {updated}.
   </p>
 );
