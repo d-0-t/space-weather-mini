@@ -4,10 +4,23 @@
 
 **Blocked by:** 04
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Toggle button `Color-blind mode` `aria-pressed` next to legend, Light Lime focus per ADR-0002, persists `localStorage["sw:oval:cb:v1"]`, default off (clean colour wash, no hatch)
-- [ ] When on: same bands `1-5/6-10/11-15/16+` remapped to color-blind safe ramp (Okabe-Ito/viridis) plus alternating hatch (`\` vs `/` vs `X`, neighbours never share) at 6% opacity via `OffscreenCanvas` `CanvasPattern` 16×16 + thin white contour per band edge
-- [ ] Legend updates to show swatch + hatch square + line style per band; canvas `aria-label` updates to note color-blind mode; hidden table unchanged
-- [ ] Optional tap/hover tooltip `Aurora 14 ~ Kp 6` for precision without numbers on map (if added, also keyboard accessible)
-- [ ] Component test: toggle `aria-pressed` flips, persists key, default has no hatch element, enabled has hatch pattern class, axe audit passes in both modes; no pixel snapshot
+- [x] Toggle `Color-blind mode` **checkbox pill** like Compact view (checkbox rendered on the right, Light Lime focus per ADR-0002) on the same row as the glow intensity table disclosure, flex space-between with wrap; persists `localStorage["sw:oval:cb:v1"]`, default off (clean colour wash, no hatch)
+- [x] When on: remapped to a color-blind safe ramp — **adapted (see comments):** the spec's band-remap + hatch + contour predates the ADR-0007 rewrite to one continuous blurred gradient; with user approval the mode swaps the whole ramp to a transparent→white pure luminance ramp (strictly monotonic brightness, opaque white saturation at value 32) with no hatch and no contour
+- [x] Legend updates: the gradient bar swaps to the same white brightness gradient, derived from the same per-mode stops the canvas paints; canvas `aria-label` notes the brightness ramp; on-demand glow table unchanged
+- [x] Optional tap/hover tooltip `Aurora 14 ~ Kp 6` — skipped (user decision; numbers were deliberately dropped from the map in ticket 04's follow-up)
+- [x] Component tests: checkbox checks, persists the versioned key, restores on mount, legend swaps per mode, canvas name notes the mode, default mode keeps the color wash with no hatch element; axe audit passes in both modes (`e2e/home-a11y.spec.ts`); no pixel snapshot
+
+## Comments
+
+- **2026-09-06 – implemented via TDD (review pending).** Seams confirmed with the user before any test was written (all four): `products/color-blind.ts` storage (versioned `sw:oval:cb:v1`, thresholds pattern), pure ramp helpers beside the existing ramp exports in `OvalGlow.tsx`, the OvalGlow component (toggle, legend, aria-label) and the e2e axe audit in both modes.
+- **2026-09-06 – ramp redesign (approved deviation).** The ticket predates two oval rewrites. With the one pole-to-pole canvas painting a continuous blurred gradient, the band-edge hatch (`\`/`/`/`X` `OffscreenCanvas CanvasPattern` at 6%) and white contour literally cannot work: a 16×16 pattern cannot repeat inside a 1×1 px cell, and band edges are now gradients, not borders. Offered viridis vs a transparent→white gradient; the user picked **transparent→white** — pure luminance is the one channel deutan, protan, tritan, greyscale and night vision all read identically, and viridis's near-black violet low end would vanish on the `rgb(1,3,11)` deep-space stage. The bands stay semantic for the glow table and view distance only (ADR-0007 note updated).
+- **2026-09-06 – ramp anchor.** The luminance ramp saturates at Aurora 32 rather than 100: realistic activity tops out near 25 (quiet) to ~32+ (storm), so a 100 anchor would squeeze the whole storm range into a 7% brightness step at the top. Anchoring opaque white at 32 keeps storms differentiating (16→0.88, 32→1.0) with everything rarer clamped — you cannot be brighter than white. Review finding, applied.
+- **2026-09-06 – code-review fixes applied.** Shared `RampStop` type + one `RAMP_BY_MODE` map (stops + LUT gathered, no parallel maps); `ovalCanvasLabel` takes the `RampMode` (one representation everywhere); the localStorage write moved out of the React state updater (side effect); component docstring de-hatched.
+- **2026-09-06 – verification.** `tsc --noEmit` clean; Vitest 661 green across 70 files (was 651, +10: 3 storage, 4 pure ramp/legend/label, 3 component toggle); `vite build` emits `sw.js`; Playwright 42/42 green including the new axe-in-color-blind-mode journey.
+- **2026-09-06 – review round (user).** Two interaction changes, TDD red → green again:
+  - The Color-blind control became a **checkbox pill** like the Dashboard's Compact view toggle (label names it, checkbox rendered on the right via row-reverse, accent token, Light Lime focus through the global token) and moved from the legend onto the **same row as the glow intensity table disclosure** (`.oval-glow__controls`, space-between with wrap); the legend reverts to gradient bar + labels only.
+  - The View distance line's `Change location` trigger went **icon-only** (ticket 05 follow-up): `title` + sr-only span + the location icon, no visible label text.
+  - Suite re-verified: `tsc --noEmit` clean, Vitest 661 green (70 files), `vite build` emits `sw.js`, Playwright 43 green.
+- **Documentation moved with the decision:** CONTEXT.md "Color-blind mode" glossary entry rewritten; ADR-0006 implementation note (2026-09-06, ticket 06) records the approved redefinition plus the checkbox/icon-only review round; ADR-0007's band-consumer list corrected (color-blind mode keys off the mode, not `auroraBand`).

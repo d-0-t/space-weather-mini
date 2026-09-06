@@ -193,6 +193,12 @@ describe("AuroraNow", () => {
     expect(text?.textContent).toContain("Oslo");
     const change = screen.getByRole("button", { name: "Change location" });
     expect(change).toHaveClass("btn--secondary");
+    // Icon-only: no visible label, named by title + sr-only span.
+    expect(change.querySelector(".btn__label")).toBeNull();
+    expect(change.querySelector(".sr-only")?.textContent).toBe(
+      "Change location",
+    );
+    expect(change.getAttribute("title")).toBe("Change location");
     expect(screen.queryByRole("button", { name: /Oslo/ })).toBeNull();
   });
 

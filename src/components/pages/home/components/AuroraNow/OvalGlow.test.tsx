@@ -4,7 +4,7 @@
 process.env.TZ = "Europe/Stockholm";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { MemoryRouter } from "react-router-dom";
@@ -13,6 +13,7 @@ import { OVATION_URL, isBoundaryRow } from "../../../../../products/ovation";
 import { WORLD_LAND_URL } from "../../../../../products/world-land";
 import OvalGlow, {
   ovalCellPoint,
+  ovalCanvasLabel,
   ovalLegendGradientCss,
   rampColor,
   projectRing,
@@ -77,6 +78,7 @@ const landFixture = () =>
   });
 
 beforeEach(() => {
+  localStorage.clear();
   mockFetch.mockReset();
   mockFetch.mockImplementation((url: string) => {
     const u = typeof url === "string" ? url : "";
@@ -105,7 +107,149 @@ const renderGlow = () =>
 const canvases = async () =>
   await screen.findAllByRole("img", { name: /oval glow/i });
 
+describe("Color-blind (ticket 06)", () => {
+  it("ramps Aurora values through pure brightness: transparent white to opaque white", () => {
+    // Value 0 stays fully transparent; the ramp is white at every anchor.
+    expect(rampColor(0, "color-blind")).toEqual([255, 255, 255, 0]);
+    // Brightness is the only cue in this mode, so it must never decrease:
+    // the alpha byte climbs monotonically across the whole scale.
+    let previousAlpha = 0;
+    for (let value = 1; value <= 100; value += 1) {
+      const [, , , alpha] = rampColor(value, "color-blind");
+      expect(alpha).toBeGreaterThanOrEqual(previousAlpha);
+      previousAlpha = alpha;
+    }
+    expect(rampColor(1, "color-blind")[3]).toBeGreaterThan(0);
+    expect(rampColor(16, "color-blind")[3]).toBeGreaterThan(
+      rampColor(8, "color-blind")[3],
+    );
+    // No hue anywhere: every painted channel is white (255).
+    for (let value = 1; value <= 100; value += 1) {
+      const [r, g, b] = rampColor(value, "color-blind");
+      expect([r, g, b]).toEqual([255, 255, 255]);
+    }
+    // Extremes clamp to the opaque white end like the default ramp clamps
+    // to magenta.
+    expect(rampColor(200, "color-blind")).toEqual(
+      rampColor(100, "color-blind"),
+    );
+    expect(rampColor(100, "color-blind")[3]).toBe(255);
+    // Every byte stays in range across the full grid value range.
+    for (let value = 0; value <= 255; value += 1) {
+      for (const channel of rampColor(value, "color-blind")) {
+        expect(channel).toBeGreaterThanOrEqual(0);
+        expect(channel).toBeLessThanOrEqual(255);
+      }
+    }
+  });
+
+  it("keeps the default ramp when no mode is passed", () => {
+    expect(rampColor(8)).toEqual(rampColor(8, "default"));
+    expect(rampColor(8, "default")).not.toEqual(rampColor(8, "color-blind"));
+    // The default stays the green-dominant NOAA-like ramp (pinned above).
+    const [r, g] = rampColor(8, "default");
+    expect(g).toBeGreaterThan(r);
+  });
+
+  it("swaps the legend bar to the white brightness gradient in color-blind mode", () => {
+    const css = ovalLegendGradientCss("color-blind");
+    expect(css).toContain("rgba(255,255,255,0) 0%");
+    expect(css).toContain("rgba(255,255,255,1) 100%");
+    expect(ovalLegendGradientCss()).toBe(ovalLegendGradientCss("default"));
+    expect(ovalLegendGradientCss("default")).not.toBe(css);
+  });
+
+  it("notes the brightness ramp in the canvas name when the mode is on", () => {
+    const on = ovalCanvasLabel("color-blind");
+    expect(on).toMatch(/color-blind mode/i);
+    expect(on).toMatch(/brightness/i);
+    for (const level of ["faint", "moderate", "strong", "intense"]) {
+      expect(on.toLowerCase()).toContain(level);
+    }
+    expect(ovalCanvasLabel()).toBe(ovalCanvasLabel("default"));
+    expect(ovalCanvasLabel("default")).not.toMatch(/color-blind/i);
+  });
+});
+
 describe("OvalGlow", () => {
+  it("offers the glow table disclosure and the Color-blind checkbox on one row below the lead", async () => {
+    const { container } = renderGlow();
+    await canvases();
+    const fresh = container.querySelector(".oval-glow__fresh");
+    const controls = container.querySelector(
+      ".oval-glow__controls",
+    ) as HTMLElement;
+    const map = container.querySelector(".oval-glow__cap");
+    // Placement: the row sits between the 30-90 min lead and the map.
+    expect(fresh?.nextElementSibling).toBe(controls);
+    expect(controls.nextElementSibling).toBe(map);
+    // One line: the disclosure first, the checkbox pill last.
+    const disclosure = controls.querySelector(
+      "details.oval-glow__table-disclosure",
+    );
+    expect(disclosure).not.toBeNull();
+    expect(controls.firstElementChild).toBe(disclosure);
+    const checkbox = screen.getByRole("checkbox", { name: "Color-blind" });
+    expect(controls.lastElementChild).toBe(checkbox.closest("label"));
+    // Off by default: unchecked, the hue gradient, no brightness note.
+    expect(checkbox).not.toBeChecked();
+    const bar = container.querySelector(
+      ".oval-glow__legend__bar",
+    ) as HTMLElement;
+    expect(bar.getAttribute("style")).toContain("rgba(0, 90, 55, 0.42)");
+    expect((await canvases())[0].getAttribute("aria-label")).not.toMatch(
+      /color-blind/i,
+    );
+    // The legend holds no toggle anymore.
+    expect(
+      container.querySelector(".oval-glow__legend .oval-glow__cb-toggle"),
+    ).toBeNull();
+  });
+
+  it("toggles the checkbox: persists the versioned key and swaps to the brightness ramp", async () => {
+    const user = userEvent.setup();
+    const { container } = renderGlow();
+    await canvases();
+    const checkbox = screen.getByRole("checkbox", { name: "Color-blind" });
+    await user.click(checkbox);
+    expect(checkbox).toBeChecked();
+    expect(localStorage.getItem("sw:oval:cb:v1")).toBe(
+      JSON.stringify({ colorBlind: true, v: 1 }),
+    );
+    const bar = container.querySelector(
+      ".oval-glow__legend__bar",
+    ) as HTMLElement;
+    // jsdom's cssstyle collapses alpha-1 rgba() to rgb().
+    expect(bar.getAttribute("style")).toContain("rgb(255, 255, 255) 100%");
+    expect((await canvases())[0].getAttribute("aria-label")).toMatch(
+      /color-blind mode/i,
+    );
+    // Unchecking turns the mode off and persists the off state.
+    await user.click(checkbox);
+    expect(checkbox).not.toBeChecked();
+    expect(localStorage.getItem("sw:oval:cb:v1")).toBe(
+      JSON.stringify({ colorBlind: false, v: 1 }),
+    );
+  });
+
+  it("restores the persisted Color-blind on mount", async () => {
+    localStorage.setItem(
+      "sw:oval:cb:v1",
+      JSON.stringify({ colorBlind: true, v: 1 }),
+    );
+    const { container } = renderGlow();
+    await canvases();
+    expect(screen.getByRole("checkbox", { name: "Color-blind" })).toBeChecked();
+    const bar = container.querySelector(
+      ".oval-glow__legend__bar",
+    ) as HTMLElement;
+    // jsdom's cssstyle collapses alpha-1 rgba() to rgb().
+    expect(bar.getAttribute("style")).toContain("rgb(255, 255, 255) 100%");
+    expect((await canvases())[0].getAttribute("aria-label")).toMatch(
+      /color-blind mode/i,
+    );
+  });
+
   it("fetches the OVATION grid from the NOAA URL and the land asset once", async () => {
     renderGlow();
     await canvases();
@@ -182,11 +326,14 @@ describe("OvalGlow", () => {
       "details.oval-glow__table-disclosure",
     ) as HTMLDetailsElement;
     expect(disclosure).not.toBeNull();
-    // Placement: right below the 30-90 min lead, above the visual map.
+    // Placement: right below the 30-90 min lead, above the visual map (the
+    // disclosure shares one row with the Color-blind checkbox).
     const fresh = container.querySelector(".oval-glow__fresh");
+    const controls = container.querySelector(".oval-glow__controls");
     const map = container.querySelector(".oval-glow__cap");
-    expect(fresh?.nextElementSibling).toBe(disclosure);
-    expect(disclosure.nextElementSibling).toBe(map);
+    expect(fresh?.nextElementSibling).toBe(controls);
+    expect(controls?.contains(disclosure)).toBe(true);
+    expect(controls?.nextElementSibling).toBe(map);
     // Hidden by default, opened through the ReadMore summary.
     expect(disclosure.open).toBe(false);
     const summary = screen.getByText("Glow intensity table");

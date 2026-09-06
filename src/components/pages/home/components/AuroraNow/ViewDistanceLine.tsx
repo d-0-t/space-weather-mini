@@ -32,13 +32,13 @@ const VIEW_DISTANCE_COPY =
 
 /**
  * The View distance band line under the oval: `Aurora {band} (i) – {place}
- * [Change location]`. The confidence reads lowercase mid-sentence (no
- * preposition – `from`/`at` do not work for every band), the place is plain
- * text, and one `btn--secondary` `Change location` button opens the shared
- * PlaceFinder modal. The `(i)` sits right after the info it explains and
- * carries the approved copy, the band table and the provenance link. Hidden
- * while the grid has not loaded – the oval map above carries the loading
- * and error states.
+ * [icon]`. The confidence reads lowercase mid-sentence (no preposition –
+ * `from`/`at` do not work for every band), the place is plain text, and one
+ * icon-only `btn--secondary` trigger (title + sr-only `Change location`)
+ * opens the shared PlaceFinder modal. The `(i)` sits right after the info
+ * it explains and carries the approved copy, the band table and the
+ * provenance link. Hidden while the grid has not loaded – the oval map
+ * above carries the loading and error states.
  */
 const ViewDistanceLine: React.FC = () => {
   const { place, pick } = useGeocodedPlace();

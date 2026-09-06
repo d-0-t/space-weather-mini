@@ -45,10 +45,11 @@ interface PlaceFinderProps {
   onPick: (match: GeocodeMatch) => void;
   /**
    * The action the trigger performs, e.g. `Change location` on the View
-   * distance line: the trigger then reads as a plain action button (icon +
-   * label, no flag and no place name – the line already carries the place as
-   * text). Unset (default), the trigger is the `icon+shortName+flag` place
-   * pill used by the page headers.
+   * distance line: the trigger then renders icon-only, named by `title` +
+   * a `.sr-only` span per the icon-only rule (no visible label, no flag –
+   * the line already carries the place as text). Unset (default), the
+   * trigger is the `icon+shortName+flag` place pill used by the page
+   * headers.
    */
   actionLabel?: string;
 }
@@ -258,21 +259,25 @@ const PlaceFinder: React.FC<PlaceFinderProps> = ({
         onClick={open}
       >
         <LocationOnIcon aria-hidden="true" fontSize="small" />
-        <span className="btn__label">
-          {actionLabel ?? shortName}
+        {actionLabel ? (
+          <span className="sr-only">{actionLabel}</span>
+        ) : (
+          <span className="btn__label">
+            {shortName}
 
-          {!actionLabel && countryCode ? (
-            <img
-              src={flagSrc(countryCode, "16x12")}
-              srcSet={`${flagSrc(countryCode, "32x24")} 2x, ${flagSrc(countryCode, "48x36")} 3x`}
-              width={16}
-              height={12}
-              alt=""
-              title={country}
-              loading="lazy"
-            />
-          ) : null}
-        </span>
+            {countryCode ? (
+              <img
+                src={flagSrc(countryCode, "16x12")}
+                srcSet={`${flagSrc(countryCode, "32x24")} 2x, ${flagSrc(countryCode, "48x36")} 3x`}
+                width={16}
+                height={12}
+                alt=""
+                title={country}
+                loading="lazy"
+              />
+            ) : null}
+          </span>
+        )}
       </button>
       <dialog
         ref={dialogRef}

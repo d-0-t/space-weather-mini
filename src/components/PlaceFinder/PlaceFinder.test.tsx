@@ -86,17 +86,19 @@ describe("PlaceFinder modal (shared place, ticket 02 offline-personal-oval)", ()
     expect(modal().open).toBe(false);
   });
 
-  it("renders the action label as the whole trigger when actionLabel is set", () => {
-    // The View distance line uses this: info + place in text + one
-    // `Change location` button, so the pill must not repeat the place.
+  it("renders the action trigger icon-only, named by title and sr-only span", () => {
+    // The View distance line uses this: an icon-only `Change location`
+    // trigger (title + sr-only span, no visible label) so the pill shows
+    // only the icon.
     renderFinder({ actionLabel: "Change location" });
     const button = screen.getByRole("button", {
       name: "Change location",
     }) as HTMLButtonElement;
-    expect(button.querySelector(".btn__label")?.textContent).toBe(
+    expect(button.querySelector(".btn__label")).toBeNull();
+    expect(button.querySelector(".sr-only")?.textContent).toBe(
       "Change location",
     );
-    // No flag on an action trigger - the place lives in the line's text.
+    expect(button.getAttribute("title")).toBe("Change location");
     expect(button.querySelector("img")).toBeNull();
     expect(modal().open).toBe(false);
   });

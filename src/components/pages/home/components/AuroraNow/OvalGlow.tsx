@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import ReadMoreIcon from "@mui/icons-material/ReadMore";
@@ -12,6 +12,10 @@ import {
   type AuroraBand,
   type OvationProduct,
 } from "../../../../../products/ovation";
+import {
+  loadColorBlindMode,
+  saveColorBlindMode,
+} from "../../../../../products/color-blind";
 import { useOvationQuery } from "./useOvationQuery";
 import {
   WORLD_LAND_URL,
@@ -51,6 +55,14 @@ export const OVAL_LEVELS: Array<{
   { level: "intense", label: "Intense" },
 ];
 
+/** One ramp stop: legend position in percent, the Aurora value the color
+ * anchors to (the LUT interpolates on this), and the color [r, g, b, a-0..1]. */
+export interface RampStop {
+  pos: number;
+  value: number;
+  color: [number, number, number, number];
+}
+
 /**
  * Continuous glow color ramp, five hues in band order: transparent -> green
  * -> yellow -> red -> bright magenta, with `pos` placing each stop on the
@@ -67,13 +79,7 @@ export const OVAL_LEVELS: Array<{
  * thresholds stay untouched for the on-demand glow table, the view-distance
  * band and color-blind mode.
  */
-export const OVAL_RAMP_STOPS: Array<{
-  /** Legend bar position in percent. */
-  pos: number;
-  /** Aurora value the color anchors to; the LUT interpolates on this. */
-  value: number;
-  color: [number, number, number, number];
-}> = [
+export const OVAL_RAMP_STOPS: RampStop[] = [
   { pos: 0, value: 0, color: [0, 0, 0, 0] },
   { pos: 15, value: 3, color: [0, 90, 55, 0.42] },
   { pos: 32, value: 8, color: [0, 150, 80, 0.72] },
@@ -83,6 +89,30 @@ export const OVAL_RAMP_STOPS: Array<{
   { pos: 82, value: 45, color: [255, 45, 0, 1] },
   { pos: 92, value: 70, color: [255, 0, 160, 1] },
   { pos: 100, value: 100, color: [255, 90, 245, 1] },
+];
+
+/** Which paint ramp the map uses: the hue ramp, or Color-blind's
+ * brightness-only ramp (ticket 06). */
+export type RampMode = "default" | "color-blind";
+
+/**
+ * Color-blind ramp (ticket 06, approved 2026-09-06): pure luminance –
+ * transparent white to opaque white – so brightness is the one cue every
+ * color-vision type and greyscale reads identically. Alpha climbs
+ * monotonically from the faint band to fully opaque white at value 32, a
+ * rare-storm anchor: the realistic range (quiet max 25, storms higher)
+ * keeps differentiating while everything above saturates – you cannot be
+ * brighter than white. No hatch or contour is layered on top (they cannot
+ * survive a blurred continuous gradient; dropped with user approval at the
+ * seam review).
+ */
+export const OVAL_CB_RAMP_STOPS: RampStop[] = [
+  { pos: 0, value: 0, color: [255, 255, 255, 0] },
+  { pos: 15, value: 3, color: [255, 255, 255, 0.3] },
+  { pos: 32, value: 8, color: [255, 255, 255, 0.55] },
+  { pos: 52, value: 15, color: [255, 255, 255, 0.8] },
+  { pos: 58, value: 16, color: [255, 255, 255, 0.88] },
+  { pos: 100, value: 32, color: [255, 255, 255, 1] },
 ];
 
 /** Canvas size: 1px per 1-degree cell of the full OVATION grid (360 lon x
@@ -98,11 +128,11 @@ export const OVAL_CANVAS_HEIGHT = 181;
  * precomputed lookup table; alpha stops are stored scaled to 0-255 (the
  * demo's original bug rounded 0-1 floats straight into a Uint8Array, which
  * painted the whole ramp transparent). Values past the last stop clamp to
- * the magenta end.
+ * the ramp's end. One LUT per mode: the default hue ramp and Color-blind
+ * mode's brightness ramp.
  */
-const RAMP_LUT = (() => {
+function buildRampLut(stops: RampStop[]): Uint8Array {
   const lut = new Uint8Array(256 * 4);
-  const stops = OVAL_RAMP_STOPS;
   const last = stops[stops.length - 1];
   for (let value = 0; value < 256; value += 1) {
     let lo = stops[0];
@@ -131,22 +161,38 @@ const RAMP_LUT = (() => {
     );
   }
   return lut;
-})();
-
-/** Ramp color for one Aurora value: [r, g, b, a-byte]. */
-export function rampColor(aurora: number): [number, number, number, number] {
-  const o = Math.min(255, Math.max(0, Math.round(aurora))) * 4;
-  return [RAMP_LUT[o], RAMP_LUT[o + 1], RAMP_LUT[o + 2], RAMP_LUT[o + 3]];
 }
 
-/** Legend bar background: the ramp as a CSS gradient using each stop's
- * `pos`, derived from the same stops the canvas paints so legend and glow
- * can never drift apart. */
-export function ovalLegendGradientCss(): string {
-  return `linear-gradient(to right, ${OVAL_RAMP_STOPS.map(
-    (stop) =>
-      `rgba(${stop.color[0]},${stop.color[1]},${stop.color[2]},${stop.color[3]}) ${stop.pos}%`,
-  ).join(", ")})`;
+/** One ramp definition per mode: the stops the legend bar renders and the
+ * LUT the canvas paints through, gathered so the two can never drift. */
+const RAMP_BY_MODE: Record<RampMode, { stops: RampStop[]; lut: Uint8Array }> = {
+  default: { stops: OVAL_RAMP_STOPS, lut: buildRampLut(OVAL_RAMP_STOPS) },
+  "color-blind": {
+    stops: OVAL_CB_RAMP_STOPS,
+    lut: buildRampLut(OVAL_CB_RAMP_STOPS),
+  },
+};
+
+/** Ramp color for one Aurora value in the given mode: [r, g, b, a-byte]. */
+export function rampColor(
+  aurora: number,
+  mode: RampMode = "default",
+): [number, number, number, number] {
+  const { lut } = RAMP_BY_MODE[mode];
+  const o = Math.min(255, Math.max(0, Math.round(aurora))) * 4;
+  return [lut[o], lut[o + 1], lut[o + 2], lut[o + 3]];
+}
+
+/** Legend bar background for the given mode: the mode's ramp as a CSS
+ * gradient using each stop's `pos`, derived from the same stops the canvas
+ * paints so legend and glow can never drift apart. */
+export function ovalLegendGradientCss(mode: RampMode = "default"): string {
+  return `linear-gradient(to right, ${RAMP_BY_MODE[mode].stops
+    .map(
+      (stop) =>
+        `rgba(${stop.color[0]},${stop.color[1]},${stop.color[2]},${stop.color[3]}) ${stop.pos}%`,
+    )
+    .join(", ")})`;
 }
 
 /**
@@ -242,11 +288,15 @@ function paintLand(
  * is the documented exception (`coding-standards.md:39`: acceptable where
  * text cannot work at all).
  */
-export function ovalCanvasLabel(): string {
+export function ovalCanvasLabel(mode: RampMode = "default"): string {
   const levels = OVAL_LEVELS.map((entry) => entry.label.toLowerCase()).join(
     ", ",
   );
-  return `Oval glow intensity, world map from north pole to south pole. Glow levels, dimmest first: ${levels}. Transparent means no glow forecast.`;
+  const colorBlindNote =
+    mode === "color-blind"
+      ? " Color-blind on: the glow paints as brightness only – dimmer means faint, brighter means stronger – so the map reads without color."
+      : "";
+  return `Oval glow intensity, world map from north pole to south pole. Glow levels, dimmest first: ${levels}. Transparent means no glow forecast.${colorBlindNote}`;
 }
 
 /**
@@ -322,10 +372,12 @@ export function blurGlowFrame(
   return out;
 }
 
-/** Paints the world grid; silently keeps the last frame when headless. */
+/** Paints the world grid in the given ramp mode; silently keeps the last
+ * frame when headless. */
 function paintGlow(
   canvas: HTMLCanvasElement | null,
   product: OvationProduct | null,
+  mode: RampMode,
 ): void {
   if (!canvas || !product) return;
   const context = canvas.getContext("2d");
@@ -338,7 +390,7 @@ function paintGlow(
     if (x < 0 || x >= OVAL_CANVAS_WIDTH || y < 0 || y >= OVAL_CANVAS_HEIGHT) {
       continue;
     }
-    const [r, g, b, a] = rampColor(cell.aurora);
+    const [r, g, b, a] = rampColor(cell.aurora, mode);
     const o = (y * OVAL_CANVAS_WIDTH + x) * 4;
     frame.data[o] = r;
     frame.data[o + 1] = g;
@@ -354,13 +406,21 @@ function paintGlow(
 /**
  * Oval glow intensity – the real OVATION 1-degree grid as one continuous
  * NASA-style glow ramp on a single pole-to-pole world canvas over a Natural
- * Earth land basemap painted with the same projection. Color wash only (no
- * hatch; hatch arrives with color-blind mode in ticket 06).
+ * Earth land basemap painted with the same projection. Color wash only in
+ * the default mode; Color-blind (ticket 06) swaps the ramp to pure
+ * brightness via the toggle beside the legend.
  */
 const OvalGlow: React.FC = () => {
   const offline = useIsOffline();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const landCanvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Color-blind is a per-user preference: read once on mount, written
+  // on every toggle, versioned in localStorage (products/color-blind.ts).
+  const [colorBlind, setColorBlind] = useState(() =>
+    loadColorBlindMode(localStorage),
+  );
+  const mode: RampMode = colorBlind ? "color-blind" : "default";
 
   const ovalQuery = useOvationQuery();
 
@@ -379,8 +439,18 @@ const OvalGlow: React.FC = () => {
   );
 
   useEffect(() => {
-    paintGlow(canvasRef.current, product);
-  }, [product]);
+    paintGlow(canvasRef.current, product, mode);
+  }, [product, mode]);
+
+  const handleColorBlindChange = (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ): void => {
+    const next = event.target.checked;
+    // The write rides the change event, not the state updater: it is a side
+    // effect, and React may invoke updaters more than once.
+    saveColorBlindMode(localStorage, next);
+    setColorBlind(next);
+  };
 
   // The land query is static asset territory: fetched once, retried by the
   // offline discipline, never polled. A failed land fetch leaves the ocean
@@ -438,39 +508,54 @@ const OvalGlow: React.FC = () => {
         Forecast Time {formatUtcShort(product.forecastTime)} (
         {formatLocalShort(product.forecastTime)} your time) – 30–90 min lead.
       </p>
-      {/* The map's data alternative for everyone (no sr-only tables): a
+      {/* One controls row, space-between with wrap: the map's data
+          alternative for everyone (no sr-only tables) on the left – a
           disclosure that stays closed until asked for, named by its visible
-          text with the ReadMore icon as decoration. */}
-      <details className="oval-glow__table-disclosure">
-        <summary className="oval-glow__table-disclosure__summary">
-          <ReadMoreIcon aria-hidden="true" fontSize="small" />
-          <span>Glow intensity table</span>
-        </summary>
-        <table className="oval-glow__table">
-          <caption>Oval glow levels by hemisphere</caption>
-          <thead>
-            <tr>
-              <th scope="col">Glow level</th>
-              <th scope="col">North cells</th>
-              <th scope="col">South cells</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <th scope="row">None</th>
-              <td>{counts?.north.none ?? 0}</td>
-              <td>{counts?.south.none ?? 0}</td>
-            </tr>
-            {OVAL_LEVELS.map(({ level, label }) => (
-              <tr key={level}>
-                <th scope="row">{label}</th>
-                <td>{counts?.north[level] ?? 0}</td>
-                <td>{counts?.south[level] ?? 0}</td>
+          text with the ReadMore icon as decoration – and the Color-blind
+          checkbox pill on the right. */}
+      <div className="oval-glow__controls">
+        <details className="oval-glow__table-disclosure">
+          <summary className="oval-glow__table-disclosure__summary">
+            <ReadMoreIcon aria-hidden="true" fontSize="small" />
+            <span>Glow intensity table</span>
+          </summary>
+          <table className="oval-glow__table">
+            <caption>Oval glow levels by hemisphere</caption>
+            <thead>
+              <tr>
+                <th scope="col">Glow level</th>
+                <th scope="col">North cells</th>
+                <th scope="col">South cells</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </details>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">None</th>
+                <td>{counts?.north.none ?? 0}</td>
+                <td>{counts?.south.none ?? 0}</td>
+              </tr>
+              {OVAL_LEVELS.map(({ level, label }) => (
+                <tr key={level}>
+                  <th scope="row">{label}</th>
+                  <td>{counts?.north[level] ?? 0}</td>
+                  <td>{counts?.south[level] ?? 0}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </details>
+        {/* Color-blind (ticket 06): a checkbox pill like Compact view
+            (checkbox rendered on the right), named by its visible label
+            text; focus is Light Lime through the global button token. */}
+        <label className="btn--secondary oval-glow__cb-toggle">
+          <input
+            type="checkbox"
+            checked={colorBlind}
+            onChange={handleColorBlindChange}
+          />
+          <span className="btn__label">Color-blind</span>
+        </label>
+      </div>
       {state === "stale" ? <StaleDataNotice /> : null}
       <figure className="oval-glow__cap">
         <figcaption className="oval-glow__cap__label sr-only">
@@ -492,14 +577,14 @@ const OvalGlow: React.FC = () => {
             width={OVAL_CANVAS_WIDTH}
             height={OVAL_CANVAS_HEIGHT}
             role="img"
-            aria-label={ovalCanvasLabel()}
+            aria-label={ovalCanvasLabel(mode)}
           />
         </div>
       </figure>
       <div className="oval-glow__legend">
         <div
           className="oval-glow__legend__bar"
-          style={{ background: ovalLegendGradientCss() }}
+          style={{ background: ovalLegendGradientCss(mode) }}
           aria-hidden="true"
         />
         <div className="oval-glow__legend__labels">

@@ -129,12 +129,43 @@
     image-rendering: pixelated;
   }
 
+  // One controls row under the freshness line: the glow intensity table
+  // disclosure on the left, the Color-blind checkbox pill on the right,
+  // wrapping under each other on narrow panels.
+  &__controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem 1rem;
+  }
+
+  // Color-blind checkbox pill, mirroring the Compact view toggle: pill
+  // chrome from .btn--secondary, checkbox rendered on the right of the
+  // label text via row-reverse.
+  &__cb-toggle {
+    cursor: pointer;
+    user-select: none;
+    display: flex;
+    flex-direction: row-reverse;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.5rem;
+
+    input[type="checkbox"] {
+      accent-color: var(--color-medium-green);
+      width: 1.2rem;
+      height: 1.2rem;
+      cursor: pointer;
+    }
+  }
+
   &__legend {
     margin: 0.5rem 0;
   }
 
-  // Gradient bar derived from OVAL_RAMP_STOPS via an inline style, so the
-  // legend and the painted glow share one source of stops.
+  // Gradient bar + level labels, derived from the ramp stops via an inline
+  // style, so the legend and the painted glow share one source of stops.
   &__legend__bar {
     height: 0.75rem;
     border: 1px solid var(--color-border-muted);
