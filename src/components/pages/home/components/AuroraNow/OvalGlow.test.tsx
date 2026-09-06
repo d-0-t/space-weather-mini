@@ -9,12 +9,18 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 
-import { OVATION_URL, isBoundaryRow } from "../../../../../products/ovation";
+import {
+  OVATION_URL,
+  isBoundaryRow,
+  parseOvation,
+} from "../../../../../products/ovation";
 import { WORLD_LAND_URL } from "../../../../../products/world-land";
 import OvalGlow, {
   ovalCellPoint,
   ovalCanvasLabel,
   ovalLegendGradientCss,
+  ovalLegendMarkerPos,
+  maxGlowValue,
   rampColor,
   projectRing,
   blurGlowFrame,
@@ -108,11 +114,12 @@ const canvases = async () =>
   await screen.findAllByRole("img", { name: /oval glow/i });
 
 describe("Color-blind (ticket 06)", () => {
-  it("ramps Aurora values through pure brightness: transparent white to opaque white", () => {
-    // Value 0 stays fully transparent; the ramp is white at every anchor.
+  it("ramps Aurora values through pure greyscale: transparent white up, storm cores to black", () => {
+    // Value 0 stays fully transparent; the ramp is white at every anchor
+    // through the ordinary range.
     expect(rampColor(0, "color-blind")).toEqual([255, 255, 255, 0]);
-    // Brightness is the only cue in this mode, so it must never decrease:
-    // the alpha byte climbs monotonically across the whole scale.
+    // Brightness is the primary cue in this mode: the alpha byte climbs
+    // monotonically across the whole scale.
     let previousAlpha = 0;
     for (let value = 1; value <= 100; value += 1) {
       const [, , , alpha] = rampColor(value, "color-blind");
@@ -123,17 +130,32 @@ describe("Color-blind (ticket 06)", () => {
     expect(rampColor(16, "color-blind")[3]).toBeGreaterThan(
       rampColor(8, "color-blind")[3],
     );
-    // No hue anywhere: every painted channel is white (255).
+    // Re-anchored 2026-09-06 with the default ramp, alphas softened the
+    // same day: the faint 0.1 start keeps the quiet range dim while the
+    // climb continues through ordinary-night cores (which reach the low
+    // 30s), saturating where the default hits full-saturation red.
+    expect(rampColor(45, "color-blind")[3]).toBeGreaterThan(
+      rampColor(16, "color-blind")[3],
+    );
+    expect(rampColor(75, "color-blind")[3]).toBe(255);
+    expect(rampColor(60, "color-blind")[3]).toBeLessThan(255);
+    // No hue anywhere: every painted channel is greyscale (r = g = b) –
+    // white through the ordinary range, sweeping to black over the
+    // extreme tail (75-100) so the rarest cores read as a dark eye.
     for (let value = 1; value <= 100; value += 1) {
       const [r, g, b] = rampColor(value, "color-blind");
-      expect([r, g, b]).toEqual([255, 255, 255]);
+      expect(r).toBe(g);
+      expect(g).toBe(b);
+      if (value <= 75) {
+        expect(r).toBe(255);
+      }
     }
-    // Extremes clamp to the opaque white end like the default ramp clamps
+    expect(rampColor(100, "color-blind")).toEqual([0, 0, 0, 255]);
+    // Extremes clamp to the opaque black end like the default ramp clamps
     // to magenta.
     expect(rampColor(200, "color-blind")).toEqual(
       rampColor(100, "color-blind"),
     );
-    expect(rampColor(100, "color-blind")[3]).toBe(255);
     // Every byte stays in range across the full grid value range.
     for (let value = 0; value <= 255; value += 1) {
       for (const channel of rampColor(value, "color-blind")) {
@@ -151,23 +173,89 @@ describe("Color-blind (ticket 06)", () => {
     expect(g).toBeGreaterThan(r);
   });
 
-  it("swaps the legend bar to the white brightness gradient in color-blind mode", () => {
+  it("swaps the legend bar to the greyscale gradient in color-blind mode", () => {
     const css = ovalLegendGradientCss("color-blind");
     expect(css).toContain("rgba(255,255,255,0) 0%");
-    expect(css).toContain("rgba(255,255,255,1) 100%");
+    expect(css).toContain("rgba(255,255,255,1) 92%");
+    expect(css).toContain("rgba(0,0,0,1) 100%");
     expect(ovalLegendGradientCss()).toBe(ovalLegendGradientCss("default"));
     expect(ovalLegendGradientCss("default")).not.toBe(css);
   });
 
   it("notes the brightness ramp in the canvas name when the mode is on", () => {
     const on = ovalCanvasLabel("color-blind");
-    expect(on).toMatch(/color-blind mode/i);
+    expect(on).toMatch(/color-blind on/i);
     expect(on).toMatch(/brightness/i);
+    expect(on).toMatch(/invert to black/i);
     for (const level of ["faint", "moderate", "strong", "intense"]) {
       expect(on.toLowerCase()).toContain(level);
     }
     expect(ovalCanvasLabel()).toBe(ovalCanvasLabel("default"));
     expect(ovalCanvasLabel("default")).not.toMatch(/color-blind/i);
+  });
+});
+
+describe("Legend max marker", () => {
+  it("positions the tick through the same stops the bar gradient paints", () => {
+    // Stop anchors land on their own pos; in-between values interpolate.
+    expect(ovalLegendMarkerPos(0)).toBe(0);
+    expect(ovalLegendMarkerPos(3)).toBe(15);
+    expect(ovalLegendMarkerPos(8)).toBe(32);
+    expect(ovalLegendMarkerPos(15)).toBe(48);
+    expect(ovalLegendMarkerPos(20)).toBe(52.67);
+    expect(ovalLegendMarkerPos(30)).toBe(62);
+    expect(ovalLegendMarkerPos(45)).toBe(72);
+    expect(ovalLegendMarkerPos(75)).toBe(92);
+    expect(ovalLegendMarkerPos(100)).toBe(100);
+    // Values past the clamp sit at the bar end like the paint does.
+    expect(ovalLegendMarkerPos(200)).toBe(100);
+    // Color-blind mode walks its own stops (same layout today).
+    expect(ovalLegendMarkerPos(60, "color-blind")).toBe(82);
+    expect(ovalLegendMarkerPos(75, "color-blind")).toBe(92);
+    expect(ovalLegendMarkerPos(100, "color-blind")).toBe(100);
+  });
+
+  it("reads the max from the painted set only: boundary rows and sub-1 cells excluded", () => {
+    // The mixed grid's painted max is 20; boundary-row noise (5 at lat 0)
+    // and transparent cells never reach it.
+    expect(maxGlowValue(parseOvation(mixedGrid()))).toBe(20);
+    expect(maxGlowValue(parseOvation(makeGrid([[10, 70, 0]])))).toBeNull();
+    // Boundary rows alone paint nothing, so there is no max either.
+    expect(
+      maxGlowValue(parseOvation(makeGrid([[0, 0, 5], [10, 90, 3]]))),
+    ).toBeNull();
+  });
+
+  it("pins a legend marker at tonight's max on the map", async () => {
+    const { container } = renderGlow();
+    await canvases();
+    const marker = container.querySelector(
+      ".oval-glow__legend__marker",
+    ) as HTMLElement | null;
+    expect(marker).not.toBeNull();
+    // Painted max is 20: between the 15 (pos 48%) and 30 (pos 62%) stops.
+    expect(marker?.getAttribute("style")).toContain("left: 52.67%");
+    // Native hover affordance: the tooltip names what the line means.
+    expect(marker?.getAttribute("title")).toBe("Current maximum");
+  });
+
+  it("hides the legend marker when no cell paints", async () => {
+    mockFetch.mockImplementation((url: string) => {
+      const u = typeof url === "string" ? url : "";
+      if (u.includes("ovation_aurora_latest.json"))
+        return Promise.resolve({
+          ok: true,
+          text: async () => makeGrid([[10, 70, 0]]),
+        });
+      if (u.includes(WORLD_LAND_URL))
+        return Promise.resolve({ ok: true, text: async () => landFixture() });
+      return Promise.resolve({ ok: true, text: async () => "" });
+    });
+    const { container } = renderGlow();
+    await canvases();
+    expect(
+      container.querySelector(".oval-glow__legend__marker"),
+    ).toBeNull();
   });
 });
 
@@ -196,7 +284,7 @@ describe("OvalGlow", () => {
     const bar = container.querySelector(
       ".oval-glow__legend__bar",
     ) as HTMLElement;
-    expect(bar.getAttribute("style")).toContain("rgba(0, 90, 55, 0.42)");
+    expect(bar.getAttribute("style")).toContain("rgba(0, 90, 55, 0.25)");
     expect((await canvases())[0].getAttribute("aria-label")).not.toMatch(
       /color-blind/i,
     );
@@ -220,9 +308,10 @@ describe("OvalGlow", () => {
       ".oval-glow__legend__bar",
     ) as HTMLElement;
     // jsdom's cssstyle collapses alpha-1 rgba() to rgb().
-    expect(bar.getAttribute("style")).toContain("rgb(255, 255, 255) 100%");
+    expect(bar.getAttribute("style")).toContain("rgb(255, 255, 255) 92%");
+    expect(bar.getAttribute("style")).toContain("rgb(0, 0, 0) 100%");
     expect((await canvases())[0].getAttribute("aria-label")).toMatch(
-      /color-blind mode/i,
+      /color-blind on/i,
     );
     // Unchecking turns the mode off and persists the off state.
     await user.click(checkbox);
@@ -244,9 +333,10 @@ describe("OvalGlow", () => {
       ".oval-glow__legend__bar",
     ) as HTMLElement;
     // jsdom's cssstyle collapses alpha-1 rgba() to rgb().
-    expect(bar.getAttribute("style")).toContain("rgb(255, 255, 255) 100%");
+    expect(bar.getAttribute("style")).toContain("rgb(255, 255, 255) 92%");
+    expect(bar.getAttribute("style")).toContain("rgb(0, 0, 0) 100%");
     expect((await canvases())[0].getAttribute("aria-label")).toMatch(
-      /color-blind mode/i,
+      /color-blind on/i,
     );
   });
 
@@ -384,7 +474,7 @@ describe("OvalGlow", () => {
     expect(bar).not.toBeNull();
     expect(bar.getAttribute("style")).toContain("linear-gradient");
     // jsdom serializes the gradient with spaced rgba() channels.
-    expect(bar.getAttribute("style")).toContain("rgba(0, 90, 55, 0.42)");
+    expect(bar.getAttribute("style")).toContain("rgba(0, 90, 55, 0.25)");
     const labels = [
       ...legend.querySelectorAll(".oval-glow__legend__label"),
     ].map((el) => el.textContent);
@@ -394,7 +484,7 @@ describe("OvalGlow", () => {
     expect(legend.querySelector(".oval-glow__swatch")).toBeNull();
     expect(container.querySelector(".oval-glow__hatch")).toBeNull();
     // Legend and canvas share the same ramp source.
-    expect(ovalLegendGradientCss()).toContain("rgba(0,90,55,0.42) 15%");
+    expect(ovalLegendGradientCss()).toContain("rgba(0,90,55,0.25) 15%");
   });
 
   it("paints the land basemap on a decorative canvas beneath the glow", async () => {
@@ -450,22 +540,28 @@ describe("OvalGlow", () => {
     expect(faintAlpha).toBeGreaterThan(0);
     const [, , , strongAlpha] = rampColor(14);
     expect(strongAlpha).toBeGreaterThan(faintAlpha);
-    // Hue boundaries follow intensity: the whole ordinary range (1-15)
-    // stays green like NOAA's own render, yellow starts at 16 (storm
-    // onset), red and magenta are reserved for extremes.
+    // Hue anchors follow NOAA's own legend calibration (re-anchored
+    // 2026-09-06): the whole ordinary range (1-30) stays green like NOAA's
+    // own render – the old ramp turned yellow at 16, ordinary-night core
+    // territory – yellow at 45, red at 75, magenta reserved for the
+    // extreme end, and the old 15->16 cliff is gone.
     const [greenR, greenG] = rampColor(8);
     expect(greenG).toBeGreaterThan(greenR);
     const [topGreenR, topGreenG] = rampColor(14);
     expect(topGreenG).toBeGreaterThan(topGreenR);
-    const [stormOnsetR, stormOnsetG, stormOnsetB] = rampColor(16);
-    expect(stormOnsetR).toBeGreaterThan(stormOnsetG);
-    expect(stormOnsetB).toBeLessThan(stormOnsetG);
-    const [redR, redG, redB] = rampColor(45);
+    const [sixteenR, sixteenG] = rampColor(16);
+    expect(sixteenG).toBeGreaterThan(sixteenR);
+    const [quietMaxR, quietMaxG] = rampColor(30);
+    expect(quietMaxG).toBeGreaterThan(quietMaxR);
+    const [yellowR, yellowG, yellowB] = rampColor(45);
+    expect(yellowR).toBeGreaterThan(yellowG);
+    expect(yellowB).toBeLessThan(yellowG);
+    const [orangeR, orangeG, orangeB] = rampColor(60);
+    expect(orangeR).toBeGreaterThan(orangeG);
+    expect(orangeB).toBeLessThan(orangeG);
+    const [redR, redG, redB] = rampColor(75);
     expect(redR).toBeGreaterThan(redG);
     expect(redB).toBeLessThan(redG);
-    const [intenseR, intenseG, intenseB] = rampColor(70);
-    expect(intenseR).toBeGreaterThan(intenseG);
-    expect(intenseB).toBeGreaterThan(intenseG);
     const [stormR, stormG, stormB, stormAlpha] = rampColor(100);
     expect(stormAlpha).toBe(255);
     expect(stormG).toBeLessThan(stormR);

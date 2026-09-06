@@ -41,8 +41,9 @@ export type OvalHemisphere = "north" | "south";
 /**
  * Glow levels, dimmest first. The levels name local brightness per 1-degree
  * cell – deliberately no numbers: the same core brightness occurs at any Kp
- * (a quiet-day oval still peaks at Aurora 12), so numeric ranges read as
- * storm strength. The parser thresholds stay numeric internally for the
+ * (an ordinary oval still peaks at Aurora 31, live 2026-09-06), so numeric
+ * ranges read as storm strength. The parser thresholds stay numeric
+ * internally for the
  * view-distance band (ticket 05); only the presentation drops them.
  */
 export const OVAL_LEVELS: Array<{
@@ -64,30 +65,37 @@ export interface RampStop {
 }
 
 /**
- * Continuous glow color ramp, five hues in band order: transparent -> green
- * -> yellow -> red -> bright magenta, with `pos` placing each stop on the
- * legend bar and `value` anchoring it to the Aurora scale (the canvas LUT
- * interpolates on `value`, values past 100 clamp to the magenta end).
+ * Continuous glow color ramp, five hues in intensity order: transparent ->
+ * green -> yellow -> orange -> red -> bright magenta, with `pos` placing
+ * each stop on the legend bar and `value` anchoring it to the Aurora scale
+ * (the canvas LUT interpolates on `value`, values past 100 clamp to the
+ * magenta end).
  *
- * Hue boundaries follow intensity, not just band order: green carries the
- * whole ordinary range (faint 1-5, moderate 6-10, strong 11-15), yellow
- * starts at 16 where the intense band and storm territory begin, and red
- * and magenta are reserved for genuine extremes. NOAA's own oval product
- * renders ordinary activity in green shades, so quiet maps read the same
- * way here instead of showing storm-red on a Kp-0 night. The legend keeps
- * roughly even hue stretches so no single color dominates the bar. Band
- * thresholds stay untouched for the on-demand glow table, the view-distance
- * band and color-blind mode.
+ * Anchors follow NOAA's own legend, which ticks this same 0-100 Aurora
+ * value at 10% / 50% / 90% across a green-to-red bar: green carries the
+ * whole ordinary range (1-30), yellow anchors at 45, orange at 60, red at
+ * 75 and magenta at 100 are reserved for genuine extremes. The earlier
+ * ramp started yellow at 16 (calibrated off single-day samples: ADR-0006
+ * recorded "max 25 quiet", the 09-04 bands "max 14"), which painted
+ * ordinary-night cores orange while NOAA's render of the same grid stayed
+ * all-green (live 2026-09-06: grid max 31, 2,465 of 19,831 painted cells
+ * >= 16). Interpolation now stays smooth through the old 15->16 hue/alpha
+ * cliff. Alphas were softened the same day per user pick to sit closer to
+ * NOAA's render, which fades low values hard toward transparent: the green
+ * span runs 0.25 -> 0.75 and reaches full opacity only at the value-30
+ * anchor, so faint and moderate cells read faint on quiet maps. Band
+ * thresholds stay untouched for the on-demand glow table, the
+ * view-distance band and color-blind mode.
  */
 export const OVAL_RAMP_STOPS: RampStop[] = [
   { pos: 0, value: 0, color: [0, 0, 0, 0] },
-  { pos: 15, value: 3, color: [0, 90, 55, 0.42] },
-  { pos: 32, value: 8, color: [0, 150, 80, 0.72] },
-  { pos: 52, value: 15, color: [30, 185, 90, 0.88] },
-  { pos: 58, value: 16, color: [255, 215, 0, 1] },
-  { pos: 70, value: 24, color: [255, 140, 0, 1] },
-  { pos: 82, value: 45, color: [255, 45, 0, 1] },
-  { pos: 92, value: 70, color: [255, 0, 160, 1] },
+  { pos: 15, value: 3, color: [0, 90, 55, 0.25] },
+  { pos: 32, value: 8, color: [0, 150, 80, 0.5] },
+  { pos: 48, value: 15, color: [30, 185, 90, 0.75] },
+  { pos: 62, value: 30, color: [70, 205, 90, 1] },
+  { pos: 72, value: 45, color: [255, 215, 0, 1] },
+  { pos: 82, value: 60, color: [255, 140, 0, 1] },
+  { pos: 92, value: 75, color: [255, 45, 0, 1] },
   { pos: 100, value: 100, color: [255, 90, 245, 1] },
 ];
 
@@ -96,23 +104,37 @@ export const OVAL_RAMP_STOPS: RampStop[] = [
 export type RampMode = "default" | "color-blind";
 
 /**
- * Color-blind ramp (ticket 06, approved 2026-09-06): pure luminance –
- * transparent white to opaque white – so brightness is the one cue every
- * color-vision type and greyscale reads identically. Alpha climbs
- * monotonically from the faint band to fully opaque white at value 32, a
- * rare-storm anchor: the realistic range (quiet max 25, storms higher)
- * keeps differentiating while everything above saturates – you cannot be
- * brighter than white. No hatch or contour is layered on top (they cannot
- * survive a blurred continuous gradient; dropped with user approval at the
- * seam review).
+ * Color-blind ramp (ticket 06, shipped 2026-09-06; curve revised same day
+ * per user pick): pure greyscale – no hue anywhere – so greyscale, every
+ * color-vision type and night vision read the same map. Alpha climbs
+ * monotonically along the same value anchors as the default ramp
+ * (re-anchored with it) from a faint 0.1 at value 3 through 0.4, 0.6, 0.7,
+ * 0.8 and 0.9, fully opaque white at value 75 where the default reaches
+ * full-saturation red; the faint start (same-day user pick) keeps quiet
+ * ovals dim like NOAA's faded render instead of pegging the ring near
+ * white. The extreme tail
+ * (75-100) then inverts white -> black so the rarest storm territory reads
+ * as a dark eye inside the white ring – a cue too large to miss, at the
+ * cost of brightness no longer mapping monotonically past 75 (channels stay
+ * greyscale-neutral throughout, so nothing reads as a hue). The earlier
+ * ramp saturated at value 32 (calibrated off stale single-day samples;
+ * ordinary grids reach the low 30s), pegging ordinary-night cores at full
+ * white, and its front-loaded alphas (0.55 at 8, 0.8 at 15) left too little
+ * range between strong and intense – the readability complaint that drove
+ * this curve. No hatch or contour is layered on top (they cannot survive a
+ * blurred continuous gradient; dropped with user approval at the seam
+ * review).
  */
 export const OVAL_CB_RAMP_STOPS: RampStop[] = [
   { pos: 0, value: 0, color: [255, 255, 255, 0] },
-  { pos: 15, value: 3, color: [255, 255, 255, 0.3] },
-  { pos: 32, value: 8, color: [255, 255, 255, 0.55] },
-  { pos: 52, value: 15, color: [255, 255, 255, 0.8] },
-  { pos: 58, value: 16, color: [255, 255, 255, 0.88] },
-  { pos: 100, value: 32, color: [255, 255, 255, 1] },
+  { pos: 15, value: 3, color: [255, 255, 255, 0.1] },
+  { pos: 32, value: 8, color: [255, 255, 255, 0.4] },
+  { pos: 48, value: 15, color: [255, 255, 255, 0.6] },
+  { pos: 62, value: 30, color: [255, 255, 255, 0.7] },
+  { pos: 72, value: 45, color: [255, 255, 255, 0.8] },
+  { pos: 82, value: 60, color: [255, 255, 255, 0.9] },
+  { pos: 92, value: 75, color: [255, 255, 255, 1] },
+  { pos: 100, value: 100, color: [0, 0, 0, 1] },
 ];
 
 /** Canvas size: 1px per 1-degree cell of the full OVATION grid (360 lon x
@@ -193,6 +215,55 @@ export function ovalLegendGradientCss(mode: RampMode = "default"): string {
         `rgba(${stop.color[0]},${stop.color[1]},${stop.color[2]},${stop.color[3]}) ${stop.pos}%`,
     )
     .join(", ")})`;
+}
+
+/**
+ * Max Aurora value the paint shows for one product: the maximum over the
+ * painted set only (aurora >= 1, boundary rows clipped), so the legend
+ * marker always matches what the map actually shows. `null` when nothing
+ * paints, which hides the marker instead of pinning it to a corner.
+ */
+export function maxGlowValue(product: OvationProduct): number | null {
+  let max: number | null = null;
+  for (const cell of product.coordinates) {
+    if (cell.aurora < 1) continue;
+    if (isBoundaryRow(cell.latitude)) continue;
+    if (max === null || cell.aurora > max) max = cell.aurora;
+  }
+  return max;
+}
+
+/**
+ * Legend-bar percent position for one Aurora value in the given mode: the
+ * same piecewise interpolation the canvas LUT paints through, walked over
+ * the mode's stops (`pos`/`value` pairs), so the marker sits exactly where
+ * the bar's own gradient places that value and cannot disagree with either
+ * the legend or the glow. Values past the last stop clamp to 100 like the
+ * paint does. Rounded to two decimals to keep the inline style stable.
+ */
+export function ovalLegendMarkerPos(
+  value: number,
+  mode: RampMode = "default",
+): number {
+  const stops = RAMP_BY_MODE[mode].stops;
+  const last = stops[stops.length - 1];
+  let lo = stops[0];
+  let hi = last;
+  if (value >= last.value) {
+    lo = last;
+  } else {
+    for (let i = 0; i < stops.length - 1; i += 1) {
+      if (value >= stops[i].value && value <= stops[i + 1].value) {
+        lo = stops[i];
+        hi = stops[i + 1];
+        break;
+      }
+    }
+  }
+  const t =
+    hi.value === lo.value ? 0 : (value - lo.value) / (hi.value - lo.value);
+  const pos = lo.pos + (hi.pos - lo.pos) * t;
+  return Math.round(pos * 100) / 100;
 }
 
 /**
@@ -294,7 +365,7 @@ export function ovalCanvasLabel(mode: RampMode = "default"): string {
   );
   const colorBlindNote =
     mode === "color-blind"
-      ? " Color-blind on: the glow paints as brightness only – dimmer means faint, brighter means stronger – so the map reads without color."
+      ? " Color-blind on: the glow paints as greyscale brightness – dimmer means faint, brighter means stronger, and the rarest storm cores invert to black inside the white ring – so the map reads without color."
       : "";
   return `Oval glow intensity, world map from north pole to south pole. Glow levels, dimmest first: ${levels}. Transparent means no glow forecast.${colorBlindNote}`;
 }
@@ -433,6 +504,7 @@ const OvalGlow: React.FC = () => {
         ? {
             north: countGlowLevels(product, "north"),
             south: countGlowLevels(product, "south"),
+            max: maxGlowValue(product),
           }
         : null,
     [product],
@@ -586,7 +658,20 @@ const OvalGlow: React.FC = () => {
           className="oval-glow__legend__bar"
           style={{ background: ovalLegendGradientCss(mode) }}
           aria-hidden="true"
-        />
+        >
+          {/* "You are here" tick at tonight's max: positioned through the
+              same stops the bar gradient and the canvas paint derive from,
+              so it cannot disagree with either. Hidden when nothing paints
+              (maxGlowValue returns null). Decoration like the bar itself -
+              the glow intensity table stays the data alternative. */}
+          {counts?.max != null && (
+            <span
+              className="oval-glow__legend__marker"
+              style={{ left: `${ovalLegendMarkerPos(counts.max, mode)}%` }}
+              title="Current maximum"
+            />
+          )}
+        </div>
         <div className="oval-glow__legend__labels">
           {OVAL_LEVELS.map(({ level, label }) => (
             <span key={level} className="oval-glow__legend__label">

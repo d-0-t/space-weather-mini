@@ -167,9 +167,39 @@
   // Gradient bar + level labels, derived from the ramp stops via an inline
   // style, so the legend and the painted glow share one source of stops.
   &__legend__bar {
+    position: relative;
     height: 0.75rem;
     border: 1px solid var(--color-border-muted);
     border-radius: 3px;
+  }
+
+  // "You are here" tick at tonight's max, positioned by ovalLegendMarkerPos
+  // over the same stops the bar's gradient and the canvas paint use. The
+  // span is a ~0.75rem-wide transparent hit strip (cursor: help, native
+  // title tooltip); the visible 2px line rides its ::before so the paint
+  // stays a line, not a mark. White with a dark outline reads over every
+  // ramp hue and both modes' bars (white and black ends included). Legend
+  // chrome, not data paint: the outline rides the black token per the
+  // palette contract (the ramp itself lives in TS).
+  &__legend__marker {
+    position: absolute;
+    top: -2px;
+    bottom: -2px;
+    width: 2rem;
+    transform: translateX(-50%);
+    cursor: help;
+
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 0.3rem;
+      transform: translateX(-50%);
+      background-color: var(--color-black);
+      box-shadow: 0 0 0 2px var(--color-white);
+    }
   }
 
   &__legend__labels {
