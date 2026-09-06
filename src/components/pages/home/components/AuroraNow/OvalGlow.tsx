@@ -1,9 +1,12 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
+
+import ReadMoreIcon from "@mui/icons-material/ReadMore";
 
 import HelpPopover from "../../../../HelpPopover/HelpPopover";
 
 import {
+  auroraBand,
   isBoundaryRow,
   parseOvation,
   type AuroraBand,
@@ -16,6 +19,7 @@ import {
   fetchWorldLand,
 } from "../../../../../products/world-land";
 import {
+  formatLocalShort,
   formatUtcShort,
 } from "../../../../../products/live-helpers";
 import {
@@ -26,6 +30,9 @@ import {
 } from "../offline/offline";
 
 import "./OvalGlow.scss";
+
+/** Hemisphere split for the on-demand glow table; `north` is lat > 0. */
+export type OvalHemisphere = "north" | "south";
 
 /**
  * Glow levels, dimmest first. The levels name local brightness per 1-degree
@@ -57,8 +64,8 @@ export const OVAL_LEVELS: Array<{
  * renders ordinary activity in green shades, so quiet maps read the same
  * way here instead of showing storm-red on a Kp-0 night. The legend keeps
  * roughly even hue stretches so no single color dominates the bar. Band
- * thresholds stay untouched for the hidden table, the view-distance band
- * and color-blind mode.
+ * thresholds stay untouched for the on-demand glow table, the view-distance
+ * band and color-blind mode.
  */
 export const OVAL_RAMP_STOPS: Array<{
   /** Legend bar position in percent. */
@@ -257,6 +264,29 @@ export function ovalCellPoint(
   };
 }
 
+/** Per-level cell counts for one hemisphere; the on-demand glow table's
+ * source of truth. Boundary rows are excluded so the numbers match the
+ * painted map. */
+export function countGlowLevels(
+  product: OvationProduct,
+  hemisphere: OvalHemisphere,
+): Record<"none" | Exclude<AuroraBand, "none">, number> {
+  const counts: Record<"none" | Exclude<AuroraBand, "none">, number> = {
+    none: 0,
+    faint: 0,
+    moderate: 0,
+    strong: 0,
+    intense: 0,
+  };
+  for (const cell of product.coordinates) {
+    if (isBoundaryRow(cell.latitude)) continue;
+    const north = cell.latitude > 0;
+    if (hemisphere === "north" ? !north : north) continue;
+    counts[auroraBand(cell.aurora)] += 1;
+  }
+  return counts;
+}
+
 /**
  * 3x3 box blur over the raw grid frame, NOAA-render style. The OVATION grid
  * carries sparse value-1 speckle near the poles and hard-edged full-width
@@ -337,6 +367,17 @@ const OvalGlow: React.FC = () => {
   const state = liveDataState(ovalQuery, offline);
   const product = ovalQuery.data ?? null;
 
+  const counts = useMemo(
+    () =>
+      product
+        ? {
+            north: countGlowLevels(product, "north"),
+            south: countGlowLevels(product, "south"),
+          }
+        : null,
+    [product],
+  );
+
   useEffect(() => {
     paintGlow(canvasRef.current, product);
   }, [product]);
@@ -394,8 +435,42 @@ const OvalGlow: React.FC = () => {
         />
       </div>
       <p className="oval-glow__fresh">
-        Forecast Time {formatUtcShort(product.forecastTime)} – 30–90 min lead.
+        Forecast Time {formatUtcShort(product.forecastTime)} (
+        {formatLocalShort(product.forecastTime)} your time) – 30–90 min lead.
       </p>
+      {/* The map's data alternative for everyone (no sr-only tables): a
+          disclosure that stays closed until asked for, named by its visible
+          text with the ReadMore icon as decoration. */}
+      <details className="oval-glow__table-disclosure">
+        <summary className="oval-glow__table-disclosure__summary">
+          <ReadMoreIcon aria-hidden="true" fontSize="small" />
+          <span>Glow intensity table</span>
+        </summary>
+        <table className="oval-glow__table">
+          <caption>Oval glow levels by hemisphere</caption>
+          <thead>
+            <tr>
+              <th scope="col">Glow level</th>
+              <th scope="col">North cells</th>
+              <th scope="col">South cells</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">None</th>
+              <td>{counts?.north.none ?? 0}</td>
+              <td>{counts?.south.none ?? 0}</td>
+            </tr>
+            {OVAL_LEVELS.map(({ level, label }) => (
+              <tr key={level}>
+                <th scope="row">{label}</th>
+                <td>{counts?.north[level] ?? 0}</td>
+                <td>{counts?.south[level] ?? 0}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </details>
       {state === "stale" ? <StaleDataNotice /> : null}
       <figure className="oval-glow__cap">
         <figcaption className="oval-glow__cap__label sr-only">

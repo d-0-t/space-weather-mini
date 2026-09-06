@@ -28,7 +28,7 @@ The conventions every change to this repo must follow. Enforced by review, not t
 ## Charts
 
 - Recharts, named by a sr-only span inside the container (`aria-labelledby`), never `aria-label`, naming every series. Established visualisations: Kp history timeline, 27-day radio flux/A index trend, 3-day Kp forecast line.
-- **No sr-only tables — ever (user rule, re-confirmed 2026-09-06)**: a chart's data alternative must be available to all users. If a tabular alternative is warranted, it is visible to everyone in a minimized area (for example hidden behind an icon button in a modal) — never a `sr-only`/hidden table. A chart without a visible table must carry the full reading in its accessible name instead.
+- **No sr-only tables — ever (user rule, re-confirmed 2026-09-06)**: a chart's data alternative must be available to all users. If a tabular alternative is warranted, it is visible to everyone in a minimized area — the realized pattern is a closed-by-default `<details>` disclosure named by its visible label with a decorative icon (the oval's `ReadMore` + `Glow intensity table`, placed just above the map) — never a `sr-only`/hidden table. A chart without a visible table must carry the full reading in its accessible name instead.
 - **No color-only encoding**: each series must differ by shape as well as color (Recharts `legendType` circle/square/triangle plus `Symbols` dot markers), so the chart stays legible without color.
 - Placement: full-width, stacked **above** the table (never side-by-side).
 - Series colors are distinct named colors set on the `<Line>` (`greenyellow`, `plum`, `cyan` are the established palette); the `.kp01`–`.kp9` token classes are for tables only.

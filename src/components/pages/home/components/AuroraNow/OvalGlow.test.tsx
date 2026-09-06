@@ -1,3 +1,8 @@
+// The freshness line shows the device-local time beside the UTC one, so the
+// suite pins one zone (Sweden, UTC+1/+2) to keep the expectation
+// deterministic (same pin as the conditions suite).
+process.env.TZ = "Europe/Stockholm";
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -153,18 +158,74 @@ describe("OvalGlow", () => {
     expect(screen.queryByText(/Kp1/i)).toBeNull();
   });
 
-  it("shows Forecast Time and lead on one line, with the age only on the view-distance line", async () => {
+  it("shows Forecast Time in UTC and your time on one line, with the age only on the view-distance line", async () => {
     renderGlow();
     await canvases();
+    // 14:33 UTC is 16:33 Stockholm time, same day - the local parenthetical
+    // answers "is this time wrong?" without a second freshness line.
     expect(
       screen.getByText(
-        /Forecast Time Sep 4 14:33 UTC – 30–90 min lead\./,
+        /Forecast Time Sep 4 14:33 UTC \(16:33 your time\) – 30–90 min lead\./,
       ),
     ).toBeInTheDocument();
     // The `Updated {age}` lives once, on the View distance As-of line –
     // never twice on the same panel (user review 2026-09-06).
     expect(screen.queryByText(/Updated/)).toBeNull();
     expect(screen.queryByText(/Observation Time/)).toBeNull();
+  });
+
+  it("offers the glow counts as an on-demand table below the lead, above the map", async () => {
+    const user = userEvent.setup();
+    const { container } = renderGlow();
+    await canvases();
+    const disclosure = container.querySelector(
+      "details.oval-glow__table-disclosure",
+    ) as HTMLDetailsElement;
+    expect(disclosure).not.toBeNull();
+    // Placement: right below the 30-90 min lead, above the visual map.
+    const fresh = container.querySelector(".oval-glow__fresh");
+    const map = container.querySelector(".oval-glow__cap");
+    expect(fresh?.nextElementSibling).toBe(disclosure);
+    expect(disclosure.nextElementSibling).toBe(map);
+    // Hidden by default, opened through the ReadMore summary.
+    expect(disclosure.open).toBe(false);
+    const summary = screen.getByText("Glow intensity table");
+    expect(summary.closest("summary")?.querySelector("svg")).not.toBeNull();
+    const table = disclosure.querySelector(
+      "table.oval-glow__table",
+    ) as HTMLTableElement;
+    // A visible alternative for everyone - never sr-only.
+    expect(table).not.toBeNull();
+    expect(table.className).not.toContain("sr-only");
+    expect(table).not.toBeVisible();
+    await user.click(summary);
+    expect(disclosure.open).toBe(true);
+    expect(table).toBeVisible();
+  });
+
+  it("counts cells per hemisphere in the on-demand table, boundary rows excluded", async () => {
+    const user = userEvent.setup();
+    const { container } = renderGlow();
+    await canvases();
+    await user.click(screen.getByText("Glow intensity table"));
+    const table = container.querySelector(
+      "table.oval-glow__table",
+    ) as HTMLTableElement;
+    const rowCells = (label: string): string[] => {
+      const row = [...table.querySelectorAll("tbody tr")].find(
+        (tr) => tr.querySelector("th")?.textContent === label,
+      );
+      return [...(row?.querySelectorAll("td") ?? [])].map(
+        (td) => td.textContent ?? "",
+      );
+    };
+    // Boundary cells (lat 0, -1, 90, -90) never reach the counts - the
+    // numbers match the painted map.
+    expect(rowCells("None")).toEqual(["1", "0"]);
+    expect(rowCells("Faint")).toEqual(["1", "1"]);
+    expect(rowCells("Moderate")).toEqual(["1", "1"]);
+    expect(rowCells("Strong")).toEqual(["1", "0"]);
+    expect(rowCells("Intense")).toEqual(["1", "0"]);
   });
 
   it("legends the glow as a continuous gradient with level words, no numbers", async () => {

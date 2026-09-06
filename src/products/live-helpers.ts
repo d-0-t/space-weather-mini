@@ -37,6 +37,25 @@ export function formatUtcShort(timeTag: string): string {
 }
 
 /**
+ * Formats a SWPC UTC time string in the device's own time zone as
+ * "HH:MM your time"; adds the short local date when the zone pushes the
+ * moment across midnight (so "Sep 7 00:40" is unambiguous against the UTC
+ * date shown next to it). Returns the raw string when the time cannot be
+ * parsed.
+ */
+export function formatLocalShort(timeTag: string): string {
+  const epoch = toEpoch(timeTag);
+  if (Number.isNaN(epoch)) return timeTag;
+  const d = new Date(epoch);
+  const hh = String(d.getHours()).padStart(2, "0");
+  const mm = String(d.getMinutes()).padStart(2, "0");
+  const utcDay = `${MONTHS_SHORT[d.getUTCMonth()]} ${d.getUTCDate()}`;
+  const localDay = `${MONTHS_SHORT[d.getMonth()]} ${d.getDate()}`;
+  const time = `${hh}:${mm}`;
+  return localDay === utcDay ? time : `${localDay} ${time}`;
+}
+
+/**
  * Formats the age of a live data timestamp relative to now.
  * Returns "just now", "Xm ago", or "Xh Ym ago".
  * Accepts ISO strings with or without trailing Z (assumes UTC if missing).

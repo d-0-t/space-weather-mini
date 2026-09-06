@@ -82,29 +82,15 @@ const ViewDistanceLine: React.FC = () => {
               range ? `${label} ~${range}` : label,
               confidence,
             ]),
-            text: VIEW_DISTANCE_COPY,
-            footnote: (
-              <>
-                Forecast from{" "}
-                <a
-                  href={AURORA_FORECAST_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  NOAA's aurora 30-minute forecast{" "}
-                  <OpenInNew aria-hidden="true" fontSize="inherit" />
-                </a>
-              </>
-            ),
           }}
         />
       </div>
       {/* Honest freshness: As of the Forecast Time the band covers, with the
-          age of the grid issue (Observation Time) per ticket 05. */}
-      <FreshnessLine
+          age of the grid issue (Observation Time) per ticket 05. 
+          COMMENTED OUT: The freshness is duplicated, oval freshness already has the same info. <FreshnessLine
         asOf={product.forecastTime}
         updated={formatAge(product.observationTime)}
-      />
+      /> */}
     </section>
   );
 };

@@ -1,5 +1,9 @@
+// The device-time-zone formatting is asserted against one pinned zone
+// (Sweden, UTC+1/+2) so every expectation is deterministic.
+process.env.TZ = "Europe/Stockholm";
+
 import { describe, expect, it, vi } from "vitest";
-import { formatAge, formatUtcShort, toEpoch } from "./live-helpers";
+import { formatAge, formatLocalShort, formatUtcShort, toEpoch } from "./live-helpers";
 
 describe("formatUtcShort", () => {
   it("formats SWPC UTC times as 'Aug 26 16:36 UTC'", () => {
@@ -10,6 +14,22 @@ describe("formatUtcShort", () => {
 
   it("returns the raw string when the time cannot be parsed", () => {
     expect(formatUtcShort("not a time")).toBe("not a time");
+  });
+});
+
+describe("formatLocalShort", () => {
+  it("formats device-local time as bare 'HH:MM' on the same local date", () => {
+    // 14:33 UTC is 16:33 in Stockholm (UTC+2 in September), same day.
+    expect(formatLocalShort("2026-09-04T14:33:00Z")).toBe("16:33");
+  });
+
+  it("adds the local date when the zone pushes it across midnight", () => {
+    // 22:40 UTC is 00:40 the next day in Stockholm.
+    expect(formatLocalShort("2026-09-06T22:40:00Z")).toBe("Sep 7 00:40");
+  });
+
+  it("returns the raw string when the time cannot be parsed", () => {
+    expect(formatLocalShort("not a time")).toBe("not a time");
   });
 });
 

@@ -183,11 +183,14 @@ describe("AuroraNow", () => {
     ovationGrid = [[10.7522, 60.4139, 12]];
     renderAuroraNow();
     await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
-    expect(await screen.findByText(/Aurora likely/)).toBeInTheDocument();
-    // The place is plain text next to the info, never a button of its own.
-    const place = document.querySelector(".view-distance__place");
-    expect(place?.textContent).toBe("Oslo");
-    // One Change location button (btn--secondary) opens the shared modal.
+    await screen.findByText(/Aurora likely/);
+    // The probability card: info and place as text, the shared modal behind
+    // one Change location button.
+    const text = document.querySelector(
+      ".view-distance__probability__location__text",
+    );
+    expect(text?.textContent).toContain("Aurora likely");
+    expect(text?.textContent).toContain("Oslo");
     const change = screen.getByRole("button", { name: "Change location" });
     expect(change).toHaveClass("btn--secondary");
     expect(screen.queryByRole("button", { name: /Oslo/ })).toBeNull();
@@ -200,20 +203,14 @@ describe("AuroraNow", () => {
     renderAuroraNow();
     await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
     await screen.findByText(/Aurora not in range/);
-    // The line's own text (excluding the hidden (i) popover inside it) never
-    // uses a preposition - `from`/`at` do not work for every band; the place
-    // is separate text after the dash.
-    const line = document.querySelector(".view-distance__line");
-    const lineText = [...(line?.childNodes ?? [])]
-      .filter((node) => node.nodeType === Node.TEXT_NODE)
-      .map((node) => node.textContent)
-      .join(" ")
-      .replace(/\s+/g, " ");
-    expect(lineText).toMatch(/Aurora not in range/);
-    expect(lineText).not.toMatch(/from|at /);
-    expect(
-      document.querySelector(".view-distance__place")?.textContent,
-    ).toBe("Oslo");
+    // The card's own text never uses a preposition - `from`/`at` do not
+    // work for every band; the place reads below the band, lowercase.
+    const text = document.querySelector(
+      ".view-distance__probability__location__text",
+    );
+    expect(text?.textContent).toMatch(/Aurora not in range/);
+    expect(text?.textContent).not.toMatch(/from|at /);
+    expect(text?.textContent).toContain("Oslo");
   });
 
   it("opens the shared Change location modal from the Change location button", async () => {
@@ -232,7 +229,7 @@ describe("AuroraNow", () => {
     ).toBeInTheDocument();
   });
 
-  it("explains the band behind the (i) popover with the approved copy", async () => {
+  it("explains the band behind the (i) popover with the band table", async () => {
     const user = userEvent.setup();
     seedPlace(OSLO_PLACE);
     renderAuroraNow();
@@ -243,32 +240,11 @@ describe("AuroraNow", () => {
       ".view-distance__popover",
     ) as HTMLElement;
     expect(popover).not.toBeNull();
-    // The approved plain-language copy (ticket 05).
-    expect(popover.textContent).toContain(
-      "Each colored square is a 30-min forecast (1°).",
-    );
-    expect(popover.textContent).toContain(
-      "0 = no color = no forecast there.",
-    );
-    expect(popover.textContent).toContain("1 faint → 16+ bright.");
-    expect(popover.textContent).toContain(
-      "Nearest square ≥6 is the band, not a single km.",
-    );
-    expect(popover.textContent).toContain(
-      "Cloud/moon/town lights can still hide it.",
-    );
-    expect(popover.textContent).toContain("Forecast Time 30-90 min ahead.");
     // The full band table with confidence per band.
     expect(popover.textContent).toContain("Overhead / Nearby ~0-100 km – Likely");
     expect(popover.textContent).toContain("Distant ~100-300 km – Possible");
     expect(popover.textContent).toContain("Far ~300-600 km – Unlikely");
     expect(popover.textContent).toContain("Over 600 km – Not in range");
-    // Provenance footnote: the NOAA product page the forecast comes from.
-    const provenance = popover.querySelector("a");
-    expect(provenance?.getAttribute("href")).toBe(
-      "https://www.swpc.noaa.gov/products/aurora-30-minute-forecast",
-    );
-    expect(provenance?.textContent).toContain("aurora 30-minute forecast");
   });
 
   it("recomputes the band when a place picked in the modal is applied", async () => {
@@ -304,17 +280,22 @@ describe("AuroraNow", () => {
     await user.click(screen.getByRole("button", { name: "Apply and close" }));
     expect(await screen.findByText(/Aurora likely/)).toBeInTheDocument();
     expect(
-      document.querySelector(".view-distance__place")?.textContent,
+      document.querySelector(
+        ".view-distance__probability__location__text",
+      )?.textContent,
     ).toContain("Kiruna");
   });
 
-  it("shows As of the Forecast Time on the band line", async () => {
+  it("keeps the freshness once - the oval line above, no second As of below", async () => {
+    // The user removed the duplicated As-of line: the oval's
+    // `Forecast Time ... lead.` is the one freshness surface.
     seedPlace(OSLO_PLACE);
+    ovationGrid = [[10.7522, 60.4139, 12]];
     renderAuroraNow();
     await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
-    expect(
-      await screen.findByText(/As of Sep 4 14:33 UTC\. Updated/),
-    ).toBeInTheDocument();
+    await screen.findByText(/Aurora likely/);
+    expect(await screen.findByText(/Forecast Time Sep 4 14:33 UTC/)).toBeInTheDocument();
+    expect(screen.queryByText(/As of Sep 4 14:33 UTC/)).toBeNull();
   });
 
   it("honors the stored view distance threshold", async () => {
