@@ -684,8 +684,9 @@ describe("OvalGlow", () => {
       window.dispatchEvent(new Event("offline"));
     });
     expect(screen.getByText(STALE_DATA_NOTICE)).toBeInTheDocument();
-    // Land basemap canvas + glow canvas.
-    expect(container.querySelectorAll("canvas")).toHaveLength(2);
+    // Land basemap canvas + glow canvas, inline and again in the (still
+    // mounted, closed) full-size modal's stage.
+    expect(container.querySelectorAll("canvas")).toHaveLength(4);
   });
 
   it("shows the plain never-cached error when the OVATION feed never loaded", async () => {
@@ -696,5 +697,59 @@ describe("OvalGlow", () => {
     await waitFor(() =>
       expect(screen.getByText(COULDNT_LOAD_COPY)).toBeInTheDocument(),
     );
+  });
+});
+
+describe("Full size map modal", () => {
+  it("opens the map full size from the map itself, with its own legend, and closes on Escape", async () => {
+    const user = userEvent.setup();
+    const { container } = renderGlow();
+    await canvases();
+    const trigger = screen.getByRole("button", {
+      name: "Oval glow intensity, full size",
+    });
+    const dialog = document.querySelector(
+      "dialog.image-modal",
+    ) as HTMLDialogElement;
+    expect(dialog.open).toBe(false);
+    await user.click(trigger);
+    expect(dialog.open).toBe(true);
+    // The modal carries its own bigger stage and the shared legend.
+    const modal = container.querySelector(".oval-glow__modal") as HTMLElement;
+    expect(modal).not.toBeNull();
+    expect(modal.querySelector(".oval-glow__stage--modal")).not.toBeNull();
+    expect(modal.querySelector(".oval-glow__legend")).not.toBeNull();
+    // While open, both maps are in the tree: the inline one and the full
+    // size one (closed, the modal stays out of the a11y tree entirely).
+    expect(await screen.findAllByRole("img", { name: /oval glow/i })).toHaveLength(2);
+    await user.keyboard("{Escape}");
+    expect(dialog.open).toBe(false);
+  });
+
+  it("keeps the closed modal out of the a11y tree while its stage stays mounted", async () => {
+    renderGlow();
+    await canvases();
+    expect(await canvases()).toHaveLength(1);
+    expect(document.querySelector(".oval-glow__stage--modal")).not.toBeNull();
+  });
+
+  it("toggles the portrait rotation through the rotate button", async () => {
+    const user = userEvent.setup();
+    const { container } = renderGlow();
+    await canvases();
+    await user.click(
+      screen.getByRole("button", { name: "Oval glow intensity, full size" }),
+    );
+    const rotate = screen.getByRole("button", { name: /rotate map/i });
+    expect(rotate).toHaveAttribute("aria-pressed", "false");
+    expect(container.querySelector(".oval-glow__modal--rotated")).toBeNull();
+    await user.click(rotate);
+    expect(rotate).toHaveAttribute("aria-pressed", "true");
+    expect(
+      container.querySelector(".oval-glow__modal--rotated"),
+    ).not.toBeNull();
+    await user.click(rotate);
+    expect(rotate).toHaveAttribute("aria-pressed", "false");
+    expect(container.querySelector(".oval-glow__modal--rotated")).toBeNull();
   });
 });

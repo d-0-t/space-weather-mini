@@ -84,6 +84,22 @@
 
   &__cap {
     margin: 0.5rem 0;
+    // Positioning context for the full-size trigger overlay
+    position: relative;
+
+    .image-modal {
+      align-content: center;
+      max-width: unset;
+      max-height: unset;
+      height: 97vh;
+      width: calc(100vw - 3rem);
+
+      .image-modal__close {
+        top: 1rem;
+        right: 1rem;
+        padding: 0.5rem !important;
+      }
+    }
   }
 
   &__cap__label {
@@ -210,5 +226,112 @@
 
   &__legend__label {
     font-size: 0.85rem;
+  }
+
+  // Full-size (in-modal) trigger: a transparent button overlaying the whole
+  // map stage - positioned over it, not wrapping it, so the glow canvas
+  // keeps its own accessible name and the button is named by FullSizeModal's
+  // sr-only label alone. The corner chip is the visible expand hint.
+  &__expand {
+    position: absolute;
+    inset: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: pointer;
+
+    // A faint veil on hover/focus says the whole map is the control; the
+    // global focus-visible token draws the outline around the map.
+    &:hover {
+      border-radius: 4px;
+      background-color: color-mix(in srgb, var(--color-white) 2%, transparent);
+    }
+
+    &__hint {
+      position: absolute;
+      box-sizing: border-box;
+      top: calc(50% - 1rem);
+      right: 0.4rem;
+      display: flex;
+      padding: 0.3rem;
+      border-radius: 8px;
+      padding: 0.25rem;
+      min-width: unset;
+      max-width: unset;
+      width: fit-content;
+      height: fit-content;
+      color: var(--color-white);
+      border: 2px solid var(--color-border-muted-transparent);
+      background-color: color-mix(in srgb, var(--color-black) 65%, transparent);
+    }
+  }
+
+  // Full-size modal body: bigger stage plus the shared legend. The frame
+  // spends the shared dialog's 90vw/80vh budget (dialog padding, the rotate
+  // pill, the two flex gaps and the legend live under the 7rem vertical
+  // allowance), so the map alone fills the dialog without scrolling.
+  &__modal {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    padding: 0 1rem;
+
+    .oval-glow__legend {
+      width: 100%;
+    }
+  }
+
+  &__modal__frame {
+    width: min(calc(90vw - 1.25rem), calc((80vh - 7rem) * 360 / 181));
+  }
+
+  // Landscape default: the 80vh budget already fits the wide map upright,
+  // so the rotate toggle is simply not there.
+  &__modal__rotate {
+    display: none;
+  }
+
+  // Rotate offer + rotated layout exist only in portrait: in landscape a
+  // stale rotated state renders upright (with the toggle gone) because both
+  // live under this one media query - pure CSS, no viewport listener.
+  @media (orientation: portrait) {
+    &__modal__rotate {
+      display: inline-flex;
+      position: absolute;
+      top: 0.7rem;
+      left: 0.7rem;
+      padding: 0.5rem !important;
+
+      &[aria-pressed="true"] svg {
+        transform: rotate(180deg);
+      }
+    }
+
+    &__modal--rotated {
+      // The frame holds the swapped box (narrow wide-axis): its width is
+      // the rotated map's height, its height the map's full width.
+      .oval-glow__modal__frame {
+        --oval-rotated-w: min(
+          calc(95vw - 1.25rem),
+          calc((95vh - 7rem) * 181 / 360)
+        );
+        width: var(--oval-rotated-w);
+        height: calc(var(--oval-rotated-w) * 360 / 181 - 1.5rem);
+        margin: 0 auto;
+        position: relative;
+      }
+
+      // The stage rotates inside the frame around its center: the map's
+      // long axis runs down the phone, trading the modal's 80vh for width.
+      .oval-glow__stage--modal {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: calc(var(--oval-rotated-w) * 360 / 181);
+        height: var(--oval-rotated-w);
+        transform: translate(-50%, -50%) rotate(90deg);
+      }
+    }
   }
 }

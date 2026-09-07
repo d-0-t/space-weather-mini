@@ -2,13 +2,15 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import ReadMoreIcon from "@mui/icons-material/ReadMore";
+import OpenInFullIcon from "@mui/icons-material/OpenInFull";
+import Rotate90DegreesCwIcon from "@mui/icons-material/Rotate90DegreesCw";
 
 import HelpPopover from "../../../../HelpPopover/HelpPopover";
+import FullSizeModal from "../../../../FullSizeModal";
 
 import {
   auroraBand,
   isBoundaryRow,
-  parseOvation,
   type AuroraBand,
   type OvationProduct,
 } from "../../../../../products/ovation";
@@ -18,7 +20,6 @@ import {
 } from "../../../../../products/color-blind";
 import { useOvationQuery } from "./useOvationQuery";
 import {
-  WORLD_LAND_URL,
   type LandRing,
   fetchWorldLand,
 } from "../../../../../products/world-land";
@@ -475,6 +476,98 @@ function paintGlow(
 }
 
 /**
+ * One pole-to-pole world stage: the Natural Earth land basemap and the glow,
+ * painted through the same projection from the same product and ramp mode.
+ * Rendered twice – inline in the section and inside the full-size modal – so
+ * each carries its own canvases and paint effects while the paint functions
+ * stay shared: the two stages cannot drift. Mounting runs both paints (the
+ * section only renders stages once the product exists), which keeps the old
+ * `hasProduct` repaint discipline without the extra dependency.
+ */
+const OvalStage: React.FC<{
+  product: OvationProduct | null;
+  landData: LandRing[] | null;
+  mode: RampMode;
+  /** Extra stage class for the full-size variant's layout hooks. */
+  className?: string;
+}> = ({ product, landData, mode, className }) => {
+  const landRef = useRef<HTMLCanvasElement>(null);
+  const glowRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    paintLand(landRef.current, landData);
+  }, [landData]);
+
+  useEffect(() => {
+    paintGlow(glowRef.current, product, mode);
+  }, [product, mode]);
+
+  return (
+    <div
+      className={
+        className ? `oval-glow__stage ${className}` : "oval-glow__stage"
+      }
+    >
+      {/* Decorative basemap: Natural Earth land through the same projection
+          as the glow, so alignment holds by construction. */}
+      <canvas
+        ref={landRef}
+        className="oval-glow__land"
+        width={OVAL_CANVAS_WIDTH}
+        height={OVAL_CANVAS_HEIGHT}
+        aria-hidden="true"
+      />
+      <canvas
+        ref={glowRef}
+        className="oval-glow__canvas"
+        width={OVAL_CANVAS_WIDTH}
+        height={OVAL_CANVAS_HEIGHT}
+        role="img"
+        aria-label={ovalCanvasLabel(mode)}
+      />
+    </div>
+  );
+};
+
+/**
+ * The glow legend – gradient bar, the current-max marker and the level
+ * labels – shared by the inline section and the full-size modal, so both
+ * copies derive from the same stops and the same counts and cannot drift.
+ */
+const OvalLegend: React.FC<{
+  counts: { max: number | null } | null;
+  mode: RampMode;
+}> = ({ counts, mode }) => (
+  <div className="oval-glow__legend">
+    <div
+      className="oval-glow__legend__bar"
+      style={{ background: ovalLegendGradientCss(mode) }}
+      aria-hidden="true"
+    >
+      {/* "You are here" tick at tonight's max: positioned through the same
+          stops the bar gradient and the canvas paint derive from, so it
+          cannot disagree with either. Hidden when nothing paints
+          (maxGlowValue returns null). Decoration like the bar itself - the
+          glow intensity table stays the data alternative. */}
+      {counts?.max != null && (
+        <span
+          className="oval-glow__legend__marker"
+          style={{ left: `${ovalLegendMarkerPos(counts.max, mode)}%` }}
+          title="Current maximum"
+        />
+      )}
+    </div>
+    <div className="oval-glow__legend__labels">
+      {OVAL_LEVELS.map(({ level, label }) => (
+        <span key={level} className="oval-glow__legend__label">
+          {label}
+        </span>
+      ))}
+    </div>
+  </div>
+);
+
+/**
  * Oval glow intensity – the real OVATION 1-degree grid as one continuous
  * NASA-style glow ramp on a single pole-to-pole world canvas over a Natural
  * Earth land basemap painted with the same projection. Color wash only in
@@ -483,8 +576,10 @@ function paintGlow(
  */
 const OvalGlow: React.FC = () => {
   const offline = useIsOffline();
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const landCanvasRef = useRef<HTMLCanvasElement>(null);
+  // Full-size modal rotation: a manual toggle whose layout lives entirely in
+  // a portrait media query, so a stale rotated state renders upright (and
+  // the toggle hides) in landscape - no viewport listener needed.
+  const [rotated, setRotated] = useState(false);
 
   // Color-blind is a per-user preference: read once on mount, written
   // on every toggle, versioned in localStorage (products/color-blind.ts).
@@ -510,10 +605,6 @@ const OvalGlow: React.FC = () => {
     [product],
   );
 
-  useEffect(() => {
-    paintGlow(canvasRef.current, product, mode);
-  }, [product, mode]);
-
   const handleColorBlindChange = (
     event: React.ChangeEvent<HTMLInputElement>,
   ): void => {
@@ -536,14 +627,10 @@ const OvalGlow: React.FC = () => {
   });
 
   // The land asset usually resolves while OVATION is still pending, and the
-  // early-return phase keeps the canvases unmounted until then - so the
-  // paint also re-runs once the section actually mounts (`hasProduct`),
-  // or the land would silently never paint.
+  // stages are only mounted after that (inside the loaded section) - each
+  // OvalStage's own land paint effect runs on its mount, so the basemap
+  // cannot silently miss the data either way.
   const landData = landQuery.data ?? null;
-  const hasProduct = product !== null;
-  useEffect(() => {
-    paintLand(landCanvasRef.current, landData);
-  }, [landData, hasProduct]);
 
   if (ovalQuery.isPending && !product) {
     return (
@@ -633,53 +720,55 @@ const OvalGlow: React.FC = () => {
         <figcaption className="oval-glow__cap__label sr-only">
           World map with the overlayed aurora rings.
         </figcaption>
-        <div className="oval-glow__stage">
-          {/* Decorative basemap: Natural Earth land through the same
-              projection as the glow, so alignment holds by construction. */}
-          <canvas
-            ref={landCanvasRef}
-            className="oval-glow__land"
-            width={OVAL_CANVAS_WIDTH}
-            height={OVAL_CANVAS_HEIGHT}
-            aria-hidden="true"
-          />
-          <canvas
-            ref={canvasRef}
-            className="oval-glow__canvas"
-            width={OVAL_CANVAS_WIDTH}
-            height={OVAL_CANVAS_HEIGHT}
-            role="img"
-            aria-label={ovalCanvasLabel(mode)}
-          />
-        </div>
-      </figure>
-      <div className="oval-glow__legend">
-        <div
-          className="oval-glow__legend__bar"
-          style={{ background: ovalLegendGradientCss(mode) }}
-          aria-hidden="true"
-        >
-          {/* "You are here" tick at tonight's max: positioned through the
-              same stops the bar gradient and the canvas paint derive from,
-              so it cannot disagree with either. Hidden when nothing paints
-              (maxGlowValue returns null). Decoration like the bar itself -
-              the glow intensity table stays the data alternative. */}
-          {counts?.max != null && (
-            <span
-              className="oval-glow__legend__marker"
-              style={{ left: `${ovalLegendMarkerPos(counts.max, mode)}%` }}
-              title="Current maximum"
-            />
-          )}
-        </div>
-        <div className="oval-glow__legend__labels">
-          {OVAL_LEVELS.map(({ level, label }) => (
-            <span key={level} className="oval-glow__legend__label">
-              {label}
+        <OvalStage product={product} landData={landData} mode={mode} />
+        {/* Full size (in-modal): the trigger covers the stage instead of
+            wrapping it, so the glow canvas keeps its own accessible name and
+            the button is named by the sr-only label alone - no name-from-
+            content concatenation. The corner chip is the visible hint that
+            the map opens bigger. */}
+        <FullSizeModal
+          label="Oval glow intensity, full size"
+          triggerClassName="oval-glow__expand"
+          trigger={
+            <span className="oval-glow__expand__hint">
+              <OpenInFullIcon aria-hidden="true" fontSize="small" />
             </span>
-          ))}
-        </div>
-      </div>
+          }
+        >
+          {/* Map + legend, bigger. Rotation is a portrait-only affordance:
+              the toggle and the rotated layout both live under one
+              orientation media query, so in landscape the shared 90vw/80vh
+              budget already fits the wide map upright and the toggle is
+              simply not there. */}
+          <div
+            className={
+              rotated
+                ? "oval-glow__modal oval-glow__modal--rotated"
+                : "oval-glow__modal"
+            }
+          >
+            <button
+              type="button"
+              className="btn--secondary oval-glow__modal__rotate"
+              aria-pressed={rotated}
+              onClick={() => setRotated((current) => !current)}
+            >
+              <Rotate90DegreesCwIcon aria-hidden="true" fontSize="small" />
+              <span className="btn__label">Rotate map</span>
+            </button>
+            <div className="oval-glow__modal__frame">
+              <OvalStage
+                product={product}
+                landData={landData}
+                mode={mode}
+                className="oval-glow__stage--modal"
+              />
+            </div>
+            <OvalLegend counts={counts} mode={mode} />
+          </div>
+        </FullSizeModal>
+      </figure>
+      <OvalLegend counts={counts} mode={mode} />
     </section>
   );
 };

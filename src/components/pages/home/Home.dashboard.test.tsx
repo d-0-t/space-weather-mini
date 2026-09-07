@@ -135,10 +135,10 @@ describe("Home Live Now dashboard (ticket 01)", () => {
     const videoTile = screen.getByRole("button", {
       name: "Predicted solar wind video, full size",
     });
-    // One media modal per media on the Dashboard: predicted solar wind
-    // video + the Kiruna pinned webcam still.
+    // One media modal per media on the Dashboard: the oval glow map,
+    // predicted solar wind video + the Kiruna pinned webcam still.
     const dialogs = document.querySelectorAll("dialog.image-modal");
-    expect(dialogs.length).toBe(2);
+    expect(dialogs.length).toBe(3);
     const videoDialog = videoTile.nextElementSibling as HTMLDialogElement;
     expect(videoDialog.open).toBe(false);
     await user.click(videoTile);

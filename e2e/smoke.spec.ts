@@ -67,10 +67,66 @@ test("the oval glow map renders full width in Aurora Now", async ({
   await expect(oval).toBeVisible({ timeout: dataTimeout });
   // One pole-to-pole world map painted across the full stage width
   const box = await oval.boundingBox();
-  const stage = await page.locator(".oval-glow__stage").boundingBox();
+  // The full-size modal's stage shares the class, so the inline one is
+  // first in the DOM - name it explicitly.
+  const stage = await page.locator(".oval-glow__stage").first().boundingBox();
   expect(box).not.toBeNull();
   expect(stage).not.toBeNull();
   expect(Math.abs(box!.width - stage!.width)).toBeLessThanOrEqual(2);
+});
+
+test("the oval glow map opens full size in a modal and Escape closes it", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const oval = page.getByRole("img", { name: /oval glow/i });
+  await expect(oval).toBeVisible({ timeout: dataTimeout });
+  await page
+    .getByRole("button", { name: "Oval glow intensity, full size" })
+    .click();
+  // Name the dialog: the Dashboard carries one media modal per media.
+  const dialog = page.getByRole("dialog", {
+    name: "Oval glow intensity, full size",
+  });
+  await expect(dialog).toBeVisible();
+  // The modal carries its own stage plus the shared legend, and the stage
+  // is genuinely bigger than the inline map.
+  const modalStage = dialog.locator(".oval-glow__stage--modal");
+  await expect(modalStage).toBeVisible();
+  await expect(dialog.locator(".oval-glow__legend")).toBeVisible();
+  const modalBox = await modalStage.boundingBox();
+  const inlineBox = await page.locator(".oval-glow__stage").first().boundingBox();
+  expect(modalBox!.width).toBeGreaterThan(inlineBox!.width);
+  // Landscape shares the map upright: the rotate offer is portrait-only.
+  await expect(page.getByRole("button", { name: /rotate map/i })).toBeHidden();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+});
+
+test("the full-size modal rotates the map in portrait for more map", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  const oval = page.getByRole("img", { name: /oval glow/i });
+  await expect(oval).toBeVisible({ timeout: dataTimeout });
+  await page
+    .getByRole("button", { name: "Oval glow intensity, full size" })
+    .click();
+  const rotate = page.getByRole("button", { name: /rotate map/i });
+  await expect(rotate).toBeVisible();
+  const stage = page.locator(".oval-glow__stage--modal");
+  const upright = await stage.boundingBox();
+  await rotate.click();
+  const rotated = await stage.boundingBox();
+  // Rotating turns the stage 90deg, so its bounding box swaps: the long
+  // axis now runs down the phone and exceeds the upright full width.
+  expect(rotated!.height).toBeGreaterThan(upright!.width);
+  expect(rotated!.height).toBeGreaterThan(rotated!.width);
+  await page.keyboard.press("Escape");
+  await expect(
+    page.getByRole("dialog", { name: "Oval glow intensity, full size" }),
+  ).toBeHidden();
 });
 
 test("home panels collapse and expand via their chevron toggle", async ({
