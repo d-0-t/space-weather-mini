@@ -118,6 +118,20 @@ _Avoid_: 24 hr summary, daySummary (internal names only)
 The concluding prose of each 3-day forecast section, explaining the forecast in the forecaster's words.
 _Avoid_: regional text, regionale (the product carries no per-region prose)
 
+### Time
+
+**Display timezone**:
+The timezone every absolute timestamp renders in, chosen by the chaser between Local (the device zone, the default) and UTC. Two-state, no "show both" mode: only one zone is ever shown, and relative ages carry no zone. Governs all shown timestamps, including place-local ones — except the UTC-dated tables. Governs day grouping too: "today" is the display timezone's calendar day, and a day-boundary-straddling slot belongs to the day its start falls in.
+_Avoid_: timezone setting, UTC mode (as the setting's name), local time (without qualifier)
+
+**UTC-dated table**:
+A table whose rows are aggregates of NOAA's UTC calendar days — the 27-day outlook and the daily geomagnetic indices — so its date cells stay in UTC in both modes, with a visible note when the display timezone is Local.
+_Avoid_: UTC table, aggregate table
+
+**Place-local time**:
+Time in the IANA zone of the geocoded place — the native frame of Open-Meteo timestamps, which carry no offset. Distinct from device-local time and from the display timezone; rendered in the display timezone like every other timestamp.
+_Avoid_: local time (without qualifier), place time
+
 ### Presentation
 
 **UI palette**:
