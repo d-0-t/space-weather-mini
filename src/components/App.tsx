@@ -12,6 +12,7 @@ import ThreeDayForecast from "./pages/forecasts/3-day-forecast";
 import DailyGeomagneticIndices from "./pages/forecasts/daily-geomagnetic-indices";
 import Webcams from "./pages/webcams/webcams";
 import Explainers from "./pages/explainers";
+import Sources from "./pages/Sources";
 
 const LocalConditions = lazy(() => import("./pages/conditions/conditions"));
 
@@ -39,6 +40,7 @@ const App: React.FC = () => {
         <Route path={"geoalert"} element={<GeophysicalAlert />} />
       </Route>
       <Route path={"about"} element={<About />} />
+      <Route path={"about/sources"} element={<Sources />} />
       <Route path={"explainers"} element={<Explainers />} />
     </Routes>
   );

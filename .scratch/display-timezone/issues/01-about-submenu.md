@@ -4,11 +4,16 @@
 
 **Blocked by:** None (can start immediately).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Header shows an About trigger that opens a submenu with This site, Sources, and Explainers
-- [ ] Submenu matches the Details submenu's keyboard handling and accessibility (aria-expanded/haspopup/controls, blur and key handling)
-- [ ] This site page shows the biography and future-plans content under a "This site" heading
-- [ ] Sources page shows the Data & Sources article with every attribution intact
-- [ ] Explainers no longer appears at top level; it remains reachable from the submenu at its existing route
-- [ ] Existing navigation tests updated and passing
+- [x] Header shows an About trigger that opens a submenu with This site, Sources, and Explainers
+- [x] Submenu matches the Details submenu's keyboard handling and accessibility (native details/summary disclosures: Enter/Space toggle, Esc close with focus return, focusout close, exclusive accordion)
+- [x] This site page shows the biography and future-plans content under a "This site" heading
+- [x] Sources page shows the Data & Sources article with every attribution intact
+- [x] Explainers no longer appears at top level; it remains reachable from the submenu at its existing route
+- [x] Existing navigation tests updated and passing
+
+## Comments
+
+- Implemented 2026-09-07 (same day, follow-up refactor). The nav's two custom disclosures (button + aria-expanded + shared openDropdown state) became native `<details>/<summary>` disclosures after a grilling with the maintainer: the browser owns the toggle and the collapsed/expanded announcement, the `.dropdown--open` CSS state class and the `openDropdown` state are gone, and the misleading `aria-haspopup` is dropped (the submenus are link lists, not menus). What the native element does not give – and still needs handlers for: Enter/Space activation parity (a keydown shim, since jsdom never runs the summary's native toggle), Esc-close with focus return (trigger on wide screens, hamburger inside the panel), focusout-close, and the exclusive accordion (handler-based, since jsdom lacks native name-group exclusivity). An explicit `role="button"` was tried and reverted: it strips the native expanded/collapsed state on UAs that already provide it. TDD red→green: Nav.test.tsx rewritten to the new seam (open attribute instead of aria-expanded, plus a Space-toggle test and an exclusivity test); e2e journeys updated to `#forecasts-disclosure`/`#about-disclosure` summary locators with an added "opening one submenu closes the other" journey and a Space toggle step; `e2e/about-a11y.spec.ts` closes the About page's axe-audit gap. Known tooling fact: Chromium exposes a closed summary as a plain group and Playwright does not map summary to the button role, so e2e targets the summary by CSS, not role. Suite green: typecheck, 677 Vitest, 51 Playwright (the six pre-existing conditions-a11y/home-a11y failures reproduce on clean HEAD and are environmental).
+- Bug fix + trigger chevron (2026-09-07, maintainer-reported). Symptom: on the narrow view, opening Details then clicking About closed the whole panel instead of switching submenus. Diagnosis loop: a mobile-view e2e journey asserting the exact flow went red (the About click never toggled – the panel was gone). Root cause (hypothesis 1 confirmed, others falsified by inspection): the wide-bar focusout-close also ran inside the panel, so mousedown on the About summary closed the open Details first; the collapsing inline submenu shifted the About summary out from under the pointer, the click resolved to the panel surface, and the panel closed. Fix: focusout-close now runs on wide screens only (`handleDisclosureFocusOut` skips while the panel is open); in-panel switches close the old submenu inside the click, via the exclusive accordion, after the click target is fixed. Regression tests: `mobile-layout.spec.ts` "switching from Details to About keeps the panel open" (red first) and a Nav.test blur-while-panel-open case. Also added the maintainer-requested chevron: an `ExpandMore` icon after the Details/About trigger labels, rotating 180° when open, transition dropped under `prefers-reduced-motion`. Your SCSS adjustments are untouched; the chevron rules are additive (`.dropdown__chevron`). Suite green: typecheck, 679 Vitest, 36 Playwright touched specs.

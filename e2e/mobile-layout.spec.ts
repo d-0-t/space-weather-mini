@@ -27,7 +27,7 @@ test("collapses the nav into a hamburger that opens a full-screen panel", async 
   });
 
   // Wide-screen links are hidden; only the hamburger remains
-  await expect(page.getByRole("link", { name: "About" })).toBeHidden();
+  await expect(page.locator("#about-disclosure > summary")).toBeHidden();
   const toggle = page.getByRole("button", { name: /menu/i });
   await expect(toggle).toBeVisible();
 
@@ -35,7 +35,7 @@ test("collapses the nav into a hamburger that opens a full-screen panel", async 
   await toggle.click();
   await expect(toggle).toHaveAttribute("aria-expanded", "true");
   const nav = page.getByRole("navigation");
-  await expect(nav.getByRole("link", { name: "About" })).toBeVisible();
+  await expect(nav.locator("#about-disclosure > summary")).toBeVisible();
   const menuBox = await nav.getByRole("list").boundingBox();
   expect(menuBox).not.toBeNull();
   expect(menuBox!.width).toBe(390);
@@ -46,11 +46,13 @@ test("collapses the nav into a hamburger that opens a full-screen panel", async 
   // while tapping Details (which opens the submenu) keeps it open
   const backdrop = page.locator(".header__menu-backdrop");
   await expect(backdrop).toBeVisible();
-  await page.getByRole("button", { name: "Details" }).click();
+  await page.locator("#forecasts-disclosure > summary").click();
+  await expect(page.locator("#forecasts-disclosure")).toHaveAttribute("open", "");
   await expect(toggle).toHaveAttribute("aria-expanded", "true");
   await backdrop.click({ position: { x: 10, y: 10 } });
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
-  await expect(nav.getByRole("link", { name: "About" })).toBeHidden();
+  await expect(page.locator("#forecasts-disclosure")).not.toHaveAttribute("open");
+  await expect(nav.locator("#about-disclosure > summary")).toBeHidden();
   await expect(backdrop).toBeHidden();
 });
 
@@ -63,18 +65,37 @@ test("tapping the panel background closes the menu, controls keep it open", asyn
   });
   const toggle = page.getByRole("button", { name: /menu/i });
   await toggle.click();
-  const details = page.getByRole("button", { name: "Details" });
+  const details = page.locator("#forecasts-disclosure > summary");
   await details.click();
-  await expect(details).toHaveAttribute("aria-expanded", "true");
+  await expect(page.locator("#forecasts-disclosure")).toHaveAttribute("open", "");
 
   // A tap on empty panel space (below the items) closes the menu
   await page
     .locator(".header__menu")
     .click({ position: { x: 195, y: 720 } });
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
-  await expect(
-    page.getByRole("navigation").getByRole("link", { name: "About" }),
-  ).toBeHidden();
+  await expect(page.locator("#forecasts-disclosure")).not.toHaveAttribute("open");
+});
+
+test("switching from Details to About keeps the panel open", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({
+    timeout: 60_000,
+  });
+  const toggle = page.getByRole("button", { name: /menu/i });
+  await toggle.click();
+
+  // Open Details, then switch to About: the panel must stay open
+  await page.locator("#forecasts-disclosure > summary").click();
+  await expect(page.locator("#forecasts-disclosure")).toHaveAttribute("open", "");
+  await page.locator("#about-disclosure > summary").click();
+  await expect(page.locator("#about-disclosure")).toHaveAttribute("open", "");
+  await expect(page.locator("#forecasts-disclosure")).not.toHaveAttribute("open");
+  await expect(toggle).toHaveAttribute("aria-expanded", "true");
+  const backdrop = page.locator(".header__menu-backdrop");
+  await expect(backdrop).toBeVisible();
 });
 
 test("daily indices table fits the viewport via internal scroll", async ({
@@ -121,9 +142,10 @@ test("Details opens inline inside the panel and Escape closes everything", async
   await toggle.click();
 
   // Details is a collapsible disclosure – clicking opens the submenu inline
-  const details = page.getByRole("button", { name: "Details" });
+  const details = page.locator("#forecasts-disclosure > summary");
   await details.click();
-  await expect(details).toHaveAttribute("aria-expanded", "true");
+  const forecastsDisclosure = page.locator("#forecasts-disclosure");
+  await expect(forecastsDisclosure).toHaveAttribute("open", "");
   const nav = page.getByRole("navigation");
   const submenu = nav.getByRole("list", { name: "Details submenu" });
   await expect(
@@ -138,8 +160,44 @@ test("Details opens inline inside the panel and Escape closes everything", async
 
   // Escape closes the submenu AND the panel, returning focus to the hamburger
   await page.keyboard.press("Escape");
-  await expect(page.locator(".dropdown__trigger")).toBeHidden();
+  await expect(page.locator(".dropdown__trigger").first()).toBeHidden();
+  await expect(forecastsDisclosure).not.toHaveAttribute("open");
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
-  await expect(nav.getByRole("link", { name: "About" })).toBeHidden();
+  await expect(toggle).toBeFocused();
+});
+
+test("About opens inline inside the panel and Escape closes everything", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({
+    timeout: 60_000,
+  });
+  const toggle = page.getByRole("button", { name: /menu/i });
+  await toggle.click();
+
+  // About is a collapsible disclosure like Details – clicking opens the
+  // submenu inline with the three destinations
+  const about = page.locator("#about-disclosure > summary");
+  await about.click();
+  const aboutDisclosure = page.locator("#about-disclosure");
+  await expect(aboutDisclosure).toHaveAttribute("open", "");
+  const nav = page.getByRole("navigation");
+  const submenu = nav.getByRole("list", { name: "About submenu" });
+  await expect(
+    submenu.getByRole("link", { name: "This site" }),
+  ).toBeVisible();
+  const submenuBox = await submenu.boundingBox();
+  expect(submenuBox).not.toBeNull();
+  // Inline accordion: right-aligned under its trigger, fully inside the panel
+  expect(submenuBox!.width).toBeGreaterThanOrEqual(200);
+  expect(submenuBox!.x).toBeGreaterThanOrEqual(0);
+  expect(submenuBox!.x + submenuBox!.width).toBeLessThanOrEqual(390);
+
+  // Escape closes the submenu AND the panel, returning focus to the hamburger
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".dropdown__trigger").first()).toBeHidden();
+  await expect(aboutDisclosure).not.toHaveAttribute("open");
+  await expect(toggle).toHaveAttribute("aria-expanded", "false");
   await expect(toggle).toBeFocused();
 });

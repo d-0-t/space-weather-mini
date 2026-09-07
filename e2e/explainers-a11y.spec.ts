@@ -8,7 +8,9 @@ test("the explainers page renders", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 2, name: "Aurora forecast" })).toBeVisible();
   await expect(page.locator("#kp-index")).toBeVisible();
   await expect(page.locator("#aurora-forecast")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Explainers" })).toBeVisible();
+  // The Explainers link lives inside the About submenu
+  await page.locator("#about-disclosure > summary").click();
+  await expect(page.getByRole("navigation").getByRole("link", { name: "Explainers", exact: true })).toBeVisible();
 });
 
 test("the explainers page passes the axe audit", async ({ page }) => {

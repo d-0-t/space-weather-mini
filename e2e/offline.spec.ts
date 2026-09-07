@@ -144,7 +144,7 @@ test("offline with no cached NOAA data shows a plain error, not stale data", asy
   // the Service Worker and precaches the shell, but fetches no NOAA products.
   await page.goto("/about");
   await expect(
-    page.getByRole("heading", { level: 1, name: "About" }),
+    page.getByRole("heading", { level: 1, name: "This site" }),
   ).toBeVisible({ timeout: dataTimeout });
   await waitForServiceWorker(page);
 

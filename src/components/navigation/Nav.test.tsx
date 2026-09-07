@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { MemoryRouter } from "react-router-dom";
@@ -12,35 +12,36 @@ const renderNav = () =>
     </MemoryRouter>,
   );
 
+const summaryFor = (label: string): HTMLElement => screen.getByText(label);
+
+const disclosureFor = (label: string): HTMLDetailsElement =>
+  summaryFor(label).closest("details") as HTMLDetailsElement;
+
 describe("Nav keyboard accessibility", () => {
-  it("exposes the Details submenu as an accessible menu via a button with aria-expanded", async () => {
+  it("exposes the Details submenu as a native disclosure that starts closed", () => {
     renderNav();
-    const trigger = screen.getByRole("button", {
-      name: /^details$/i,
-    });
-    expect(trigger).toHaveAttribute("aria-haspopup", "true");
-    expect(trigger.getAttribute("aria-expanded")).toBe("false");
-    expect(trigger.getAttribute("aria-controls")).toBeTruthy();
+    const details = disclosureFor("Details");
+    expect(details.tagName).toBe("DETAILS");
+    expect(details.open).toBe(false);
+    const summary = summaryFor("Details");
+    expect(summary.tagName).toBe("SUMMARY");
+    // The submenu is a list of links, not a menu: no popup semantics
+    expect(summary).not.toHaveAttribute("aria-haspopup");
+    // Native disclosure: no aria-expanded bookkeeping either
+    expect(summary).not.toHaveAttribute("aria-expanded");
+    // A chevron on the right of the label announces the toggle visually
+    expect(summary.querySelector(".dropdown__chevron")).not.toBeNull();
   });
 
-  it("reveals submenu links to keyboard users on focus and toggles aria-expanded on activation", async () => {
+  it("reveals submenu links to keyboard users on Enter and Escape returns focus to the trigger", async () => {
     const user = userEvent.setup();
     renderNav();
-    const trigger = screen.getByRole("button", {
-      name: /^details$/i,
-    });
-    const submenuId = trigger.getAttribute("aria-controls")!;
-    const submenu = document.getElementById(submenuId)!;
-    expect(submenu).toBeInTheDocument();
+    const details = disclosureFor("Details");
+    const summary = summaryFor("Details");
 
-    // Initially collapsed
-    expect(trigger).toHaveAttribute("aria-expanded", "false");
-
-    // Tab to the trigger and activate with Enter – should expand
-    trigger.focus();
-    expect(trigger).toHaveFocus();
+    summary.focus();
     await user.keyboard("{Enter}");
-    expect(trigger).toHaveAttribute("aria-expanded", "true");
+    expect(details.open).toBe(true);
 
     // All submenu links are now reachable and visible to the accessibility tree
     for (const name of [
@@ -56,14 +57,24 @@ describe("Nav keyboard accessibility", () => {
 
     // Tab moves focus into the first submenu item
     await user.tab();
-    expect(
-      screen.getByRole("link", { name: "Daily Data" }),
-    ).toHaveFocus();
+    expect(screen.getByRole("link", { name: "Daily Data" })).toHaveFocus();
 
     // Escape collapses the menu and returns focus to trigger
     await user.keyboard("{Escape}");
-    expect(trigger).toHaveAttribute("aria-expanded", "false");
-    expect(trigger).toHaveFocus();
+    expect(details.open).toBe(false);
+    expect(summary).toHaveFocus();
+  });
+
+  it("Space also toggles the disclosure", async () => {
+    const user = userEvent.setup();
+    renderNav();
+    const details = disclosureFor("Details");
+    const summary = summaryFor("Details");
+    summary.focus();
+    await user.keyboard(" ");
+    expect(details.open).toBe(true);
+    await user.keyboard(" ");
+    expect(details.open).toBe(false);
   });
 
   it("uses valid list markup – link is inside list item, not the reverse", async () => {
@@ -84,6 +95,85 @@ describe("Nav keyboard accessibility", () => {
   });
 });
 
+describe("About submenu", () => {
+  it("exposes the About submenu as a native disclosure with the three destinations", () => {
+    renderNav();
+    const details = disclosureFor("About");
+    expect(details.open).toBe(false);
+    const links = Array.from(details.querySelectorAll(".dropdown-content a"));
+    expect(links.map((l) => l.textContent)).toEqual([
+      "This site",
+      "Sources",
+      "Explainers",
+    ]);
+    expect(links.map((l) => l.getAttribute("href"))).toEqual([
+      "/about",
+      "/about/sources",
+      "/explainers",
+    ]);
+  });
+
+  it("reveals the submenu links on activation, moves focus into This site on Tab, and Escape collapses back to the trigger", async () => {
+    const user = userEvent.setup();
+    renderNav();
+    const details = disclosureFor("About");
+    const summary = summaryFor("About");
+
+    summary.focus();
+    await user.keyboard("{Enter}");
+    expect(details.open).toBe(true);
+    for (const name of ["This site", "Sources", "Explainers"]) {
+      expect(screen.getByRole("link", { name })).toBeVisible();
+    }
+    await user.tab();
+    expect(screen.getByRole("link", { name: "This site" })).toHaveFocus();
+    await user.keyboard("{Escape}");
+    expect(details.open).toBe(false);
+    expect(summary).toHaveFocus();
+  });
+
+  it("closes on blur when focus leaves the disclosure tree", async () => {
+    const user = userEvent.setup();
+    renderNav();
+    const details = disclosureFor("About");
+    await user.click(summaryFor("About"));
+    expect(details.open).toBe(true);
+    // Focus moves outside the About disclosure tree
+    fireEvent.blur(details, { relatedTarget: document.body });
+    expect(details.open).toBe(false);
+  });
+
+  it("opening one submenu closes the other", async () => {
+    const user = userEvent.setup();
+    renderNav();
+    const forecasts = disclosureFor("Details");
+    const about = disclosureFor("About");
+
+    await user.click(summaryFor("Details"));
+    expect(forecasts.open).toBe(true);
+    await user.click(summaryFor("About"));
+    expect(about.open).toBe(true);
+    expect(forecasts.open).toBe(false);
+    await user.click(summaryFor("Details"));
+    expect(forecasts.open).toBe(true);
+    expect(about.open).toBe(false);
+  });
+
+  it("no longer offers Explainers at the top level – it lives inside the About submenu", () => {
+    renderNav();
+    const menu = document.getElementById("primary-menu")!;
+    // No direct child link of the top-level menu links to /explainers
+    const topLevelExplainers = menu.querySelectorAll(
+      ":scope > li > a[href='/explainers']",
+    );
+    expect(topLevelExplainers).toHaveLength(0);
+    // The Dashboard, Webcams and Local conditions entries stay top level
+    for (const href of ["/", "/webcams", "/conditions"]) {
+      expect(menu.querySelector(`a[href="${href}"]`)).not.toBeNull();
+    }
+  });
+});
+
 describe("Header brand link", () => {
   it("links the logo and title to the dashboard", () => {
     renderNav();
@@ -100,7 +190,9 @@ describe("Top-level nav entries", () => {
   it("sits the Webcams and Local conditions entries between Dashboard and Details", () => {
     renderNav();
     const nav = screen.getByRole("navigation", { name: /primary/i });
-    const items = Array.from(nav.querySelectorAll("li > a, li > button"));
+    const items = Array.from(
+      nav.querySelectorAll("li > a, li > button, li > details > summary"),
+    );
     const labels = items.map((el) => el.textContent?.trim() ?? "");
     const dashboard = labels.indexOf("Dashboard");
     const webcams = labels.indexOf("Webcams");
@@ -124,9 +216,7 @@ describe("Mobile menu (hamburger)", () => {
     expect(menuId).toBeTruthy();
     const menu = document.getElementById(menuId!);
     expect(menu).toBeInTheDocument();
-    expect(menu).toContainElement(
-      screen.getByRole("link", { name: "About" }),
-    );
+    expect(menu).toContainElement(summaryFor("About"));
   });
 
   it("opens the menu on activation, reflects state in aria-expanded, and closes on Escape", async () => {
@@ -146,18 +236,43 @@ describe("Mobile menu (hamburger)", () => {
     renderNav();
     const toggle = screen.getByRole("button", { name: /open menu/i });
     await user.click(toggle);
-    await user.click(screen.getByRole("link", { name: "About" }));
+    await user.click(screen.getByRole("link", { name: "Dashboard" }));
     expect(toggle).toHaveAttribute("aria-expanded", "false");
   });
 
-  it("keeps the menu open when the Details disclosure is activated", async () => {
+  it("keeps the menu open when the About disclosure is activated", async () => {
     const user = userEvent.setup();
     renderNav();
     const toggle = screen.getByRole("button", { name: /open menu/i });
     await user.click(toggle);
-    await user.click(
-      screen.getByRole("button", { name: /^details$/i }),
-    );
+    const about = disclosureFor("About");
+    await user.click(summaryFor("About"));
+    expect(about.open).toBe(true);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await user.click(summaryFor("About"));
+    expect(about.open).toBe(false);
+    // Toggling the disclosure closed still keeps the panel itself open
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
+  });
+
+  it("keeps an open submenu open on blur while the panel is open, and switches via click", async () => {
+    const user = userEvent.setup();
+    renderNav();
+    const toggle = screen.getByRole("button", { name: /open menu/i });
+    await user.click(toggle);
+    await user.click(summaryFor("Details"));
+    const forecasts = disclosureFor("Details");
+    const about = disclosureFor("About");
+    // Focus moving to the About trigger must not close Details mid-click:
+    // the collapse would move the About trigger out from under the pointer
+    fireEvent.blur(forecasts, {
+      relatedTarget: about.querySelector("summary"),
+    });
+    expect(forecasts.open).toBe(true);
+    // Switching to About closes Details and keeps the panel open
+    await user.click(summaryFor("About"));
+    expect(about.open).toBe(true);
+    expect(forecasts.open).toBe(false);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
   });
 
@@ -170,14 +285,14 @@ describe("Mobile menu (hamburger)", () => {
     expect(backdrop).not.toBeNull();
 
     // Tapping Details opens the submenu and keeps the panel open
-    const details = screen.getByRole("button", { name: /^details$/i });
-    await user.click(details);
-    expect(details).toHaveAttribute("aria-expanded", "true");
+    await user.click(summaryFor("Details"));
+    expect(disclosureFor("Details").open).toBe(true);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
 
     // Tapping the backdrop closes the panel and its submenu
     await user.click(backdrop as HTMLElement);
     expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(disclosureFor("Details").open).toBe(false);
     expect(document.querySelector(".header__menu-backdrop")).toBeNull();
   });
 
@@ -189,12 +304,14 @@ describe("Mobile menu (hamburger)", () => {
     const menu = document.getElementById("primary-menu")!;
 
     // Controls keep the panel open
-    await user.click(screen.getByRole("button", { name: /^details$/i }));
+    await user.click(summaryFor("Details"));
+    expect(disclosureFor("Details").open).toBe(true);
     expect(toggle).toHaveAttribute("aria-expanded", "true");
 
     // A tap on the panel surface closes it
     await user.click(menu);
     expect(toggle).toHaveAttribute("aria-expanded", "false");
+    expect(disclosureFor("Details").open).toBe(false);
   });
 });
 

@@ -8,15 +8,15 @@ test("the app boots with navigation chrome on every page", async ({ page }) => {
   await expect(
     page.getByText("Space Weather Mini", { exact: true }),
   ).toBeVisible();
-  for (const label of ["Dashboard", "Webcams", "Local conditions", "About", "Explainers"]) {
+  for (const label of ["Dashboard", "Webcams", "Local conditions"]) {
     await expect(
       page.getByRole("link", { name: label, exact: true }),
     ).toBeVisible();
   }
   await expect(page.getByRole("link", { name: "Webcams", exact: true })).toHaveAttribute("href", "/webcams");
   await expect(page.getByRole("link", { name: "Local conditions", exact: true })).toHaveAttribute("href", "/conditions");
-  await expect(page.getByRole("button", { name: "Details" })).toBeVisible();
-  await page.getByRole("button", { name: "Details" }).click();
+  await expect(page.locator("#forecasts-disclosure > summary")).toBeVisible();
+  await page.locator("#forecasts-disclosure > summary").click();
   for (const label of [
     "Geophysical Alert",
     "Daily Data",
@@ -27,23 +27,64 @@ test("the app boots with navigation chrome on every page", async ({ page }) => {
   ]) {
     await expect(page.getByRole("navigation").getByRole("link", { name: label, exact: true })).toBeVisible();
   }
+  // The About entry is a submenu with This site / Sources / Explainers
+  await expect(page.locator("#about-disclosure > summary")).toBeVisible();
+  await page.locator("#about-disclosure > summary").click();
+  for (const label of ["This site", "Sources", "Explainers"]) {
+    await expect(page.getByRole("navigation").getByRole("link", { name: label, exact: true })).toBeVisible();
+  }
 });
 
 test("the keyboard navigation opens the Details submenu and Escape returns focus", async ({
   page,
 }) => {
   await page.goto("/");
-  const trigger = page.getByRole("button", { name: "Details" });
+  const trigger = page.locator("#forecasts-disclosure > summary");
+  const details = page.locator("#forecasts-disclosure");
   await trigger.focus();
   await page.keyboard.press("Enter");
-  await expect(trigger).toHaveAttribute("aria-expanded", "true");
+  await expect(details).toHaveAttribute("open", "");
   const firstLink = page.getByRole("navigation").getByRole("link", { name: "Daily Data", exact: true });
   await expect(firstLink).toBeVisible();
   await page.keyboard.press("Tab");
   await expect(firstLink).toBeFocused();
   await page.keyboard.press("Escape");
-  await expect(trigger).toHaveAttribute("aria-expanded", "false");
+  await expect(details).not.toHaveAttribute("open");
   await expect(trigger).toBeFocused();
+  // Space toggles too, like every native disclosure
+  await page.keyboard.press(" ");
+  await expect(details).toHaveAttribute("open", "");
+  await page.keyboard.press("Escape");
+  await expect(details).not.toHaveAttribute("open");
+});
+
+test("the keyboard navigation opens the About submenu and Escape returns focus", async ({
+  page,
+}) => {
+  await page.goto("/");
+  const trigger = page.locator("#about-disclosure > summary");
+  const details = page.locator("#about-disclosure");
+  await trigger.focus();
+  await page.keyboard.press("Enter");
+  await expect(details).toHaveAttribute("open", "");
+  const firstLink = page.getByRole("navigation").getByRole("link", { name: "This site", exact: true });
+  await expect(firstLink).toBeVisible();
+  await page.keyboard.press("Tab");
+  await expect(firstLink).toBeFocused();
+  await page.keyboard.press("Escape");
+  await expect(details).not.toHaveAttribute("open");
+  await expect(trigger).toBeFocused();
+});
+
+test("opening one submenu closes the other", async ({ page }) => {
+  await page.goto("/");
+  const details = page.locator("#forecasts-disclosure");
+  const about = page.locator("#about-disclosure");
+  await details.locator("summary").click();
+  await expect(details).toHaveAttribute("open", "");
+  await about.locator("summary").click();
+  await expect(about).toHaveAttribute("open", "");
+  await expect(details).not.toHaveAttribute("open");
 });
 
 test("the skip link is the first focusable element and targets main", async ({
@@ -151,7 +192,7 @@ test("the header logo links back to the dashboard via click and Enter", async ({
 }) => {
   await page.goto("/about");
   await expect(
-    page.getByRole("heading", { level: 1, name: "About" }),
+    page.getByRole("heading", { level: 1, name: "This site" }),
   ).toBeVisible();
   const brand = page.getByRole("link", { name: /space weather mini/i });
   await brand.click();
@@ -168,7 +209,14 @@ test("the header logo links back to the dashboard via click and Enter", async ({
 
 test("the about page renders", async ({ page }) => {
   await page.goto("/about");
-  await expect(page.getByRole("heading", { level: 1, name: "About" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "This site" })).toBeVisible();
+});
+
+test("the sources subpage renders", async ({ page }) => {
+  await page.goto("/about/sources");
+  await expect(page.getByRole("heading", { level: 1, name: "Sources" })).toBeVisible();
+  await expect(page.getByRole("link", { name: /SWPC NOAA/ }).first()).toBeVisible();
+  await expect(page.getByRole("link", { name: /Open-Meteo/ })).toBeVisible();
 });
 
 test("the forecasts index renders the forecast discussion", async ({ page }) => {

@@ -132,6 +132,12 @@ _Avoid_: UTC table, aggregate table
 Time in the IANA zone of the geocoded place — the native frame of Open-Meteo timestamps, which carry no offset. Distinct from device-local time and from the display timezone; rendered in the display timezone like every other timestamp.
 _Avoid_: local time (without qualifier), place time
 
+### Navigation
+
+**About submenu**:
+The header's About disclosure (ticket 01 of the display-timezone effort), a native `<details>/<summary>` disclosure sharing the Details submenu's shape and keyboard behavior: a trigger summary opening an sr-only-labelled list of This site (the biography and future-plans article at `/about`), Sources (the Data & Sources article at `/about/sources`) and Explainers (`/explainers`). Explainers appears only inside this submenu, never at the top level.
+_Avoid_: about page (when the submenu is meant), sources link (without the subpage name)
+
 ### Presentation
 
 **UI palette**:

@@ -109,7 +109,7 @@
     font-weight: bold;
 
     & > a,
-    & > button.dropdown__trigger {
+    & > summary.dropdown__trigger {
       cursor: pointer;
       display: flex;
       text-align: center;
@@ -157,17 +157,58 @@
 }
 
 .dropdown {
-  display: block;
+  cursor: pointer;
+  min-height: 44px;
+  //padding: 0 1rem;
+  display: flex;
+  align-items: flex-start;
+
+  details > summary {
+    display: flex;
+    justify-self: flex-end;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 1rem;
+  }
+
+  &:hover {
+    .dropdown__trigger {
+      color: var(--color-accent-strong) !important;
+    }
+  }
+
+  // The native summary marker (triangle) is replaced by the text-only trigger
+  &__trigger {
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+  }
+
+  &__chevron {
+    margin-left: 0.5rem;
+    transition: transform 0.2s ease;
+  }
+}
+
+details[open] > summary .dropdown__chevron {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dropdown__chevron {
+    transition: none;
+  }
 }
 
 .dropdown-content {
-  display: none;
   list-style: none;
   width: max-content;
   min-width: 200px;
 }
 
-.dropdown--open .dropdown-content {
+details[open] > .dropdown-content {
   display: flex;
   flex-direction: column;
   position: absolute;
@@ -208,9 +249,9 @@
   }
 }
 
-// The full menu (Dashboard, Webcams, Details, About, Explainers, astro
-// toggle) wraps to two rows below ~850px, so the hamburger panel takes over
-// from 900px down – a wider point than before, covering narrow desktop
+// The full menu (Dashboard, Webcams, Details, About, astro toggle) wraps to
+// two rows below ~850px, so the hamburger panel takes over
+// from 900px down - a wider point than before, covering narrow desktop
 // windows too.
 @media (max-width: 1100px) {
   .header__menu-backdrop {
@@ -227,15 +268,19 @@
 
   .header {
     &__menu li {
-      padding-right: 2rem;
-      margin: 0.5rem 0;
       justify-content: flex-end;
+      width: fit-content;
+      align-self: flex-end;
 
-      & > a {
-        padding-right: 1rem !important;
+      & > a,
+      & > details > summary {
+        justify-self: flex-end;
+        padding: 0 2rem !important;
       }
+
       & > button {
-        margin-right: 1rem !important;
+        margin-top: 0.5rem;
+        margin-right: 2rem !important;
       }
     }
 
@@ -267,12 +312,12 @@
       );
       z-index: 40;
 
-      & > li.forecasts {
+      & > li.dropdown {
         flex-direction: column;
       }
 
       & > li > a,
-      & > li > button.dropdown__trigger {
+      & > li > summary.dropdown__trigger {
         justify-content: flex-start;
         justify-content: right;
       }
@@ -280,12 +325,17 @@
   }
 
   .dropdown {
-    align-items: unset !important;
-    text-align: unset !important;
-    width: fit-content;
-    align-self: flex-end;
+    text-align: right;
+    align-items: flex-end;
+    justify-content: flex-end;
+    width: 100%;
+
+    details {
+      height: 100%;
+      align-self: flex-end;
+    }
   }
-  .dropdown--open .dropdown-content {
+  details[open] > .dropdown-content {
     position: static;
     transform: none;
     max-width: none;
@@ -295,14 +345,29 @@
     align-self: flex-end;
 
     li {
-      margin: 0;
+      display: flex;
+      align-items: flex-end;
+      justify-content: flex-end;
       padding-right: 0;
-      background-color: unset;
+      margin: 0;
+      background: unset !important;
+
+      &:hover {
+        background: unset !important;
+      }
+
+      &:not(:last-of-type) {
+        border: none;
+      }
 
       a {
-        text-align: right;
-        padding-right: 0;
-        justify-content: flex-end;
+        width: 100%;
+        font-weight: 500;
+        margin-right: 0.5rem;
+
+        &:hover {
+          color: var(--color-accent-strong);
+        }
       }
     }
   }

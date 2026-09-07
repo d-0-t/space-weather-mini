@@ -1,10 +1,15 @@
 import OpenInNew from "@mui/icons-material/OpenInNew";
 import "./Pages.scss";
 
+/**
+ * The "This site" page of the About submenu (ticket 01): the biography and
+ * the future-plans article stay here; the Data & Sources article moved to
+ * the Sources subpage at /about/sources.
+ */
 const About: React.FC = () => {
   return (
     <div className="container">
-      <h1>About</h1>
+      <h1>This site</h1>
 
       <article>
         <h2>Me &amp; the Site</h2>
@@ -42,81 +47,6 @@ const About: React.FC = () => {
           Before that, I wanted to render an actual site for the data and its
           visualization. Here it is!
         </p>
-      </article>
-
-      <article>
-        <h2>Data &amp; Sources</h2>
-        <p>
-          I used NOAA SWPC&apos;s space weather data, parsed from their public
-          endpoints, plus live feeds from the Swedish Institute of Space Physics
-          and the World Data Center for Geomagnetism in Kyoto. All data is
-          freely available from its source:
-        </p>
-        <h3 className="aboutDataLinksTitle">Sources:</h3>
-        <ul className="aboutDataLinks">
-          <li>
-            <a
-              href="https://www.swpc.noaa.gov/"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              SWPC NOAA <OpenInNew aria-hidden="true" fontSize="inherit" />
-            </a>{" "}
-            - Space Weather Prediction Center - National Oceanic and Atmospheric
-            Administration
-          </li>
-          <li>
-            <a
-              href="https://www.swpc.noaa.gov/content/space-weather-glossary"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              SWPC NOAA Glossary and Terminology{" "}
-              <OpenInNew aria-hidden="true" fontSize="inherit" />
-            </a>
-          </li>
-          <li>
-            <a
-              href="https://spaceweather.irf.se/"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              IRF - Swedish space weather center{" "}
-              <OpenInNew aria-hidden="true" fontSize="inherit" />
-            </a>
-          </li>
-          <li>
-            <a
-              href="https://wdc.kugi.kyoto-u.ac.jp/"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              WDC for Geomagnetism, Kyoto{" "}
-              <OpenInNew aria-hidden="true" fontSize="inherit" />
-            </a>
-          </li>
-          <li>
-            <a
-              href="https://www.openstreetmap.org/copyright"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              © OpenStreetMap contributors{" "}
-              <OpenInNew aria-hidden="true" fontSize="inherit" />
-            </a>{" "}
-            – Geocoding via Nominatim
-          </li>
-          <li>
-            <a
-              href="https://open-meteo.com/"
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              Open-Meteo <OpenInNew aria-hidden="true" fontSize="inherit" />
-            </a>{" "}
-            – Weather data (CC BY 4.0)
-          </li>
-        </ul>
       </article>
     </div>
   );
