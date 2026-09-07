@@ -158,13 +158,6 @@ export const flagSrc = (
   size: "16x12" | "32x24" | "48x36",
 ): string => `https://flagcdn.com/${size}/${code}.png`;
 
-export const formatLoadedTime = (): string =>
-  new Date().toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  });
-
 /** Cache-busts a still so the browser can't serve a stale frame. */
 export const cacheBustedSrc = (url: string): string => `${url}?t=${Date.now()}`;
 

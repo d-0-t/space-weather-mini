@@ -1,14 +1,17 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 
 import Nav from "./Nav";
+import { DisplayTimezoneProvider } from "../DisplayTimezone/DisplayTimezoneContext";
 
 const renderNav = () =>
   render(
     <MemoryRouter>
-      <Nav />
+      <DisplayTimezoneProvider>
+        <Nav />
+      </DisplayTimezoneProvider>
     </MemoryRouter>,
   );
 
@@ -312,6 +315,59 @@ describe("Mobile menu (hamburger)", () => {
     await user.click(menu);
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     expect(disclosureFor("Details").open).toBe(false);
+  });
+});
+
+describe("Time button (ticket 02)", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("sits the Time button before Astro mode, styled like it", () => {
+    renderNav();
+    const nav = screen.getByRole("navigation", { name: /primary/i });
+    const items = Array.from(
+      nav.querySelectorAll("li > a, li > button, li > details > summary"),
+    );
+    const labels = items.map((el) => el.textContent?.trim() ?? "");
+    const time = labels.indexOf("Time (local)");
+    const astro = labels.indexOf("Astro mode");
+    expect(time).toBeGreaterThan(-1);
+    expect(time).toBeLessThan(astro);
+    const button = screen.getByRole("button", { name: "Time (local)" });
+    expect(button).toHaveClass("btn--secondary", "header__time");
+  });
+
+  it("shows the current setting in the button label and updates live on Apply", async () => {
+    const user = userEvent.setup();
+    renderNav();
+    const button = screen.getByRole("button", { name: "Time (local)" });
+    await user.click(button);
+    const dialog = document.querySelector(
+      "dialog.time-dialog",
+    ) as HTMLDialogElement;
+    await user.click(
+      within(dialog).getByRole("checkbox", { name: "Show times in UTC" }),
+    );
+    await user.click(within(dialog).getByRole("button", { name: "Apply" }));
+    expect(
+      screen.getByRole("button", { name: "Time (UTC)" }),
+    ).toBeInTheDocument();
+  });
+
+  it("opens the Time modal from the hamburger panel and keeps the panel open", async () => {
+    const user = userEvent.setup();
+    renderNav();
+    const toggle = screen.getByRole("button", { name: /open menu/i });
+    await user.click(toggle);
+    const time = screen.getByRole("button", { name: "Time (local)" });
+    expect(time).toBeVisible();
+    await user.click(time);
+    const dialog = document.querySelector(
+      "dialog.time-dialog",
+    ) as HTMLDialogElement;
+    expect(dialog.open).toBe(true);
+    expect(toggle).toHaveAttribute("aria-expanded", "true");
   });
 });
 

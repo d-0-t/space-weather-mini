@@ -160,7 +160,8 @@ const VIEW_DESCRIPTIONS: Record<WebcamView, string> = {
  * the Lights over Lapland Twitch embed (never autoplaying), link rows for
  * video-only or unembeddable sources, and an honest "Looking for more?" note.
  * Freshness is honest by construction – browsers cannot read image timestamps
- * without CORS, so cards show "Loaded HH:MM · operator refreshes every N min".
+ * without CORS, so cards show "Loaded HH:MM. Refreshes every N min." with the
+ * stamp rendered in the Display timezone (ticket 02).
  *
  * The three viewing modes share one gallery: "Relevant now" (the curated
  * list, dark-adapted per station and deaf to the user's filter/hidden

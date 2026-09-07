@@ -1,4 +1,6 @@
 .header {
+  --nav-horizontal-gap: 0.75rem;
+
   margin: 0;
   padding: 0;
   display: flex;
@@ -117,7 +119,7 @@
       justify-content: center;
       height: 100%;
       min-height: 44px;
-      padding: 0 1rem;
+      padding: 0 var(--nav-horizontal-gap);
       text-decoration: none;
       color: var(--color-text-primary);
       font-weight: bold;
@@ -132,8 +134,7 @@
     }
 
     & > button.btn--secondary {
-      margin-left: 0.5rem;
-      margin-right: 1rem;
+      margin-right: var(--nav-horizontal-gap);
     }
   }
 }
@@ -159,7 +160,6 @@
 .dropdown {
   cursor: pointer;
   min-height: 44px;
-  //padding: 0 1rem;
   display: flex;
   align-items: flex-start;
 
@@ -168,7 +168,7 @@
     justify-self: flex-end;
     align-items: center;
     min-height: 44px;
-    padding: 0 1rem;
+    padding: 0 var(--nav-horizontal-gap);
   }
 
   &:hover {
@@ -187,7 +187,8 @@
   }
 
   &__chevron {
-    margin-left: 0.5rem;
+    margin-top: 4px;
+    margin-left: 0.25rem;
     transition: transform 0.2s ease;
   }
 }

@@ -1,19 +1,19 @@
 import "./WeatherDaily.scss";
-// import { useId } from "react";
+import { useDisplayTimezone } from "../../../../DisplayTimezone/DisplayTimezoneContext";
 import type { GeocodedPlace } from "../../../../../data/place-storage";
 import type { WeatherData } from "../../../../../data/weather";
 import { wmoWeather } from "../../../../../data/wmo-codes";
 import { formatCelsius } from "../../utils/format";
-// import { flagSrc } from "../../../webcams/webcam-card-parts";
-// import { shortPlace } from "../../utils/short-display-name";
+import { formatPlaceLocal } from "../../../../../products/display-time";
 import WeatherIcon from "./WeatherIcon";
 
-/** The 3 day daily row as a semantic table: one card per day with max and min, WMO icon and text and sunrise and sunset for reference. */
+/** The 3 day daily row as a semantic table: one card per day with max and min, WMO icon and text and sunrise and sunset for reference. The naive place-local sun times render in the Display timezone (ticket 02). */
 const WeatherDaily: React.FC<{ data: WeatherData; place: GeocodedPlace }> = ({
   data,
   place,
 }) => {
   //const { shortName, country, countryCode } = shortPlace(place);
+  const { displayTimezone } = useDisplayTimezone();
   return (
     <div
       className="weather-daily"
@@ -64,8 +64,20 @@ const WeatherDaily: React.FC<{ data: WeatherData; place: GeocodedPlace }> = ({
               </td>
               <td>{formatCelsius(day.temperatureMaxC)}</td>
               <td>{formatCelsius(day.temperatureMinC)}</td>
-              <td>{day.sunrise.slice(11)}</td>
-              <td>{day.sunset.slice(11)}</td>
+              <td>
+                {formatPlaceLocal(
+                  day.sunrise,
+                  data.utcOffsetSeconds,
+                  displayTimezone,
+                )}
+              </td>
+              <td>
+                {formatPlaceLocal(
+                  day.sunset,
+                  data.utcOffsetSeconds,
+                  displayTimezone,
+                )}
+              </td>
             </tr>
           ))}
         </tbody>

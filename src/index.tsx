@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./index.scss";
 import App from "./components/App";
 import Nav from "./components/navigation/Nav";
+import { DisplayTimezoneProvider } from "./components/DisplayTimezone/DisplayTimezoneContext";
 import reportWebVitals from "./reportWebVitals";
 
 const container = document.getElementById("root");
@@ -23,17 +24,19 @@ root.render(
   // Comment out if you only want one render for dev
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <a href="#main-content" className="skip-link">
-          Skip to main content
-        </a>
-        <Nav />
-        <div className="app-shell">
-          <main id="main-content" tabIndex={-1}>
-            <App />
-          </main>
-        </div>
-      </BrowserRouter>
+      <DisplayTimezoneProvider>
+        <BrowserRouter>
+          <a href="#main-content" className="skip-link">
+            Skip to main content
+          </a>
+          <Nav />
+          <div className="app-shell">
+            <main id="main-content" tabIndex={-1}>
+              <App />
+            </main>
+          </div>
+        </BrowserRouter>
+      </DisplayTimezoneProvider>
     </QueryClientProvider>
   </React.StrictMode>,
 );

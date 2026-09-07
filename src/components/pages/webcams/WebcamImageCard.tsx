@@ -2,9 +2,10 @@ import { useEffect, useRef, useState } from "react";
 
 import "./webcams.scss";
 import type { WebcamImageEntry } from "../../../data/webcams";
+import { useDisplayTimezone } from "../../DisplayTimezone/DisplayTimezoneContext";
+import { formatClock } from "../../../products/display-time";
 import {
   cacheBustedSrc,
-  formatLoadedTime,
   WebcamCardAttribution,
   WebcamCardBaseProps,
   WebcamCardImage,
@@ -16,9 +17,10 @@ import {
 
 /**
  * One image card (ticket 03): owns its own still `src` and "Loaded HH:MM"
- * time, so every reload – the page-level Refresh button, the opt-in cadence
- * interval, or the SSE feed – updates the honest freshness line. Auto-refresh
- * never polls faster than the operator's cadence and pauses while the tab is
+ * instant, so every reload – the page-level Refresh button, the opt-in
+ * cadence interval, or the SSE feed – updates the honest freshness line. The
+ * instant renders in the Display timezone (ticket 02). Auto-refresh never
+ * polls faster than the operator's cadence and pauses while the tab is
  * hidden (ADR-0003 discipline); the Refresh button always works.
  */
 const WebcamImageCard: React.FC<
@@ -39,12 +41,13 @@ const WebcamImageCard: React.FC<
   pinDisabled,
   onTogglePin,
 }) => {
+  const { displayTimezone } = useDisplayTimezone();
   const [src, setSrc] = useState(card.imageUrl);
-  const [loadedAt, setLoadedAt] = useState(formatLoadedTime);
+  const [loadedAt, setLoadedAt] = useState(() => new Date());
 
   const reload = () => {
     setSrc(cacheBustedSrc(card.imageUrl));
-    setLoadedAt(formatLoadedTime());
+    setLoadedAt(new Date());
   };
 
   // The page-level Refresh button re-renders every card's still; the nonce
@@ -103,8 +106,9 @@ const WebcamImageCard: React.FC<
         alt={card.alt}
       />
       <p className="webcam-card__freshness">
-        Loaded {loadedAt} · Refreshes every {card.cadenceMinutes} min
-        {card.note ? ` · ${card.note}` : ""}
+        Loaded {formatClock(loadedAt, displayTimezone)}. Refreshes every{" "}
+        {card.cadenceMinutes} min
+        {card.note ? ` ${card.note}` : ""}.
       </p>
       <WebcamCardAttribution operator={card.operator} siteUrl={card.siteUrl} />
     </article>

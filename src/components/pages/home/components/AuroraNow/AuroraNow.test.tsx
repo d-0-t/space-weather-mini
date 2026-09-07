@@ -1,3 +1,7 @@
+// The freshness line renders in the device time zone in Local mode, so the
+// suite pins one (Sweden, UTC+2) to keep every expectation deterministic.
+process.env.TZ = "Europe/Stockholm";
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -8,6 +12,8 @@ import kpObservedFixture from "../../../../../products/fixtures/noaa-planetary-k
 import kirunaFixture from "../../../../../data/fixtures/nominatim-kiruna.json";
 import AuroraNow from "./AuroraNow";
 import { AlertsProvider } from "../Alerts/AlertsContext";
+import { DisplayTimezoneProvider } from "../../../../DisplayTimezone/DisplayTimezoneContext";
+import { DISPLAY_TIMEZONE_STORAGE_KEY } from "../../../../../products/display-timezone";
 import {
   COULDNT_LOAD_COPY,
   STALE_DATA_NOTICE,
@@ -74,9 +80,11 @@ const renderAuroraNow = () =>
   render(
     <QueryClientProvider client={queryClient()}>
       <MemoryRouter>
-        <AlertsProvider>
-          <AuroraNow />
-        </AlertsProvider>
+        <DisplayTimezoneProvider>
+          <AlertsProvider>
+            <AuroraNow />
+          </AlertsProvider>
+        </DisplayTimezoneProvider>
       </MemoryRouter>
     </QueryClientProvider>,
   );
@@ -136,10 +144,20 @@ describe("AuroraNow", () => {
     );
   });
 
-  it("shows the freshness line as 'As of {time}. Updated {age}.', no bullet", async () => {
+  it("shows the freshness line as 'As of {time}. Updated {age}.' in the chosen zone, no bullet", async () => {
     renderAuroraNow();
     await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
-    // Fixture's latest observed reading is at 2026-08-25T12:00:00
+    // Local mode (the default): the device clock bare, no zone suffix.
+    // Fixture's latest observed reading is at 2026-08-25T12:00:00 → 14:00 in Sweden.
+    expect(screen.getByText(/As of 14:00\. Updated/)).toBeInTheDocument();
+    // UTC mode: the NOAA-legacy shape with suffix.
+    localStorage.setItem(
+      DISPLAY_TIMEZONE_STORAGE_KEY,
+      JSON.stringify({ timezone: "utc", v: 1 }),
+    );
+    cleanup();
+    renderAuroraNow();
+    await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
     expect(
       screen.getByText(/As of Aug 25 12:00 UTC\. Updated/),
     ).toBeInTheDocument();

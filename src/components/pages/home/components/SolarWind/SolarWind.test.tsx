@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import rtswWindFixture from "../../../../../products/fixtures/rtsw-wind-1m.json?raw";
 import rtswMagFixture from "../../../../../products/fixtures/rtsw-mag-1m.json?raw";
 import SolarWind from "./SolarWind";
+import { DisplayTimezoneProvider } from "../../../../DisplayTimezone/DisplayTimezoneContext";
 import {
   COULDNT_LOAD_COPY,
   STALE_DATA_NOTICE,
@@ -32,7 +33,9 @@ beforeEach(() => {
 const renderSolarWind = () =>
   render(
     <QueryClientProvider client={queryClient()}>
-      <SolarWind />
+      <DisplayTimezoneProvider>
+        <SolarWind />
+      </DisplayTimezoneProvider>
     </QueryClientProvider>,
   );
 

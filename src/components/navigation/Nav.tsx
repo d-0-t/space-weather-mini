@@ -2,8 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import DarkModeIcon from "@mui/icons-material/DarkMode";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import SettingsIcon from "@mui/icons-material/Settings";
 
 import "./Nav.scss";
+import TimeModal from "./TimeModal";
+import { useDisplayTimezone } from "../DisplayTimezone/DisplayTimezoneContext";
 
 const ASTRO_MODE_KEY = "astro-mode";
 const ASTRO_FILTER =
@@ -132,12 +135,20 @@ const NavDisclosure: React.FC<NavDisclosureProps> = ({
  * and returns focus to their trigger (or to the hamburger inside the panel).
  */
 const Nav: React.FC = () => {
+  const { displayTimezone } = useDisplayTimezone();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [timeModalOpen, setTimeModalOpen] = useState(false);
   const [isAstro, setIsAstro] = useState(
     () => localStorage.getItem(ASTRO_MODE_KEY) === "on",
   );
   const hamburgerRef = useRef<HTMLButtonElement>(null);
+  const timeButtonRef = useRef<HTMLButtonElement>(null);
   const menuId = "primary-menu";
+  const closeTimeModal = () => setTimeModalOpen(false);
+  // The label carries the current setting ("Time (local)" / "Time (UTC)") and
+  // is the button's only name: no tooltip title, and the label stays visible
+  // at every width (it opts out of the icon-only collapse below 1000px).
+  const timeLabel = `Time (${displayTimezone === "utc" ? "UTC" : "local"})`;
 
   useEffect(() => {
     document.body.style.filter = isAstro ? ASTRO_FILTER : "";
@@ -293,6 +304,17 @@ const Nav: React.FC = () => {
           <li>
             <button
               type="button"
+              ref={timeButtonRef}
+              className="btn--secondary header__time"
+              onClick={() => setTimeModalOpen(true)}
+            >
+              <SettingsIcon fontSize="medium" />
+              <span className="btn__label">{timeLabel}</span>
+            </button>
+          </li>
+          <li>
+            <button
+              type="button"
               className="btn--secondary header__astro"
               title="Astro mode"
               aria-pressed={isAstro}
@@ -304,6 +326,9 @@ const Nav: React.FC = () => {
           </li>
         </ul>
       </nav>
+      {timeModalOpen ? (
+        <TimeModal triggerRef={timeButtonRef} onClose={closeTimeModal} />
+      ) : null}
     </header>
   );
 };

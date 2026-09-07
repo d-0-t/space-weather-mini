@@ -2,18 +2,22 @@ import "./WeatherHourly.scss";
 import CloudIcon from "@mui/icons-material/Cloud";
 import WaterDropIcon from "@mui/icons-material/WaterDrop";
 import { useId } from "react";
+import { useDisplayTimezone } from "../../../../DisplayTimezone/DisplayTimezoneContext";
 import type { WeatherData } from "../../../../../data/weather";
 import { wmoWeather } from "../../../../../data/wmo-codes";
 import { formatCelsius } from "../../utils/format";
+import { formatPlaceLocal } from "../../../../../products/display-time";
 import WeatherIcon from "./WeatherIcon";
 
 /**
  * The 24 hour hourly strip: a horizontally scrollable row, one entry per
  * hour with time, temperature, humidity, total cloud with the low/mid/high
- * split and the WMO code as icon plus text.
+ * split and the WMO code as icon plus text. The strip's naive place-local
+ * times render in the Display timezone (ticket 02).
  */
 const WeatherHourly: React.FC<{ data: WeatherData }> = ({ data }) => {
   const stripLabelId = useId();
+  const { displayTimezone } = useDisplayTimezone();
   return (
     <div className="weather-hourly">
       <h3 className="sr-only" id={stripLabelId}>
@@ -30,7 +34,7 @@ const WeatherHourly: React.FC<{ data: WeatherData }> = ({ data }) => {
           return (
             <li key={hour.time} className="weather-hourly__hour">
               <span className="weather-hourly__hour__time">
-                {hour.time.slice(11)}
+                {formatPlaceLocal(hour.time, data.utcOffsetSeconds, displayTimezone)}
               </span>
               <span className="weather-hourly__hour__main">
                 <WeatherIcon code={hour.weatherCode} />{" "}

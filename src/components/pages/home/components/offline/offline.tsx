@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
-import { formatUtcShort } from "../../../../../products/live-helpers";
+import { useDisplayTimezone } from "../../../../DisplayTimezone/DisplayTimezoneContext";
+import { formatShort } from "../../../../../products/display-time";
 
 /** Honest stale copy for every live card when its data cannot be reached. */
 export const STALE_DATA_NOTICE = "⚠ Showing saved data – couldn't reach NOAA";
@@ -60,12 +61,16 @@ export const StaleDataNotice: React.FC = () => (
 );
 
 /** Honest freshness line: "As of {time}. Updated {age}." – sentences with
- *  periods, never bullets (screen readers announce every bullet). */
+ *  periods, never bullets (screen readers announce every bullet). The time
+ *  renders in the Display timezone (ticket 02). */
 export const FreshnessLine: React.FC<{
   asOf: string;
   updated: string;
-}> = ({ asOf, updated }) => (
-  <p className="live-panel__fresh">
-    As of {formatUtcShort(asOf)}. Updated {updated}.
-  </p>
-);
+}> = ({ asOf, updated }) => {
+  const { displayTimezone } = useDisplayTimezone();
+  return (
+    <p className="live-panel__fresh">
+      As of {formatShort(asOf, displayTimezone)}. Updated {updated}.
+    </p>
+  );
+};

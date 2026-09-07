@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 
 import "./webcams.scss";
 import type { WebcamLiveEntry } from "../../../data/webcams";
+import { useDisplayTimezone } from "../../DisplayTimezone/DisplayTimezoneContext";
+import { formatClock } from "../../../products/display-time";
 import {
-  formatLoadedTime,
   parseSseFramePath,
   WebcamCardAttribution,
   WebcamCardBaseProps,
@@ -41,8 +42,9 @@ const WebcamLiveCard: React.FC<
 }) => {
   const [liveEnabled, setLiveEnabled] = useState(true);
   const [src, setSrc] = useState(entry.imageUrl);
-  const [loadedAt, setLoadedAt] = useState(formatLoadedTime);
+  const [loadedAt, setLoadedAt] = useState(() => new Date());
   const [feedFailed, setFeedFailed] = useState(false);
+  const { displayTimezone } = useDisplayTimezone();
 
   const feeding = autoRefresh && tabVisible && liveEnabled;
 
@@ -54,7 +56,7 @@ const WebcamLiveCard: React.FC<
       if (path === null) return;
       setFeedFailed(false);
       setSrc(`${entry.frameBaseUrl}${path}`);
-      setLoadedAt(formatLoadedTime());
+      setLoadedAt(new Date());
     });
     source.addEventListener("error", () => setFeedFailed(true));
     return () => source.close();
@@ -111,8 +113,8 @@ const WebcamLiveCard: React.FC<
       {feedFailed ? null : (
         <p className="webcam-card__freshness">
           {feeding
-            ? `Loaded ${loadedAt} · live feed updates every ~5–15 s`
-            : `Loaded ${loadedAt} · placeholder frame`}
+            ? `Loaded ${formatClock(loadedAt, displayTimezone)}. Live feed updates every ~5–15 s.`
+            : `Loaded ${formatClock(loadedAt, displayTimezone)}. Placeholder frame.`}
         </p>
       )}
       {entry.note ? <p className="webcam-card__note">{entry.note}</p> : null}

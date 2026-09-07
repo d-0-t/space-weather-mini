@@ -62,6 +62,21 @@ describe("Open-Meteo response mapping (ticket 03)", () => {
     expect(mapped.daily[2].temperatureMaxC).toBe(11.5);
   });
 
+  it("retains the payload's UTC offset and IANA timezone for place-local conversion (ticket 02)", () => {
+    const mapped = mapWeatherResponse(kirunaFixture);
+    expect(mapped.utcOffsetSeconds).toBe(7200);
+    expect(mapped.timezone).toBe("Europe/Stockholm");
+  });
+
+  it("fails loudly when the offset or timezone is missing", () => {
+    // `timezone=auto` always returns both; a payload without them is a
+    // shape change and must not silently render wrong times
+    const { utc_offset_seconds, ...withoutOffset } = kirunaFixture;
+    expect(() => mapWeatherResponse(withoutOffset)).toThrow(/Open-Meteo/);
+    const { timezone, ...withoutZone } = kirunaFixture;
+    expect(() => mapWeatherResponse(withoutZone)).toThrow(/Open-Meteo/);
+  });
+
   it("tolerates unknown fields in the payload", () => {
     const withUnknown = {
       ...kirunaFixture,

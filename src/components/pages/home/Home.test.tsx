@@ -8,6 +8,7 @@ import threeDayFixture from "../../../products/fixtures/3-day-forecast.txt?raw";
 import kpObservedFixture from "../../../products/fixtures/noaa-planetary-k-index.json?raw";
 import kpForecastFixture from "../../../products/fixtures/noaa-planetary-k-index-forecast.json?raw";
 import { ovationJson } from "../../../test/ovation-test-utils";
+import { DisplayTimezoneProvider } from "../../DisplayTimezone/DisplayTimezoneContext";
 import Home from "./Home";
 
 const queryClient = () =>
@@ -50,7 +51,9 @@ const renderHome = () =>
   render(
     <QueryClientProvider client={queryClient()}>
       <MemoryRouter>
-        <Home />
+        <DisplayTimezoneProvider>
+          <Home />
+        </DisplayTimezoneProvider>
       </MemoryRouter>
     </QueryClientProvider>,
   );

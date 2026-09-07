@@ -1,6 +1,12 @@
-import { act, render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+// The freshness line renders in the device time zone in Local mode, so the
+// suite pins one (Sweden, UTC+2) to keep every expectation deterministic.
+process.env.TZ = "Europe/Stockholm";
 
+import { act, render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it } from "vitest";
+
+import { DisplayTimezoneProvider } from "../../../../DisplayTimezone/DisplayTimezoneContext";
+import { DISPLAY_TIMEZONE_STORAGE_KEY } from "../../../../../products/display-timezone";
 import {
   COULDNT_LOAD_COPY,
   FreshnessLine,
@@ -14,6 +20,13 @@ const OnlineProbe: React.FC = () => {
   const offline = useIsOffline();
   return <p>{offline ? "offline" : "online"}</p>;
 };
+
+const renderFreshness = (asOf: string, updated: string) =>
+  render(
+    <DisplayTimezoneProvider>
+      <FreshnessLine asOf={asOf} updated={updated} />
+    </DisplayTimezoneProvider>,
+  );
 
 describe("offline copy", () => {
   it("uses the honest stale-data and never-cached notices", () => {
@@ -79,16 +92,37 @@ describe("StaleDataNotice", () => {
   });
 });
 
-describe("FreshnessLine", () => {
-  it("renders 'As of {time}. Updated {age}.' in UTC, punctuation not bullets", () => {
-    render(<FreshnessLine asOf="2026-08-26T16:36:00" updated="5m ago" />);
+describe("FreshnessLine (ticket 02)", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("renders the device clock bare in Local mode – the default, no zone suffix", () => {
+    // 16:36 UTC is 18:36 in Sweden (UTC+2), same calendar day
+    renderFreshness("2026-08-26T16:36:00", "5m ago");
+    expect(screen.getByText("As of 18:36. Updated 5m ago.")).toBeInTheDocument();
+  });
+
+  it("renders 'Aug 26 16:36 UTC' in UTC mode – the NOAA-legacy shape with suffix", () => {
+    localStorage.setItem(
+      DISPLAY_TIMEZONE_STORAGE_KEY,
+      JSON.stringify({ timezone: "utc", v: 1 }),
+    );
+    renderFreshness("2026-08-26T16:36:00", "5m ago");
     expect(
       screen.getByText("As of Aug 26 16:36 UTC. Updated 5m ago."),
     ).toBeInTheDocument();
   });
 
-  it("keeps the dash placeholder when there is no as-of time yet", () => {
-    render(<FreshnessLine asOf="–" updated="–" />);
+  it("keeps the dash placeholder when there is no as-of time yet, in both modes", () => {
+    const { unmount } = renderFreshness("–", "–");
+    expect(screen.getByText("As of –. Updated –.")).toBeInTheDocument();
+    unmount();
+    localStorage.setItem(
+      DISPLAY_TIMEZONE_STORAGE_KEY,
+      JSON.stringify({ timezone: "utc", v: 1 }),
+    );
+    renderFreshness("–", "–");
     expect(screen.getByText("As of –. Updated –.")).toBeInTheDocument();
   });
 });

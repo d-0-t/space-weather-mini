@@ -128,6 +128,10 @@ _Avoid_: timezone setting, UTC mode (as the setting's name), local time (without
 A table whose rows are aggregates of NOAA's UTC calendar days — the 27-day outlook and the daily geomagnetic indices — so its date cells stay in UTC in both modes, with a visible note when the display timezone is Local.
 _Avoid_: UTC table, aggregate table
 
+**Time modal**:
+The Display timezone control (ticket 02 of the display-timezone effort), a native `<dialog>` opened by the nav's gear-icon Time button — styled like the Astro mode button and placed before it, reachable from the hamburger panel; the button's visible label carries the current setting, "Time (local)" or "Time (UTC)", at every width and with no tooltip. A "Show times in UTC" checkbox plus Apply (saves and closes) and Cancel, X, Escape and backdrop (all dismiss without saving), focus returning to the trigger; named by its visible heading like the alerts modal. The modal explains the device-timezone rule — times follow the device's timezone no matter which place is picked — and the UTC-dated-table exception.
+_Avoid_: time settings, timezone dialog (internal names only)
+
 **Place-local time**:
 Time in the IANA zone of the geocoded place — the native frame of Open-Meteo timestamps, which carry no offset. Distinct from device-local time and from the display timezone; rendered in the display timezone like every other timestamp.
 _Avoid_: local time (without qualifier), place time
@@ -177,6 +181,10 @@ _Avoid_: live feed (without caveat), streaming cam
 **Live updates**:
 The per-card opt-in switch on the live cam that gates its SSE feed; it only takes effect while the global auto-refresh setting is on and the tab is visible.
 _Avoid_: live mode, live toggle (internal names only)
+
+**Loaded stamp**:
+The webcam card's freshness line — "Loaded HH:MM. Refreshes every N min." — where HH:MM is when this browser last pulled the still, rendered in the Display timezone; never the operator's capture time, which browsers cannot read without CORS. The live cam's variants say live-feed cadence or placeholder frame instead.
+_Avoid_: loaded at, capture time
 
 ### Local conditions
 

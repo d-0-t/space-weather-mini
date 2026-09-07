@@ -111,9 +111,14 @@ describe("Product pages link to the explainers glossary", () => {
 describe("App navigation exposes the explainers entry", () => {
   it("navigation contains a link to /explainers", async () => {
     const { default: Nav } = await import("../navigation/Nav");
+    const { DisplayTimezoneProvider } = await import(
+      "../DisplayTimezone/DisplayTimezoneContext"
+    );
     render(
       <MemoryRouter>
-        <Nav />
+        <DisplayTimezoneProvider>
+          <Nav />
+        </DisplayTimezoneProvider>
       </MemoryRouter>,
     );
     expect(screen.getByRole("link", { name: /explainers/i })).toHaveAttribute(

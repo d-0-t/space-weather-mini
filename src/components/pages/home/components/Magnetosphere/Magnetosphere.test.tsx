@@ -7,6 +7,7 @@ import hemiFixture from "../../../../../products/fixtures/hemi-power.txt?raw";
 import dstFixture from "../../../../../products/fixtures/kyoto-dst.json?raw";
 import boulderFixture from "../../../../../products/fixtures/boulder-k-index-1m.json?raw";
 import Magnetosphere from "./Magnetosphere";
+import { DisplayTimezoneProvider } from "../../../../DisplayTimezone/DisplayTimezoneContext";
 import {
   COULDNT_LOAD_COPY,
   STALE_DATA_NOTICE,
@@ -35,7 +36,9 @@ beforeEach(() => {
 const renderMagnetosphere = () =>
   render(
     <QueryClientProvider client={queryClient()}>
-      <Magnetosphere />
+      <DisplayTimezoneProvider>
+        <Magnetosphere />
+      </DisplayTimezoneProvider>
     </QueryClientProvider>,
   );
 

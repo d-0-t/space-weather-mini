@@ -2,9 +2,10 @@ import "./WeatherBlock.scss";
 import RefreshIcon from "@mui/icons-material/Refresh";
 import { useQuery } from "@tanstack/react-query";
 import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
+import { useDisplayTimezone } from "../../../../DisplayTimezone/DisplayTimezoneContext";
 import type { GeocodedPlace } from "../../../../../data/place-storage";
 import { fetchWeather } from "../../../../../data/weather";
-import { formatTime } from "../../utils/format";
+import { formatClock } from "../../../../../products/display-time";
 import WeatherCurrent from "./WeatherCurrent";
 import WeatherDaily from "./WeatherDaily";
 import WeatherHourly from "./WeatherHourly";
@@ -18,6 +19,7 @@ import WeatherHourly from "./WeatherHourly";
  * stay visible.
  */
 const WeatherBlock: React.FC<{ place: GeocodedPlace }> = ({ place }) => {
+  const { displayTimezone } = useDisplayTimezone();
   const query = useQuery({
     queryKey: ["open-meteo-weather", place.latitude, place.longitude],
     queryFn: () => fetchWeather(place.latitude, place.longitude),
@@ -55,8 +57,8 @@ const WeatherBlock: React.FC<{ place: GeocodedPlace }> = ({ place }) => {
             ) : null}
             <WeatherCurrent data={data} />
             <p className="weather-block__fetched">
-              Updated at {formatTime(new Date(data.fetchedAt))}, near{" "}
-              {place.shortName}.
+              Updated at {formatClock(new Date(data.fetchedAt), displayTimezone)}
+              , near {place.shortName}.
             </p>
             <WeatherHourly data={data} />
             <WeatherDaily data={data} place={place} />

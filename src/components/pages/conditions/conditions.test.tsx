@@ -9,6 +9,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import LocalConditions from "./conditions";
 import { PLACE_STORAGE_KEY } from "../../../data/place-storage";
+import { DISPLAY_TIMEZONE_STORAGE_KEY } from "../../../products/display-timezone";
+import { DisplayTimezoneProvider } from "../../DisplayTimezone/DisplayTimezoneContext";
 import kirunaFixture from "../../../data/fixtures/nominatim-kiruna.json";
 import springfieldFixture from "../../../data/fixtures/nominatim-springfield.json";
 import reverseTromsoFixture from "../../../data/fixtures/nominatim-reverse-tromso.json";
@@ -27,7 +29,9 @@ const testQueryClient = (): QueryClient =>
 const renderPage = (): ReturnType<typeof render> =>
   render(
     <QueryClientProvider client={testQueryClient()}>
-      <LocalConditions />
+      <DisplayTimezoneProvider>
+        <LocalConditions />
+      </DisplayTimezoneProvider>
     </QueryClientProvider>,
   );
 
@@ -884,5 +888,81 @@ describe("Local conditions full composition (ticket 04)", () => {
     expect(screen.queryByText(/SQM/i)).not.toBeInTheDocument();
     expect(document.querySelector("iframe")).toBeNull();
     expect(document.querySelector("canvas")).toBeNull();
+  });
+});
+
+describe("Local conditions under the Display timezone (ticket 02)", () => {
+  const mockFetch = vi.fn();
+
+  beforeEach(() => {
+    localStorage.clear();
+    mockFetch.mockReset();
+    vi.stubGlobal("fetch", mockFetch);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+    restoreGeolocation();
+  });
+
+  /** Kiruna weather with the Display timezone flipped to UTC. */
+  const renderKirunaInUtc = async () => {
+    atNoon("2026-09-01T12:00:00Z");
+    seedKiruna();
+    localStorage.setItem(
+      DISPLAY_TIMEZONE_STORAGE_KEY,
+      JSON.stringify({ timezone: "utc", v: 1 }),
+    );
+    mockFetch.mockResolvedValue(jsonResponse(openMeteoKirunaFixture));
+    renderPage();
+  };
+
+  it("renders the hourly strip in UTC when the Display timezone is UTC", async () => {
+    await renderKirunaInUtc();
+    const strip = await screen.findByRole("list", {
+      name: "24-hour hourly strip",
+    });
+    const hours = within(strip).getAllByRole("listitem");
+    // Kiruna is UTC+2: its 00:00–23:00 wall-clock strip runs 22:00 (the
+    // previous UTC day) through 21:00 UTC
+    expect(within(hours[0]).getByText("22:00")).toBeInTheDocument();
+    expect(within(hours[14]).getByText("12:00")).toBeInTheDocument();
+    expect(within(hours[23]).getByText("21:00")).toBeInTheDocument();
+  });
+
+  it("renders the daily row's sun times in UTC when the Display timezone is UTC", async () => {
+    await renderKirunaInUtc();
+    const table = await screen.findByRole("table");
+    // Sunrise 05:06 and sunset 20:11 Kiruna wall clock are 03:06 and 18:11 UTC
+    expect(within(table).getByText("03:06")).toBeInTheDocument();
+    expect(within(table).getByText("18:11")).toBeInTheDocument();
+  });
+
+  it("renders the fetched-at line in UTC when the Display timezone is UTC", async () => {
+    await renderKirunaInUtc();
+    // The fetch instant is 12:00 UTC; Local mode shows 14:00 (Sweden)
+    expect(
+      await screen.findByText(
+        (_, el) =>
+          el?.classList.contains("weather-block__fetched") === true &&
+          (el?.textContent ?? "").includes(
+            "Updated at 12:00, near Kiruna, Norrbotten County",
+          ),
+      ),
+    ).toBeInTheDocument();
+  });
+
+  it("renders the luminosity timeline's band times in UTC when the Display timezone is UTC", () => {
+    atNoon("2026-09-01T20:00:00Z");
+    localStorage.setItem(
+      DISPLAY_TIMEZONE_STORAGE_KEY,
+      JSON.stringify({ timezone: "utc", v: 1 }),
+    );
+    mockFetch.mockResolvedValue(jsonResponse(openMeteoKirunaFixture));
+    renderPage();
+    // The Night band starts at device-local midnight (00:00 in Sweden, the
+    // existing suite pins Stockholm) = 22:00 UTC the previous UTC day
+    expect(bandTime("Night")).toBe("22:00");
   });
 });

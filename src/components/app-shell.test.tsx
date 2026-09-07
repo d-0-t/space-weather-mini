@@ -5,6 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 
 import App from "./App";
 import Nav from "./navigation/Nav";
+import { DisplayTimezoneProvider } from "./DisplayTimezone/DisplayTimezoneContext";
 import geoAlertFixture from "../products/fixtures/geophysical-alert.txt?raw";
 import threeDayFixture from "../products/fixtures/3-day-forecast.txt?raw";
 
@@ -30,17 +31,19 @@ const renderShell = (initialRoute = "/") => {
   vi.stubGlobal("fetch", createFetchMock());
   return render(
     <QueryClientProvider client={queryClient()}>
-      <MemoryRouter initialEntries={[initialRoute]}>
-        <a href="#main-content" className="skip-link">
-          Skip to main content
-        </a>
-        <Nav />
-        <div className="app-shell">
-          <main id="main-content" tabIndex={-1}>
-            <App />
-          </main>
-        </div>
-      </MemoryRouter>
+      <DisplayTimezoneProvider>
+        <MemoryRouter initialEntries={[initialRoute]}>
+          <a href="#main-content" className="skip-link">
+            Skip to main content
+          </a>
+          <Nav />
+          <div className="app-shell">
+            <main id="main-content" tabIndex={-1}>
+              <App />
+            </main>
+          </div>
+        </MemoryRouter>
+      </DisplayTimezoneProvider>
     </QueryClientProvider>,
   );
 };

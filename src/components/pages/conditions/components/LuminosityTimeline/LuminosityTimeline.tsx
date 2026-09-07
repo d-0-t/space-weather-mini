@@ -1,6 +1,8 @@
 import "./LuminosityTimeline.scss";
+import { useDisplayTimezone } from "../../../../DisplayTimezone/DisplayTimezoneContext";
 import type { DaylightDay } from "../../../../../data/sun";
-import { DAY_END_LABEL, formatTime } from "../../utils/format";
+import { formatClock } from "../../../../../products/display-time";
+import { DAY_END_LABEL } from "../../utils/format";
 
 /**
  * Luminosity levels of the day sections, darkest to brightest: the sun at
@@ -88,11 +90,13 @@ export const buildTimeline = (day: DaylightDay): TimelineBand[] => {
  * The luminosity timeline: one band per day section, sized by duration
  * ratio, dark to bright left to right on wide screens and top to bottom on
  * narrow ones. Each band shows its start time at the break and its name;
- * the last band closes at 24:00.
+ * the last band closes at 24:00. The band times are instants and render in
+ * the Display timezone (ticket 02).
  */
 const LuminosityTimeline: React.FC<{ day: DaylightDay }> = ({ day }) => {
   const bands = buildTimeline(day);
   const last = bands.length - 1;
+  const { displayTimezone } = useDisplayTimezone();
   return (
     <ul className="conditions__timeline">
       {bands.map((band, index) => (
@@ -102,13 +106,16 @@ const LuminosityTimeline: React.FC<{ day: DaylightDay }> = ({ day }) => {
           style={{ flexGrow: band.minutes }}
         >
           <span className="conditions__band-time">
-            {formatTime(band.startTime)}
+            {formatClock(band.startTime, displayTimezone)}
           </span>
           <span className="conditions__band-name">
             {LUMINOSITY_LEVELS[band.level]}
           </span>
           <span className="sr-only">
-            to {band.endTime !== null ? formatTime(band.endTime) : DAY_END_LABEL}
+            to{" "}
+            {band.endTime !== null
+              ? formatClock(band.endTime, displayTimezone)
+              : DAY_END_LABEL}
           </span>
           {index === last ? (
             <span className="conditions__band-time conditions__band-time--end">

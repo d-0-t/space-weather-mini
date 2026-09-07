@@ -1,10 +1,3 @@
-export const formatTime = (date: Date): string =>
-  new Intl.DateTimeFormat(undefined, {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(date);
-
 /** Celsius with one decimal, e.g. "10.6°C" – the v1 unit everywhere. */
 export const formatCelsius = (value: number): string =>
   `${Math.round(value)}°C`; //`${value.toFixed(1)}°C`;

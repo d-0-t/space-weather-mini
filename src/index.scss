@@ -211,6 +211,27 @@ code {
   button.btn--secondary:has(> .btn__label) {
     padding: 0;
   }
+
+  /* The Time button opts out of the icon collapse: its label carries the
+     current setting ("Time (local)" / "Time (UTC)") and stays visible at
+     every width – it is also the button's accessible name. */
+  button.header__time > .btn__label,
+  button.header__astro > .btn__label {
+    position: static;
+    width: auto;
+    height: auto;
+    padding: 0;
+    margin: 0;
+    overflow: visible;
+    clip: auto;
+    white-space: nowrap;
+    border: 0;
+  }
+
+  button.header__time.btn--secondary:has(> .btn__label),
+  button.header__astro.btn--secondary:has(> .btn__label) {
+    padding: 0 0.7rem;
+  }
 }
 
 /* Skip link – first focusable element, visible only on focus */

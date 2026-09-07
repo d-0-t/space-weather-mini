@@ -53,6 +53,14 @@ export interface WeatherPayload {
   hourly: WeatherHour[];
   /** Up to three daily cards. */
   daily: WeatherDay[];
+  /**
+   * The place's fixed UTC offset in seconds, `timezone=auto`'s answer
+   * (ticket 02): resolves the naive place-local timestamps to instants so
+   * they can render in the Display timezone.
+   */
+  utcOffsetSeconds: number;
+  /** The IANA zone name the offset belongs to, e.g. "Europe/Stockholm". */
+  timezone: string;
 }
 
 /** The payload plus the fetch instant, stamped when the response lands. */
@@ -105,15 +113,28 @@ const stringArray = (block: Record<string, unknown>, field: string): string[] =>
   return value as string[];
 };
 
+/** String field of a required top-level field, throwing on a shape change. */
+const stringField = (block: Record<string, unknown>, field: string): string => {
+  const value = block[field];
+  if (typeof value !== "string" || value === "") {
+    throw new Error(`Open-Meteo ${field} is not a string`);
+  }
+  return value;
+};
+
 /**
  * Maps a real Open-Meteo forecast response to the typed view model. The
  * hourly strip keeps the first 24 entries from 00:00 local; the daily row
  * keeps up to three cards. The current block has no low/mid/high split in
  * the payload, so it borrows the split from the hourly entry of the same
  * hour; a payload that cannot supply it throws loudly (spec user story 21).
+ * The payload's fixed UTC offset and IANA timezone are retained (ticket 02)
+ * so the naive place-local timestamps can resolve to instants.
  */
 export function mapWeatherResponse(raw: unknown): WeatherPayload {
   if (!isRecord(raw)) throw new Error("Open-Meteo returned a non-object payload");
+  const utcOffsetSeconds = numberField(raw, "utc_offset_seconds");
+  const timezone = stringField(raw, "timezone");
   const current = raw.current;
   if (!isRecord(current)) throw new Error("Open-Meteo returned no current block");
   const hourly = raw.hourly;
@@ -199,6 +220,8 @@ export function mapWeatherResponse(raw: unknown): WeatherPayload {
   }
 
   return {
+    utcOffsetSeconds,
+    timezone,
     current: {
       observedAt: observedAtField,
       temperatureC: numberField(current, "temperature_2m"),

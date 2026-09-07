@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import Webcams from "./webcams";
+import { DisplayTimezoneProvider } from "../../DisplayTimezone/DisplayTimezoneContext";
 import {
   AUTO_REFRESH_STORAGE_KEY,
   WEBCAM_PANELS_STORAGE_KEY,
@@ -156,7 +157,14 @@ const pageProps = {
   now: winterNight,
 };
 
-const renderPage = () => render(<Webcams {...pageProps} />);
+/** The page the way the app root composes it: inside the Display timezone provider. */
+const WebcamsInTimezone = (props: React.ComponentProps<typeof Webcams>) => (
+  <DisplayTimezoneProvider>
+    <Webcams {...props} />
+  </DisplayTimezoneProvider>
+);
+
+const renderPage = () => render(<WebcamsInTimezone {...pageProps} />);
 
 /** The full-gallery view: everything the page can show, filter and hidden settings active. */
 const renderSelectionPage = () => {
@@ -203,7 +211,7 @@ describe("Webcams page", () => {
     expect(flag).toHaveAttribute("width", "16");
     expect(flag).toHaveAttribute("height", "12");
     expect(
-      within(card).getByText(/^Loaded \d{2}:\d{2} · Refreshes every 5 min$/),
+      within(card).getByText(/^Loaded \d{2}:\d{2}. Refreshes every 5 min.$/),
     ).toBeInTheDocument();
     // Attribution carries the operator as the source link; the licence line is gone
     const source = within(card).getByText(/^Source:/);
@@ -232,7 +240,7 @@ describe("Webcams page", () => {
     const card = screen.getByText(/Aurora Ridge · 56\.4°N/).closest("article")!;
     expect(
       within(card).getByText(
-        /^Loaded \d{2}:\d{2} · Refreshes every 2 min · \(seasonal\)$/,
+        /^Loaded \d{2}:\d{2}. Refreshes every 2 min \(seasonal\).$/,
       ),
     ).toBeInTheDocument();
     expect(card).toHaveClass("webcam-card--panoramic");
@@ -570,7 +578,7 @@ describe("Webcams viewing modes", () => {
       JSON.stringify("all"),
     );
     unmount();
-    render(<Webcams {...pageProps} />);
+    render(<WebcamsInTimezone {...pageProps} />);
     expect(screen.getByRole("tab", { name: "All cameras" })).toHaveAttribute(
       "aria-selected",
       "true",
@@ -678,7 +686,7 @@ describe("Relevant now – curated list and local darkness", () => {
 
   it("hides a station while the sun is up there – mid-summer morning in Tromsø", () => {
     render(
-      <Webcams
+      <WebcamsInTimezone
         {...pageProps}
         now={new Date("2026-07-15T03:00:00Z")}
       />,
@@ -703,7 +711,7 @@ describe("Relevant now – curated list and local darkness", () => {
 
   it("keeps only the Twitch stream when every station is in daylight", () => {
     render(
-      <Webcams
+      <WebcamsInTimezone
         {...pageProps}
         now={new Date("2026-07-15T10:30:00Z")}
       />,
@@ -811,7 +819,7 @@ describe("Webcams panel persistence", () => {
       JSON.stringify({ v: 1, closed: ["webcams-region-Nordic"] }),
     );
     unmount();
-    render(<Webcams {...pageProps} />);
+    render(<WebcamsInTimezone {...pageProps} />);
     const toggle = screen.getByRole("button", { name: "Nordic" });
     expect(toggle).toHaveAttribute("aria-expanded", "false");
     expect(
@@ -826,7 +834,7 @@ describe("Webcams panel persistence", () => {
       JSON.stringify({ v: 1, closed: ["webcams-links"] }),
     );
     unmount();
-    render(<Webcams {...pageProps} />);
+    render(<WebcamsInTimezone {...pageProps} />);
     expect(
       screen.getByRole("button", { name: "Webcam links" }),
     ).toHaveAttribute("aria-expanded", "false");
@@ -948,14 +956,14 @@ describe("Webcams auto-refresh header (ticket 03)", () => {
   });
 
   it("persists the auto-refresh setting and restores it on a fresh mount", () => {
-    const { unmount } = render(<Webcams {...pageProps} />);
+    const { unmount } = render(<WebcamsInTimezone {...pageProps} />);
     fireEvent.click(screen.getByRole("checkbox", { name: /auto-refresh/i }));
     expect(
       screen.getByRole("checkbox", { name: /auto-refresh/i }),
     ).toBeChecked();
     expect(localStorage.getItem(AUTO_REFRESH_STORAGE_KEY)).toBe("true");
     unmount();
-    render(<Webcams {...pageProps} />);
+    render(<WebcamsInTimezone {...pageProps} />);
     expect(
       screen.getByRole("checkbox", { name: /auto-refresh/i }),
     ).toBeChecked();
@@ -1003,7 +1011,7 @@ describe("Webcams auto-refresh cadence (ticket 03)", () => {
     const freshnessAfter = within(auroraCard).getByText(/^Loaded /).textContent;
     expect(freshnessAfter).not.toBe(freshnessBefore);
     expect(freshnessAfter).toMatch(
-      /^Loaded \d{2}:\d{2} · Refreshes every 2 min( · \(seasonal\))?$/,
+      /^Loaded \d{2}:\d{2}. Refreshes every 2 min( \(seasonal\))?\.$/,
     );
   });
 
@@ -1293,7 +1301,7 @@ describe("Webcams persistence and empty state", () => {
     const { unmount } = renderSelectionPage();
     fireEvent.click(screen.getByRole("button", { name: "Hide North Star" }));
     unmount();
-    render(<Webcams {...pageProps} />);
+    render(<WebcamsInTimezone {...pageProps} />);
     expect(
       screen.queryByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
     ).toBeNull();
@@ -1465,7 +1473,7 @@ describe("Webcams region filter", () => {
     );
     // A fresh visit (new mount) still filters – the persisted view applies
     unmount();
-    render(<Webcams {...pageProps} />);
+    render(<WebcamsInTimezone {...pageProps} />);
     expect(
       screen.getByRole("heading", { level: 3, name: /North Star · 69\.6°N/ }),
     ).toBeInTheDocument();
@@ -1636,7 +1644,7 @@ describe("Webcams live cam (ticket 03)", () => {
     expect(
       liveCard()!.querySelector(".webcam-card__freshness"),
     ).toHaveTextContent(
-      /^Loaded \d{2}:\d{2} · live feed updates every ~5–15 s$/,
+      /^Loaded \d{2}:\d{2}. Live feed updates every ~5–15 s.$/,
     );
   });
 
@@ -1690,7 +1698,7 @@ describe("Webcams live cam (ticket 03)", () => {
       "https://cdn.example.org/poker-placeholder.jpg",
     );
     expect(
-      within(liveCard()!).getByText(/^Loaded \d{2}:\d{2} · placeholder frame$/),
+      within(liveCard()!).getByText(/^Loaded \d{2}:\d{2}. Placeholder frame.$/),
     ).toBeInTheDocument();
     // Re-enabling opens a fresh feed
     fireEvent.click(toggle);
@@ -1739,7 +1747,7 @@ describe("Webcams live cam (ticket 03)", () => {
       "https://cdn.example.org/poker-placeholder.jpg",
     );
     expect(
-      within(liveCard()!).getByText(/^Loaded \d{2}:\d{2} · placeholder frame$/),
+      within(liveCard()!).getByText(/^Loaded \d{2}:\d{2}. Placeholder frame.$/),
     ).toBeInTheDocument();
     expect(
       within(liveCard()!).queryByText(/live feed updates every/i),

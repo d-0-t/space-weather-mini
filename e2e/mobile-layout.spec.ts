@@ -98,6 +98,32 @@ test("switching from Details to About keeps the panel open", async ({
   await expect(backdrop).toBeVisible();
 });
 
+test("keeps the Time button's label visible at every width", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await expect(page.getByRole("heading", { name: "Dashboard" })).toBeVisible({
+    timeout: 60_000,
+  });
+  const label = page.locator(".header__time .btn__label");
+
+  // Wide bar: the label is plain visible text
+  await page.setViewportSize({ width: 1280, height: 800 });
+  let box = await label.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.width).toBeGreaterThan(40);
+  await expect(page.getByRole("button", { name: "Time (local)" })).toBeVisible();
+
+  // Narrow: inside the hamburger panel, the label is still real text –
+  // the current setting is the whole point of the label
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: /menu/i }).click();
+  box = await label.boundingBox();
+  expect(box).not.toBeNull();
+  expect(box!.width).toBeGreaterThan(40);
+  await expect(page.getByRole("button", { name: "Time (local)" })).toBeVisible();
+});
+
 test("daily indices table fits the viewport via internal scroll", async ({
   page,
 }) => {

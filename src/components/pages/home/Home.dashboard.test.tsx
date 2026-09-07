@@ -17,6 +17,7 @@ import rtswWindFixture from "../../../products/fixtures/rtsw-wind-1m.json?raw";
 import rtswMagFixture from "../../../products/fixtures/rtsw-mag-1m.json?raw";
 import boulderFixture from "../../../products/fixtures/boulder-k-index-1m.json?raw";
 import { ovationJson } from "../../../test/ovation-test-utils";
+import { DisplayTimezoneProvider } from "../../DisplayTimezone/DisplayTimezoneContext";
 import Home from "./Home";
 
 // The alert settings modal sits behind a feature flag (src/features.ts); this
@@ -74,7 +75,9 @@ const renderHome = () =>
   render(
     <QueryClientProvider client={queryClient()}>
       <MemoryRouter>
-        <Home />
+        <DisplayTimezoneProvider>
+          <Home />
+        </DisplayTimezoneProvider>
       </MemoryRouter>
     </QueryClientProvider>,
   );
@@ -253,7 +256,9 @@ describe("Home Live Now dashboard (ticket 01)", () => {
     render(
       <QueryClientProvider client={client}>
         <MemoryRouter>
-          <Home />
+          <DisplayTimezoneProvider>
+            <Home />
+          </DisplayTimezoneProvider>
         </MemoryRouter>
       </QueryClientProvider>,
     );
