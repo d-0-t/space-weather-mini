@@ -299,6 +299,7 @@
     &__modal__rotate {
       display: inline-flex;
       position: absolute;
+      z-index: 10;
       top: 0.7rem;
       left: 0.7rem;
       padding: 0.5rem !important;
@@ -316,7 +317,8 @@
           calc(95vw - 1.25rem),
           calc((95vh - 7rem) * 181 / 360)
         );
-        width: var(--oval-rotated-w);
+        max-width: 100%;
+        //width: var(--oval-rotated-w);
         height: calc(var(--oval-rotated-w) * 360 / 181 - 1.5rem);
         margin: 0 auto;
         position: relative;

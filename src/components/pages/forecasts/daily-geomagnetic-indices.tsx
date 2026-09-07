@@ -120,7 +120,7 @@ const DailyGeomagneticIndices: React.FC = () => {
                 <LineChart data={data.rows.map(toChartPoint)}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" interval="preserveStartEnd" />
-                  <YAxis domain={[0, 9]} />
+                  <YAxis domain={[0, 9]} width="auto" />
                   <Tooltip />
                   <Legend />
                   <Line

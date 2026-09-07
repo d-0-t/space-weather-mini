@@ -197,7 +197,7 @@ const ThreeDayForecast: React.FC = () => {
                 <LineChart data={toChartPoint(data)}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="label" interval="preserveStartEnd" />
-                  <YAxis domain={[0, 9]} />
+                  <YAxis domain={[0, 9]} width="auto" />
                   <MoonYAxis />
                   <Tooltip formatter={moonTooltipFormatter} />
                   <Legend />

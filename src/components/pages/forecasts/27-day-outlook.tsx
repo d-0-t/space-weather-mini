@@ -132,7 +132,7 @@ const TwentySevenDayOutlook: React.FC = () => {
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="date" interval="preserveStartEnd" />
-                  <YAxis domain={[0, 9]} />
+                  <YAxis domain={[0, 9]} width="auto" />
                   <MoonYAxis />
                   <Tooltip formatter={moonTooltipFormatter} />
                   <Legend />
