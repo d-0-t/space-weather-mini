@@ -1,4 +1,5 @@
 import { scanHeader } from "./product-header";
+import { normalizeProse } from "./prose";
 
 export interface DiscussionSection {
   daySummary: string;
@@ -26,8 +27,9 @@ const SECTION_TITLES = [
 const SUMMARY_MARKER = ".24 hr Summary...";
 const FORECAST_MARKER = ".Forecast...";
 
-// A section's prose keeps NOAA's source line breaks (blank lines separate
-// paragraphs) so the page can render it with pre-line.
+// A section's prose is reflowed by normalizeProse (mid-sentence column wraps
+// become spaces; breaks survive only after sentence ends; blank lines
+// separate paragraphs) so the page can render it with pre-line.
 function parseSection(title: string, lines: string[]): DiscussionSection {
   const summaryStart = lines.indexOf(SUMMARY_MARKER);
   const forecastStart = lines.indexOf(FORECAST_MARKER);
@@ -36,8 +38,10 @@ function parseSection(title: string, lines: string[]): DiscussionSection {
       `parseForecastDiscussion: ${title} has no ${summaryStart === -1 ? SUMMARY_MARKER : FORECAST_MARKER} marker – the NOAA format may have changed`
     );
   }
-  const daySummary = lines.slice(summaryStart + 1, forecastStart).join("\n").trim();
-  const forecast = lines.slice(forecastStart + 1).join("\n").trim();
+  const daySummary = normalizeProse(
+    lines.slice(summaryStart + 1, forecastStart).join("\n")
+  );
+  const forecast = normalizeProse(lines.slice(forecastStart + 1).join("\n"));
   if (daySummary === "" || forecast === "") {
     throw new Error(
       `parseForecastDiscussion: ${title} has empty prose – the NOAA format may have changed`

@@ -1,10 +1,12 @@
 import { scanHeader } from "./product-header";
+import { normalizeProse } from "./prose";
 
 /**
- * The geophysical alert product as a typed model. The light model preserves
- * NOAA's prose as text with source line breaks so the page can render it
- * with pre-line. The three body paragraphs are the solar indices message,
- * the observed storm paragraph, and the predicted storm paragraph.
+ * The geophysical alert product as a typed model. The light model reflows
+ * NOAA's prose with normalizeProse (mid-sentence column wraps become
+ * spaces; breaks survive only after sentence ends) so the page can render
+ * it with pre-line. The three body paragraphs are the solar indices
+ * message, the observed storm paragraph, and the predicted storm paragraph.
  */
 export interface GeophysicalAlert {
   issued: string;
@@ -62,7 +64,7 @@ export function parseGeophysicalAlert(text: string): GeophysicalAlert {
 
   const paragraphs = bodyText
     .split(/\n\s*\n/)
-    .map((paragraph) => stripHtmlTags(paragraph).trim())
+    .map((paragraph) => normalizeProse(stripHtmlTags(paragraph)))
     .filter((paragraph) => paragraph !== "");
 
   if (paragraphs.length < 2) {

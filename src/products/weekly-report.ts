@@ -1,9 +1,11 @@
 import { scanHeader } from "./product-header";
+import { normalizeProse } from "./prose";
 
 /**
- * One of the two narrative sections of the weekly report. The body
- * preserves NOAA's source line breaks (blank lines separate paragraphs)
- * so the page can render it with pre-line.
+ * One of the two narrative sections of the weekly report. The body is
+ * reflowed by normalizeProse (mid-sentence column wraps become spaces;
+ * breaks survive only after sentence ends; blank lines separate
+ * paragraphs) so the page can render it with pre-line.
  */
 export interface WeeklySection {
   title: string;
@@ -53,7 +55,7 @@ function extractSection(
 
   const end = nextTitleIndex ?? lines.length;
   const bodyLines = lines.slice(dateRangeIndex + 1, end);
-  const body = stripHtmlTags(bodyLines.join("\n")).trim();
+  const body = normalizeProse(stripHtmlTags(bodyLines.join("\n")));
   if (body === "") {
     throw new Error(
       `parseWeeklyReport: ${title} has empty prose – the NOAA format may have changed`

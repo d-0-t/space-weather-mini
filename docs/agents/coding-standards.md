@@ -7,7 +7,7 @@ The conventions every change to this repo must follow. Enforced by review, not t
 - `strict: true` in tsconfig. No `any` outside a deliberately-fenced `// eslint-disable-next-line @typescript-eslint/no-explicit-any` with a reason.
 - Every module-level variable (constants, types, parser entry points) gets a short JSDoc or comment when its meaning isn't obvious from its name. Obvious names need no comment; non-obvious ones always do.
 - Parsers are pure functions: `string → Product`. No DOM access, no `dangerouslySetInnerHTML` outside the final render boundary.
-- Narrative prose is preserved as text with NOAA's source line breaks (blank lines separate paragraphs); pages render it with `white-space: pre-line`.
+- Narrative prose is reflowed through `normalizeProse` (`src/products/prose.ts`) before pages render it with `white-space: pre-line`: NOAA's mid-sentence column wraps are joined into spaces, a newline survives only after sentence-ending punctuation, and blank lines separate paragraphs.
 - Types come from the domain model — the vocabulary of `CONTEXT.md` is the vocabulary of the types. No synonyms in code (see `_Avoid_` lists).
 - All absolute-time rendering goes through the display-time module (`src/products/display-time.ts`): short strings, chart tick and tooltip labels, 3-hour slot ranges, day labels and day bucketing, plus the zone-free relative ages. Components never format a timestamp themselves (the `live-helpers` re-export shim remains only until ticket 05 sweeps the last callers onto the module).
 

@@ -1,4 +1,5 @@
 import { scanHeader } from "./product-header";
+import { normalizeProse } from "./prose";
 
 export interface KpBreakdownRow {
   timeSlot: string;
@@ -53,8 +54,9 @@ interface ParsedSection {
   tableLines: string[];
 }
 
-// A section's prose keeps NOAA's source line breaks (blank lines separate
-// paragraphs) so the page can render it with pre-line.
+// A section's prose is reflowed by normalizeProse (mid-sentence column wraps
+// become spaces; breaks survive only after sentence ends; blank lines
+// separate paragraphs) so the page can render it with pre-line.
 function parseSection(
   lines: string[],
   tableTitlePattern: RegExp,
@@ -73,13 +75,14 @@ function parseSection(
     );
   }
 
-  const details = lines.slice(0, titleIndex).join("\n").trim();
+  const details = normalizeProse(lines.slice(0, titleIndex).join("\n"));
 
-  const rationale = lines
-    .slice(rationaleIndex)
-    .join("\n")
-    .replace(/^Rationale:\s*/, "")
-    .trim();
+  const rationale = normalizeProse(
+    lines
+      .slice(rationaleIndex)
+      .join("\n")
+      .replace(/^Rationale:\s*/, "")
+  );
 
   // Table rows live between the table title and the Rationale line, so a
   // stray percentage in the prose cannot be mistaken for a row.

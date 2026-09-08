@@ -18,7 +18,7 @@ describe("parseWeeklyReport", () => {
     );
     expect(report.highlights.dateRange).toBe("10 - 16 August 2026");
     expect(report.highlights.body).toBe(
-      "Solar activity ranged from very low to low levels throughout the\nperiod. No R1 (Minor) or greater events were observed. The largest\nflare was a C8.2/Sn at 16/1928 UTC from Region 4506 (N12, L=215,\nclass/area=Dao/100 on 16 Aug). An associated CME was observed in\nLASCO C2 imagery following the C8.2 flare, but analysis is ongoing\nin order to determine any Earth-directed component. Other activity\nincluded the lift-off of avlarge filament near S16E22 at 14/0332 UTC\nwhich produced a CME that is expected to arrive on 17-18 Aug.\n\nNo proton events were observed at geosynchronous orbit.\n\nThe greater than 2 MeV electron flux at geosynchronous orbit was\nnormal to moderate levels throughout the period.\n\nGeomagnetic field activity was at quiet or quiet to unsettled levels\nthroughout the period."
+      "Solar activity ranged from very low to low levels throughout the period. No R1 (Minor) or greater events were observed. The largest flare was a C8.2/Sn at 16/1928 UTC from Region 4506 (N12, L=215, class/area=Dao/100 on 16 Aug). An associated CME was observed in LASCO C2 imagery following the C8.2 flare, but analysis is ongoing in order to determine any Earth-directed component. Other activity included the lift-off of avlarge filament near S16E22 at 14/0332 UTC which produced a CME that is expected to arrive on 17-18 Aug.\n\nNo proton events were observed at geosynchronous orbit.\n\nThe greater than 2 MeV electron flux at geosynchronous orbit was normal to moderate levels throughout the period.\n\nGeomagnetic field activity was at quiet or quiet to unsettled levels throughout the period."
     );
   });
 
@@ -29,16 +29,19 @@ describe("parseWeeklyReport", () => {
     );
     expect(report.forecast.dateRange).toBe("17 August - 12 September 2026");
     expect(report.forecast.body).toBe(
-      "Solar activity is expected to range from very low to low levels\nthroughout the outlook period, with a slight chance for an R1-R2\n(Minor-Moderate) event.\n\nNo proton events are expected at geosynchronous orbit.\n\nThe greater than 2 MeV electron flux at geosynchronous orbit is\nexpected to reach high levels on 19-20, 23-24, and 28 Aug. Normal to\nmoderate levels are expected to prevail throughout the remainder of\nthe outlook period.\n\nGeomagnetic field activity is expected to reach active levels on\n17-18 Aug due to the anticipated arrival of a CME that left the Sun\non 14 Aug. Active conditions are expected again on 21-22 Aug and 04\nSep due to the influences of a CH HSS. Quiet and quiet to unsettled\nconditions are expected to prevail throughout the remainder of the\noutlook period."
+      "Solar activity is expected to range from very low to low levels throughout the outlook period, with a slight chance for an R1-R2 (Minor-Moderate) event.\n\nNo proton events are expected at geosynchronous orbit.\n\nThe greater than 2 MeV electron flux at geosynchronous orbit is expected to reach high levels on 19-20, 23-24, and 28 Aug. Normal to moderate levels are expected to prevail throughout the remainder of the outlook period.\n\nGeomagnetic field activity is expected to reach active levels on 17-18 Aug due to the anticipated arrival of a CME that left the Sun on 14 Aug. Active conditions are expected again on 21-22 Aug and 04 Sep due to the influences of a CH HSS. Quiet and quiet to unsettled conditions are expected to prevail throughout the remainder of the outlook period."
     );
   });
 
-  it("preserves the source line breaks and blank-line paragraph breaks in the Forecast body", () => {
+  it("keeps paragraph breaks, joining mid-sentence wraps into flowing sentences", () => {
     const report = parseWeeklyReport(fixture);
     expect(report.forecast.body).toContain("\n\n");
-    // Forecast body should keep line breaks within paragraphs
+    // Mid-sentence column wraps are joined; sentences flow within a paragraph.
     expect(report.forecast.body).toContain(
-      "Solar activity is expected to range from very low to low levels\nthroughout the outlook period"
+      "very low to low levels throughout the outlook period"
+    );
+    expect(report.forecast.body).toContain(
+      "28 Aug. Normal to moderate levels"
     );
   });
 

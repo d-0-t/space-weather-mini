@@ -3,8 +3,9 @@
     margin-top: 24px;
   }
 
-  // Narrative prose keeps NOAA's source line breaks; pre-line preserves
-  // newlines while still wrapping long lines at the viewport.
+  // Narrative prose is normalised by normalizeProse (newlines only after
+  // sentence ends); pre-line preserves those while wrapping long lines at
+  // the viewport.
   &__prose {
     white-space: pre-line;
     margin: 0 0 10px;

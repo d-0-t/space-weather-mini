@@ -3,8 +3,9 @@
     margin-top: 24px;
   }
 
-  // The details and rationale keep NOAA's source line breaks; pre-line
-  // preserves newlines while still wrapping long lines at the viewport.
+  // The details and rationale are normalised by normalizeProse (newlines
+  // only after sentence ends); pre-line preserves those while wrapping
+  // long lines at the viewport.
   &__details {
     white-space: pre-line;
     margin: 0 0 10px;
