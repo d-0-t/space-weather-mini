@@ -78,12 +78,46 @@ const toChartPoint = (forecast: ThreeDayForecastData) =>
   enrichWithMoon(
     forecast.days.flatMap((day, i) =>
       forecast.geomagneticActivity.kpBreakdown.map((row) => ({
-        label: `${day} ${row.timeSlot}`,
+        // The newline splits the tick into two lines: day over time slot.
+        label: `${day}\n${row.timeSlot}`,
         time: toTimeTag(day, row.timeSlot),
         kp: row.days[i],
       })),
     ),
   );
+
+/** Two-line tick for chart: "Sep 08\n00-03UT" → two tspans */
+const KpChartTick = (props: {
+  x?: number;
+  y?: number;
+  payload?: { value: string };
+}) => {
+  const { x, y, payload } = props;
+  if (payload == null || x == null || y == null) return null;
+  const value = payload.value ?? "";
+  const [line1, line2] = value.split("\n");
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text
+        x={0}
+        y={0}
+        dy={16}
+        textAnchor="middle"
+        fill="var(--color-white)"
+        fontSize={11}
+      >
+        <tspan x={0} dy="0">
+          {line1}
+        </tspan>
+        {line2 ? (
+          <tspan x={0} dy="1.2em">
+            {line2}
+          </tspan>
+        ) : null}
+      </text>
+    </g>
+  );
+};
 
 const SectionArticle: React.FC<{
   title: string;
@@ -190,10 +224,23 @@ const ThreeDayForecast: React.FC = () => {
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={toChartPoint(data)}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="label" interval="preserveStartEnd" />
+                  <XAxis
+                    dataKey="label"
+                    interval="preserveStartEnd"
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    tick={KpChartTick as any}
+                    height={36}
+                    tickMargin={4}
+                  />
                   <YAxis domain={[0, 9]} width="auto" />
                   <MoonYAxis />
-                  <Tooltip formatter={moonTooltipFormatter} />
+                  <Tooltip
+                    formatter={moonTooltipFormatter}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    labelFormatter={(label: any) =>
+                      typeof label === "string" ? label.replace("\n", " ") : String(label)
+                    }
+                  />
                   <Legend />
                   <Line
                     type="monotone"
