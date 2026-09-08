@@ -16,7 +16,12 @@ import {
   parseKyotoDst,
   KYOTO_DST_URL,
 } from "../../../../../products/kyoto-dst";
-import { formatAge } from "../../../../../products/live-helpers";
+import {
+  formatAge,
+  formatShort,
+  formatClockTick,
+} from "../../../../../products/display-time";
+import { useDisplayTimezone } from "../../../../DisplayTimezone/DisplayTimezoneContext";
 import { severityColor } from "../../../../../styles/severity";
 import GlossaryTerm from "../../../../explainers/GlossaryTerm";
 import {
@@ -53,6 +58,7 @@ const fetchDst = async () => {
 
 const LiveBanner: React.FC = () => {
   const offline = useIsOffline();
+  const { displayTimezone } = useDisplayTimezone();
   const [expanded, setExpanded] = useState(false);
   const magQuery = useQuery({
     queryKey: ["solar-wind-mag", "live"],
@@ -167,10 +173,15 @@ const LiveBanner: React.FC = () => {
         </span>
       </p>
       <p className="live-banner__freshness">
-        Bz As of {mag.time_tag} · Updated {bzAge} · Speed As of {speed.time_tag}{" "}
-        · Updated {speedAge} · Hemi As of {latestHemi?.observationTime ?? "–"} ·
-        Updated {hemiAge} · Dst As of {latestDst?.time_tag ?? "–"} · Updated{" "}
-        {dstAge}
+        Bz As of {formatShort(mag.time_tag, displayTimezone)}. Updated {bzAge}.
+        Speed As of {formatShort(speed.time_tag, displayTimezone)}. Updated{" "}
+        {speedAge}. Hemi As of{" "}
+        {latestHemi
+          ? formatShort(latestHemi.observationTime, displayTimezone)
+          : "–"}
+        . Updated {hemiAge}. Dst As of{" "}
+        {latestDst ? formatShort(latestDst.time_tag, displayTimezone) : "–"}.
+        Updated {dstAge}.
       </p>
       {staleWarning}
       <p className="live-banner__explain">
@@ -196,7 +207,7 @@ const LiveBanner: React.FC = () => {
               below)
             </p>
             <ResponsiveContainer width="100%" height={100}>
-              <LineChart data={[{ label: mag.time_tag, bz: mag.bz_gsm }]}>
+              <LineChart data={[{ label: formatShort(mag.time_tag, displayTimezone), bz: mag.bz_gsm }]}>
                 <Line
                   type="monotone"
                   dataKey="bz"
@@ -207,7 +218,7 @@ const LiveBanner: React.FC = () => {
               </LineChart>
             </ResponsiveContainer>
             <ResponsiveContainer width="100%" height={100}>
-              <LineChart data={[{ label: speed.time_tag, speed: protonSpeed }]}>
+              <LineChart data={[{ label: formatShort(speed.time_tag, displayTimezone), speed: protonSpeed }]}>
                 <Line
                   type="monotone"
                   dataKey="speed"
@@ -221,7 +232,7 @@ const LiveBanner: React.FC = () => {
               <ResponsiveContainer width="100%" height={100}>
                 <LineChart
                   data={hemi.points.slice(-12).map((p) => ({
-                    label: p.observationTime.slice(11),
+                    label: formatClockTick(p.observationTime, displayTimezone),
                     gw: p.northPowerGW,
                   }))}
                 >
@@ -243,7 +254,7 @@ const LiveBanner: React.FC = () => {
               <ResponsiveContainer width="100%" height={100}>
                 <LineChart
                   data={dst.points.slice(-6).map((p) => ({
-                    label: p.time_tag.slice(11, 16),
+                    label: formatClockTick(p.time_tag, displayTimezone),
                     dst: p.dst,
                   }))}
                 >

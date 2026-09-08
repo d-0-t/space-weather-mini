@@ -2,7 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 
 import HelpPopover from "../../../../HelpPopover/HelpPopover";
 import { SourceAttribution } from "../../../../sources";
-import { formatAge } from "../../../../../products/live-helpers";
+import { formatAge, formatSlot } from "../../../../../products/display-time";
+import { useDisplayTimezone } from "../../../../DisplayTimezone/DisplayTimezoneContext";
 import {
   COULDNT_LOAD_COPY,
   FreshnessLine,
@@ -11,12 +12,7 @@ import {
 } from "../offline/offline";
 import { getMoonPhase } from "../../../../moon/moon";
 import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
-import {
-  KpBar,
-  fetchKpObserved,
-  formatKp,
-  formatTimeSlot,
-} from "../kp-panel/kp-panel";
+import { KpBar, fetchKpObserved, formatKp } from "../kp-panel/kp-panel";
 import OvalGlow from "./OvalGlow";
 import ViewDistanceLine from "./ViewDistanceLine";
 
@@ -119,6 +115,7 @@ const AuroraCurtain: React.FC<{ kp: number }> = ({ kp }) => {
  */
 const AuroraNow: React.FC = () => {
   const offline = useIsOffline();
+  const { displayTimezone } = useDisplayTimezone();
   const observedQuery = useQuery({
     queryKey: ["planetary-k-index", "live"],
     queryFn: fetchKpObserved,
@@ -163,14 +160,10 @@ const AuroraNow: React.FC = () => {
   const latestObserved = observed[observed.length - 1];
   const currentKp = latestObserved.Kp;
   const currentKpRounded = Math.floor(currentKp);
-  // Current 3h window label derived from the latest observed time_tag.
-  const observedTime = new Date(`${latestObserved.time_tag}Z`);
-  const slotStart = Number.isNaN(observedTime.getTime())
-    ? NaN
-    : Math.floor(observedTime.getUTCHours() / 3) * 3;
-  const currentSlot = Number.isNaN(slotStart)
-    ? ""
-    : `${String(slotStart).padStart(2, "0")}-${String(slotStart + 3).padStart(2, "0")}UT`;
+  // Current 3h window label derived from the latest observed time_tag. The
+  // slot grid stays UTC (instant-based, the same slot in both modes); only
+  // the labels follow the Display timezone.
+  const currentSlot = formatSlot(latestObserved.time_tag, displayTimezone);
 
   return (
     <article className="aurora-now">
@@ -181,9 +174,7 @@ const AuroraNow: React.FC = () => {
         adornment={badge}
       >
         <div className="aurora-now__current">
-          <span className="aurora-now__current__time">
-            {formatTimeSlot(currentSlot)}
-          </span>
+          <span className="aurora-now__current__time">{currentSlot}</span>
           <span
             className={`aurora-now__current__kp kpx${currentKpRounded >= 9 ? "9" : currentKpRounded + "" + (currentKpRounded + 1)}`}
           >

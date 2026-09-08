@@ -1,7 +1,5 @@
-import {
-  formatAge,
-  formatUtcShort,
-} from "../../../../../products/live-helpers";
+import { formatAge, formatShort } from "../../../../../products/display-time";
+import { useDisplayTimezone } from "../../../../DisplayTimezone/DisplayTimezoneContext";
 import { gLabelForThreshold } from "../../../../../products/thresholds";
 import { kpClass } from "../kp-panel/kp-panel";
 import { useAlerts } from "./AlertsContext";
@@ -15,6 +13,7 @@ import "./Alerts.scss";
  * without stopping alerts.
  */
 const Alerts: React.FC = () => {
+  const { displayTimezone } = useDisplayTimezone();
   const {
     match,
     threshold,
@@ -89,9 +88,9 @@ const Alerts: React.FC = () => {
                 {match.kind === "alert" ? match.snippet : match.title}
               </p>
               <p className="alerts__item__meta">
-                As of {formatUtcShort(match.time)}
+                As of {formatShort(match.time, displayTimezone)}.
                 {match.kind !== "forecast"
-                  ? ` · Updated ${formatAge(match.time)}`
+                  ? ` Updated ${formatAge(match.time)}`
                   : ""}
               </p>
             </div>

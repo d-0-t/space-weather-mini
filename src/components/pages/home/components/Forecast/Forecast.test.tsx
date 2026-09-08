@@ -1,5 +1,10 @@
+// The chart ticks and table render in the device time zone in Local mode,
+// so the suite pins one (Sweden, UTC+2) to keep every expectation
+// deterministic.
+process.env.TZ = "Europe/Stockholm";
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
@@ -8,6 +13,8 @@ import threeDayFixture from "../../../../../products/fixtures/3-day-forecast.txt
 import kpObservedFixture from "../../../../../products/fixtures/noaa-planetary-k-index.json?raw";
 import kpForecastFixture from "../../../../../products/fixtures/noaa-planetary-k-index-forecast.json?raw";
 import Forecast from "./Forecast";
+import { DisplayTimezoneProvider } from "../../../../DisplayTimezone/DisplayTimezoneContext";
+import { saveDisplayTimezone } from "../../../../../products/display-timezone";
 import {
   COULDNT_LOAD_COPY,
   STALE_DATA_NOTICE,
@@ -21,6 +28,7 @@ beforeEach(() => {
   // Fix today to Aug26 2026 (Wednesday) UTC so table is deterministic: Aug26,27,28
   vi.useFakeTimers({ toFake: ["Date"] } as unknown as Parameters<typeof vi.useFakeTimers>[0]);
   vi.setSystemTime(new Date("2026-08-26T12:00:00Z"));
+  localStorage.clear();
   mockFetch.mockReset();
   mockFetch.mockImplementation((url: string) => {
     const u = typeof url === "string" ? url : "";
@@ -40,7 +48,9 @@ const renderForecast = () =>
   render(
     <QueryClientProvider client={queryClient()}>
       <MemoryRouter>
-        <Forecast />
+        <DisplayTimezoneProvider>
+          <Forecast />
+        </DisplayTimezoneProvider>
       </MemoryRouter>
     </QueryClientProvider>,
   );
@@ -112,12 +122,48 @@ describe("Forecast", () => {
     expect(screen.queryByText(/23\/08/)).not.toBeInTheDocument();
   });
 
-  it("formats chart XAxis as 'Mon DD\\nHH:MM'", async () => {
+  it("formats chart labels as 'Mon DD\\nHH:MM' in the display timezone", async () => {
     renderForecast();
     await waitFor(() => expect(document.querySelector(".forecast__chart")).toBeInTheDocument());
-    const { formatChartLabel } = await import("../kp-panel/kp-panel");
-    expect(formatChartLabel("2026-08-18T00:00:00")).toBe("Aug 18\n00:00");
-    expect(formatChartLabel("2026-08-19T12:00:00")).toBe("Aug 19\n12:00");
+    const { formatSlotTick } = await import("../../../../../products/display-time");
+    expect(formatSlotTick("2026-08-18T00:00:00", "utc")).toBe("Aug 18\n00:00");
+    // 00:00 UTC is 02:00 in Stockholm
+    expect(formatSlotTick("2026-08-18T00:00:00", "local")).toBe("Aug 18\n02:00");
+  });
+
+  it("names the chart's Now line in the chosen timezone, in both modes", async () => {
+    renderForecast();
+    await waitFor(() =>
+      expect(document.querySelector(".forecast__chart")).toBeInTheDocument(),
+    );
+    const chartName = () =>
+      document.querySelector(".forecast__chart .sr-only")?.textContent ?? "";
+    // Local mode (the default): the fixture's latest observed reading is at
+    // Aug 25 12:00 UTC → 14:00 in Sweden, same day.
+    expect(chartName()).toMatch(/vertical Now at Aug 25 14:00/);
+    saveDisplayTimezone(localStorage, "utc");
+    cleanup();
+    renderForecast();
+    await waitFor(() =>
+      expect(document.querySelector(".forecast__chart")).toBeInTheDocument(),
+    );
+    expect(chartName()).toMatch(/vertical Now at Aug 25 12:00/);
+  });
+
+  it("groups the mini-table by Display-timezone day – 'today' is the zone's calendar day", async () => {
+    // Fake now is Aug 26 23:30 UTC, which is Aug 27 in Sweden: the table's
+    // today must flip to the display timezone's calendar day.
+    vi.setSystemTime(new Date("2026-08-26T23:30:00Z"));
+    renderForecast();
+    await waitFor(() => expect(screen.getByRole("table", { name: /Kp-index forecast/i })).toBeInTheDocument());
+    const rowHeaders = screen.getAllByRole("rowheader");
+    expect(rowHeaders).toHaveLength(3);
+    expect(rowHeaders[0].textContent).toMatch(/Thursday/);
+    expect(rowHeaders[0].textContent).toMatch(/27\/08/);
+    expect(rowHeaders[1].textContent).toMatch(/Friday/);
+    expect(rowHeaders[1].textContent).toMatch(/28\/08/);
+    expect(rowHeaders[2].textContent).toMatch(/Saturday/);
+    expect(rowHeaders[2].textContent).toMatch(/29\/08/);
   });
 
   it("renders the ENLIL video preview that opens a full-size modal", async () => {

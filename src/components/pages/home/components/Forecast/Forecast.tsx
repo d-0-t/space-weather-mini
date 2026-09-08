@@ -25,13 +25,20 @@ import {
   moonTooltipFormatter,
 } from "../../../../moon/moon-chart";
 import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
+import { useDisplayTimezone } from "../../../../DisplayTimezone/DisplayTimezoneContext";
 import {
-  MONTHS_SHORT,
+  addDays,
+  dayKeyOf,
+  formatDayLabel,
+  formatShortDay,
+  formatSlotTick,
+  type DayKey,
+  utcSuffix,
+} from "../../../../../products/display-time";
+import {
   fetchKpForecast,
   fetchKpObserved,
   fetchThreeDay,
-  formatChartLabel,
-  formatDayLabel,
   formatKp,
   kpClass,
 } from "../kp-panel/kp-panel";
@@ -86,6 +93,7 @@ const KpChartTick = (props: {
 const Forecast: React.FC = () => {
   const forecastChartLabelId = useId();
   const offline = useIsOffline();
+  const { displayTimezone } = useDisplayTimezone();
   const { data } = useQuery({
     queryKey: ["3-day-forecast"],
     queryFn: fetchThreeDay,
@@ -140,48 +148,29 @@ const Forecast: React.FC = () => {
 
   const showingSaved = (observedQuery.isError || offline) && Boolean(observed);
 
-  // Mini table groups planetary JSON observed+forecast by UTC calendar day for
-  // today/tomorrow/dayAfter (UTC) so "today" is never missing; the 3-day text
-  // breakdown fills any day the JSON has no bucket for yet.
+  // Mini table groups planetary JSON observed+forecast by Display-timezone
+  // calendar day for today/tomorrow/day-after so "today" is the display
+  // timezone's day and never missing; the 3-day text breakdown fills any
+  // day the JSON has no bucket for yet.
   const rows = (() => {
-    const now = new Date();
-    const todayUTC = new Date(
-      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
-    );
-    const tableDays = [0, 1, 2].map((off) => {
-      const d = new Date(todayUTC);
-      d.setUTCDate(d.getUTCDate() + off);
-      return `${MONTHS_SHORT[d.getUTCMonth()]} ${d.getUTCDate()}`;
-    });
-    return tableDays.map((dayLabel) => {
-      const [monStr, dayStr] = dayLabel.split(" ");
-      const monthIdx = MONTHS_SHORT.indexOf(monStr);
-      const dayDate = new Date(
-        Date.UTC(todayUTC.getUTCFullYear(), monthIdx, Number(dayStr)),
-      );
+    const today = dayKeyOf(new Date(), displayTimezone);
+    const tableDays = [0, 1, 2].map((off) => addDays(today, off));
+    const sameDay = (a: DayKey, b: DayKey) =>
+      a.year === b.year && a.month === b.month && a.day === b.day;
+    const dayOf = (timeTag: string) =>
+      dayKeyOf(new Date(`${timeTag}Z`), displayTimezone);
+    return tableDays.map((dayKey) => {
       const values: number[] = [];
       for (const p of observed) {
-        const t = new Date(`${p.time_tag}Z`);
-        if (
-          t.getUTCFullYear() === dayDate.getUTCFullYear() &&
-          t.getUTCMonth() === dayDate.getUTCMonth() &&
-          t.getUTCDate() === dayDate.getUTCDate()
-        )
-          values.push(p.Kp);
+        if (sameDay(dayOf(p.time_tag), dayKey)) values.push(p.Kp);
       }
       for (const p of forecast ?? []) {
         if (p.observed === "observed") continue; // include estimated + predicted for today gap (Aug26 estimated)
-        const t = new Date(`${p.time_tag}Z`);
-        if (
-          t.getUTCFullYear() === dayDate.getUTCFullYear() &&
-          t.getUTCMonth() === dayDate.getUTCMonth() &&
-          t.getUTCDate() === dayDate.getUTCDate()
-        )
-          values.push(p.kp);
+        if (sameDay(dayOf(p.time_tag), dayKey)) values.push(p.kp);
       }
       // Fallback to 3-day text breakdown when planetary has no bucket yet
       if (values.length === 0 && data) {
-        const idx = data.days.indexOf(dayLabel);
+        const idx = data.days.indexOf(formatShortDay(dayKey));
         if (idx !== -1) {
           const breakdownVals = data.geomagneticActivity.kpBreakdown.map(
             (r) => r.days[idx],
@@ -192,7 +181,7 @@ const Forecast: React.FC = () => {
       const min = values.length ? Math.min(...values) : 0;
       const max = values.length ? Math.max(...values) : 0;
       const gLabel = max >= 5 ? `G${Math.min(5, Math.floor(max) - 4)}` : null;
-      return { day: dayLabel, min, max, gLabel };
+      return { dayKey, day: formatShortDay(dayKey), min, max, gLabel };
     });
   })();
 
@@ -202,7 +191,7 @@ const Forecast: React.FC = () => {
   const recentObserved = observed.slice(-RECENT_OBSERVED_COUNT);
   const observedChartData = recentObserved.map((p) => ({
     time: p.time_tag,
-    label: formatChartLabel(p.time_tag),
+    label: formatSlotTick(p.time_tag, displayTimezone),
     observed: p.Kp,
     forecast: null as number | null,
   }));
@@ -211,7 +200,7 @@ const Forecast: React.FC = () => {
     .slice(0, FORECAST_COUNT)
     .map((p) => ({
       time: p.time_tag,
-      label: formatChartLabel(p.time_tag),
+      label: formatSlotTick(p.time_tag, displayTimezone),
       observed: null as number | null,
       forecast: p.kp,
     }));
@@ -221,7 +210,7 @@ const Forecast: React.FC = () => {
     ),
   );
   const latestObserved = observed[observed.length - 1];
-  const nowLabel = formatChartLabel(latestObserved.time_tag);
+  const nowLabel = formatSlotTick(latestObserved.time_tag, displayTimezone);
   const firstLabel = mergedData[0]?.label;
   const lastLabel = mergedData[mergedData.length - 1]?.label;
 
@@ -287,11 +276,13 @@ const Forecast: React.FC = () => {
                 }}
                 formatter={moonTooltipFormatter}
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                labelFormatter={(label: any) =>
-                  typeof label === "string"
-                    ? label.replace("\n", " ")
-                    : String(label)
-                }
+                labelFormatter={(label: any) => {
+                  const flat =
+                    typeof label === "string"
+                      ? label.replace("\n", " ")
+                      : String(label);
+                  return `${flat}${utcSuffix(displayTimezone)}`;
+                }}
               />
               <Legend
                 // Keep the legend in series order regardless of recharts'
@@ -384,7 +375,7 @@ const Forecast: React.FC = () => {
           </thead>
           <tbody>
             {rows.map((r) => {
-              const label = formatDayLabel(r.day);
+              const label = formatDayLabel(r.dayKey);
               const parts = label.split("\n");
               return (
                 <tr key={r.day}>

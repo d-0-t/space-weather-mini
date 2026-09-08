@@ -1,16 +1,31 @@
+// Chart ticks render the device-zone clock in Local mode, so the suite pins
+// one (Sweden, UTC+2) to keep every expectation deterministic.
+process.env.TZ = "Europe/Stockholm";
+
 import { render } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { severityColor } from "../../../../../styles/severity";
 import { MiniSparkline } from "./live-panels";
+import { DisplayTimezoneProvider } from "../../../../DisplayTimezone/DisplayTimezoneContext";
+import { saveDisplayTimezone } from "../../../../../products/display-timezone";
 
 const pts = (values: (number | null)[]) =>
   values.map((value, x) => ({
     x,
-    time: `${x}:00`,
     timeTag: `2026-08-26T0${x}:00:00`,
     value,
   }));
+
+const tickTexts = (container: HTMLElement): string[] =>
+  Array.from(
+    container.querySelectorAll(
+      ".recharts-xAxis-tick-labels .recharts-cartesian-axis-tick-label text",
+    ),
+  ).map((t) => t.textContent ?? "");
+
+const renderChart = (ui: React.ReactElement) =>
+  render(<DisplayTimezoneProvider>{ui}</DisplayTimezoneProvider>);
 
 const strokesOf = (container: HTMLElement): string[] =>
   Array.from(container.querySelectorAll("path"))
@@ -63,7 +78,7 @@ beforeEach(() => {
 
 describe("MiniSparkline threshold coloring", () => {
   it("renders one stroke per severity band the data crosses", () => {
-    const { container } = render(
+    const { container } = renderChart(
       <MiniSparkline
         title="Speed"
         points={pts([100, 250, 350, 500, 700])}
@@ -82,7 +97,7 @@ describe("MiniSparkline threshold coloring", () => {
   });
 
   it("renders a single accent line when no colorBy is set", () => {
-    const { container } = render(
+    const { container } = renderChart(
       <MiniSparkline
         title="Speed"
         points={pts([100, 200, 300])}
@@ -97,7 +112,7 @@ describe("MiniSparkline threshold coloring", () => {
   });
 
   it("colors a mirrored second series by its raw value, not its plot value", () => {
-    const { container } = render(
+    const { container } = renderChart(
       <MiniSparkline
         title="Hemispheric power"
         points={pts([15, 15, 35, 40])}
@@ -124,3 +139,44 @@ describe("MiniSparkline threshold coloring", () => {
     expect(yValuesOf(container, "#facc15")).not.toContain(deepest);
   });
 });
+
+describe("MiniSparkline chart ticks (ticket 03)", () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it("ticks the last point with the device-zone clock in Local mode", () => {
+    const { container } = renderChart(
+      <MiniSparkline
+        title="Speed"
+        points={[
+          { x: 0, timeTag: "2026-08-26T20:00:00", value: 400 },
+          { x: 1, timeTag: "2026-08-26T22:04:07", value: 450 },
+        ]}
+        accent="greenyellow"
+        ariaLabel="test speed chart"
+        unit="km/s"
+      />,
+    );
+    // 22:04 UTC is 00:04 the next day in Stockholm
+    expect(tickTexts(container)).toEqual(["00:04"]);
+  });
+
+  it("ticks the UTC clock when the setting is seeded to UTC", () => {
+    saveDisplayTimezone(localStorage, "utc");
+    const { container } = renderChart(
+      <MiniSparkline
+        title="Speed"
+        points={[
+          { x: 0, timeTag: "2026-08-26T20:00:00", value: 400 },
+          { x: 1, timeTag: "2026-08-26T22:04:07", value: 450 },
+        ]}
+        accent="greenyellow"
+        ariaLabel="test speed chart"
+        unit="km/s"
+      />,
+    );
+    expect(tickTexts(container)).toEqual(["22:04"]);
+  });
+});
+

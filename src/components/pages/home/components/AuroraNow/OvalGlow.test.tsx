@@ -27,6 +27,8 @@ import OvalGlow, {
   OVAL_CANVAS_WIDTH,
   OVAL_LAND_FILL,
 } from "./OvalGlow";
+import { DisplayTimezoneProvider } from "../../../../DisplayTimezone/DisplayTimezoneContext";
+import { saveDisplayTimezone } from "../../../../../products/display-timezone";
 import { COULDNT_LOAD_COPY, STALE_DATA_NOTICE } from "../offline/offline";
 
 const queryClient = () =>
@@ -105,7 +107,9 @@ const renderGlow = () =>
   render(
     <QueryClientProvider client={queryClient()}>
       <MemoryRouter>
-        <OvalGlow />
+        <DisplayTimezoneProvider>
+          <OvalGlow />
+        </DisplayTimezoneProvider>
       </MemoryRouter>
     </QueryClientProvider>,
   );
@@ -392,20 +396,29 @@ describe("OvalGlow", () => {
     expect(screen.queryByText(/Kp1/i)).toBeNull();
   });
 
-  it("shows Forecast Time in UTC and your time on one line, with the age only on the view-distance line", async () => {
+  it("shows Forecast Time once, in the chosen timezone, with the age only on the view-distance line", async () => {
     renderGlow();
     await canvases();
-    // 14:33 UTC is 16:33 Stockholm time, same day - the local parenthetical
-    // answers "is this time wrong?" without a second freshness line.
+    // Local mode (the default): one clock, the device's own – 14:33 UTC is
+    // 16:33 Stockholm, same day. No second "your time" parenthetical.
     expect(
-      screen.getByText(
-        /Forecast Time Sep 4 14:33 UTC \(16:33 your time\) – 30–90 min lead\./,
-      ),
+      screen.getByText(/Forecast Time 16:33 – 30–90 min lead\./),
     ).toBeInTheDocument();
+    expect(screen.queryByText(/your time/)).toBeNull();
     // The `Updated {age}` lives once, on the View distance As-of line –
     // never twice on the same panel (user review 2026-09-06).
     expect(screen.queryByText(/Updated/)).toBeNull();
     expect(screen.queryByText(/Observation Time/)).toBeNull();
+  });
+
+  it("shows Forecast Time with the ' UTC' suffix in UTC mode", async () => {
+    saveDisplayTimezone(localStorage, "utc");
+    renderGlow();
+    await canvases();
+    expect(
+      screen.getByText(/Forecast Time Sep 4 14:33 UTC – 30–90 min lead\./),
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/your time/)).toBeNull();
   });
 
   it("offers the glow counts as an on-demand table below the lead, above the map", async () => {

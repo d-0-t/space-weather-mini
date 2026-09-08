@@ -1,75 +1,27 @@
 /**
+ * Parsing helpers shared by the products' data layer. The rendering
+ * formatters moved to the display-time module (ticket 03); these thin
+ * shims keep the old import path alive until ticket 05 sweeps the
+ * remaining callers onto the module.
+ */
+
+import { formatShort } from "./display-time";
+
+import { parseTimeTag } from "./display-time";
+
+/**
  * Parses a SWPC time string (ISO with or without trailing Z, or
  * "YYYY-MM-DD HH:MM" style, always UTC) to epoch milliseconds.
  * Returns NaN when the time cannot be parsed.
  */
-export function toEpoch(timeTag: string): number {
-  const iso = timeTag.endsWith("Z") || timeTag.includes("+") ? timeTag : `${timeTag}Z`;
-  return new Date(iso).getTime();
-}
+export const toEpoch = parseTimeTag;
 
-const MONTHS_SHORT = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+/** Legacy single-mode names over the display-time module. */
+export const formatUtcShort = (timeTag: string): string =>
+  formatShort(timeTag, "utc");
 
-/**
- * Formats a SWPC UTC time string as "Aug 26 16:36 UTC"; returns the raw
- * string when the time cannot be parsed.
- */
-export function formatUtcShort(timeTag: string): string {
-  const epoch = toEpoch(timeTag);
-  if (Number.isNaN(epoch)) return timeTag;
-  const d = new Date(epoch);
-  const hh = String(d.getUTCHours()).padStart(2, "0");
-  const mm = String(d.getUTCMinutes()).padStart(2, "0");
-  return `${MONTHS_SHORT[d.getUTCMonth()]} ${d.getUTCDate()} ${hh}:${mm} UTC`;
-}
+/** Legacy single-mode names over the display-time module. */
+export const formatLocalShort = (timeTag: string): string =>
+  formatShort(timeTag, "local");
 
-/**
- * Formats a SWPC UTC time string in the device's own time zone as
- * "HH:MM your time"; adds the short local date when the zone pushes the
- * moment across midnight (so "Sep 7 00:40" is unambiguous against the UTC
- * date shown next to it). Returns the raw string when the time cannot be
- * parsed.
- */
-export function formatLocalShort(timeTag: string): string {
-  const epoch = toEpoch(timeTag);
-  if (Number.isNaN(epoch)) return timeTag;
-  const d = new Date(epoch);
-  const hh = String(d.getHours()).padStart(2, "0");
-  const mm = String(d.getMinutes()).padStart(2, "0");
-  const utcDay = `${MONTHS_SHORT[d.getUTCMonth()]} ${d.getUTCDate()}`;
-  const localDay = `${MONTHS_SHORT[d.getMonth()]} ${d.getDate()}`;
-  const time = `${hh}:${mm}`;
-  return localDay === utcDay ? time : `${localDay} ${time}`;
-}
-
-/**
- * Formats the age of a live data timestamp relative to now.
- * Returns "just now", "Xm ago", or "Xh Ym ago".
- * Accepts ISO strings with or without trailing Z (assumes UTC if missing).
- */
-export function formatAge(timeTag: string): string {
-  const then = toEpoch(timeTag);
-  const now = Date.now();
-  const diffMs = now - then;
-  if (Number.isNaN(then) || diffMs < 0) return "just now";
-  const diffSec = Math.floor(diffMs / 1000);
-  if (diffSec < 60) return "just now";
-  const diffMin = Math.floor(diffSec / 60);
-  if (diffMin < 60) return `${diffMin}m ago`;
-  const hours = Math.floor(diffMin / 60);
-  const minutes = diffMin % 60;
-  return `${hours}h ${minutes}m ago`;
-}
+export { formatAge } from "./display-time";

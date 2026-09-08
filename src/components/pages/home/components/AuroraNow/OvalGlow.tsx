@@ -23,10 +23,8 @@ import {
   type LandRing,
   fetchWorldLand,
 } from "../../../../../products/world-land";
-import {
-  formatLocalShort,
-  formatUtcShort,
-} from "../../../../../products/live-helpers";
+import { formatShort } from "../../../../../products/display-time";
+import { useDisplayTimezone } from "../../../../DisplayTimezone/DisplayTimezoneContext";
 import {
   COULDNT_LOAD_COPY,
   StaleDataNotice,
@@ -576,6 +574,7 @@ const OvalLegend: React.FC<{
  */
 const OvalGlow: React.FC = () => {
   const offline = useIsOffline();
+  const { displayTimezone } = useDisplayTimezone();
   // Full-size modal rotation: a manual toggle whose layout lives entirely in
   // a portrait media query, so a stale rotated state renders upright (and
   // the toggle hides) in landscape - no viewport listener needed.
@@ -664,8 +663,8 @@ const OvalGlow: React.FC = () => {
         />
       </div>
       <p className="oval-glow__fresh">
-        Forecast Time {formatUtcShort(product.forecastTime)} (
-        {formatLocalShort(product.forecastTime)} your time) – 30–90 min lead.
+        Forecast Time {formatShort(product.forecastTime, displayTimezone)} –
+        30–90 min lead.
       </p>
       {/* One controls row, space-between with wrap: the map's data
           alternative for everyone (no sr-only tables) on the left – a

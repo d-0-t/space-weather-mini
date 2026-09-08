@@ -1,3 +1,7 @@
+// The strip's As-of line renders in the device time zone in Local mode, so
+// the suite pins one (Sweden, UTC+2) to keep every expectation deterministic.
+process.env.TZ = "Europe/Stockholm";
+
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -7,6 +11,8 @@ import scalesFixture from "../../../../../products/fixtures/noaa-scales.json?raw
 import { ALERTS_URL } from "../../../../../products/alerts";
 import Alerts from "./Alerts";
 import { AlertsProvider } from "./AlertsContext";
+import { DisplayTimezoneProvider } from "../../../../DisplayTimezone/DisplayTimezoneContext";
+import { saveDisplayTimezone } from "../../../../../products/display-timezone";
 
 const queryClient = () =>
   new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -111,9 +117,11 @@ afterEach(() => {
 const renderAlerts = (client = queryClient()) =>
   render(
     <QueryClientProvider client={client}>
-      <AlertsProvider>
-        <Alerts />
-      </AlertsProvider>
+      <DisplayTimezoneProvider>
+        <AlertsProvider>
+          <Alerts />
+        </AlertsProvider>
+      </DisplayTimezoneProvider>
     </QueryClientProvider>,
   );
 
@@ -175,8 +183,10 @@ describe("Alerts (ticket 02)", () => {
     expect(dot).toBeInTheDocument();
     expect(dot).toHaveClass("kp67");
     expect(container.querySelectorAll(".alerts__strip")).toHaveLength(1);
+    // Local mode (the default): 15:00 UTC is 17:00 in Sweden, same day –
+    // bare device clock, no zone suffix.
     expect(
-      screen.getByText(/As of Aug 28 15:00 UTC · Updated/),
+      screen.getByText(/As of 17:00. Updated/),
     ).toBeInTheDocument();
     expect(
       screen.queryByText(/Category G2 Predicted/),
@@ -184,6 +194,19 @@ describe("Alerts (ticket 02)", () => {
     expect(
       screen.queryByText(/Geomagnetic K-index of 5 expected/),
     ).not.toBeInTheDocument();
+  });
+
+  it("shows the strip's As-of line with the ' UTC' suffix in UTC mode", async () => {
+    saveDisplayTimezone(localStorage, "utc");
+    renderAlerts();
+    await waitFor(() =>
+      expect(
+        screen.getByText(/WARNING: Geomagnetic K-index of 6 expected/),
+      ).toBeInTheDocument(),
+    );
+    expect(
+      screen.getByText(/As of Aug 28 15:00 UTC. Updated/),
+    ).toBeInTheDocument();
   });
 
   it("shows the honest empty state when no alerts match", async () => {

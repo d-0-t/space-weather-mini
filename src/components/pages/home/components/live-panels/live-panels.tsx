@@ -21,6 +21,12 @@ import {
   StaleDataNotice,
   type LiveDataState,
 } from "../offline/offline";
+import {
+  formatClockTick,
+  formatTooltipTimestamp,
+  parseTimeTag,
+} from "../../../../../products/display-time";
+import { useDisplayTimezone } from "../../../../DisplayTimezone/DisplayTimezoneContext";
 
 import "./live-panels.scss";
 
@@ -67,18 +73,14 @@ const L1_DISTANCE_KM = 1_500_000;
 export interface ChartPoint {
   /** Numeric index – the X axis is numeric so ReferenceLine positions correctly */
   x: number;
-  /** HH:MM axis label */
-  time: string;
-  /** Full timestamp for the tooltip */
+  /** Full SWPC timestamp; tick and tooltip labels are rendered from it */
   timeTag: string;
   /** null on the synthetic "Now" anchor point */
   value: number | null;
 }
 
-/** Extracts HH:MM from "2026-08-26T22:04:07", "2026-08-26 22:04" or "2026-08-26_22:04" */
-export function chartTimeLabel(timeTag: string): string {
-  return timeTag.slice(11, 16);
-}
+/** Minute-granular key of a time tag – two readings in the same minute match. */
+const minuteKey = (timeTag: string): string => timeTag.slice(0, 16);
 
 /** L1 → Earth transit in minutes from the measured solar wind speed (km/s). */
 export function transitMinutes(speedKmS: number | null): number {
@@ -99,36 +101,10 @@ export function addMinutes(timeTag: string, minutes: number): string {
   return d.toISOString().slice(0, 16);
 }
 
-/** "2026-08-26T22:04:07" → "26 Aug 2026 22:04" for tooltips. */
-export function formatTooltipTime(timeTag: string): string {
-  const normalized = timeTag.replace("_", "T");
-  const iso =
-    normalized.endsWith("Z") || normalized.includes("+")
-      ? normalized
-      : `${normalized}Z`;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return timeTag.replace(/[T_]/g, " ");
-  return d.toUTCString().slice(5, 22);
-}
-
-/** Local-time "HH:MM" of a time_tag, for the freshness line. */
-export function formatLocalTime(timeTag: string): string {
-  const iso = timeTag.replace("_", "T");
-  const withZ = iso.endsWith("Z") || iso.includes("+") ? iso : `${iso}Z`;
-  const d = new Date(withZ);
-  if (Number.isNaN(d.getTime())) return chartTimeLabel(timeTag);
-  return d.toLocaleTimeString(undefined, {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-/** Milliseconds of an ISO-ish time_tag ("T", " " or "_" date separators). */
+/** Epoch ms of an ISO-ish time_tag; unparseable tags read as epoch 0. */
 function tagMs(timeTag: string): number {
-  const iso = timeTag.replace("_", "T");
-  const withZ = iso.endsWith("Z") || iso.includes("+") ? iso : `${iso}Z`;
-  const d = new Date(withZ);
-  return Number.isNaN(d.getTime()) ? 0 : d.getTime();
+  const ms = parseTimeTag(timeTag);
+  return Number.isNaN(ms) ? 0 : ms;
 }
 
 /**
@@ -162,36 +138,35 @@ export function smoothPoints(
   }
   return [...buckets.entries()]
     .sort((a, b) => a[0] - b[0])
-    .map(([, entry], index) => {
-      const firstIso = new Date(entry.first).toISOString();
-      return {
-        x: index,
-        time: chartTimeLabel(firstIso),
-        timeTag: firstIso,
-        value: entry.sum / entry.count,
-      };
-    });
+    .map(([, entry], index) => ({
+      x: index,
+      timeTag: new Date(entry.first).toISOString(),
+      value: entry.sum / entry.count,
+    }));
 }
 
 /**
- * Appends a null-valued "Now" anchor. offsetX places it that many points to
- * the LEFT of the freshest reading (transit minutes on the 1-min feeds): the
- * conditions arriving at Earth right now were measured `transit` minutes ago,
- * so the line lands inside the data, not beyond it.
+ * Appends a null-valued "Now" anchor carrying the Now instant as its time
+ * tag. offsetX places it that many points to the LEFT of the freshest
+ * reading (transit minutes on the 1-min feeds): the conditions arriving at
+ * Earth right now were measured `transit` minutes ago, so the line lands
+ * inside the data, not beyond it. When a reading already sits in the Now
+ * minute, no anchor is appended – the instant-based match keeps the line
+ * and the Now reference on that reading in both display timezones.
  */
 export function withNowAnchor(
   points: ChartPoint[],
-  nowLabel: string,
+  nowTimeTag: string,
   offsetX = 0,
 ): ChartPoint[] {
-  if (points.some((p) => p.time === nowLabel)) return points;
+  const nowKey = minuteKey(nowTimeTag);
+  if (points.some((p) => minuteKey(p.timeTag) === nowKey)) return points;
   const lastX = points.length > 0 ? points[points.length - 1].x : 0;
   return [
     ...points,
     {
       x: Math.max(lastX - offsetX, 0),
-      time: nowLabel,
-      timeTag: "",
+      timeTag: nowTimeTag,
       value: null,
     },
   ];
@@ -328,13 +303,16 @@ const ChartTooltip: React.FC<{
   unit: string;
   invert: boolean;
 }> = ({ active, payload, label, unit, invert }) => {
+  const { displayTimezone } = useDisplayTimezone();
   if (!active || !payload || payload.length === 0) return null;
   const entries = dedupeTooltipEntries(payload);
   const point = entries[0]?.payload;
   return (
     <div style={TOOLTIP_STYLE}>
       <p style={{ fontSize: 12, margin: 0 }}>
-        {point?.timeTag ? formatTooltipTime(point.timeTag) : (label ?? "")}
+        {point?.timeTag
+          ? formatTooltipTimestamp(point.timeTag, displayTimezone)
+          : (label ?? "")}
       </p>
       {entries.map((entry) => {
         const raw =
@@ -359,8 +337,8 @@ const ChartTooltip: React.FC<{
 export const MiniSparkline: React.FC<{
   title: string;
   points: ChartPoint[];
-  /** When set, draws the Now line (L1 charts only) */
-  nowLabel?: string;
+  /** The Now instant's time tag – draws the Now line (L1 charts only) */
+  nowTimeTag?: string;
   accent: string;
   ariaLabel: string;
   unit: string;
@@ -383,7 +361,7 @@ export const MiniSparkline: React.FC<{
 }> = ({
   title,
   points,
-  nowLabel,
+  nowTimeTag,
   accent,
   ariaLabel,
   unit,
@@ -392,8 +370,9 @@ export const MiniSparkline: React.FC<{
   second,
   primaryName,
 }) => {
+  const { displayTimezone } = useDisplayTimezone();
   const chartLabelId = useId();
-  const hasNow = Boolean(nowLabel);
+  const hasNow = Boolean(nowTimeTag);
   const mergedPoints = second
     ? points.map((p, i) => {
         const v = second.points[i]?.value ?? null;
@@ -405,7 +384,7 @@ export const MiniSparkline: React.FC<{
       })
     : points;
   const chartPoints = hasNow
-    ? withNowAnchor(mergedPoints, nowLabel!, anchorOffset)
+    ? withNowAnchor(mergedPoints, nowTimeTag!, anchorOffset)
     : mergedPoints;
   const coloredSeries =
     colorBy || second?.colorBy
@@ -433,7 +412,9 @@ export const MiniSparkline: React.FC<{
         }
       : null;
   const nowX = hasNow
-    ? chartPoints.find((p) => p.time === nowLabel)?.x
+    ? chartPoints.find(
+        (p) => minuteKey(p.timeTag) === minuteKey(nowTimeTag!),
+      )?.x
     : undefined;
   // Symmetric ± ceiling so a mirrored second series spans 20 → 0 → 20
   const mirrorCeiling = second?.invert
@@ -470,7 +451,7 @@ export const MiniSparkline: React.FC<{
             ticks={[0, chartPoints[chartPoints.length - 1]?.x ?? 0]}
             tickFormatter={(value: number) => {
               const point = chartPoints.find((p) => p.x === value);
-              return point ? point.time : "";
+              return point ? formatClockTick(point.timeTag, displayTimezone) : "";
             }}
             height={16}
             tick={{ fill: "var(--color-white)", fontSize: 11 }}
@@ -595,7 +576,8 @@ export const SparklineCard: React.FC<{
   asOf: string;
   updated: string;
   points: ChartPoint[];
-  nowLabel?: string;
+  /** The Now instant's time tag – draws the Now line (L1 charts only) */
+  nowTimeTag?: string;
   accent: string;
   ariaLabel: string;
   unit: string;
@@ -625,7 +607,7 @@ export const SparklineCard: React.FC<{
   asOf,
   updated,
   points,
-  nowLabel,
+  nowTimeTag,
   accent,
   ariaLabel,
   unit,
@@ -658,7 +640,7 @@ export const SparklineCard: React.FC<{
       <MiniSparkline
         title={title}
         points={points}
-        nowLabel={nowLabel}
+        nowTimeTag={nowTimeTag}
         accent={accent}
         ariaLabel={ariaLabel}
         unit={unit}

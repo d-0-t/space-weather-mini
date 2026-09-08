@@ -6,7 +6,7 @@ import {
   RTSW_WIND_URL,
   RTSW_MAG_FIELD_URL,
 } from "../../../../../products/solar-wind";
-import { formatAge } from "../../../../../products/live-helpers";
+import { formatAge } from "../../../../../products/display-time";
 import { severityColor } from "../../../../../styles/severity";
 import { SOURCES } from "../../../../sources";
 import { SourceAttribution } from "../../../../sources";
@@ -15,7 +15,6 @@ import {
   SMOOTHING,
   SparklineCard,
   addMinutes,
-  chartTimeLabel,
   latestValue,
   smoothPoints,
   transitMinutes,
@@ -111,8 +110,6 @@ const SolarWind: React.FC = () => {
     .find((p) => p.speed !== null)?.source;
   const windNowTag = addMinutes(speed.timeTag ?? "", -transit);
   const magNowTag = addMinutes(bt.timeTag ?? "", -transit);
-  const windNowLabel = chartTimeLabel(windNowTag);
-  const magNowLabel = chartTimeLabel(magNowTag);
   const l1Window = BEFORE_NOW_MINUTES + transit;
   const l1AnchorOffset = Math.round(transit / SMOOTHING.solarWind);
 
@@ -160,7 +157,7 @@ const SolarWind: React.FC = () => {
             asOf={speed.timeTag ?? "–"}
             updated={speed.timeTag ? formatAge(speed.timeTag) : "–"}
             points={smoothPoints(speedRows, l1Window, SMOOTHING.solarWind)}
-            nowLabel={windNowLabel}
+            nowTimeTag={windNowTag}
             anchorOffset={l1AnchorOffset}
             accent="greenyellow"
             colorBy={(v) => severityColor("speed", v)}
@@ -187,7 +184,7 @@ const SolarWind: React.FC = () => {
             asOf={density.timeTag ?? "–"}
             updated={density.timeTag ? formatAge(density.timeTag) : "–"}
             points={smoothPoints(densityRows, l1Window, SMOOTHING.solarWind)}
-            nowLabel={windNowLabel}
+            nowTimeTag={windNowTag}
             anchorOffset={l1AnchorOffset}
             accent="cyan"
             colorBy={(v) => severityColor("density", v)}
@@ -212,7 +209,7 @@ const SolarWind: React.FC = () => {
             asOf={bt.timeTag ?? "–"}
             updated={bt.timeTag ? formatAge(bt.timeTag) : "–"}
             points={smoothPoints(btRows, l1Window, SMOOTHING.solarWind)}
-            nowLabel={magNowLabel}
+            nowTimeTag={magNowTag}
             anchorOffset={l1AnchorOffset}
             accent="plum"
             colorBy={(v) => severityColor("bt", v)}
@@ -247,7 +244,7 @@ const SolarWind: React.FC = () => {
             asOf={bz.timeTag ?? "–"}
             updated={bz.timeTag ? formatAge(bz.timeTag) : "–"}
             points={smoothPoints(bzRows, l1Window, SMOOTHING.solarWind)}
-            nowLabel={magNowLabel}
+            nowTimeTag={magNowTag}
             anchorOffset={l1AnchorOffset}
             accent="orange"
             colorBy={(v) => severityColor("bz", v)}

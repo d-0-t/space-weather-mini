@@ -4,13 +4,20 @@
 
 **Blocked by:** 02 (Display timezone setting — foundation, Time modal, Local conditions & webcams).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Chart axes and tooltips show the device clock in Local mode and UTC in UTC mode
-- [ ] Aurora Now's current 3-hour window and forecast-time line follow the chosen timezone; the highlight picks the same slot in both modes
-- [ ] Alerts feed timestamps obey the setting
-- [ ] Forecast mini-table groups rows by Display-timezone day; the straddling slot lands on its start day
-- [ ] 3-hour slot rows are labeled in the chosen timezone
-- [ ] Live banner shows formatted timestamps in the chosen zone — no raw time tags anywhere
-- [ ] " UTC" suffix appears only in UTC mode
-- [ ] Dashboard component tests updated to assert both modes
+- [x] Chart axes and tooltips show the device clock in Local mode and UTC in UTC mode
+- [x] Aurora Now's current 3-hour window and forecast-time line follow the chosen timezone; the highlight picks the same slot in both modes
+- [x] Alerts feed timestamps obey the setting
+- [x] Forecast mini-table groups rows by Display-timezone day; the straddling slot lands on its start day
+- [x] 3-hour slot rows are labeled in the chosen timezone
+- [x] Live banner shows formatted timestamps in the chosen zone — no raw time tags anywhere
+- [x] " UTC" suffix appears only in UTC mode
+- [x] Dashboard component tests updated to assert both modes
+
+## Comments
+
+- Implemented 2026-09-08, TDD red→green per slice. The display-time module (`products/display-time.ts`) is now the self-contained owner of time rendering: `formatShort`/`formatClock`/`formatPlaceLocal` (ticket 02 surface, implementation absorbed so `live-helpers` could become a one-way shim), plus new — `parseTimeTag` (one parser for all three wire shapes: T / space / underscore), `formatClockTick` (compact HH:MM chart ticks and inline freshness clocks), `formatTooltipTimestamp` ("26 Aug 2026 22:04" shape, " UTC" only in UTC mode), `formatSlotTick` (the Kp chart's two-line "Aug 18\n00:00" tick, date line following the zone), `formatSlot` (the 3-hour slot containing an instant, "HH:MM - HH:MM" + suffix, with the "24:00" end label kept whenever a slot ends at the rendered zone's midnight), `utcSuffix` (the zone-noise rule in one place), the `DayKey` day-bucketing surface (`dayKeyOf`/`addDays`/`formatDayLabel`/`formatShortDay` — "today" and the mini-table group by the display zone's calendar day, a slot filed under the day its start falls in), and `formatAge` moved in with an injectable clock (`now` epoch ms, the clock seam ticket 02 deferred here). `live-helpers.ts` is now a thin shim (`toEpoch` delegating to `parseTimeTag`, `formatUtcShort`/`formatLocalShort` one-liners over `formatShort`, `formatAge` re-exported) so no implementation is duplicated — ticket 05 deletes the shim and sweeps the remaining callers (ViewDistanceLine, alerts data layer, its own tests).
+- Chart wiring: `ChartPoint` lost its baked `time` field — tick and tooltip labels derive from `timeTag` at render (`formatClockTick`/`formatTooltipTimestamp`), so a mode flip restamps live. The Now anchor (`withNowAnchor`) now carries the Now instant's time tag and matches data points by minute-instant (`minuteKey`) instead of label strings — more correct, and the anchor's tooltip shows the Now timestamp instead of a label fallback. Recharts 3 renders only a subset of tick labels in jsdom, so the tick spot-checks assert the labels our `tickFormatter` produces, not tick geometry. The Forecast chart's `labelFormatter` joins the two tick lines and appends `utcSuffix` in UTC mode; the sr-only chart name reads the same labels.
+- Judgement calls for review: (1) The straddling-slot rule is covered at the module seam (`dayKeyOf` unit tests, per the spec's Testing Decisions which list "day bucketing including the straddling slot" as module territory); the dashboard's 3-hourly fixture starts every slot on the hour, where start-day and instant-day bucketing agree, so no component test can distinguish them. (2) The current-slot highlight's immutability is asserted via the Kp badge (same value both modes in the Aurora Now chip test); the highlight logic itself is untouched. (3) Chart ticks and the Kp chart tooltip stay compact in both modes (the `formatClock` suffix-free precedent from ticket 02); the tooltip gains " UTC" only in UTC mode. (4) The slot chip's "24:00" rule keys on the rendered zone's midnight, so a device at a whole-3-hour offset also reads "24:00" in Local mode — preserved legacy UTC rendering, generalised. (5) The Alerts strip meta and the LiveBanner freshness line were rewritten this ticket anyway, so they now use sentence separators per the 2026-09-06 no-bullets rule ("As of X. Updated Y."); the page-wide bullet sweep remains untouched and out of scope. (6) "UTC mode"/"Local mode" in test titles is module-internal vocabulary; CONTEXT.md's avoid-note bans it only as the setting's user-facing name. (7) LiveBanner remains orphaned (no consumer); its fix rides along per the ticket. (8) Standards doc updated: the "issued time in UTC and local time" line (pre-effort dual-clock pattern) now states one rendered timestamp per fact, and the testing section documents the per-file TZ pin + both-modes seeding conventions.
+- Suite state: typecheck clean; 747 Vitest green (28 new: module seam tests for tick/tooltip/slot/day-keys/age + component both-modes spot-checks); Playwright 53 passed, 6 failed — the same six conditions/home a11y failures reproduce on clean HEAD (re-verified today by stash; pre-existing, environmental). Not committed — awaiting maintainer review.

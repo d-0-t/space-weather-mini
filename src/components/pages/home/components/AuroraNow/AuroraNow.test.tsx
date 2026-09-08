@@ -13,7 +13,7 @@ import kirunaFixture from "../../../../../data/fixtures/nominatim-kiruna.json";
 import AuroraNow from "./AuroraNow";
 import { AlertsProvider } from "../Alerts/AlertsContext";
 import { DisplayTimezoneProvider } from "../../../../DisplayTimezone/DisplayTimezoneContext";
-import { DISPLAY_TIMEZONE_STORAGE_KEY } from "../../../../../products/display-timezone";
+import { saveDisplayTimezone } from "../../../../../products/display-timezone";
 import {
   COULDNT_LOAD_COPY,
   STALE_DATA_NOTICE,
@@ -102,11 +102,23 @@ describe("AuroraNow", () => {
     );
   });
 
-  it("derives the current 3h slot label from the observed time_tag", async () => {
+  it("labels the current 3-hour window in the chosen timezone, same slot in both modes", async () => {
     renderAuroraNow();
     await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
-    // Fixture's latest observed reading is at 12:00 UTC → the 12-15 UT slot
+    // Fixture's latest observed reading is at 12:00 UTC → the 12-15 UT slot,
+    // 14:00-17:00 in Local mode's Stockholm clock.
+    expect(screen.getByText("14:00 - 17:00")).toBeInTheDocument();
+    const kpBadge = () =>
+      document.querySelector(".aurora-now__current__kp")?.textContent;
+    expect(kpBadge()).toBe("Kp1");
+    // UTC mode labels the same (instant-based) slot in UTC clock with suffix;
+    // the highlight and the Kp value do not move between modes.
+    saveDisplayTimezone(localStorage, "utc");
+    cleanup();
+    renderAuroraNow();
+    await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
     expect(screen.getByText("12:00 - 15:00 UTC")).toBeInTheDocument();
+    expect(kpBadge()).toBe("Kp1");
   });
 
   it("shows the current moon phase emoji in a help popover with sr-only label", async () => {
@@ -151,10 +163,7 @@ describe("AuroraNow", () => {
     // Fixture's latest observed reading is at 2026-08-25T12:00:00 → 14:00 in Sweden.
     expect(screen.getByText(/As of 14:00\. Updated/)).toBeInTheDocument();
     // UTC mode: the NOAA-legacy shape with suffix.
-    localStorage.setItem(
-      DISPLAY_TIMEZONE_STORAGE_KEY,
-      JSON.stringify({ timezone: "utc", v: 1 }),
-    );
+    saveDisplayTimezone(localStorage, "utc");
     cleanup();
     renderAuroraNow();
     await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
@@ -191,7 +200,7 @@ describe("AuroraNow", () => {
       ).toHaveLength(1),
     );
     expect(
-      screen.getByText(/Forecast Time Sep 4 14:33 UTC/i),
+      screen.getByText(/Forecast Time 16:33/i),
     ).toBeInTheDocument();
   });
 
@@ -318,8 +327,9 @@ describe("AuroraNow", () => {
     renderAuroraNow();
     await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
     await screen.findByText(/Aurora likely/);
-    expect(await screen.findByText(/Forecast Time Sep 4 14:33 UTC/)).toBeInTheDocument();
+    expect(await screen.findByText(/Forecast Time 16:33/)).toBeInTheDocument();
     expect(screen.queryByText(/As of Sep 4 14:33 UTC/)).toBeNull();
+    expect(screen.queryByText(/As of 16:33/)).toBeNull();
   });
 
   it("honors the stored view distance threshold", async () => {

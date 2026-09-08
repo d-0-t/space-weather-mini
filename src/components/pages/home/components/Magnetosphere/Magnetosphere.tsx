@@ -12,7 +12,8 @@ import {
   parseBoulderKIndex,
   BOULDER_K_INDEX_URL,
 } from "../../../../../products/boulder-k-index";
-import { formatAge } from "../../../../../products/live-helpers";
+import { formatAge, formatClockTick } from "../../../../../products/display-time";
+import { useDisplayTimezone } from "../../../../DisplayTimezone/DisplayTimezoneContext";
 import { severityColor } from "../../../../../styles/severity";
 import { SOURCES } from "../../../../sources";
 import { SourceAttribution } from "../../../../sources";
@@ -23,7 +24,6 @@ import {
   MiniSparkline,
   SMOOTHING,
   SparklineCard,
-  formatLocalTime,
   latestValue,
   smoothPoints,
 } from "../live-panels/live-panels";
@@ -98,6 +98,7 @@ const KirunaMagnetogramCard: React.FC = () => {
 
 const BoulderMagnetometerCard: React.FC = () => {
   const offline = useIsOffline();
+  const { displayTimezone } = useDisplayTimezone();
   const boulderQuery = useQuery({
     queryKey: ["boulder-k-index", "live"],
     queryFn: fetchBoulder,
@@ -156,7 +157,7 @@ const BoulderMagnetometerCard: React.FC = () => {
       ) : null}
       <p className="live-panel__fresh">
         Updated {latest.timeTag ? formatAge(latest.timeTag) : "–"} (
-        {latest.timeTag ? formatLocalTime(latest.timeTag) : "–"})
+        {latest.timeTag ? formatClockTick(latest.timeTag, displayTimezone) : "–"})
       </p>
       <SourceAttribution source={SOURCES.noaaSwpc} />
     </section>

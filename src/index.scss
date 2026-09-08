@@ -109,6 +109,9 @@ code {
 .recharts-default-tooltip {
   background-color: var(--color-black) !important;
 }
+.recharts-tooltip-wrapper {
+  z-index: 1; // Fixes the glitch where legend renders over the tooltip
+}
 
 .sr-only {
   position: absolute;
