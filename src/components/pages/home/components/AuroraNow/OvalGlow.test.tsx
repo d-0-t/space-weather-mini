@@ -118,45 +118,40 @@ const canvases = async () =>
   await screen.findAllByRole("img", { name: /oval glow/i });
 
 describe("Color-blind (ticket 06)", () => {
-  it("ramps Aurora values through pure greyscale: transparent white up, storm cores to black", () => {
-    // Value 0 stays fully transparent; the ramp is white at every anchor
-    // through the ordinary range.
-    expect(rampColor(0, "color-blind")).toEqual([255, 255, 255, 0]);
-    // Brightness is the primary cue in this mode: the alpha byte climbs
-    // monotonically across the whole scale.
+  it("ramps Aurora values through the viridis palette", () => {
+    // Value 0 stays fully transparent (viridis 0.0, the #440154 violet).
+    expect(rampColor(0, "color-blind")).toEqual([68, 1, 84, 0]);
+    // Alpha is the user's live-tuned curve (0.5 at value 3, 0.8 at 8,
+    // fully opaque from value 15): front-loaded hard so viridis's dark low
+    // end lifts off the near-black stage.
     let previousAlpha = 0;
     for (let value = 1; value <= 100; value += 1) {
       const [, , , alpha] = rampColor(value, "color-blind");
       expect(alpha).toBeGreaterThanOrEqual(previousAlpha);
       previousAlpha = alpha;
     }
-    expect(rampColor(1, "color-blind")[3]).toBeGreaterThan(0);
     expect(rampColor(16, "color-blind")[3]).toBeGreaterThan(
       rampColor(8, "color-blind")[3],
     );
-    // Re-anchored 2026-09-06 with the default ramp, alphas softened the
-    // same day: the faint 0.1 start keeps the quiet range dim while the
-    // climb continues through ordinary-night cores (which reach the low
-    // 30s), saturating where the default hits full-saturation red.
-    expect(rampColor(45, "color-blind")[3]).toBeGreaterThan(
-      rampColor(16, "color-blind")[3],
-    );
-    expect(rampColor(75, "color-blind")[3]).toBe(255);
-    expect(rampColor(60, "color-blind")[3]).toBeLessThan(255);
-    // No hue anywhere: every painted channel is greyscale (r = g = b) –
-    // white through the ordinary range, sweeping to black over the
-    // extreme tail (75-100) so the rarest cores read as a dark eye.
-    for (let value = 1; value <= 100; value += 1) {
+    expect(rampColor(15, "color-blind")[3]).toBe(255);
+    expect(rampColor(14, "color-blind")[3]).toBeLessThan(255);
+    // Viridis is monotonic in lightness – the colorblind-safe property:
+    // perceived brightness climbs end to end, no dark-eye inversion.
+    let previousLuma = -Infinity;
+    for (let value = 0; value <= 100; value += 1) {
       const [r, g, b] = rampColor(value, "color-blind");
-      expect(r).toBe(g);
-      expect(g).toBe(b);
-      if (value <= 75) {
-        expect(r).toBe(255);
-      }
+      const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      expect(luma).toBeGreaterThanOrEqual(previousLuma);
+      previousLuma = luma;
     }
-    expect(rampColor(100, "color-blind")).toEqual([0, 0, 0, 255]);
-    // Extremes clamp to the opaque black end like the default ramp clamps
-    // to magenta.
+    // The palette carries hue (unlike the commented-out greyscale ramp):
+    // value 30 anchors on viridis 0.30, the steel blue #31688e.
+    const [midR, midG, midB] = rampColor(30, "color-blind");
+    expect(midR).toBeLessThan(midG);
+    expect(midB).toBeGreaterThan(midR);
+    expect(rampColor(100, "color-blind")).toEqual([253, 231, 37, 255]);
+    // Extremes clamp to the opaque yellow end like the default clamps to
+    // magenta.
     expect(rampColor(200, "color-blind")).toEqual(
       rampColor(100, "color-blind"),
     );
@@ -177,20 +172,20 @@ describe("Color-blind (ticket 06)", () => {
     expect(g).toBeGreaterThan(r);
   });
 
-  it("swaps the legend bar to the greyscale gradient in color-blind mode", () => {
+  it("swaps the legend bar to the viridis gradient in color-blind mode", () => {
     const css = ovalLegendGradientCss("color-blind");
-    expect(css).toContain("rgba(255,255,255,0) 0%");
-    expect(css).toContain("rgba(255,255,255,1) 92%");
-    expect(css).toContain("rgba(0,0,0,1) 100%");
+    expect(css).toContain("rgba(68,1,84,0) 0%");
+    expect(css).toContain("rgba(144,214,67,1) 92%");
+    expect(css).toContain("rgba(253,231,37,1) 100%");
     expect(ovalLegendGradientCss()).toBe(ovalLegendGradientCss("default"));
     expect(ovalLegendGradientCss("default")).not.toBe(css);
   });
 
-  it("notes the brightness ramp in the canvas name when the mode is on", () => {
+  it("notes the viridis ramp in the canvas name when the mode is on", () => {
     const on = ovalCanvasLabel("color-blind");
     expect(on).toMatch(/color-blind on/i);
-    expect(on).toMatch(/brightness/i);
-    expect(on).toMatch(/invert to black/i);
+    expect(on).toMatch(/viridis/i);
+    expect(on).toMatch(/yellow/i);
     for (const level of ["faint", "moderate", "strong", "intense"]) {
       expect(on.toLowerCase()).toContain(level);
     }
@@ -298,7 +293,7 @@ describe("OvalGlow", () => {
     ).toBeNull();
   });
 
-  it("toggles the checkbox: persists the versioned key and swaps to the brightness ramp", async () => {
+  it("toggles the checkbox: persists the versioned key and swaps to the temporary viridis ramp", async () => {
     const user = userEvent.setup();
     const { container } = renderGlow();
     await canvases();
@@ -312,8 +307,8 @@ describe("OvalGlow", () => {
       ".oval-glow__legend__bar",
     ) as HTMLElement;
     // jsdom's cssstyle collapses alpha-1 rgba() to rgb().
-    expect(bar.getAttribute("style")).toContain("rgb(255, 255, 255) 92%");
-    expect(bar.getAttribute("style")).toContain("rgb(0, 0, 0) 100%");
+    expect(bar.getAttribute("style")).toContain("rgb(144, 214, 67) 92%");
+    expect(bar.getAttribute("style")).toContain("rgb(253, 231, 37) 100%");
     expect((await canvases())[0].getAttribute("aria-label")).toMatch(
       /color-blind on/i,
     );
@@ -337,8 +332,8 @@ describe("OvalGlow", () => {
       ".oval-glow__legend__bar",
     ) as HTMLElement;
     // jsdom's cssstyle collapses alpha-1 rgba() to rgb().
-    expect(bar.getAttribute("style")).toContain("rgb(255, 255, 255) 92%");
-    expect(bar.getAttribute("style")).toContain("rgb(0, 0, 0) 100%");
+    expect(bar.getAttribute("style")).toContain("rgb(144, 214, 67) 92%");
+    expect(bar.getAttribute("style")).toContain("rgb(253, 231, 37) 100%");
     expect((await canvases())[0].getAttribute("aria-label")).toMatch(
       /color-blind on/i,
     );

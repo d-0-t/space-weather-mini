@@ -98,14 +98,51 @@ export const OVAL_RAMP_STOPS: RampStop[] = [
   { pos: 100, value: 100, color: [255, 90, 245, 1] },
 ];
 
-/** Which paint ramp the map uses: the hue ramp, or Color-blind's
- * brightness-only ramp (ticket 06). */
+/**
+ * Viridis ramp – the permanent Color-blind palette (user decision
+ * 2026-09-08, after the live A/B against the white luminance ramp, which
+ * is commented out below). The canonical perceptually uniform viridis
+ * anchors (matplotlib's 0.0-1.0 samples) sit on the same value anchors and
+ * legend positions as the other ramps, sampling the colormap at each
+ * anchor's value/100: dark violet carries the faint range, steel blue the
+ * moderate span, teal the strong span, and green through bright yellow the
+ * rare tail – one monotonic lightness climb, so deutan, protan, tritan,
+ * greyscale and night vision all read intensity the same way, with hue as
+ * a redundant cue on top. Alpha is the user's live-tuned curve (0.5 at
+ * value 3, 0.8 at 8, fully opaque from value 15): front-loaded hard so
+ * viridis's dark low end lifts off the rgb(1, 3, 11) stage – the
+ * vanish-into-black concern that originally picked white over viridis –
+ * while past value 15 the colormap's own lightness carries the intensity
+ * cue, so the ramp stays monotonic end to end and ends opaque yellow at
+ * 100 (no dark-eye inversion). To restore the white ramp, uncomment
+ * OVAL_CB_RAMP_STOPS and point RAMP_BY_MODE's color-blind entry back at
+ * it.
+ */
+export const OVAL_VIRIDIS_RAMP_STOPS: RampStop[] = [
+  { pos: 0, value: 0, color: [68, 1, 84, 0] },
+  { pos: 15, value: 3, color: [69, 13, 95, 0.5] },
+  { pos: 32, value: 8, color: [71, 32, 113, 0.8] },
+  { pos: 48, value: 15, color: [67, 57, 129, 1] },
+  { pos: 62, value: 30, color: [49, 104, 142, 1] },
+  { pos: 72, value: 45, color: [35, 144, 140, 1] },
+  { pos: 82, value: 60, color: [53, 183, 121, 1] },
+  { pos: 92, value: 75, color: [144, 214, 67, 1] },
+  { pos: 96, value: 90, color: [189, 223, 38, 1] },
+  { pos: 100, value: 100, color: [253, 231, 37, 1] },
+];
+
+/** Which paint ramp the map uses: the hue ramp, or the Color-blind
+ * toggle's viridis ramp (ticket 06; permanent from 2026-09-08). */
 export type RampMode = "default" | "color-blind";
 
 /**
  * Color-blind ramp (ticket 06, shipped 2026-09-06; curve revised same day
  * per user pick): pure greyscale – no hue anywhere – so greyscale, every
- * color-vision type and night vision read the same map. Alpha climbs
+ * color-vision type and night vision read the same map. COMMENTED OUT
+ * (2026-09-08): viridis won the colorblindness A/B and is the mode's
+ * permanent palette – the declaration below is kept for an easy restore:
+ * uncomment it and point RAMP_BY_MODE's color-blind entry back here.
+ * Alpha climbs
  * monotonically along the same value anchors as the default ramp
  * (re-anchored with it) from a faint 0.1 at value 3 through 0.4, 0.6, 0.7,
  * 0.8 and 0.9, fully opaque white at value 75 where the default reaches
@@ -124,6 +161,7 @@ export type RampMode = "default" | "color-blind";
  * blurred continuous gradient; dropped with user approval at the seam
  * review).
  */
+/*
 export const OVAL_CB_RAMP_STOPS: RampStop[] = [
   { pos: 0, value: 0, color: [255, 255, 255, 0] },
   { pos: 15, value: 3, color: [255, 255, 255, 0.1] },
@@ -135,6 +173,7 @@ export const OVAL_CB_RAMP_STOPS: RampStop[] = [
   { pos: 92, value: 75, color: [255, 255, 255, 1] },
   { pos: 100, value: 100, color: [0, 0, 0, 1] },
 ];
+*/
 
 /** Canvas size: 1px per 1-degree cell of the full OVATION grid (360 lon x
  * 181 lat, pole to pole). Painting at grid resolution with
@@ -149,8 +188,8 @@ export const OVAL_CANVAS_HEIGHT = 181;
  * precomputed lookup table; alpha stops are stored scaled to 0-255 (the
  * demo's original bug rounded 0-1 floats straight into a Uint8Array, which
  * painted the whole ramp transparent). Values past the last stop clamp to
- * the ramp's end. One LUT per mode: the default hue ramp and Color-blind
- * mode's brightness ramp.
+ * the ramp's end. One LUT per mode: the default hue ramp and the
+ * Color-blind toggle's viridis ramp.
  */
 function buildRampLut(stops: RampStop[]): Uint8Array {
   const lut = new Uint8Array(256 * 4);
@@ -189,8 +228,8 @@ function buildRampLut(stops: RampStop[]): Uint8Array {
 const RAMP_BY_MODE: Record<RampMode, { stops: RampStop[]; lut: Uint8Array }> = {
   default: { stops: OVAL_RAMP_STOPS, lut: buildRampLut(OVAL_RAMP_STOPS) },
   "color-blind": {
-    stops: OVAL_CB_RAMP_STOPS,
-    lut: buildRampLut(OVAL_CB_RAMP_STOPS),
+    stops: OVAL_VIRIDIS_RAMP_STOPS,
+    lut: buildRampLut(OVAL_VIRIDIS_RAMP_STOPS),
   },
 };
 
@@ -364,7 +403,7 @@ export function ovalCanvasLabel(mode: RampMode = "default"): string {
   );
   const colorBlindNote =
     mode === "color-blind"
-      ? " Color-blind on: the glow paints as greyscale brightness – dimmer means faint, brighter means stronger, and the rarest storm cores invert to black inside the white ring – so the map reads without color."
+      ? " Color-blind on: the glow paints through the viridis ramp – faint cells dark violet, brightening through blue and teal to green, then yellow at the intense end – one brightness-ordered palette, so intensity reads without the default hues."
       : "";
   return `Oval glow intensity, world map from north pole to south pole. Glow levels, dimmest first: ${levels}. Transparent means no glow forecast.${colorBlindNote}`;
 }
@@ -569,8 +608,9 @@ const OvalLegend: React.FC<{
  * Oval glow intensity – the real OVATION 1-degree grid as one continuous
  * NASA-style glow ramp on a single pole-to-pole world canvas over a Natural
  * Earth land basemap painted with the same projection. Color wash only in
- * the default mode; Color-blind (ticket 06) swaps the ramp to pure
- * brightness via the toggle beside the legend.
+ * the default mode; Color-blind (ticket 06) swaps the ramp to the viridis
+ * palette via the toggle beside the legend (permanent from 2026-09-08; the
+ * white luminance ramp it replaced is commented out).
  */
 const OvalGlow: React.FC = () => {
   const offline = useIsOffline();
