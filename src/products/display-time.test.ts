@@ -11,6 +11,7 @@ import {
   formatClock,
   formatClockTick,
   formatDayLabel,
+  formatIssued,
   formatPlaceLocal,
   formatShort,
   formatShortDay,
@@ -239,6 +240,29 @@ describe("day keys (ticket 03)", () => {
 
   it("formats the short day label in the NOAA 'Mon DD' shape", () => {
     expect(formatShortDay({ year: 2026, month: 8, day: 26 })).toBe("Aug 26");
+  });
+});
+
+describe("formatIssued (ticket 04)", () => {
+  it("renders the NOAA issued shape with date, clock and ' UTC' suffix in UTC mode", () => {
+    expect(formatIssued("2026 Aug 23 1230 UTC", "utc")).toBe("Aug 23 12:30 UTC");
+    expect(formatIssued("1830 UT 23 Aug 2026", "utc")).toBe("Aug 23 18:30 UTC");
+  });
+
+  it("renders the device-zone date and clock in Local mode", () => {
+    // 1230 UTC is 14:30 in Stockholm (UTC+2)
+    expect(formatIssued("2026 Aug 23 1230 UTC", "local")).toBe("Aug 23 14:30");
+    expect(formatIssued("1830 UT 23 Aug 2026", "local")).toBe("Aug 23 20:30");
+  });
+
+  it("carries the device-zone date when the issued time crosses midnight", () => {
+    // 2230 UTC is 00:30 the next day in Stockholm – the date follows the zone
+    expect(formatIssued("2026 Aug 23 2230 UTC", "local")).toBe("Aug 24 00:30");
+  });
+
+  it("returns the raw string when the issued shape is unexpected, in both modes", () => {
+    expect(formatIssued("nope", "utc")).toBe("nope");
+    expect(formatIssued("nope", "local")).toBe("nope");
   });
 });
 

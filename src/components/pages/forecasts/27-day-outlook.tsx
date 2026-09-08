@@ -20,7 +20,8 @@ import {
   parse27DayOutlook,
   TWENTY_SEVEN_DAY_OUTLOOK_URL,
 } from "../../../products/27-day-outlook";
-import { formatIssuedLocal } from "../../../products/product-header";
+import IssuedLine from "./IssuedLine";
+import UtcDaysNote from "./UtcDaysNote";
 import { kpClass } from "../../../styles/kp-class";
 import {
   MoonLine,
@@ -102,13 +103,7 @@ const TwentySevenDayOutlook: React.FC = () => {
       {data && (
         <>
           <h1>27-Day Outlook</h1>
-          <p>
-            <b>Issued (UTC):</b> {data.issued}
-            <br />
-            <b>Issued (local):</b> {formatIssuedLocal(data.issued)}
-            <br />
-            {data.author}
-          </p>
+          <IssuedLine issued={data.issued} author={data.author} />
           <p className="twenty-seven-day-outlook__explainers">
             Learn more:{" "}
             <GlossaryTerm termId="radio-flux">Radio flux</GlossaryTerm>
@@ -158,6 +153,7 @@ const TwentySevenDayOutlook: React.FC = () => {
                 </LineChart>
               </ResponsiveContainer>
             </div>
+            <UtcDaysNote />
             <table className="twenty-seven-day-outlook__table">
               <caption>27-day Space Weather Outlook Table</caption>
               <thead>

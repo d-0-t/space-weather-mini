@@ -4,10 +4,16 @@
 
 **Blocked by:** 02 (Display timezone setting — foundation, Time modal, Local conditions & webcams).
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Every product page shows exactly one Issued line, rendered in the chosen timezone
-- [ ] Verbatim NOAA product body text is unchanged
-- [ ] UTC-dated tables keep UTC date cells in both modes
-- [ ] The note above each UTC-dated table appears only in Local mode and is absent in UTC mode
-- [ ] Product page tests updated to assert both modes
+- [x] Every product page shows exactly one Issued line, rendered in the chosen timezone
+- [x] Verbatim NOAA product body text is unchanged
+- [x] UTC-dated tables keep UTC date cells in both modes
+- [x] The note above each UTC-dated table appears only in Local mode and is absent in UTC mode
+- [x] Product page tests updated to assert both modes
+
+## Comments
+
+- Implemented 2026-09-09, TDD red→green per slice. New module surface: `formatIssued` in `display-time.ts` — the two NOAA issued wire shapes ("2026 Aug 23 1230 UTC" / "1830 UT 23 Aug 2026") parse through `parseIssuedDate` (product-header keeps the parse, display-time owns the render), then render the short date + HH:MM clock + the standard `utcSuffix`; an unexpected shape returns the raw string rather than throwing in render. New components: `IssuedLine` (shared by all six pages — label "Issued (UTC):" in UTC mode, plain "Issued:" in Local, value from `formatIssued`, author line below) and `UtcDaysNote` (the Local-only muted note above the 27-day outlook and daily geomagnetic indices tables; `.utc-note` in Tables.scss, the house muted-note treatment with tokens). `formatIssuedLocal` deleted from product-header with its test — its six callers were exactly this ticket's pages, so no superseded formatter is left here; ticket 05's sweep keeps the live-helpers shim and the two MONTHS tables.
+- Judgement calls for review: (1) The Issued value keeps the " UTC" suffix in UTC mode although the label already says "(UTC)" — the line reads "Issued (UTC): Aug 23 12:30 UTC". The module's one suffix rule stays uniform (every absolute string carries the suffix in UTC mode); the alternative — suffix-less value, the label as the only zone-bearer, "Issued (UTC): Aug 23 12:30" — would make `formatIssued` the module's only suffix exception. (2) The year is dropped from the rendered Issued value in both modes (the house short-absolute shape, like the dashboard's "As of Aug 23 12:30 UTC"); the old dual header carried the year in both lines. If the year should stay, the value would need the tooltip's day-first full-date shape ("23 Aug 2026 12:30 UTC") instead — a maintainer call. (3) The note copy mirrors the Time modal's exception claim in page voice: "Dates are NOAA's UTC days. They may not match your device's dates." (4) `.utc-note` lives in the shared Tables.scss next to the other cross-page table chrome rather than duplicating per-block classes; both pages already import it. (5) The component suites seed UTC through `saveDisplayTimezone(localStorage, "utc")` per the standards, not a hand-rolled envelope. (6) e2e smoke now asserts "Issued:" (fresh contexts are Local by default) plus the note on the two UTC-dated pages.
+- Suite state: typecheck clean; 760 Vitest green (net +13 on ticket 03's 747: four `formatIssued` module tests, a Local/UTC Issued-line pair on each of the six pages, and note + date-cell pairs on the two UTC-dated pages; the six superseded issued tests and `formatIssuedLocal`'s test were replaced/removed). Playwright: smoke + the six product-page a11y specs green (26 passed). Not committed — awaiting maintainer review.

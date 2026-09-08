@@ -16,6 +16,7 @@ import ThreeDayForecast from "../pages/forecasts/3-day-forecast";
 import ForecastDiscussion from "../pages/forecasts/forecast-discussion";
 import WeeklyReport from "../pages/forecasts/weekly-report";
 import GeophysicalAlert from "../pages/forecasts/geophysical-alert";
+import { DisplayTimezoneProvider } from "../DisplayTimezone/DisplayTimezoneContext";
 
 const queryClient = () =>
   new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -30,7 +31,9 @@ beforeEach(() => {
 const renderWithRouter = (ui: React.ReactNode) =>
   render(
     <QueryClientProvider client={queryClient()}>
-      <MemoryRouter>{ui}</MemoryRouter>
+      <MemoryRouter>
+        <DisplayTimezoneProvider>{ui}</DisplayTimezoneProvider>
+      </MemoryRouter>
     </QueryClientProvider>,
   );
 

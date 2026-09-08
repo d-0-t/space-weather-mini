@@ -8,6 +8,7 @@
  */
 
 import type { DisplayTimezone } from "./display-timezone";
+import { parseIssuedDate } from "./product-header";
 
 /**
  * Parses a SWPC UTC time tag to epoch milliseconds. The wire carries three
@@ -289,6 +290,32 @@ export function formatDayLabel(key: DayKey): string {
 /** The short "Mon DD" day label, matching NOAA's own day names. */
 export function formatShortDay(key: DayKey): string {
   return `${MONTHS_SHORT[key.month - 1]} ${key.day}`;
+}
+
+/**
+ * The rendered Issued value of a forecast product page: the NOAA header
+ * timestamp ("2026 Aug 23 1230 UTC" or "1830 UT 23 Aug 2026") in the
+ * Display timezone, always carrying the short date – an Issued line is a
+ * dated fact, not a freshness reading, so "Aug 23 12:30 UTC" (UTC mode)
+ * and "Aug 23 14:30" (Local) both state the day. The " UTC" suffix follows
+ * the module's one zone-noise rule. Returns the raw string when the shape
+ * is unexpected – an issued line is never worth throwing over.
+ */
+export function formatIssued(
+  issued: string,
+  displayTimezone: DisplayTimezone,
+): string {
+  let date: Date;
+  try {
+    date = parseIssuedDate(issued);
+  } catch {
+    return issued;
+  }
+  const day =
+    displayTimezone === "utc"
+      ? `${MONTHS_SHORT[date.getUTCMonth()]} ${date.getUTCDate()}`
+      : `${MONTHS_SHORT[date.getMonth()]} ${date.getDate()}`;
+  return `${day} ${formatClock(date, displayTimezone)}${utcSuffix(displayTimezone)}`;
 }
 
 // The 3-hour slots of NOAA's indices are aligned to the UTC day.

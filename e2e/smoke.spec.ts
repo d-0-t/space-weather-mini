@@ -227,7 +227,7 @@ test("the forecasts index renders the forecast discussion", async ({ page }) => 
 test("the forecast discussion page renders", async ({ page }) => {
   await page.goto("/forecasts/discussion");
   await expect(page.getByRole("heading", { level: 1, name: "Forecast Discussion" })).toBeVisible({ timeout: dataTimeout });
-  await expect(page.getByText("Issued (UTC):")).toBeVisible();
+  await expect(page.getByText("Issued:")).toBeVisible();
 });
 
 test("the daily geomagnetic indices page renders its data table", async ({ page }) => {
@@ -235,7 +235,9 @@ test("the daily geomagnetic indices page renders its data table", async ({ page 
   const table = page.getByRole("table");
   await expect(table).toBeVisible({ timeout: dataTimeout });
   await expect(table.getByRole("row")).toHaveCount(32);
-  await expect(page.getByText("Issued (UTC):")).toBeVisible();
+  await expect(page.getByText("Issued:")).toBeVisible();
+  // Local mode shows the muted UTC-days note above the table
+  await expect(page.getByText(/UTC days/)).toBeVisible();
   await expect(page.getByRole("img", { name: /largest daily kp index per station/i })).toBeVisible();
 });
 
@@ -244,7 +246,7 @@ test("the 3-day forecast page renders its data", async ({ page }) => {
   const table = page.getByRole("table");
   await expect(table.first()).toBeVisible({ timeout: dataTimeout });
   await expect(table).toHaveCount(3);
-  await expect(page.getByText("Issued (UTC):")).toBeVisible();
+  await expect(page.getByText("Issued:")).toBeVisible();
   await expect(
     page.getByRole("img", { name: /kp index forecast by 3-hour interval/i })
   ).toBeVisible();
@@ -260,7 +262,9 @@ test("the 27-day outlook page renders its data", async ({ page }) => {
   const table = page.getByRole("table");
   await expect(table).toBeVisible({ timeout: dataTimeout });
   await expect(table.getByRole("row")).toHaveCount(28);
-  await expect(page.getByText("Issued (UTC):")).toBeVisible();
+  await expect(page.getByText("Issued:")).toBeVisible();
+  // Local mode shows the muted UTC-days note above the table
+  await expect(page.getByText(/UTC days/)).toBeVisible();
   await expect(page.getByRole("img", { name: /kp index trend.*moon illumination/i })).toBeVisible();
 });
 

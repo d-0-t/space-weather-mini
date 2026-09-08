@@ -9,3 +9,7 @@
 - [ ] No component formats an absolute time outside the display-time module
 - [ ] Superseded helpers and duplicated month-name code are deleted, not just unused
 - [ ] Full test suite passes with no behavior change
+
+## Comments
+
+- Ticket 04 landed (2026-09-09): `formatIssuedLocal` and its test are already deleted — its only callers were the six product pages, which now render through `IssuedLine`/`formatIssued`. What remains for this sweep: the `live-helpers` shim (ViewDistanceLine, alerts data layer, its own tests) and the MONTHS_SHORT tables in `3-day-forecast.tsx` / `27-day-outlook.tsx`.

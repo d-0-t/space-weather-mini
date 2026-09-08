@@ -8,7 +8,7 @@ import {
   parseWeeklyReport,
   type WeeklySection,
 } from "../../../products/weekly-report";
-import { formatIssuedLocal } from "../../../products/product-header";
+import IssuedLine from "./IssuedLine";
 import GlossaryTerm from "../../explainers/GlossaryTerm";
 import { SOURCES } from "../../../components/sources";
 import { SourceAttribution } from "../../../components/sources";
@@ -55,13 +55,7 @@ const WeeklyReport: React.FC = () => {
       {data && (
         <>
           <h1>Weekly Report</h1>
-          <p>
-            <b>Issued (UTC):</b> {data.issued}
-            <br />
-            <b>Issued (local):</b> {formatIssuedLocal(data.issued)}
-            <br />
-            {data.author}
-          </p>
+          <IssuedLine issued={data.issued} author={data.author} />
           <p className="weekly-report__explainers">
             Learn more:{" "}
             <GlossaryTerm termId="weekly-report">Weekly report</GlossaryTerm>

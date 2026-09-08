@@ -21,7 +21,7 @@ import {
   type ProbabilityRow,
   type ThreeDayForecast as ThreeDayForecastData,
 } from "../../../products/3-day-forecast";
-import { formatIssuedLocal } from "../../../products/product-header";
+import IssuedLine from "./IssuedLine";
 import { kpClass } from "../../../styles/kp-class";
 import {
   MoonLine,
@@ -156,13 +156,7 @@ const ThreeDayForecast: React.FC = () => {
       {data && (
         <>
           <h1>3-Day Forecast</h1>
-          <p>
-            <b>Issued (UTC):</b> {data.issued}
-            <br />
-            <b>Issued (local):</b> {formatIssuedLocal(data.issued)}
-            <br />
-            {data.author}
-          </p>
+          <IssuedLine issued={data.issued} author={data.author} />
           <p className="three-day-forecast__explainers">
             Learn more:{" "}
             <GlossaryTerm termId="geomagnetic-activity">

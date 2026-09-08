@@ -41,14 +41,6 @@ export function parseIssuedDate(issued: string): Date {
   );
 }
 
-// Formats a product's issued line as the visitor's local time, naming the
-// timezone so the conversion is unambiguous.
-export function formatIssuedLocal(issued: string): string {
-  return parseIssuedDate(issued).toLocaleString(undefined, {
-    timeZoneName: "long",
-  });
-}
-
 // The author line, e.g. "# Prepared by the U.S. Dept. of Commerce, NOAA, ...".
 // The whitespace after "#" varies between products ("# " vs "#  ").
 export function matchPreparedBy(line: string): string | null {

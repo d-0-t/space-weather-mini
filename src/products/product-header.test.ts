@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  formatIssuedLocal,
   matchPreparedBy,
   parseIssuedDate,
   scanHeader,
@@ -65,13 +64,5 @@ describe("scanHeader", () => {
       issued: "",
       author: "",
     });
-  });
-});
-
-describe("formatIssuedLocal", () => {
-  it("formats the issued time as a local date with a timezone name", () => {
-    const local = formatIssuedLocal("2026 Aug 23 1230 UTC");
-    expect(local).toContain("2026");
-    expect(local).not.toBe("2026 Aug 23 1230 UTC");
   });
 });

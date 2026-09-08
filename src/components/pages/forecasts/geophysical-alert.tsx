@@ -7,7 +7,7 @@ import {
   GEOPHYSICAL_ALERT_URL,
   parseGeophysicalAlert,
 } from "../../../products/geophysical-alert";
-import { formatIssuedLocal } from "../../../products/product-header";
+import IssuedLine from "./IssuedLine";
 import GlossaryTerm from "../../explainers/GlossaryTerm";
 import { SOURCES } from "../../../components/sources";
 import { SourceAttribution } from "../../../components/sources";
@@ -46,13 +46,7 @@ const GeophysicalAlert: React.FC = () => {
       {data && (
         <>
           <h1>Geophysical Observations and Predictions</h1>
-          <p>
-            <b>Issued (UTC):</b> {data.issued}
-            <br />
-            <b>Issued (local):</b> {formatIssuedLocal(data.issued)}
-            <br />
-            {data.author}
-          </p>
+          <IssuedLine issued={data.issued} author={data.author} />
           <p className="geophysical-alert__explainers">
             Learn more:{" "}
             <GlossaryTerm termId="geophysical-alert">

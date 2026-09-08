@@ -8,7 +8,7 @@ import {
   parseForecastDiscussion,
   type DiscussionSection,
 } from "../../../products/forecast-discussion";
-import { formatIssuedLocal } from "../../../products/product-header";
+import IssuedLine from "./IssuedLine";
 import GlossaryTerm from "../../explainers/GlossaryTerm";
 import { SOURCES } from "../../../components/sources";
 import { SourceAttribution } from "../../../components/sources";
@@ -60,13 +60,7 @@ const ForecastDiscussion: React.FC = () => {
       {data && (
         <>
           <h1>Forecast Discussion</h1>
-          <p>
-            <b>Issued (UTC):</b> {data.issued}
-            <br />
-            <b>Issued (local):</b> {formatIssuedLocal(data.issued)}
-            <br />
-            {data.author}
-          </p>
+          <IssuedLine issued={data.issued} author={data.author} />
           <p className="forecast-discussion__explainers">
             Learn more:{" "}
             <GlossaryTerm termId="forecast-discussion">

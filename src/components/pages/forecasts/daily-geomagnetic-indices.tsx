@@ -22,7 +22,8 @@ import {
   parseDailyGeomagneticIndices,
   type DailyIndicesRow,
 } from "../../../products/daily-geomagnetic-indices";
-import { formatIssuedLocal } from "../../../products/product-header";
+import IssuedLine from "./IssuedLine";
+import UtcDaysNote from "./UtcDaysNote";
 import { kpClass } from "../../../styles/kp-class";
 import GlossaryTerm from "../../explainers/GlossaryTerm";
 import { SOURCES } from "../../../components/sources";
@@ -87,13 +88,7 @@ const DailyGeomagneticIndices: React.FC = () => {
       {data && (
         <>
           <h1>Daily Geomagnetic Indices</h1>
-          <p>
-            <b>Issued (UTC):</b> {data.issued}
-            <br />
-            <b>Issued (local):</b> {formatIssuedLocal(data.issued)}
-            <br />
-            {data.author}
-          </p>
+          <IssuedLine issued={data.issued} author={data.author} />
           <p className="daily-geomagnetic-indices__explainers">
             Learn more: <GlossaryTerm termId="kp-index">Kp index</GlossaryTerm>
             {" · "}
@@ -168,6 +163,7 @@ const DailyGeomagneticIndices: React.FC = () => {
                 </LineChart>
               </ResponsiveContainer>
             </div>
+            <UtcDaysNote />
             <div
               className="daily-geomagnetic-indices__scroll"
               role="region"

@@ -1,6 +1,17 @@
 .marginedTable {
   margin: 15px;
 }
+
+// The muted note above the UTC-dated tables (27-day outlook, daily
+// geomagnetic indices): visible only while Local is chosen, it keeps the
+// NOAA UTC-day date cells from being misread as the device's days.
+.utc-note {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+  color: color-mix(in srgb, var(--color-white) 75%, transparent);
+  text-shadow: var(--text-stroke-black);
+}
+
 table {
   border: 2px solid var(--color-border-muted-transparent);
   border-collapse: collapse;
