@@ -1,0 +1,22 @@
+// The current-weather one-liner in the Aurora Now panel: sky-condition
+// icon, temperature and total cloud coverage on one wrapping line, with
+// the Local conditions link pushed right (it drops below on narrow
+// panels). Sits inside the view-distance section, which already carries
+// the panel's text shadow.
+.weather-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 0.75rem;
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.25rem;
+
+  &__conditions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.3rem;
+  }
+}

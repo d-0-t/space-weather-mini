@@ -543,20 +543,20 @@ describe("Local conditions weather (ticket 03)", () => {
     seedKiruna();
     mockFetch.mockResolvedValue(jsonResponse(openMeteoKirunaFixture));
     renderPage();
-    expect((await screen.findAllByText("11°C")).length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Moderate rain").length).toBeGreaterThan(0);
+    expect((await screen.findAllByText("3°C")).length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Clear sky").length).toBeGreaterThan(0);
     // Humidity and cloud are now icons with sr-only labels, low/mid/high on separate lines
     const current = document.querySelector(".weather-current") as HTMLElement;
     expect(current).toBeInTheDocument();
-    expect(current.textContent).toContain("97%");
-    expect(within(current).getByText("low: 100%")).toBeInTheDocument();
-    expect(within(current).getByText("mid: 22%")).toBeInTheDocument();
-    expect(within(current).getByText("high: 17%")).toBeInTheDocument();
+    expect(current.textContent).toContain("87%");
+    expect(within(current).getByText("low: 21%")).toBeInTheDocument();
+    expect(within(current).getByText("mid: 0%")).toBeInTheDocument();
+    expect(within(current).getByText("high: 2%")).toBeInTheDocument();
     expect(current.querySelector(".sr-only")?.textContent).toBeDefined();
-    expect(current.querySelector(".weather-icon[title=\"Moderate rain\"]")).toBeInTheDocument();
+    expect(current.querySelector(".weather-icon[title=\"Clear sky\"]")).toBeInTheDocument();
     expect(
       current.querySelector(".weather-current__main .sr-only")?.textContent,
-    ).toBe("Moderate rain");
+    ).toBe("Clear sky");
     expect(
       screen.getByRole("link", { name: "Open-Meteo" }),
     ).toHaveAttribute("href", "https://open-meteo.com/");
@@ -581,15 +581,16 @@ describe("Local conditions weather (ticket 03)", () => {
     });
     const hours = within(strip).getAllByRole("listitem");
     expect(hours).toHaveLength(24);
-    expect(within(hours[0]).getByText("00:00")).toBeInTheDocument();
-    expect(within(hours[0]).getByText("11°C")).toBeInTheDocument();
-    expect(within(hours[0]).getAllByText("Overcast").length).toBeGreaterThan(0);
-    expect(within(hours[0]).getByText("98%")).toBeInTheDocument();
+    // The strip starts at the observation's hour (01:00, forecast_hours=24).
+    expect(within(hours[0]).getByText("01:00")).toBeInTheDocument();
+    expect(within(hours[0]).getByText("3°C")).toBeInTheDocument();
+    expect(within(hours[0]).getAllByText("Clear sky").length).toBeGreaterThan(0);
+    expect(within(hours[0]).getByText("87%")).toBeInTheDocument();
     // low/mid/high split is shown in current only; hourly shows total cloud only
     expect(
-      hours[0].querySelector(".weather-icon[title=\"Overcast\"]"),
+      hours[0].querySelector(".weather-icon[title=\"Clear sky\"]"),
     ).toBeInTheDocument();
-    expect(within(hours[23]).getByText("23:00")).toBeInTheDocument();
+    expect(within(hours[23]).getByText("00:00")).toBeInTheDocument();
   });
 
   it("renders the 3 day daily row as a table with a caption and sun times", async () => {
@@ -605,12 +606,13 @@ describe("Local conditions weather (ticket 03)", () => {
       "Kiruna, Norrbotten County, Sweden",
     );
     expect(within(table).getAllByRole("row")).toHaveLength(4);
-    expect(within(table).getByText("2026-09-01")).toBeInTheDocument();
-    expect(within(table).getAllByText("Heavy rain").length).toBeGreaterThan(0);
-    expect(within(table).getByText("13°C")).toBeInTheDocument();
-    expect(within(table).getByText("9°C")).toBeInTheDocument();
-    expect(within(table).getByText("05:06")).toBeInTheDocument();
-    expect(within(table).getByText("20:11")).toBeInTheDocument();
+    expect(within(table).getByText("2026-09-09")).toBeInTheDocument();
+    expect(within(table).getAllByText("Overcast").length).toBeGreaterThan(0);
+    // 12.3 rounds to 12°C, which daily card 3's 11.5 max rounds to as well.
+    expect(within(table).getAllByText("12°C").length).toBeGreaterThan(0);
+    expect(within(table).getByText("2°C")).toBeInTheDocument();
+    expect(within(table).getByText("05:35")).toBeInTheDocument();
+    expect(within(table).getByText("19:37")).toBeInTheDocument();
   });
 
   it("reissues the same fetch for the same place on Refresh and updates the timestamp", async () => {
@@ -924,19 +926,19 @@ describe("Local conditions under the Display timezone (ticket 02)", () => {
       name: "24-hour hourly strip",
     });
     const hours = within(strip).getAllByRole("listitem");
-    // Kiruna is UTC+2: its 00:00–23:00 wall-clock strip runs 22:00 (the
-    // previous UTC day) through 21:00 UTC
-    expect(within(hours[0]).getByText("22:00")).toBeInTheDocument();
-    expect(within(hours[14]).getByText("12:00")).toBeInTheDocument();
-    expect(within(hours[23]).getByText("21:00")).toBeInTheDocument();
+    // Kiruna is UTC+2: its 01:00–00:00 wall-clock strip runs 23:00 (the
+    // previous UTC day) through 22:00 UTC
+    expect(within(hours[0]).getByText("23:00")).toBeInTheDocument();
+    expect(within(hours[14]).getByText("13:00")).toBeInTheDocument();
+    expect(within(hours[23]).getByText("22:00")).toBeInTheDocument();
   });
 
   it("renders the daily row's sun times in UTC when the Display timezone is UTC", async () => {
     await renderKirunaInUtc();
     const table = await screen.findByRole("table");
-    // Sunrise 05:06 and sunset 20:11 Kiruna wall clock are 03:06 and 18:11 UTC
-    expect(within(table).getByText("03:06")).toBeInTheDocument();
-    expect(within(table).getByText("18:11")).toBeInTheDocument();
+    // Sunrise 05:35 and sunset 19:37 Kiruna wall clock are 03:35 and 17:37 UTC
+    expect(within(table).getByText("03:35")).toBeInTheDocument();
+    expect(within(table).getByText("17:37")).toBeInTheDocument();
   });
 
   it("renders the fetched-at line in UTC when the Display timezone is UTC", async () => {

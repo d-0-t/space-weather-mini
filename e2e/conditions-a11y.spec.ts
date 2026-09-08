@@ -162,27 +162,27 @@ test("the local conditions page renders the weather card from the Kiruna fixture
   // with the low/mid/high split – humidity and cloud now icons with sr-only
   // labels and low/mid/high on separate lines. WMO icon carries title and an
   // sr-only span before the temp.
-  await expect(page.getByText("11°C").first()).toBeVisible();
-  await expect(page.getByText("Moderate rain").first()).toBeVisible();
+  await expect(page.getByText("3°C").first()).toBeVisible();
+  await expect(page.getByText("Clear sky").first()).toBeVisible();
   await expect(
-    page.locator(".weather-current").getByText("97%").first(),
+    page.locator(".weather-current").getByText("87%").first(),
   ).toBeVisible();
   await expect(
-    page.locator(".weather-current").getByText("low: 100%"),
+    page.locator(".weather-current").getByText("low: 21%"),
   ).toBeVisible();
   await expect(
-    page.locator(".weather-current").getByText("mid: 22%"),
+    page.locator(".weather-current").getByText("mid: 0%"),
   ).toBeVisible();
   await expect(
-    page.locator(".weather-current").getByText("high: 17%"),
+    page.locator(".weather-current").getByText("high: 2%"),
   ).toBeVisible();
   await expect(page.locator(".weather-current-wrap")).toBeVisible();
   await expect(
-    page.locator('.weather-icon[title="Moderate rain"]').first(),
+    page.locator('.weather-icon[title="Clear sky"]').first(),
   ).toBeVisible();
   await expect(
     page.locator(".weather-current__main .sr-only", {
-      hasText: "Moderate rain",
+      hasText: "Clear sky",
     }),
   ).toBeVisible();
   await expect(page.getByRole("link", { name: "Open-Meteo" })).toHaveAttribute(
@@ -205,11 +205,12 @@ test("the local conditions page renders the weather card from the Kiruna fixture
     page.getByRole("button", { name: "External maps", exact: true }),
   ).toBeVisible();
 
-  // The 24 h hourly strip is a scrollable list of hour cards, time first.
+  // The 24 h hourly strip is a scrollable list of hour cards, time first:
+  // it starts at the observation's hour (01:00, forecast_hours=24).
   const strip = page.getByRole("list", { name: "24-hour hourly strip" });
   await expect(strip.getByRole("listitem")).toHaveCount(24);
+  await expect(strip.getByText("01:00")).toBeVisible();
   await expect(strip.getByText("00:00")).toBeVisible();
-  await expect(strip.getByText("23:00")).toBeVisible();
   const scrolls = await strip.evaluate((el) => ({
     scrollWidth: el.scrollWidth,
     clientWidth: el.clientWidth,
@@ -220,9 +221,9 @@ test("the local conditions page renders the weather card from the Kiruna fixture
   const table = page.getByRole("table", { name: /3-day weather forecast/ });
   await expect(table).toBeVisible();
   await expect(table.getByRole("row")).toHaveCount(4);
-  await expect(table.getByText("2026-09-01")).toBeVisible();
-  await expect(table.getByText("05:06")).toBeVisible();
-  await expect(table.getByText("20:11")).toBeVisible();
+  await expect(table.getByText("2026-09-09")).toBeVisible();
+  await expect(table.getByText("05:35")).toBeVisible();
+  await expect(table.getByText("19:37")).toBeVisible();
 
   // Refresh is always enabled and reissues the same fetch for the same
   // place, keeping the timestamp visible.
@@ -288,7 +289,7 @@ test("the place search journey shows five matches and updates the place, dayligh
   ).toBeVisible();
 
   // … keeps current weather plus the 24 h strip and the 3-day table …
-  await expect(page.getByText("11°C").first()).toBeVisible();
+  await expect(page.getByText("3°C").first()).toBeVisible();
   const strip = page.getByRole("list", { name: "24-hour hourly strip" });
   await expect(strip.getByRole("listitem")).toHaveCount(24);
   const scrolls = await strip.evaluate((el) => ({

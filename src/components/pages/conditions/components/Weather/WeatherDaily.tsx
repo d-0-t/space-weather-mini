@@ -3,9 +3,9 @@ import { useDisplayTimezone } from "../../../../DisplayTimezone/DisplayTimezoneC
 import type { GeocodedPlace } from "../../../../../data/place-storage";
 import type { WeatherData } from "../../../../../data/weather";
 import { wmoWeather } from "../../../../../data/wmo-codes";
-import { formatCelsius } from "../../utils/format";
+import { formatCelsius } from "../../../../weather/format";
 import { formatPlaceLocal } from "../../../../../products/display-time";
-import WeatherIcon from "./WeatherIcon";
+import WeatherIcon from "../../../../weather/WeatherIcon";
 
 /** The 3 day daily row as a semantic table: one card per day with max and min, WMO icon and text and sunrise and sunset for reference. The naive place-local sun times render in the Display timezone (ticket 02). */
 const WeatherDaily: React.FC<{ data: WeatherData; place: GeocodedPlace }> = ({

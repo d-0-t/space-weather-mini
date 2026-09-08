@@ -1,10 +1,11 @@
 /**
  * Weather for Local conditions (ticket 03): one Open-Meteo forecast call per
  * place with `timezone=auto`, mapped to a typed view model windowed to the
- * 24-hour hourly strip and three daily cards. The fetch contract is pinned
- * by the unit suite against the real Kiruna fixture captured live on
- * 2026-09-01; a payload shape change throws loudly instead of rendering
- * blanks (spec user story 21).
+ * 24-hour hourly strip and three daily cards. The hourly strip starts at the
+ * current place-local hour (`forecast_hours=24`) – past hours are irrelevant
+ * for chasers. The fetch contract is pinned by the unit suite against the
+ * real Kiruna fixture captured live on 2026-09-09; a payload shape change
+ * throws loudly instead of rendering blanks (spec user story 21).
  */
 
 export const OPEN_METEO_FORECAST_URL = "https://api.open-meteo.com/v1/forecast";
@@ -49,7 +50,7 @@ export interface WeatherDay {
 /** The mapped forecast core: current conditions plus the windowed strip and row. */
 export interface WeatherPayload {
   current: WeatherCurrent;
-  /** First 24 hourly entries from 00:00 local – the scrolling strip. */
+  /** The 24 hourly entries from the current place-local hour – the strip. */
   hourly: WeatherHour[];
   /** Up to three daily cards. */
   daily: WeatherDay[];
@@ -124,12 +125,13 @@ const stringField = (block: Record<string, unknown>, field: string): string => {
 
 /**
  * Maps a real Open-Meteo forecast response to the typed view model. The
- * hourly strip keeps the first 24 entries from 00:00 local; the daily row
- * keeps up to three cards. The current block has no low/mid/high split in
- * the payload, so it borrows the split from the hourly entry of the same
- * hour; a payload that cannot supply it throws loudly (spec user story 21).
- * The payload's fixed UTC offset and IANA timezone are retained (ticket 02)
- * so the naive place-local timestamps can resolve to instants.
+ * hourly strip keeps the 24 entries the API returns from the current
+ * place-local hour (`forecast_hours=24`); the daily row keeps up to three
+ * cards. The current block has no low/mid/high split in the payload, so it
+ * borrows the split from the hourly entry of the same hour; a payload that
+ * cannot supply it throws loudly (spec user story 21). The payload's fixed
+ * UTC offset and IANA timezone are retained (ticket 02) so the naive
+ * place-local timestamps can resolve to instants.
  */
 export function mapWeatherResponse(raw: unknown): WeatherPayload {
   if (!isRecord(raw)) throw new Error("Open-Meteo returned a non-object payload");
@@ -147,8 +149,11 @@ export function mapWeatherResponse(raw: unknown): WeatherPayload {
     throw new Error("Open-Meteo current.time is not a string");
   }
 
-  // Hourly and daily come as parallel arrays; a length mismatch or a block
+  // Hourly and daily come as parallel arrays; a length mismatch or a strip
   // shorter than the window is a payload shape change and throws loudly.
+  // `forecast_hours=24` returns exactly the 24-entry window from the current
+  // place-local hour; the slice keeps the mapper honest even if the call
+  // ever widens the returned range again.
   const hourlyTimes = stringArray(hourly, "time");
   const hourlyTemps = numberArray(hourly, "temperature_2m");
   const hourlyHumidity = numberArray(hourly, "relative_humidity_2m");
@@ -247,10 +252,12 @@ export function mapWeatherResponse(raw: unknown): WeatherPayload {
 
 /**
  * Fetches weather for a geocoded place with the documented single-call
- * contract and `timezone=auto`, and stamps the instant the response lands
- * as `fetchedAt` for the "Data from Open-Meteo at HH:MM local" timestamp.
- * Throws on a failed or misshaped response; the page keeps the last good
- * daylight view and shows the weather error only.
+ * contract and `timezone=auto` – hourly from the current place-local hour
+ * (`forecast_hours=24`, past hours irrelevant) plus three daily cards – and
+ * stamps the instant the response lands as `fetchedAt` for the "Data from
+ * Open-Meteo at HH:MM local" timestamp. Throws on a failed or misshaped
+ * response; the page keeps the last good daylight view and shows the
+ * weather error only.
  */
 export async function fetchWeather(
   latitude: number,
@@ -265,6 +272,7 @@ export async function fetchWeather(
   url.searchParams.set("daily", DAILY_VARIABLES);
   url.searchParams.set("timezone", "auto");
   url.searchParams.set("forecast_days", "3");
+  url.searchParams.set("forecast_hours", String(HOURS_IN_STRIP));
   const response = await fetchImpl(url.toString());
   if (!response.ok) {
     throw new Error(`Open-Meteo returned ${response.status}`);

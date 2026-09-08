@@ -3,13 +3,14 @@
 process.env.TZ = "Europe/Stockholm";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 
 import kpObservedFixture from "../../../../../products/fixtures/noaa-planetary-k-index.json?raw";
 import kirunaFixture from "../../../../../data/fixtures/nominatim-kiruna.json";
+import openMeteoKirunaFixture from "../../../../../data/fixtures/open-meteo-kiruna.json";
 import AuroraNow from "./AuroraNow";
 import { AlertsProvider } from "../Alerts/AlertsContext";
 import { DisplayTimezoneProvider } from "../../../../DisplayTimezone/DisplayTimezoneContext";
@@ -67,6 +68,8 @@ beforeEach(() => {
     if (u.includes("noaa-planetary-k-index.json")) return Promise.resolve({ ok: true, text: async () => kpObservedFixture });
     if (u.includes("ovation_aurora_latest.json"))
       return Promise.resolve({ ok: true, text: async () => ovationJson(ovationGrid) });
+    if (u.includes("api.open-meteo.com"))
+      return Promise.resolve(jsonResponse(openMeteoKirunaFixture));
     return Promise.resolve({ ok: true, text: async () => "" });
   });
   vi.stubGlobal("fetch", mockFetch);
@@ -227,6 +230,84 @@ describe("AuroraNow", () => {
     );
     expect(change.getAttribute("title")).toBe("Change location");
     expect(screen.queryByRole("button", { name: /Oslo/ })).toBeNull();
+  });
+
+  it("shows the current-weather one-liner with icon, temperature and cloud, plus the Local conditions link", async () => {
+    seedPlace(OSLO_PLACE);
+    ovationGrid = [[10.7522, 60.4139, 12]];
+    renderAuroraNow();
+    await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
+    await screen.findByText(/Aurora likely/);
+    // The weather loads on its own query; wait for the one-liner.
+    await screen.findByText(/Cloud 19%/);
+    const line = document.querySelector(".weather-line") as HTMLElement;
+    expect(line).not.toBeNull();
+    // The sky-condition icon with its sr-only WMO text, the temperature
+    // and the total cloud coverage – nothing else (no humidity, no
+    // low/mid/high split).
+    expect(line.querySelector(".weather-icon[title=\"Clear sky\"]")).not.toBeNull();
+    expect(line.querySelector(".sr-only")?.textContent).toBe("Clear sky");
+    expect(line.textContent).toContain("3°C");
+    expect(line.textContent).toContain("Cloud 19%");
+    expect(line.textContent).not.toMatch(/Humidity|low|mid|high/);
+    // The link to the Local conditions page
+    const link = within(line).getByRole("link", { name: "Local conditions →" });
+    expect(link.getAttribute("href")).toBe("/conditions");
+  });
+
+  it("refetches the weather for the place picked in the modal", async () => {
+    const user = userEvent.setup();
+    seedPlace(OSLO_PLACE);
+    // The oval cell sits on Kiruna: Oslo reads not in range before the
+    // pick, likely after – the same flip the band test drives.
+    ovationGrid = [[20.2253, 68.3558, 12]];
+    mockFetch.mockImplementation((input: unknown) => {
+      const url = new URL(String(input));
+      if (url.host === "api.open-meteo.com")
+        return Promise.resolve(jsonResponse(openMeteoKirunaFixture));
+      if (url.host === "nominatim.openstreetmap.org")
+        return Promise.resolve(jsonResponse(kirunaFixture));
+      return Promise.resolve({
+        ok: true,
+        text: async () =>
+          url.href.includes("noaa-planetary-k-index.json")
+            ? kpObservedFixture
+            : ovationJson(ovationGrid),
+      });
+    });
+    renderAuroraNow();
+    await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
+    await screen.findByText(/Aurora not in range/);
+    const weatherCalls = () =>
+      mockFetch.mock.calls
+        .map(([input]) => String(input))
+        .filter((u) => u.includes("api.open-meteo.com"))
+        .map((u) => new URL(u));
+    // Oslo's coordinates first
+    expect(await screen.findByText(/Cloud 19%/)).toBeInTheDocument();
+    expect(
+      weatherCalls().some((url) => url.searchParams.get("latitude") === "59.9139"),
+    ).toBe(true);
+    // The pick writes Kiruna into the shared place; the weather refetches
+    // with the new coordinates alongside the band line.
+    await user.click(screen.getByRole("button", { name: "Change location" }));
+    await user.type(
+      screen.getByRole("searchbox", { name: "Search for a place" }),
+      "Kiruna",
+    );
+    await user.click(screen.getByRole("button", { name: "Search" }));
+    await user.click(screen.getAllByRole("radio")[0]);
+    await user.click(screen.getByRole("button", { name: "Apply and close" }));
+    expect(await screen.findByText(/Aurora likely/)).toBeInTheDocument();
+    // The weather refetched with the picked place's coordinates (the
+    // Nominatim fixture's Kiruna) alongside the band.
+    await waitFor(() =>
+      expect(
+        weatherCalls().some(
+          (url) => url.searchParams.get("latitude") === "67.8496111",
+        ),
+      ).toBe(true),
+    );
   });
 
   it("reads not in range without a preposition and in lowercase", async () => {

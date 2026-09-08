@@ -44,8 +44,9 @@ describe("WMO weather code lookup (ticket 03)", () => {
       expect(wmoWeather(code).text.length).toBeGreaterThan(0);
       expect(wmoWeather(code).icon.length).toBeGreaterThan(0);
     }
-    // The fixture must actually exercise the lookup: rain codes at Kiruna.
-    expect(usedCodes.has(63)).toBe(true);
+    // The fixture must actually exercise the lookup: overcast codes at
+    // Kiruna (the 2026-09-09 capture rode in under a clear sky).
+    expect(usedCodes.has(3)).toBe(true);
   });
 
   it("falls back to a safe unknown entry for codes outside the list", () => {

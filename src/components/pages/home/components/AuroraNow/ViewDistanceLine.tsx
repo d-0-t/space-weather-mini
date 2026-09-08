@@ -12,6 +12,7 @@ import {
   loadViewDistanceThreshold,
 } from "../../../../../products/view-distance";
 import { useOvationQuery } from "./useOvationQuery";
+import CurrentWeatherLine from "./CurrentWeatherLine";
 import { FreshnessLine } from "../offline/offline";
 
 import "./ViewDistanceLine.scss";
@@ -37,8 +38,10 @@ const VIEW_DISTANCE_COPY =
  * icon-only `btn--secondary` trigger (title + sr-only `Change location`)
  * opens the shared PlaceFinder modal. The `(i)` sits right after the info
  * it explains and carries the approved copy, the band table and the
- * provenance link. Hidden while the grid has not loaded – the oval map
- * above carries the loading and error states.
+ * provenance link. Below it sits the current-weather one-liner with the
+ * Local conditions link (CurrentWeatherLine), sharing this place. Hidden
+ * while the grid has not loaded – the oval map above carries the loading
+ * and error states.
  */
 const ViewDistanceLine: React.FC = () => {
   const { place, pick } = useGeocodedPlace();
@@ -85,6 +88,9 @@ const ViewDistanceLine: React.FC = () => {
           }}
         />
       </div>
+      {/* The current-weather one-liner plus the Local conditions link,
+          sharing this section's place so the modal pick refetches it. */}
+      <CurrentWeatherLine place={place} />
       {/* Honest freshness: As of the Forecast Time the band covers, with the
           age of the grid issue (Observation Time) per ticket 05. 
           COMMENTED OUT: The freshness is duplicated, oval freshness already has the same info. <FreshnessLine

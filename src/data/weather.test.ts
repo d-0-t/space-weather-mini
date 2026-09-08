@@ -16,34 +16,39 @@ describe("Open-Meteo response mapping (ticket 03)", () => {
   it("maps the real Kiruna response into the typed current conditions", () => {
     const mapped = mapWeatherResponse(kirunaFixture);
     expect(mapped.current).toEqual({
-      observedAt: "2026-09-01T20:15",
-      temperatureC: 10.6,
-      humidityPercent: 97,
-      cloudCoverPercent: 100,
+      observedAt: "2026-09-09T01:00",
+      temperatureC: 2.6,
+      humidityPercent: 87,
+      cloudCoverPercent: 19,
       // The current block carries no low/mid/high split in the payload, so
       // the mapper borrows the split from the hourly entry of the same hour.
-      cloudLowPercent: 100,
-      cloudMidPercent: 22,
-      cloudHighPercent: 17,
-      weatherCode: 63,
-      windSpeedKmh: 16.9,
+      cloudLowPercent: 21,
+      cloudMidPercent: 0,
+      cloudHighPercent: 2,
+      weatherCode: 0,
+      windSpeedKmh: 9,
     });
   });
 
-  it("windows the hourly strip to the first 24 entries from 00:00 local", () => {
+  it("windows the hourly strip to 24 entries from the current place-local hour", () => {
     const mapped = mapWeatherResponse(kirunaFixture);
+    // The fixture was captured with `forecast_hours=24` at 01:00 local: the
+    // strip starts at the observation's hour and spans into the next day.
     expect(mapped.hourly).toHaveLength(24);
-    expect(mapped.hourly[0].time).toBe("2026-09-01T00:00");
-    expect(mapped.hourly[23].time).toBe("2026-09-01T23:00");
+    expect(mapped.hourly[0].time).toBe("2026-09-09T01:00");
+    expect(mapped.hourly[0].time.slice(0, 13)).toBe(
+      kirunaFixture.current.time.slice(0, 13),
+    );
+    expect(mapped.hourly[23].time).toBe("2026-09-10T00:00");
     expect(mapped.hourly[0]).toEqual<WeatherHour>({
-      time: "2026-09-01T00:00",
-      temperatureC: 10.6,
-      humidityPercent: 98,
-      cloudCoverPercent: 100,
-      cloudLowPercent: 5,
-      cloudMidPercent: 94,
-      cloudHighPercent: 100,
-      weatherCode: 3,
+      time: "2026-09-09T01:00",
+      temperatureC: 2.6,
+      humidityPercent: 87,
+      cloudCoverPercent: 19,
+      cloudLowPercent: 21,
+      cloudMidPercent: 0,
+      cloudHighPercent: 2,
+      weatherCode: 0,
     });
   });
 
@@ -51,14 +56,14 @@ describe("Open-Meteo response mapping (ticket 03)", () => {
     const mapped = mapWeatherResponse(kirunaFixture);
     expect(mapped.daily).toHaveLength(3);
     expect(mapped.daily[0]).toEqual({
-      date: "2026-09-01",
-      weatherCode: 65,
-      temperatureMaxC: 12.8,
-      temperatureMinC: 9.4,
-      sunrise: "2026-09-01T05:06",
-      sunset: "2026-09-01T20:11",
+      date: "2026-09-09",
+      weatherCode: 3,
+      temperatureMaxC: 12.3,
+      temperatureMinC: 2.1,
+      sunrise: "2026-09-09T05:35",
+      sunset: "2026-09-09T19:37",
     });
-    expect(mapped.daily[1].temperatureMaxC).toBe(11.5);
+    expect(mapped.daily[1].temperatureMaxC).toBe(11.4);
     expect(mapped.daily[2].temperatureMaxC).toBe(11.5);
   });
 
@@ -88,7 +93,7 @@ describe("Open-Meteo response mapping (ticket 03)", () => {
       unknown_block: { anything: true },
     };
     const mapped = mapWeatherResponse(withUnknown);
-    expect(mapped.current.temperatureC).toBe(10.6);
+    expect(mapped.current.temperatureC).toBe(2.6);
     expect(mapped.hourly).toHaveLength(24);
   });
 
@@ -166,6 +171,7 @@ describe("Open-Meteo weather fetch (ticket 03)", () => {
     );
     expect(url.searchParams.get("timezone")).toBe("auto");
     expect(url.searchParams.get("forecast_days")).toBe("3");
+    expect(url.searchParams.get("forecast_hours")).toBe("24");
   });
 
   it("returns the mapped weather with the fetch time stamped", async () => {
@@ -176,7 +182,7 @@ describe("Open-Meteo weather fetch (ticket 03)", () => {
     mockFetch.mockResolvedValue(jsonResponse(kirunaFixture));
     const data = await fetchWeather(67.8558, 20.2253, mockFetch);
     expect(data.fetchedAt).toBe("2026-09-01T18:00:00.000Z");
-    expect(data.current.temperatureC).toBe(10.6);
+    expect(data.current.temperatureC).toBe(2.6);
     expect(data.hourly).toHaveLength(24);
     expect(data.daily).toHaveLength(3);
   });

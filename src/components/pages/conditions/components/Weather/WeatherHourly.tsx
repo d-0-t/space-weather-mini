@@ -5,9 +5,9 @@ import { useId } from "react";
 import { useDisplayTimezone } from "../../../../DisplayTimezone/DisplayTimezoneContext";
 import type { WeatherData } from "../../../../../data/weather";
 import { wmoWeather } from "../../../../../data/wmo-codes";
-import { formatCelsius } from "../../utils/format";
+import { formatCelsius } from "../../../../weather/format";
 import { formatPlaceLocal } from "../../../../../products/display-time";
-import WeatherIcon from "./WeatherIcon";
+import WeatherIcon from "../../../../weather/WeatherIcon";
 
 /**
  * The 24 hour hourly strip: a horizontally scrollable row, one entry per

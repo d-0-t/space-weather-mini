@@ -3,8 +3,8 @@ import CloudIcon from "@mui/icons-material/Cloud";
 import WaterDropIcon from "@mui/icons-material/WaterDrop";
 import type { WeatherData } from "../../../../../data/weather";
 import { wmoWeather } from "../../../../../data/wmo-codes";
-import { formatCelsius } from "../../utils/format";
-import WeatherIcon from "./WeatherIcon";
+import { formatCelsius } from "../../../../weather/format";
+import WeatherIcon from "../../../../weather/WeatherIcon";
 
 /** Current conditions: temperature, humidity, total cloud with the low/mid/high split and the WMO code as icon plus text. */
 const WeatherCurrent: React.FC<{ data: WeatherData }> = ({ data }) => {

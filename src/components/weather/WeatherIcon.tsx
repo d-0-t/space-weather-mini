@@ -11,12 +11,13 @@ import UmbrellaIcon from "@mui/icons-material/Umbrella";
 import WaterDropIcon from "@mui/icons-material/WaterDrop";
 import WbSunnyIcon from "@mui/icons-material/WbSunny";
 import type { SvgIconComponent } from "@mui/icons-material";
-import { wmoWeather } from "../../../../../data/wmo-codes";
+import { wmoWeather } from "../../data/wmo-codes";
 
 /**
  * The WMO icon-name to glyph map for the weather blocks (ticket 03). The
  * lookup file owns the names; this map owns the rendering, so the data
- * stays pure text and the icons stay a page concern.
+ * stays pure text and the icons stay a rendering concern. Shared by the
+ * Local conditions weather blocks and the Aurora Now weather line.
  */
 const WEATHER_ICON_BY_NAME: Record<string, SvgIconComponent> = {
   clear: WbSunnyIcon,
