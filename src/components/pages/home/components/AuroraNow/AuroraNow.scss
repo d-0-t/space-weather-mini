@@ -25,8 +25,16 @@ $aurora-kp-colors: (
 .aurora-now {
   height: fit-content;
   position: relative;
-
   background-image:
+    linear-gradient(
+      0deg,
+      color-mix(in srgb, var(--color-gold) 15%, rgba(0, 0, 0, 0.938)) 0%,
+      color-mix(in srgb, var(--color-orange) 15%, rgba(0, 0, 0, 0.88)) 5%,
+      color-mix(in srgb, var(--color-deep-indigo) 33%, rgba(0, 0, 0, 0.782)) 20%,
+      color-mix(in srgb, var(--color-deep-indigo) 33%, rgba(0, 0, 0, 0.718)) 50%,
+      color-mix(in srgb, var(--color-deep-indigo) 33%, rgba(0, 0, 0, 0.62)) 60%,
+      transparent 70%
+    ),
     url("/assets/stars-transparent.png"),
     linear-gradient(
       0deg,
@@ -37,7 +45,6 @@ $aurora-kp-colors: (
     );
   background-repeat: repeat;
   background-size: 50%;
-  background-blend-mode: screen;
 
   h3,
   &__current__time {
