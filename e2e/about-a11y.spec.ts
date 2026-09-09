@@ -7,7 +7,7 @@ test("the about page renders and passes the axe audit", async ({ page }) => {
     page.getByRole("heading", { level: 1, name: "This site" }),
   ).toBeVisible();
   await expect(
-    page.getByRole("heading", { name: "A very short biography" }),
+    page.getByRole("heading", { name: "What this site does" }),
   ).toBeVisible();
 
   const results = await new AxeBuilder({ page }).analyze();

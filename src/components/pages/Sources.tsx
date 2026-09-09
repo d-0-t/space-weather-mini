@@ -17,7 +17,7 @@ const Sources: React.FC = () => {
           I used NOAA SWPC&apos;s space weather data, parsed from their public
           endpoints, plus live feeds from the Swedish Institute of Space Physics
           and the World Data Center for Geomagnetism in Kyoto. All data is
-          freely available from its source:
+          freely available.
         </p>
         <h3 className="aboutDataLinksTitle">Sources:</h3>
         <ul className="aboutDataLinks">
@@ -71,7 +71,14 @@ const Sources: React.FC = () => {
               © OpenStreetMap contributors{" "}
               <OpenInNew aria-hidden="true" fontSize="inherit" />
             </a>{" "}
-            – Geocoding via Nominatim
+            – Geocoding via{" "}
+            <a
+              href="https://nominatim.org/"
+              rel="noopener noreferrer"
+              target="_blank"
+            >
+              Nominatim <OpenInNew aria-hidden="true" fontSize="inherit" />
+            </a>
           </li>
           <li>
             <a
