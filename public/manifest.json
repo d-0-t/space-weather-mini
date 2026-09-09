@@ -1,6 +1,11 @@
 {
   "short_name": "Space Weather",
   "name": "Space Weather Mini",
+  "id": "./",
+  "scope": "./",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["weather", "utilities"],
   "icons": [
     {
       "src": "assets/icon-192.png",

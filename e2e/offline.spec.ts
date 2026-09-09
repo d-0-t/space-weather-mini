@@ -177,3 +177,45 @@ test("offline with no cached NOAA data shows a plain error, not stale data", asy
     page.getByText(/Showing saved data – couldn't reach NOAA/),
   ).toHaveCount(0);
 });
+
+test("offline reload keeps the Local conditions weather with its honest age", async ({
+  page,
+  context,
+}) => {
+  await page.goto("/conditions");
+  await expect(
+    page.getByRole("heading", { level: 1, name: "Local conditions" }),
+  ).toBeVisible({ timeout: dataTimeout });
+  await waitForServiceWorker(page);
+  // The online visit fetches the Open-Meteo weather and persists it.
+  await expect(
+    page.getByText(/Updated at .*, near /),
+  ).toBeVisible({ timeout: dataTimeout });
+
+  // Age the saved fetch so the offline reload's hydration is stale and the
+  // honest saved-data line really comes from a failed refetch.
+  await page.evaluate(() => {
+    const key = "sw:local-conditions:weather:v1";
+    const raw = localStorage.getItem(key);
+    if (!raw) throw new Error("weather not persisted");
+    const parsed = JSON.parse(raw) as {
+      weather: { fetchedAt: string };
+    };
+    parsed.weather.fetchedAt = new Date(
+      Date.now() - 3 * 60 * 60 * 1000,
+    ).toISOString();
+    localStorage.setItem(key, JSON.stringify(parsed));
+  });
+
+  await goOffline(page, context);
+  await page.reload();
+
+  // The saved weather is still shown, with its original fetch instant.
+  await expect(page.getByText(/Updated at .*, near /)).toBeVisible({
+    timeout: dataTimeout,
+  });
+  // The failed offline refetch is reported honestly next to the saved data.
+  await expect(
+    page.getByText("Couldn't refresh the weather – showing the last data."),
+  ).toBeVisible({ timeout: 20_000 });
+});

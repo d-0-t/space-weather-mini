@@ -239,16 +239,16 @@ describe("AuroraNow", () => {
     await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
     await screen.findByText(/Aurora likely/);
     // The weather loads on its own query; wait for the one-liner.
-    await screen.findByText(/Cloud 19%/);
+    await screen.findByText(/19% clouds/);
     const line = document.querySelector(".weather-line") as HTMLElement;
     expect(line).not.toBeNull();
-    // The sky-condition icon with its sr-only WMO text, the temperature
-    // and the total cloud coverage – nothing else (no humidity, no
-    // low/mid/high split).
+    // The sky-condition icon (aria-hidden; the WMO text is visible beside
+    // it), the temperature and the total cloud coverage – nothing else
+    // (no humidity, no low/mid/high split).
     expect(line.querySelector(".weather-icon[title=\"Clear sky\"]")).not.toBeNull();
-    expect(line.querySelector(".sr-only")?.textContent).toBe("Clear sky");
+    expect(line.textContent).toContain("clear sky,");
     expect(line.textContent).toContain("3°C");
-    expect(line.textContent).toContain("Cloud 19%");
+    expect(line.textContent).toContain("19% clouds.");
     expect(line.textContent).not.toMatch(/Humidity|low|mid|high/);
     // The link to the Local conditions page
     const link = within(line).getByRole("link", { name: "Local conditions →" });
@@ -284,7 +284,7 @@ describe("AuroraNow", () => {
         .filter((u) => u.includes("api.open-meteo.com"))
         .map((u) => new URL(u));
     // Oslo's coordinates first
-    expect(await screen.findByText(/Cloud 19%/)).toBeInTheDocument();
+    expect(await screen.findByText(/19% clouds/)).toBeInTheDocument();
     expect(
       weatherCalls().some((url) => url.searchParams.get("latitude") === "59.9139"),
     ).toBe(true);

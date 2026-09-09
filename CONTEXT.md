@@ -239,7 +239,7 @@ _Avoid_: refresh button (as a term), weather refresh (as a synonym for the times
 ### Offline and personal oval
 
 **Offline (PWA)**:
-The app shell and last fetched products cached by the Service Worker so the app opens without internet after one online visit. Data is shown as stale with `As of` plus `⚠ Showing saved data — couldn't reach NOAA` when the network fails; no data is invented. First visit must be online; iOS may evict the cache after 7 days without launch.
+The app shell and last fetched products cached by the Service Worker so the app opens without internet after one online visit. Data is shown as stale with `As of` plus `⚠ Showing saved data — couldn't reach NOAA` when the network fails; no data is invented. First visit must be online; iOS may evict the cache after 7 days without launch. The saved NOAA products and OVATION imagery keep for 7 days in the runtime caches, and the Local conditions weather is saved in localStorage (`sw:local-conditions:weather:v1`) with its original fetch instant, so an offline reload still shows it behind the weather card's saved-data line. An open tab that survives a deploy reloads once onto the new shell instead of crashing on a missing route chunk.
 _Avoid_: offline mode (as a toggle name), available offline (without As of qualifier)
 **Oval**:
 

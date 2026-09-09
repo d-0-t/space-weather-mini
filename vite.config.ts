@@ -21,13 +21,19 @@ export const PWA_OPTIONS = {
     globPatterns: ["**/*.{js,css,html,woff2,geojson}"],
     skipWaiting: true,
     clientsClaim: true,
+    // Every SPA navigation (deep links included) is answered with the
+    // precached shell so offline reloads of any route keep working.
+    navigateFallback: "index.html",
     runtimeCaching: [
       {
         urlPattern: /services\.swpc\.noaa\.gov\/(json|text|products)/,
         handler: "StaleWhileRevalidate",
         options: {
           cacheName: "swpc",
-          expiration: { maxEntries: 50, maxAgeSeconds: 3600 },
+          // Seven days, not one hour: Workbox ExpirationPlugin refuses to
+          // serve entries older than maxAgeSeconds, and the offline promise
+          // is that the last fetched products survive an offline stretch.
+          expiration: { maxEntries: 50, maxAgeSeconds: 604800 },
         },
       },
       {
@@ -35,7 +41,17 @@ export const PWA_OPTIONS = {
         handler: "CacheFirst",
         options: {
           cacheName: "ovation-jpg",
-          expiration: { maxEntries: 30, maxAgeSeconds: 3600 },
+          expiration: { maxEntries: 30, maxAgeSeconds: 604800 },
+        },
+      },
+      {
+        // Country flags (flagcdn) never change per size: CacheFirst keeps
+        // the place pill, daily forecast and webcam rows intact offline.
+        urlPattern: /flagcdn\.com/,
+        handler: "CacheFirst",
+        options: {
+          cacheName: "flags",
+          expiration: { maxEntries: 60, maxAgeSeconds: 604800 },
         },
       },
     ],

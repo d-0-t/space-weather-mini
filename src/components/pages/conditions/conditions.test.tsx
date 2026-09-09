@@ -9,6 +9,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import LocalConditions from "./conditions";
 import { PLACE_STORAGE_KEY } from "../../../data/place-storage";
+import type { WeatherData } from "../../../data/weather";
+import {
+  loadWeather,
+  saveWeather,
+} from "../../../data/weather-storage";
 import { DISPLAY_TIMEZONE_STORAGE_KEY } from "../../../products/display-timezone";
 import { DisplayTimezoneProvider } from "../../DisplayTimezone/DisplayTimezoneContext";
 import kirunaFixture from "../../../data/fixtures/nominatim-kiruna.json";
@@ -722,6 +727,132 @@ describe("Local conditions weather (ticket 03)", () => {
           (el?.textContent ?? "").includes("Updated at 14:00, near Oslo"),
       ),
     ).toBeInTheDocument();
+  });
+});
+
+describe("Local conditions weather offline (saved weather survives reload)", () => {
+  const mockFetch = vi.fn();
+
+  beforeEach(() => {
+    localStorage.clear();
+    mockFetch.mockReset();
+    vi.stubGlobal("fetch", mockFetch);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+    restoreGeolocation();
+  });
+
+  /** A mapped WeatherData as if Kiruna was fetched two months ago. */
+  const savedWeather = (): WeatherData => ({
+    utcOffsetSeconds: 3600,
+    timezone: "Europe/Stockholm",
+    fetchedAt: "2026-06-01T18:00:00.000Z",
+    current: {
+      observedAt: "2026-09-09T20:15",
+      temperatureC: 3,
+      humidityPercent: 78,
+      cloudCoverPercent: 12,
+      cloudLowPercent: 0,
+      cloudMidPercent: 10,
+      cloudHighPercent: 2,
+      weatherCode: 1,
+      windSpeedKmh: 11,
+    },
+    hourly: [
+      {
+        time: "2026-09-09T20:00",
+        temperatureC: 2.5,
+        humidityPercent: 80,
+        cloudCoverPercent: 9,
+        cloudLowPercent: 0,
+        cloudMidPercent: 8,
+        cloudHighPercent: 1,
+        weatherCode: 1,
+      },
+    ],
+    daily: [
+      {
+        date: "2026-09-09",
+        weatherCode: 1,
+        temperatureMaxC: 9.5,
+        temperatureMinC: 2.1,
+        sunrise: "2026-09-09T05:42",
+        sunset: "2026-09-09T19:10",
+      },
+    ],
+  });
+
+  it("shows the saved weather with its true fetch time when the refetch fails offline", async () => {
+    seedKiruna();
+    saveWeather(
+      localStorage,
+      67.8558,
+      20.2253,
+      savedWeather(),
+    );
+    mockFetch.mockRejectedValue(new TypeError("failed to fetch"));
+    renderPage();
+    // The hydrated data renders without ever flashing "Loading weather…".
+    expect(screen.queryByText("Loading weather…")).not.toBeInTheDocument();
+    expect(screen.getAllByText("3°C").length).toBeGreaterThan(0);
+    // The saved data keeps its original fetch instant, not the reload time.
+    expect(
+      await screen.findByText(
+        (_, el) =>
+          el?.classList.contains("weather-block__fetched") === true &&
+          (el?.textContent ?? "").includes(
+            "Updated at 20:00, near Kiruna, Norrbotten County",
+          ),
+      ),
+    ).toBeInTheDocument();
+    // Honest saved-data copy once the refetch fails – no invented freshness.
+    expect(
+      await screen.findByText(
+        "Couldn't refresh the weather – showing the last data.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText("Couldn't load the weather – check back later."),
+    ).not.toBeInTheDocument();
+  });
+
+  it("saves each successful fetch so the next offline reload can hydrate", async () => {
+    atNoon("2026-09-01T12:00:00Z");
+    seedKiruna();
+    mockFetch.mockResolvedValue(jsonResponse(openMeteoKirunaFixture));
+    renderPage();
+    expect(
+      await screen.findByText(
+        (_, el) =>
+          el?.classList.contains("weather-block__fetched") === true &&
+          (el?.textContent ?? "").includes(
+            "Updated at 14:00, near Kiruna, Norrbotten County",
+          ),
+      ),
+    ).toBeInTheDocument();
+    const saved = loadWeather(localStorage, 67.8558, 20.2253);
+    expect(saved?.fetchedAt).toBe("2026-09-01T12:00:00.000Z");
+    expect(saved?.current.cloudCoverPercent).toBe(19);
+  });
+
+  it("never hydrates another place's saved weather", async () => {
+    seedOslo();
+    saveWeather(localStorage, 67.8558, 20.2253, savedWeather());
+    mockFetch.mockRejectedValue(new TypeError("failed to fetch"));
+    renderPage();
+    expect(
+      await screen.findByText(
+        "Couldn't load the weather – check back later.",
+      ),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(
+        "Couldn't refresh the weather – showing the last data.",
+      ),
+    ).not.toBeInTheDocument();
   });
 });
 

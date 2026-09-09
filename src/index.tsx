@@ -7,7 +7,12 @@ import "./index.scss";
 import App from "./components/App";
 import Nav from "./components/navigation/Nav";
 import { DisplayTimezoneProvider } from "./components/DisplayTimezone/DisplayTimezoneContext";
+import { installPreloadErrorReload } from "./preload-error";
 import reportWebVitals from "./reportWebVitals";
+
+// A deploy behind an open tab can break lazy route imports; reload once so
+// the tab lands on the new shell instead of a white screen.
+installPreloadErrorReload();
 
 const container = document.getElementById("root");
 const root = createRoot(container!);

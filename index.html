@@ -7,6 +7,13 @@
     <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
+    <!-- Home-screen installs: standalone window, dark status bar, app title.
+         The modern (mobile-web-app-capable) and legacy iOS (apple-*) keys
+         cover the same behaviour across Safari versions. -->
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Space Weather" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
     <!-- Declares the site as dark-only so Brave/Chrome auto dark mode
          does not re-style the already-dark UI -->
     <meta name="color-scheme" content="dark" />
