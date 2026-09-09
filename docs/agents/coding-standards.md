@@ -9,7 +9,7 @@ The conventions every change to this repo must follow. Enforced by review, not t
 - Parsers are pure functions: `string → Product`. No DOM access, no `dangerouslySetInnerHTML` outside the final render boundary.
 - Narrative prose is reflowed through `normalizeProse` (`src/products/prose.ts`) before pages render it with `white-space: pre-line`: NOAA's mid-sentence column wraps are joined into spaces, a newline survives only after sentence-ending punctuation, and blank lines separate paragraphs.
 - Types come from the domain model — the vocabulary of `CONTEXT.md` is the vocabulary of the types. No synonyms in code (see `_Avoid_` lists).
-- All absolute-time rendering goes through the display-time module (`src/products/display-time.ts`): short strings, chart tick and tooltip labels, 3-hour slot ranges, day labels and day bucketing, plus the zone-free relative ages. Components never format a timestamp themselves (the `live-helpers` re-export shim remains only until ticket 05 sweeps the last callers onto the module).
+- All absolute-time rendering goes through the display-time module (`src/products/display-time.ts`): short strings, chart tick and tooltip labels, 3-hour slot ranges, day labels and day bucketing, plus the zone-free relative ages. Components never format a timestamp themselves.
 
 ## Styling
 

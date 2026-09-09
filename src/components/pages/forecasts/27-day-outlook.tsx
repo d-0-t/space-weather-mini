@@ -32,6 +32,7 @@ import {
 import GlossaryTerm from "../../explainers/GlossaryTerm";
 import { SOURCES } from "../../../components/sources";
 import { SourceAttribution } from "../../../components/sources";
+import { MONTHS_SHORT } from "../../../products/display-time";
 
 const fetch27DayOutlook = async () => {
   const response = await fetch(TWENTY_SEVEN_DAY_OUTLOOK_URL);
@@ -40,21 +41,6 @@ const fetch27DayOutlook = async () => {
   }
   return parse27DayOutlook(await response.text());
 };
-
-const MONTHS_SHORT = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
 
 /** "2026 Aug 17" → UTC midnight time tag, so the daily points line up with
  *  the midnight emoji markers. The phase-change marker rule (enrichWithMoon)

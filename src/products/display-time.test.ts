@@ -18,8 +18,50 @@ import {
   formatSlot,
   formatSlotTick,
   formatTooltipTimestamp,
+  MONTHS_SHORT,
+  parseTimeTag,
   utcSuffix,
 } from "./display-time";
+
+describe("parseTimeTag (ticket 05)", () => {
+  it("parses every SWPC wire shape as UTC to the same epoch", () => {
+    expect(parseTimeTag("2026-08-25T18:00:00Z")).toBe(
+      new Date("2026-08-25T18:00:00Z").getTime(),
+    );
+    expect(parseTimeTag("2026-08-25T18:00:00")).toBe(
+      new Date("2026-08-25T18:00:00Z").getTime(),
+    );
+    expect(parseTimeTag("2026-08-28 15:02:40.837")).toBe(
+      new Date("2026-08-28T15:02:40.837Z").getTime(),
+    );
+    expect(parseTimeTag("2026-08-26_21:00")).toBe(
+      new Date("2026-08-26T21:00:00Z").getTime(),
+    );
+  });
+
+  it("returns NaN for unparseable times", () => {
+    expect(Number.isNaN(parseTimeTag("not a time"))).toBe(true);
+  });
+});
+
+describe("MONTHS_SHORT (ticket 05)", () => {
+  it("is the single shared short-month table in NOAA order", () => {
+    expect(MONTHS_SHORT).toEqual([
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ]);
+  });
+});
 
 describe("utcSuffix (ticket 03)", () => {
   it("carries the zone-noise rule in one place", () => {

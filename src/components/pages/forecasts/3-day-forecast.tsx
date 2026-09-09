@@ -32,6 +32,7 @@ import {
 import GlossaryTerm from "../../explainers/GlossaryTerm";
 import { SOURCES } from "../../../components/sources";
 import { SourceAttribution } from "../../../components/sources";
+import { MONTHS_SHORT } from "../../../products/display-time";
 
 const fetchThreeDayForecast = async () => {
   const response = await fetch(THREE_DAY_FORECAST_URL);
@@ -40,21 +41,6 @@ const fetchThreeDayForecast = async () => {
   }
   return parseThreeDayForecast(await response.text());
 };
-
-const MONTHS_SHORT = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
 
 /** "Aug 23" + "00-03UT" → UTC ISO time tag (year = today's UTC year). */
 const toTimeTag = (day: string, timeSlot: string): string => {

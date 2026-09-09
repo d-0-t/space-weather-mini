@@ -4,8 +4,6 @@ import HelpPopover from "../../../../HelpPopover/HelpPopover";
 import PlaceFinder from "../../../../PlaceFinder/PlaceFinder";
 import { useGeocodedPlace } from "../../../../PlaceFinder/useGeocodedPlace";
 import { shortPlace } from "../../../../../data/short-display-name";
-import OpenInNew from "@mui/icons-material/OpenInNew";
-import { formatAge } from "../../../../../products/live-helpers";
 import {
   VIEW_DISTANCE_BANDS,
   distanceToNearestAurora,
@@ -13,7 +11,6 @@ import {
 } from "../../../../../products/view-distance";
 import { useOvationQuery } from "./useOvationQuery";
 import CurrentWeatherLine from "./CurrentWeatherLine";
-import { FreshnessLine } from "../offline/offline";
 
 import "./ViewDistanceLine.scss";
 

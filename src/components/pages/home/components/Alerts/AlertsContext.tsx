@@ -20,7 +20,7 @@ import {
   parseAlerts,
   saveSeenAlertKeys,
 } from "../../../../../products/alerts";
-import { toEpoch } from "../../../../../products/live-helpers";
+import { parseTimeTag } from "../../../../../products/display-time";
 import {
   NOAA_SCALES_URL,
   gScaleOf,
@@ -195,7 +195,7 @@ export const AlertsProvider: React.FC<{ children: ReactNode }> = ({
         kind: "forecast",
       });
     }
-    list.sort((a, b) => toEpoch(b.time) - toEpoch(a.time));
+    list.sort((a, b) => parseTimeTag(b.time) - parseTimeTag(a.time));
     return list[0] ?? null;
   }, [alertsQuery.data, scalesQuery.data, forecastQuery.data, threshold]);
 

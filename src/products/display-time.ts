@@ -25,7 +25,9 @@ export function parseTimeTag(timeTag: string): number {
   return new Date(iso).getTime();
 }
 
-const MONTHS_SHORT = [
+/** The shared short-month table in NOAA order – the single source for
+ * month-name rendering and month-name parsing (ticket 05 contract). */
+export const MONTHS_SHORT = [
   "Jan",
   "Feb",
   "Mar",

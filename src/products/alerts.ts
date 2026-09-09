@@ -1,6 +1,6 @@
 /** Alerts, watches and warnings feed – `products/alerts.json` (ticket 02). */
 
-import { toEpoch } from "./live-helpers";
+import { parseTimeTag } from "./display-time";
 import { gScaleForKp } from "./thresholds";
 import type { PlanetaryKForecastPoint } from "./noaa-planetary-k-index";
 
@@ -181,7 +181,7 @@ export function newestAlertTime(alerts: SwpcAlert[]): string | null {
   let newest: string | null = null;
   let newestEpoch = -Infinity;
   for (const alert of alerts) {
-    const epoch = toEpoch(alert.issue_datetime);
+    const epoch = parseTimeTag(alert.issue_datetime);
     if (epoch > newestEpoch) {
       newestEpoch = epoch;
       newest = alert.issue_datetime;
@@ -202,7 +202,7 @@ export function forecastBreachInNext24h(
   const windowEnd = now + 24 * 60 * 60 * 1000;
   let breach: { time_tag: string; kp: number } | null = null;
   for (const point of points) {
-    const time = toEpoch(point.time_tag);
+    const time = parseTimeTag(point.time_tag);
     if (Number.isNaN(time) || time <= now || time > windowEnd) continue;
     if (point.kp < kpThreshold) continue;
     if (breach === null || point.kp > breach.kp) {
