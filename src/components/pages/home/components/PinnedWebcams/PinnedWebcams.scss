@@ -32,7 +32,7 @@
 
   &__title {
     margin: 0;
-    font-size: 0.9rem;
+    // Plain h3: sized by the global typography element rules (ADR-0009)
   }
 
   &__flag {
@@ -59,7 +59,7 @@
 
   &__attribution {
     margin: 0;
-    font-size: 0.75rem;
+    font-size: var(--font-size-caption);
   }
 
   &__twitch {

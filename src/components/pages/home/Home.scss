@@ -1,8 +1,13 @@
-.home {
-  padding: 0 2rem;
+@use "../../../styles/breakpoints" as *;
 
-  @media (max-width: 810px) {
-    padding: 0 0.5rem;
+.home {
+  // Mobile default: snug page padding; wide screens step out to roomy
+  // gutters at the md Breakpoint (the legacy 810/811 pair folded in,
+  // ADR-0009)
+  padding: 0 0.5rem;
+
+  @include respond-to(md) {
+    padding: 0 2rem;
   }
 
   article {
@@ -57,7 +62,7 @@
   // Compact view: charts in the Solar Wind and Magnetosphere panels sit two
   // per row, so the right column needs more room than the left one.
   &--compact &__flow {
-    @media (min-width: 811px) {
+    @include respond-to(md) {
       grid-template-columns: 1fr 2fr;
     }
   }
@@ -73,13 +78,14 @@
   }
 
   // Two columns: Aurora Now + Forecast on the left, Solar Wind + Magnetosphere
-  // on the right. On narrow viewports the grid collapses to one column, so the
-  // right-column panels wrap around and come after the left-column ones.
+  // on the right. On narrow viewports (the mobile default) the grid collapses
+  // to one column, so the right-column panels wrap around and come after the
+  // left-column ones.
   &__flow {
     max-width: 1200px;
     margin: 0 auto;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
     align-items: start;
     gap: 1rem;
 
@@ -90,8 +96,8 @@
       min-width: 0;
     }
 
-    @media (max-width: 810px) {
-      grid-template-columns: 1fr;
+    @include respond-to(md) {
+      grid-template-columns: 1fr 1fr;
     }
   }
 }

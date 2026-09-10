@@ -1,3 +1,9 @@
+// The type-token partials are the codebase's first @use-based files
+// (ADR-0009); they must load first so the tokens and the global heading
+// rules precede every component rule.
+@use "styles/typography";
+@use "styles/breakpoints" as *;
+
 :root {
   // Dark-only design: tells the browser (and Brave/Chrome auto dark mode)
   // not to re-style the page
@@ -143,9 +149,9 @@ code {
     min-width: 44px;
     border: 2px solid var(--color-border-muted-transparent);
     border-radius: 1rem;
-    font-size: 0.9rem;
+    font-size: var(--font-size-small);
     font-weight: 600;
-    line-height: 1;
+    line-height: var(--line-height-small);
     padding: 0 0.7rem;
     gap: 0.4rem;
 
@@ -193,33 +199,55 @@ code {
   }
 }
 
-/* Below ~1000px buttons with icon+label collapse to icons: the label becomes
-   visually-hidden (still announced), the title attribute names the control
-   for mouse users, and icon buttons go square again. Only <button> elements
-   collapse – checkbox <label> pills (auto-refresh, Compact view) keep their
-   text at every width. */
-@media (max-width: 999px) {
+/* Buttons with icon+label collapse to icons below the lg Breakpoint (the
+   legacy ~1000px width folded into the canonical 1100px, ADR-0009): the
+   label becomes visually-hidden (still announced), the title attribute
+   names the control for mouse users, and secondary buttons go square.
+   Only <button> elements collapse – checkbox <label> pills (auto-refresh,
+   Compact view) keep their text at every width. The responsive state is
+   the default; the wide-screen state is restored at lg. */
+button > .btn__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+button.btn--secondary:has(> .btn__label) {
+  padding: 0;
+}
+
+/* The Time button opts out of the icon collapse: its label carries the
+   current setting ("Time (local)" / "Time (UTC)") and stays visible at
+   every width – it is also the button's accessible name. */
+button.header__time > .btn__label,
+button.header__astro > .btn__label {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: nowrap;
+  border: 0;
+}
+
+button.header__time.btn--secondary:has(> .btn__label),
+button.header__astro.btn--secondary:has(> .btn__label) {
+  padding: 0 0.7rem;
+}
+
+/* Wide screens: labels come back as real text and secondary buttons
+   regain their pill padding. Exactly the inverse of the collapsed state
+   above, so the two states agree about every property they both touch. */
+@include respond-to(lg) {
   button > .btn__label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-    border: 0;
-  }
-
-  button.btn--secondary:has(> .btn__label) {
-    padding: 0;
-  }
-
-  /* The Time button opts out of the icon collapse: its label carries the
-     current setting ("Time (local)" / "Time (UTC)") and stays visible at
-     every width – it is also the button's accessible name. */
-  button.header__time > .btn__label,
-  button.header__astro > .btn__label {
     position: static;
     width: auto;
     height: auto;
@@ -227,12 +255,11 @@ code {
     margin: 0;
     overflow: visible;
     clip: auto;
-    white-space: nowrap;
+    white-space: normal;
     border: 0;
   }
 
-  button.header__time.btn--secondary:has(> .btn__label),
-  button.header__astro.btn--secondary:has(> .btn__label) {
+  button.btn--secondary:has(> .btn__label) {
     padding: 0 0.7rem;
   }
 }
@@ -365,7 +392,7 @@ input {
   padding: 0.6rem 0.8rem;
   border-radius: 0.5rem;
   border: 1px solid var(--color-border-muted);
-  font-size: 1rem;
+  font-size: var(--font-size-body);
 
   &::placeholder {
     color: var(--color-gray);

@@ -7,7 +7,7 @@
 // NOAA UTC-day date cells from being misread as the device's days.
 .utc-note {
   margin: 0.25rem 0;
-  font-size: 0.9rem;
+  font-size: var(--font-size-small);
   color: color-mix(in srgb, var(--color-white) 75%, transparent);
   text-shadow: var(--text-stroke-black);
 }
@@ -19,7 +19,7 @@ table {
   caption {
     margin-bottom: 0.5rem;
     font-weight: 500;
-    font-size: 1.2rem;
+    font-size: var(--font-size-lead);
   }
 }
 th,
@@ -105,7 +105,7 @@ td[a-value] {
   width: 15px;
 }
 td[cellType="tableSubHeader"] {
-  font-size: 0.8rem;
+  font-size: var(--font-size-caption);
   width: 25px;
   background-color: color-mix(in srgb, var(--color-deep-indigo) 35%, black);
 }

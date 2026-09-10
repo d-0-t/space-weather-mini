@@ -1,10 +1,10 @@
 .live-banner {
   &__pills {
-    line-height: 1.6;
+    line-height: var(--line-height-body);
   }
 
   &__freshness {
-    font-size: 0.9rem;
+    font-size: var(--font-size-small);
     color: color-mix(in srgb, var(--color-white) 75%, transparent);
   }
 

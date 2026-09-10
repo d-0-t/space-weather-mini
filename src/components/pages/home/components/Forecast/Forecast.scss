@@ -8,6 +8,9 @@
   }
 
   &__day {
+    // Tuned data-row chrome: the mini-table's two-line day cell keeps its
+    // compact leading – a documented literal exception to the type tokens
+    // (coding standards, Styling)
     line-height: 1.15;
     text-align: center;
     white-space: nowrap;

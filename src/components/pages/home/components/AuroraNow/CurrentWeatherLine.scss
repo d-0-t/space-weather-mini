@@ -10,8 +10,8 @@
   justify-content: space-between;
   gap: 0.25rem 0.75rem;
   margin: 0.25rem 0 0;
-  font-size: 0.85rem;
-  line-height: 1.25rem;
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
 
   &__conditions {
     display: inline-flex;

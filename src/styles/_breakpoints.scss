@@ -1,0 +1,18 @@
+// Canonical Breakpoints (ADR-0009): the only viewport widths the type scale
+// and layout step at. The map and the respond-to mixin are compile-time SCSS
+// (the one sanctioned use of SCSS variables); the mixin emits min-width
+// queries only, so the codebase stays mobile-first by construction – a
+// raw-pixel max-width query cannot be written through it.
+@use "sass:map";
+
+$breakpoints: (
+  sm: 480px,
+  md: 810px,
+  lg: 1100px,
+);
+
+@mixin respond-to($name) {
+  @media (min-width: map.get($breakpoints, $name)) {
+    @content;
+  }
+}

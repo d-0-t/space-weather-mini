@@ -63,13 +63,13 @@
 
   &__item__meta {
     margin: 0.25rem 0 0;
-    font-size: 0.9rem;
+    font-size: var(--font-size-small);
     color: color-mix(in srgb, var(--color-white) 75%, transparent);
   }
 
   &__footnote {
     margin: 0.5rem 0;
-    font-size: 0.9rem;
+    font-size: var(--font-size-small);
     color: color-mix(in srgb, var(--color-white) 75%, transparent);
     text-shadow: var(--text-stroke-black);
   }

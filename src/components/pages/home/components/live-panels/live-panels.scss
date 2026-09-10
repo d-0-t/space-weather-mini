@@ -1,13 +1,17 @@
+@use "../../../../../styles/breakpoints" as *;
+
 .live-panel {
   &__grid {
     display: flex;
     flex-wrap: wrap;
-    gap: 1rem;
 
-    // Narrow screens: snugger cards so the Solar Wind and Magnetosphere
-    // panels fit the viewport (ADR-0003 discipline, Home.scss 810px split)
-    @media (max-width: 810px) {
-      gap: 0.4rem;
+    // Snugger cards on the mobile default so the Solar Wind and
+    // Magnetosphere panels fit the viewport (ADR-0003 discipline, the
+    // Home grid's md split); wide screens step back to a roomy gap.
+    gap: 0.4rem;
+
+    @include respond-to(md) {
+      gap: 1rem;
     }
   }
 
@@ -41,9 +45,10 @@
     // being pushed outside the card (and the page wide)
     flex-wrap: wrap;
 
+    // The card title is a plain h3: the global typography element rules
+    // size it (ADR-0009) – no per-component heading size here.
     h3 {
       margin: 0;
-      font-size: 0.95rem;
       color: var(--color-accent-strong);
     }
   }
@@ -75,6 +80,8 @@
         border-radius: 0;
         background: transparent;
         color: inherit;
+        // Frozen icon-glyph size: the emoji moon badge is sized like a
+        // glyph, not like text (ADR-0009 exception)
         font-size: 2.7rem;
         cursor: help;
         user-select: none;
@@ -105,7 +112,7 @@
       background: var(--gradient-card);
       border: 1px solid var(--color-border-muted);
       border-radius: 6px;
-      font-size: 0.85rem;
+      font-size: var(--font-size-small);
       z-index: 30;
       box-shadow: 0 4px 12px var(--color-black);
 
@@ -133,6 +140,8 @@
 
   &__value {
     margin: 0;
+    // Frozen data readout (ADR-0009): the live-panel value keeps its tuned
+    // literal size, outside the type roles.
     font-size: 1.5rem;
     font-weight: 700;
     line-height: 1.1;
@@ -153,6 +162,7 @@
     }
 
     &__num {
+      // Frozen data readout family (ADR-0009), like __value
       font-size: 1.5rem;
       font-weight: 700;
       line-height: 1.1;
@@ -160,13 +170,13 @@
 
     &__unit,
     &__dir {
-      font-size: 0.85rem;
+      font-size: var(--font-size-small);
       font-weight: 400;
     }
   }
 
   &__note {
-    font-size: 0.85rem;
+    font-size: var(--font-size-small);
     font-weight: 400;
   }
 
@@ -176,12 +186,12 @@
 
   &__fresh {
     margin: 0;
-    font-size: 0.8rem;
+    font-size: var(--font-size-caption);
   }
 
   &__warning {
     margin: 0;
-    font-size: 0.85rem;
+    font-size: var(--font-size-small);
   }
 
   &__panel {

@@ -418,8 +418,9 @@
     &__icon {
       color: var(--color-gold);
       rotate: 30deg;
-      // large pin – overrides MUI's inherited 1em
-      font-size: 3rem !important;
+      // large pin – overrides MUI's inherited 1em; frozen icon-glyph size
+      // (ADR-0009 exception), the stray !important removed in the migration
+      font-size: 3rem;
       width: 1.5rem;
       height: 1.5rem;
     }

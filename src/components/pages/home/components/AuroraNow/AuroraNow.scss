@@ -115,6 +115,8 @@ $aurora-kp-colors: (
       align-items: center;
       padding: 1rem 1rem 4rem 1rem;
 
+      // Frozen data readout (ADR-0009): the current-Kp figure keeps its
+      // tuned literal size, outside the type roles.
       font-size: 3rem;
       line-height: 2.5rem;
 
@@ -124,7 +126,7 @@ $aurora-kp-colors: (
     }
 
     &__time {
-      font-size: 0.85rem;
+      font-size: var(--font-size-small);
     }
   }
 }

@@ -39,7 +39,7 @@ article {
   padding: 1rem;
   padding-top: 0px;
   margin-bottom: 16px;
-  line-height: 1.5rem;
+  line-height: var(--line-height-body);
 
   &:last-of-type {
     margin-bottom: 0;
@@ -56,7 +56,7 @@ article {
 }
 
 .pageIntroduction {
-  font-size: 1.2rem;
+  font-size: var(--font-size-lead);
 }
 .highIntro {
   font-weight: bold;
