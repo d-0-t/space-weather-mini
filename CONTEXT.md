@@ -160,6 +160,14 @@ _Avoid_: panel, container, box
 A green highlight used for links, headings, glossary terms, or focus outlines.
 _Avoid_: highlight, brand color, lime
 
+**Type token**:
+A named semantic role for text sizing (caption, small, body, lead, h1–h4) declared as a paired font-size and line-height CSS custom property and stepped at the Breakpoints; headings h1–h4 are sized once by global element rules from these tokens.
+_Avoid_: font-size value (as a raw literal), heading class, clamp (as the sizing mechanism)
+
+**Breakpoint**:
+A canonical viewport width at which the type scale and layout step: sm 480px, md 810px, lg 1100px, applied mobile-first (min-width) only through the `respond-to` mixin.
+_Avoid_: media query (as the concept's name), tablet/desktop names, legacy widths (419px, 900px, ~1000px)
+
 ### Webcams
 
 **Webcam**:
