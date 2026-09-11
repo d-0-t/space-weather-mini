@@ -431,7 +431,7 @@ details[open] > .dropdown-content {
     z-index: 10;
 
     li {
-      // The wide bar's submenu rows: uniform, full-width, block flow —
+      // The wide bar's submenu rows: uniform, full-width, block flow,
       // undoing the panel's fit-content right-aligned staircase.
       display: block;
       width: auto;
