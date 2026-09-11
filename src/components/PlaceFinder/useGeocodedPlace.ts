@@ -9,7 +9,7 @@ import type { GeocodeMatch } from "../../data/geocoding";
 
 /**
  * The single stored geocoded place shared by Home and Local conditions:
- * loads the last picked place (defaulting to Östersund), persists the
+ * loads the last picked place (defaulting to Luleå), persists the
  * default on first open, and writes every confirmed pick through to
  * localStorage under the one versioned key, so a town picked on either
  * page is the town on the other.

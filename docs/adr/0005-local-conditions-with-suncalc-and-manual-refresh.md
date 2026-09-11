@@ -13,7 +13,7 @@ We add a new route `/conditions` for Local conditions: a place-based view that s
 
 **Consequences**:
 
-- Nominatim is queried only on Enter with up to five matches shown, 1 per second cap respected, attribution required, no per-keystroke calls. Browser geolocation is optional and overrides the text pick. Last place persists in `localStorage["sw:local-conditions:place:v1"]`; when empty the app defaults to Kiruna, Sweden as the geocoded place.
+- Nominatim is queried only on Enter with up to five matches shown, 1 per second cap respected, attribution required, no per-keystroke calls. Browser geolocation is optional and overrides the text pick. Last place persists in `localStorage["sw:local-conditions:place:v1"]`; when empty the app defaults to Luleå, Sweden as the geocoded place (amended 2026-09-12 per human decision; Kiruna at acceptance, Östersund 2026-09-01–2026-09-12 — see the ticket 01 comments for why each moved).
 - `suncalc.getTimes` drives sunrise, sunset, civil, nautical and astronomical twilight, plus dark window. Polar day and polar night render short copy like "Sun does not set today" instead of blanks.
 - Open-Meteo renders current plus a 24h horizontal scrolling hourly strip and 3-day daily, `timezone=auto`, manual refresh button always enabled with a timestamp.
 - No numeric light pollution value is stored; the page links out to lightpollutionmap.info and weather-radar-live.com at the current lat and lon.

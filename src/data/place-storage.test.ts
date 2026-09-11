@@ -23,8 +23,9 @@ describe("Geocoded place storage (ticket 01)", () => {
     localStorage.clear();
   });
 
-  it("defaults to Östersund when nothing is stored", () => {
+  it("defaults to Luleå when nothing is stored", () => {
     expect(loadGeocodedPlace(localStorage)).toEqual(DEFAULT_PLACE);
+    expect(DEFAULT_PLACE).toEqual(LULEA_PLACE);
   });
 
   it("ships the preset places with plausible coordinates", () => {

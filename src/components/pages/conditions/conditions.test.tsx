@@ -102,6 +102,22 @@ const seedOslo = (): void => {
   );
 };
 
+const seedOstersund = (): void => {
+  localStorage.setItem(
+    PLACE_STORAGE_KEY,
+    JSON.stringify({
+      v: 1,
+      place: {
+        displayName: "Östersund, Jämtland County, Sweden",
+        shortName: "Östersund, Jämtland County",
+        latitude: 63.1792,
+        longitude: 14.6357,
+        fetchedAt: "2026-09-01T10:00:00.000Z",
+      },
+    }),
+  );
+};
+
 const seedKiruna = (): void => {
   localStorage.setItem(
     PLACE_STORAGE_KEY,
@@ -165,27 +181,27 @@ describe("Local conditions page (ticket 01)", () => {
     vi.unstubAllGlobals();
   });
 
-  it("renders the page heading and the default Östersund place button", () => {
+  it("renders the page heading and the default Luleå place button", () => {
     atNoon("2026-09-01T12:00:00Z");
     renderPage();
     expect(
       screen.getByRole("heading", { level: 1, name: "Local conditions" }),
     ).toBeInTheDocument();
     const button = placeTrigger();
-    expect(button).toHaveTextContent("Östersund, Jämtland County");
+    expect(button).toHaveTextContent("Luleå, Norrbotten County");
     expect(button.getAttribute("title")).toBe(
-      "Östersund, Jämtland County, Sweden",
+      "Luleå, Norrbotten County, Sweden",
     );
     expect(button.querySelector('img[title="Sweden"]')).toBeInTheDocument();
   });
 
-  it("persists the Östersund default as the geocoded place on first open", () => {
+  it("persists the Luleå default as the geocoded place on first open", () => {
     atNoon("2026-09-01T12:00:00Z");
     renderPage();
     const stored = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
     expect(stored.v).toBe(1);
-    expect(stored.place.displayName).toBe("Östersund, Jämtland County, Sweden");
-    expect(stored.place.shortName).toBe("Östersund, Jämtland County");
+    expect(stored.place.displayName).toBe("Luleå, Norrbotten County, Sweden");
+    expect(stored.place.shortName).toBe("Luleå, Norrbotten County");
     expect(stored.place.fetchedAt).toMatch(/^\d{4}-\d{2}-\d{2}T/);
   });
 
@@ -255,15 +271,17 @@ describe("Local conditions page (ticket 01)", () => {
     expect(button.getAttribute("title")).toBe("Oslo, Norway");
     expect(button.querySelector('img[title="Norway"]')).toBeInTheDocument();
     expect(button.textContent).not.toContain(
-      "Östersund, Jämtland County, Sweden",
+      "Luleå, Norrbotten County, Sweden",
     );
   });
 
   it("opens with the Night band at 00:00 and never wraps it past midnight at Östersund in early September", () => {
-    // The sun dips below −18° only between 00:05 and 01:44 local: the Night
-    // band belongs at the start of the day, and the day ends in
-    // astronomical twilight – a past-midnight Night band would be a bug.
+    // Seeded Östersund (not the Luleå default): the sun dips below −18°
+    // only between 00:05 and 01:44 local, so the Night band belongs at the
+    // start of the day, and the day ends in astronomical twilight –
+    // a past-midnight Night band would be a bug.
     atNoon("2026-09-01T20:00:00Z");
+    seedOstersund();
     renderPage();
     expect(bandNames()).toEqual([
       "Night",
@@ -357,13 +375,13 @@ describe("Local conditions search (shared modal, ticket 02)", () => {
     // No selection yet - still default
     const before = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
     expect(before.place.displayName).toBe(
-      "Östersund, Jämtland County, Sweden",
+      "Luleå, Norrbotten County, Sweden",
     );
     await user.keyboard("{Enter}");
     // Enter only stages: still the default, modal still open
     const staged = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
     expect(staged.place.displayName).toBe(
-      "Östersund, Jämtland County, Sweden",
+      "Luleå, Norrbotten County, Sweden",
     );
     expect(
       (document.querySelector("dialog.place-finder__modal") as HTMLDialogElement)
@@ -395,7 +413,7 @@ describe("Local conditions search (shared modal, ticket 02)", () => {
     // Clicking only stages: the store still holds the default
     const pending = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
     expect(pending.place.displayName).toBe(
-      "Östersund, Jämtland County, Sweden",
+      "Luleå, Norrbotten County, Sweden",
     );
     await user.click(screen.getByRole("button", { name: "Apply and close" }));
     const stored = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
@@ -500,14 +518,14 @@ describe("Local conditions search (shared modal, ticket 02)", () => {
     // The fix is proposed, not stored: the place is still the default
     const proposed = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
     expect(proposed.place.displayName).toBe(
-      "Östersund, Jämtland County, Sweden",
+      "Luleå, Norrbotten County, Sweden",
     );
     expect(screen.getByText("±12m")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Use this location" }));
     // Staging the fix stores nothing yet
     const staged = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
     expect(staged.place.displayName).toBe(
-      "Östersund, Jämtland County, Sweden",
+      "Luleå, Norrbotten County, Sweden",
     );
     await user.click(screen.getByRole("button", { name: "Apply and close" }));
     const stored = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
@@ -959,7 +977,7 @@ describe("Local conditions full composition (ticket 04)", () => {
 
   it("updates both daylight and external links when the geocoded place is picked", async () => {
     atNoon("2026-06-21T12:00:00Z");
-    // start from the default (Östersund) then pick Kiruna
+    // start from the default (Luleå) then pick Kiruna
     mockFetch.mockResolvedValue(jsonResponse(kirunaFixture));
     const user = userEvent.setup();
     renderPage();
@@ -1088,6 +1106,7 @@ describe("Local conditions under the Display timezone (ticket 02)", () => {
 
   it("renders the luminosity timeline's band times in UTC when the Display timezone is UTC", () => {
     atNoon("2026-09-01T20:00:00Z");
+    seedOstersund();
     localStorage.setItem(
       DISPLAY_TIMEZONE_STORAGE_KEY,
       JSON.stringify({ timezone: "utc", v: 1 }),

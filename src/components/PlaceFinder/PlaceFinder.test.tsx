@@ -55,7 +55,7 @@ const openModal = async (user: ReturnType<typeof userEvent.setup>) => {
 /** The trigger; browsers name it by the shortName text, jsdom by the title. */
 const trigger = (): HTMLButtonElement =>
   screen.getByRole("button", {
-    name: /Östersund, Jämtland County/,
+    name: /Luleå, Norrbotten County/,
   }) as HTMLButtonElement;
 
 describe("PlaceFinder modal (shared place, ticket 02 offline-personal-oval)", () => {
@@ -77,11 +77,11 @@ describe("PlaceFinder modal (shared place, ticket 02 offline-personal-oval)", ()
     const button = trigger();
     expect(button).toHaveClass("place-finder__trigger");
     expect(button.querySelector(".btn__label")?.textContent).toBe(
-      "Östersund, Jämtland County",
+      "Luleå, Norrbotten County",
     );
     // Mouse users get the full display name as the tooltip
     expect(button.getAttribute("title")).toBe(
-      "Östersund, Jämtland County, Sweden",
+      "Luleå, Norrbotten County, Sweden",
     );
     expect(modal().open).toBe(false);
   });

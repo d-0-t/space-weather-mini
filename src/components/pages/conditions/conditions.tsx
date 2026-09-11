@@ -9,7 +9,7 @@ import WeatherBlock from "./components/Weather/WeatherBlock";
 /**
  * Local conditions – daylight for the stored geocoded place, derived on
  * device with suncalc (ADR 0005). No network call happens for solar times;
- * the place is the one shared geocoded place (default Östersund, Sweden)
+ * the place is the one shared geocoded place (default Luleå, Sweden)
  * and the header button opens the same Change location modal as Home.
  */
 const LocalConditions: React.FC = () => {

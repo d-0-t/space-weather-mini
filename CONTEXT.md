@@ -201,7 +201,7 @@ A place-based view that shows whether tonight is dark and clear from a chosen lo
 _Avoid_: conditions in my area (as a term), local weather (when the dark window is meant)
 
 **Geocoded place**:
-A location the app resolved from freeform text via Nominatim into latitude, longitude, display name and short name, or from the browser geolocation. The app stores the last chosen place in localStorage; the user picks from up to five Nominatim matches. When nothing is stored the app defaults to Östersund, Sweden.
+A location the app resolved from freeform text via Nominatim into latitude, longitude, display name and short name, or from the browser geolocation. The app stores the last chosen place in localStorage; the user picks from up to five Nominatim matches. When nothing is stored the app defaults to Luleå, Sweden.
 _Avoid_: location (without geocoded qualifier when the stored place is meant), pin, marker, coordinates (as a manual entry)
 
 **Device location**:

@@ -108,12 +108,12 @@ test("the local conditions page renders the luminosity timeline for the default 
     page.getByRole("heading", { level: 1, name: "Local conditions" }),
   ).toBeVisible();
   // The place chip shows the short name as visible text; the full display
-  // name lives on the title attribute (ticket 01 default is Östersund).
+  // name lives on the title attribute (default is Luleå since 2026-09-12).
   const chip = page.locator(".conditions__place");
-  await expect(chip).toContainText("Östersund, Jämtland County");
+  await expect(chip).toContainText("Luleå, Norrbotten County");
   await expect(chip).toHaveAttribute(
     "title",
-    "Östersund, Jämtland County, Sweden",
+    "Luleå, Norrbotten County, Sweden",
   );
   await expect(page.getByRole("heading", { name: "Today" })).toBeVisible();
   // The timeline splits the day into luminosity bands; the Day band is
@@ -244,13 +244,13 @@ test("the place search journey shows five matches and updates the place, dayligh
   await stubExternalImages(page);
   await page.goto("/conditions");
 
-  // One h1, default Östersund place chip (short name visible, full on title).
+  // One h1, default Luleå place chip (short name visible, full on title).
   await expect(
     page.getByRole("heading", { level: 1, name: "Local conditions" }),
   ).toBeVisible();
   await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
   const chip = page.locator(".conditions__place");
-  await expect(chip).toContainText("Östersund, Jämtland County");
+  await expect(chip).toContainText("Luleå, Norrbotten County");
 
   // Visible label on the search field; no per-keystroke fetch happens.
   const field = page.getByRole("searchbox", { name: "Search for a place" });

@@ -2,7 +2,7 @@
  * Versioned geocoded place storage for Local conditions: the last place the
  * visitor picked from the Nominatim match list or browser geolocation,
  * persisted across visits. Corrupt or foreign-shaped storage falls back to
- * the default geocoded place (Östersund), mirroring the webcam storage
+ * the default geocoded place (Luleå), mirroring the webcam storage
  * pattern in data/webcam-storage.ts.
  */
 
@@ -57,15 +57,17 @@ export const PLACE_PRESETS: readonly GeocodedPlace[] = [
 ];
 
 /**
- * Default geocoded place when nothing is stored: Östersund, Sweden at
- * 63.1792 N 14.6357 E – far enough south that the Night band (sun below
- * −18°) exists most of the year.
+ * Default geocoded place when nothing is stored: Luleå, Sweden at
+ * 65.5848 N 22.1546 E (same value as LULEA_PLACE). Human decision
+ * 2026-09-12: home town over the Östersund fallback. Trade-off recorded
+ * 2026-09-01 still applies — at 65.58 N the Night band (sun below −18°)
+ * is shallow around early September and absent near the solstice.
  */
 export const DEFAULT_PLACE: GeocodedPlace = {
-  displayName: "Östersund, Jämtland County, Sweden",
-  shortName: "Östersund, Jämtland County",
-  latitude: 63.1792,
-  longitude: 14.6357,
+  displayName: "Luleå, Norrbotten County, Sweden",
+  shortName: "Luleå, Norrbotten County",
+  latitude: 65.5848,
+  longitude: 22.1546,
   fetchedAt: "",
   country: "Sweden",
   countryCode: "se",
