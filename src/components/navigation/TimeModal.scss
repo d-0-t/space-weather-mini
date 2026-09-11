@@ -35,7 +35,7 @@
 
   &__note {
     margin: 0.25rem 0;
-    font-size: 0.9rem;
+    font-size: var(--font-size-small);
     text-align: left;
     color: color-mix(in srgb, var(--color-white) 75%, transparent);
     text-shadow: var(--text-stroke-black);
@@ -52,7 +52,8 @@
 
   &__close {
     // Pinned to the card's top-right corner so it never covers the copy;
-    // the button chrome itself comes from .btn--secondary
+    // the button chrome itself comes from .btn--secondary. line-height: 0
+    // is icon-button chrome (the glyph's box), not text leading.
     position: absolute;
     top: 0.6rem;
     right: 0.6rem;

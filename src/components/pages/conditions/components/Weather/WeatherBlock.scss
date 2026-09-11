@@ -8,12 +8,12 @@
 
   &__fetched {
     margin: 0;
-    font-size: 0.8rem;
+    font-size: var(--font-size-small);
     color: var(--color-text-muted);
   }
 
   &__attribution {
-    font-size: 0.8rem;
+    font-size: var(--font-size-small);
     text-align: right;
     opacity: 0.8;
     margin-bottom: 0;
@@ -24,6 +24,6 @@
   &__status {
     margin: 0.5rem 0 0;
     color: var(--color-gold);
-    font-size: 0.9rem;
+    font-size: var(--font-size-small);
   }
 }

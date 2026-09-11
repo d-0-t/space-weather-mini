@@ -4,10 +4,6 @@
     flex-direction: column;
     gap: 15px;
     align-items: start;
-
-    @media (max-width: 900px) {
-      grid-template-columns: 1fr;
-    }
   }
 
   &__chart {
@@ -32,7 +28,7 @@
 
   &__explainers {
     margin: 12px 0 8px;
-    font-size: 0.95rem;
-    line-height: 1.5;
+    font-size: var(--font-size-body);
+    line-height: var(--line-height-body);
   }
 }

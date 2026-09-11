@@ -1,3 +1,5 @@
+@use "../../styles/breakpoints" as *;
+
 .collapsible-panel {
   &__head {
     display: flex;
@@ -34,13 +36,14 @@
 
     h2 {
       margin: 0;
-      font-size: 1.5em;
 
-      // Very narrow screens: the longest panel name ("Magnetosphere") at
-      // 1.5em plus the chevron exceeds the toggle and would push the page
-      // horizontally wide – step the title down instead
-      @media (max-width: 419px) {
-        font-size: 1.2em;
+      // Very narrow screens: the longest panel name ("Magnetosphere") plus
+      // the chevron exceeds the toggle and would push the page horizontally
+      // wide – step the title down to the h3 token, back to the h2 token at
+      // the sm Breakpoint (the 419px legacy fold, ADR-0009)
+      font-size: var(--font-size-h3);
+      @include respond-to(sm) {
+        font-size: var(--font-size-h2);
       }
     }
 
@@ -50,10 +53,20 @@
     }
   }
 
+  h3 {
+    font-size: var(--font-size-h4);
+    @include respond-to(sm) {
+      font-size: var(--font-size-h3);
+    }
+  }
+
   &__chevron {
     display: inline-block;
     color: var(--color-accent-strong);
-    font-size: 2em;
+    // Decorative glyph ("▸"), not a type role: sized from the h1 token so
+    // the em chain is gone; the 3rem line-height is the glyph's hit-box
+    // height, not text leading (the tuned data-chrome exception)
+    font-size: var(--font-size-h1);
     line-height: 3rem;
     transform: rotate(90deg);
   }

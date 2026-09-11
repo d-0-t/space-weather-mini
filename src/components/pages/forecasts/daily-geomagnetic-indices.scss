@@ -31,7 +31,7 @@
     margin: 0;
     font-weight: 500;
     min-width: max-content;
-    font-size: 0.8rem;
+    font-size: var(--font-size-small);
 
     th,
     td {
@@ -79,7 +79,7 @@
 
   &__explainers {
     margin: 12px 0 8px;
-    font-size: 0.95rem;
-    line-height: 1.5;
+    font-size: var(--font-size-body);
+    line-height: var(--line-height-body);
   }
 }

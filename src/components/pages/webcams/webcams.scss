@@ -1,3 +1,5 @@
+@use "../../../styles/breakpoints" as *;
+
 .container.webcams {
   // As a flex item of #main-content the container would shrink-wrap its
   // content; the auto-fill grid needs a definite width to count tracks, so
@@ -34,16 +36,17 @@
     // Tabs, not buttons: no pill, just an underline state. Each tab is wide
     // enough by default and grows to share the available row; once the row
     // wraps, the tabs fill their own line. Labels never wrap – on narrow
-    // screens the font shrinks instead.
+    // screens the font shrinks instead. Mobile-first: narrow tabs shrink
+    // from the sm Breakpoint up they regain the wide size and width.
     &__tab {
       flex: 1 1 auto;
-      min-width: 8rem;
+      min-width: 0;
       padding: 0.5rem 0.75rem;
       border: none;
       border-bottom: 2px dotted var(--color-border-muted);
       background: transparent;
       color: var(--color-gray);
-      font-size: 1.05rem;
+      font-size: var(--font-size-small);
       font-weight: 600;
       white-space: nowrap;
       text-align: center;
@@ -69,9 +72,9 @@
         outline-offset: 2px;
       }
 
-      @media (max-width: 480px) {
-        min-width: 0;
-        font-size: 0.9rem;
+      @include respond-to(sm) {
+        min-width: 8rem;
+        font-size: var(--font-size-body);
       }
     }
   }
@@ -82,6 +85,8 @@
 
   &__view-desc {
     margin: 0 0 1.25rem 0;
+    // Tuned prose leading (the documented line-height exception): roomier
+    // than the body token's 1.5 ratio at this size
     line-height: 1.5rem;
   }
 
@@ -125,6 +130,7 @@
     &__note {
       flex: 1 1 20rem;
       margin: 0;
+      // Tuned prose leading (the documented line-height exception)
       line-height: 1.5rem;
     }
 
@@ -141,7 +147,7 @@
       &-note {
         flex: 1 1 100%;
         margin: 0;
-        font-size: 0.85rem;
+        font-size: var(--font-size-small);
         opacity: 0.9;
       }
 
@@ -194,13 +200,13 @@
 
   &__dialog-title {
     margin: 0 0 0.25rem 0;
-    font-size: 1.1rem;
+    font-size: var(--font-size-lead);
   }
 
   &__dialog-hint,
   &__dialog-note {
     margin: 0 0 0.75rem 0;
-    font-size: 0.85rem;
+    font-size: var(--font-size-small);
     opacity: 0.9;
   }
 
@@ -274,7 +280,7 @@
   }
 
   &__hidden-meta {
-    font-size: 0.8rem;
+    font-size: var(--font-size-small);
     opacity: 0.8;
     font-weight: 400;
   }
@@ -319,15 +325,15 @@
 
   &__cards {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    // Mobile-first: one cam per row below the sm Breakpoint (at ~395px the
+    // auto-fill grid would drop to a single track where a span-2 wide card
+    // forces an implicit overflow track); from sm up the auto-fill grid
+    // returns and wide cards span two of its columns.
+    grid-template-columns: 1fr;
     gap: 1rem;
 
-    // Narrow screens: one cam per row. At ~395px the grid drops to a single
-    // track where a span-2 wide card would force an implicit overflow track,
-    // and at 600-850px a wide card squeezes its normal neighbour – so stack
-    // the cards and let the wide ones span the full (single) row.
-    @media (max-width: 480px) {
-      grid-template-columns: 1fr;
+    @include respond-to(sm) {
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
     }
 
     article {
@@ -356,6 +362,7 @@
   &__more-note {
     border-top: 1px solid var(--color-border-muted-transparent);
     padding-top: 0.75rem;
+    // Tuned prose leading (the documented line-height exception)
     line-height: 1.5rem;
   }
 }
@@ -374,14 +381,13 @@
     grid-column: 1 / -1;
   }
 
-  // The Twitch player and the feeding live cam span two card columns.
+  // The Twitch player and the feeding live cam span two card columns
+  // (one per row below the sm Breakpoint, where the grid has a single track).
   &--wide {
-    grid-column: span 2;
+    grid-column: 1 / -1;
 
-    // In the one-per-row narrow layout the span-2 area would overflow the
-    // single track; spanning everything equals that one track instead.
-    @media (max-width: 480px) {
-      grid-column: 1 / -1;
+    @include respond-to(sm) {
+      grid-column: span 2;
     }
   }
 
@@ -394,7 +400,7 @@
 
   &__title {
     margin: 0;
-    font-size: 0.95rem;
+    font-size: var(--font-size-body);
   }
 
   // "Pin {name} webcam" selector in pinning mode – the entire card is the
@@ -475,13 +481,13 @@
 
   &__freshness {
     margin: 0.5rem 0 0 0;
-    font-size: 0.8rem;
+    font-size: var(--font-size-small);
   }
 
   &__note {
     margin: 0.25rem 0 0 0;
     font-style: italic;
-    font-size: 0.8rem;
+    font-size: var(--font-size-small);
   }
 
   // Attribution + actions pin to the bottom of the card so uneven image
@@ -489,7 +495,7 @@
   &__attribution {
     margin-top: auto;
     margin-bottom: 0;
-    font-size: 0.75rem;
+    font-size: var(--font-size-caption);
   }
 
   &__actions {
@@ -517,7 +523,7 @@
     padding: 0.5rem;
     border: 1px dashed var(--color-border-muted-transparent);
     border-radius: 8px;
-    font-size: 0.85rem;
+    font-size: var(--font-size-small);
   }
 
   &__twitch {
@@ -561,7 +567,7 @@
   }
 
   &__kind {
-    font-size: 0.8rem;
+    font-size: var(--font-size-small);
     text-transform: uppercase;
     letter-spacing: 0.06em;
   }

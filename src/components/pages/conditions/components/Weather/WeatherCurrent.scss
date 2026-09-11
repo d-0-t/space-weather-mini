@@ -11,6 +11,9 @@
     align-items: center;
     gap: 0.6rem;
     margin: 0 0 0.25rem;
+    // Frozen data-readout glyph size (ADR-0009 exception): this declaration
+    // exists to size the 1.4em weather icon at the readout's scale; the
+    // temp and WMO children carry their own sizes.
     font-size: 2.3rem;
 
     &__temp-wmo {
@@ -18,13 +21,15 @@
       flex-direction: column;
 
       &__temp {
+        // Frozen data readout (ADR-0009): the conditions temperature keeps
+        // its tuned display size, outside the type roles.
         font-size: 1.6rem;
         font-weight: 600;
         font-variant-numeric: tabular-nums;
       }
 
       &__wmo {
-        font-size: 1rem;
+        font-size: var(--font-size-body);
       }
     }
   }
@@ -35,7 +40,7 @@
     align-items: center;
     gap: 0.6rem 0.9rem;
     margin: 0;
-    font-size: 0.9rem;
+    font-size: var(--font-size-small);
     color: var(--color-text-primary);
     font-variant-numeric: tabular-nums;
 
@@ -44,6 +49,8 @@
       align-items: center;
       gap: 0.25rem;
 
+      // Icon glyph, not a type role: the detail icons scale with their
+      // label's font-size, so the relative em stays (icon-glyph exception)
       &__icon {
         font-size: 1.1em;
       }
@@ -52,41 +59,9 @@
     &--cloud-split {
       display: flex;
       flex-wrap: wrap;
-      //flex-direction: column;
       gap: 0.7rem;
-      font-size: 0.85em;
-      line-height: 1.2;
+      font-size: var(--font-size-caption);
+      line-height: var(--line-height-caption);
     }
-
-    // &__legend {
-    //   padding: 0.6rem 0.8rem;
-    //   border: 1px solid var(--color-border-muted-transparent);
-    //   border-radius: 8px;
-    //   font-size: 0.8rem;
-    //   color: var(--color-text-primary);
-
-    //   &__heading {
-    //     margin: 0 0 0.35rem;
-    //     font-size: 0.85rem;
-    //     font-weight: 600;
-    //   }
-
-    //   &__list {
-    //     display: flex;
-    //     flex-direction: column;
-    //     flex-wrap: wrap;
-    //     justify-content: space-between;
-    //     margin: 0;
-    //     padding: 0;
-    //     list-style: none;
-    //     gap: 0.5rem;
-
-    //     &__item {
-    //       display: flex;
-    //       align-items: center;
-    //       gap: 0.3rem;
-    //     }
-    //   }
-    // }
   }
 }

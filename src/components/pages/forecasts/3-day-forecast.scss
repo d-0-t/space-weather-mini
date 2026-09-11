@@ -33,7 +33,7 @@
 
   &__explainers {
     margin: 12px 0 8px;
-    font-size: 0.95rem;
-    line-height: 1.5;
+    font-size: var(--font-size-body);
+    line-height: var(--line-height-body);
   }
 }

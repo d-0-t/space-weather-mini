@@ -32,7 +32,9 @@
     border: 1px solid var(--color-border-muted-transparent);
     border-radius: 8px;
     background: var(--color-bg-page);
-    font-size: 0.8rem;
+    font-size: var(--font-size-small);
+    // Tuned card chrome leading (the documented line-height exception):
+    // the fixed box keeps the hour cards' even height
     line-height: 1.25rem;
     text-align: center;
 
@@ -41,7 +43,7 @@
     }
 
     &__time {
-      font-size: 0.75rem;
+      font-size: var(--font-size-caption);
       font-weight: 600;
       color: var(--color-gold);
       font-variant-numeric: tabular-nums;
@@ -53,7 +55,7 @@
       align-items: center;
       justify-content: center;
       gap: 0.2rem;
-      font-size: 1rem;
+      font-size: var(--font-size-body);
 
       &__temp {
         font-weight: 600;
@@ -72,14 +74,6 @@
       font-variant-numeric: tabular-nums;
       align-items: center;
       justify-content: center;
-
-      // &--cloud-split {
-      //   display: flex;
-      //   flex-direction: column;
-      //   gap: 0.15rem;
-      //   font-size: 0.9em;
-      //   line-height: 1.2;
-      // }
     }
   }
 }

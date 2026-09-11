@@ -36,7 +36,6 @@
     h2 {
       margin: 0 0 0.75rem;
       padding-right: 3rem;
-      font-size: 1.15rem;
     }
 
     &::backdrop {
@@ -59,7 +58,7 @@
     &__label {
       display: block;
       margin-bottom: 0.4rem;
-      font-size: 0.9rem;
+      font-size: var(--font-size-small);
       font-weight: 600;
     }
 
@@ -81,7 +80,7 @@
         border-radius: 8px;
         background: var(--color-surface);
         color: var(--color-text-primary);
-        font-size: 1rem;
+        font-size: var(--font-size-body);
 
         &::placeholder {
           color: var(--color-text-muted);
@@ -93,7 +92,7 @@
   &__status {
     margin: 0.5rem 0 0;
     color: var(--color-gold);
-    font-size: 0.9rem;
+    font-size: var(--font-size-small);
   }
 
   &__matches {
@@ -113,7 +112,7 @@
         gap: 0.5rem;
         align-items: center;
         padding: 0.35rem 0.25rem;
-        font-size: 0.9rem;
+        font-size: var(--font-size-small);
         cursor: pointer;
       }
     }
@@ -141,7 +140,7 @@
 
     &__accuracy {
       color: var(--color-text-muted);
-      font-size: 0.9rem;
+      font-size: var(--font-size-small);
     }
 
     button {
@@ -151,7 +150,7 @@
 
   &__pending {
     margin: 0.75rem 0 0;
-    font-size: 0.9rem;
+    font-size: var(--font-size-small);
     font-weight: 600;
     overflow-wrap: anywhere;
   }
@@ -166,7 +165,7 @@
 
   &__attribution {
     margin: 0.75rem 0 0;
-    font-size: 0.75rem;
+    font-size: var(--font-size-caption);
     color: var(--color-text-muted);
     opacity: 0.8;
   }

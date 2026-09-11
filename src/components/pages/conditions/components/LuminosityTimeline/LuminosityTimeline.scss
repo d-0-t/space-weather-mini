@@ -1,16 +1,25 @@
+@use "../../../../../styles/breakpoints" as *;
+
 // Luminosity timeline: the 24 h day as duration-ratio bands, darkest
-// (Dark window) to brightest (Day). Row layout on wide screens, a
-// vertical scale on narrow ones so labels and break times stay readable.
-// The ramp is one desaturated blue (deep indigo lightened toward white)
-// so the bands differ in luminosity only, never in hue.
+// (Dark window) to brightest (Day). Mobile-first: a vertical scale on
+// narrow screens so labels and break times stay readable, a row layout
+// from the sm Breakpoint up. The ramp is one desaturated blue (deep indigo
+// lightened toward white) so the bands differ in luminosity only, never
+// in hue.
 .conditions {
   &__timeline {
     display: flex;
-    height: 7rem;
+    flex-direction: column;
+    height: min(70vh, 16rem);
     margin: 1rem 0;
     padding: 0;
     list-style: none;
     border: 1px solid var(--color-border-muted-transparent);
+
+    @include respond-to(sm) {
+      flex-direction: row;
+      height: 7rem;
+    }
   }
 
   &__band {
@@ -65,7 +74,7 @@
     position: absolute;
     top: 0.25rem;
     left: 0.35rem;
-    font-size: 0.7rem;
+    font-size: var(--font-size-caption);
     font-weight: bold;
     font-variant-numeric: tabular-nums;
     opacity: 0.9;
@@ -79,25 +88,31 @@
   }
 
   &__band-name {
-    height: 100%;
+    height: auto;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
-    font-size: 0.85rem;
+    font-size: var(--font-size-small);
     font-weight: 500;
-    // Wide screens: bands are short but tall, so names read vertically,
-    // rotated 180° from the plain vertical flow, wrapping at the band
-    // height so even the longest name spans the whole band.
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
+    white-space: nowrap;
+
+    @include respond-to(sm) {
+      height: 100%;
+      white-space: normal;
+      // Wide screens: bands are short but tall, so names read vertically,
+      // rotated 180° from the plain vertical flow, wrapping at the band
+      // height so even the longest name spans the whole band.
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+    }
   }
 
-  // Wide screens only: alternate the break times top/bottom between
+  // From the sm Breakpoint: alternate the break times top/bottom between
   // neighbouring bands so they never collide, and set the closing 24:00
   // opposite its band's start time. A pure visual displacement – the
   // markup order is unchanged.
-  @media (min-width: 481px) {
+  @include respond-to(sm) {
     &__band:nth-child(odd)
       > .conditions__band-time:not(.conditions__band-time--end) {
       display: flex; // prevents the pipe from separating
@@ -145,34 +160,6 @@
       top: -1rem;
       bottom: auto;
       color: var(--color-white);
-    }
-  }
-
-  @media (max-width: 480px) {
-    &__timeline {
-      flex-direction: column;
-      height: min(70vh, 16rem);
-    }
-
-    &__band-name {
-      height: auto;
-      white-space: nowrap;
-      writing-mode: horizontal-tb;
-      transform: none;
-    }
-
-    // Every break time sits at its band's top edge on the vertical scale
-    &__band:nth-child(odd)
-      > .conditions__band-time:not(.conditions__band-time--end),
-    &__band:nth-child(even)
-      > .conditions__band-time:not(.conditions__band-time--end) {
-      top: 0.25rem;
-      bottom: auto;
-    }
-    &__band:nth-child(odd) > .conditions__band-time--end,
-    &__band:nth-child(even) > .conditions__band-time--end {
-      top: auto;
-      bottom: 0.25rem;
     }
   }
 }

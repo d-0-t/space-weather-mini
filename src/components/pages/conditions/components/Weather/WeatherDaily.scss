@@ -14,7 +14,7 @@
   table {
     border-collapse: collapse;
     border-spacing: 0 1rem;
-    font-size: 0.9rem;
+    font-size: var(--font-size-small);
     font-variant-numeric: tabular-nums;
     width: 100%;
 
@@ -22,7 +22,7 @@
       margin-bottom: 0.25rem;
       text-align: left;
       font-weight: 600;
-      font-size: 0.95rem;
+      font-size: var(--font-size-body);
     }
 
     th,
@@ -35,7 +35,7 @@
     th {
       background: transparent;
       font-weight: 600;
-      font-size: 0.8rem;
+      font-size: var(--font-size-small);
       color: var(--color-text-muted);
     }
 

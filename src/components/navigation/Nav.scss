@@ -1,3 +1,5 @@
+@use "../../styles/breakpoints" as *;
+
 .header {
   --nav-horizontal-gap: 0.75rem;
 
@@ -95,8 +97,6 @@
 }
 
 .header__menu {
-  display: flex;
-  gap: 0.25rem;
   padding: 0;
   margin: 0;
   list-style: none;
@@ -209,165 +209,262 @@ details[open] > summary .dropdown__chevron {
   min-width: 200px;
 }
 
+// Below the lg Breakpoint (1100px) the full menu wraps to two rows, so the
+// hamburger panel takes over – narrow is the default (mobile-first, ADR-0009):
+// the menu becomes a full-screen panel, submenus flow inline right-aligned.
+.header__menu-backdrop {
+  position: fixed;
+  inset: 0;
+  background-color: color-mix(in srgb, var(--color-black) 50%, transparent);
+  z-index: 35;
+}
+
+.nava {
+  padding-right: 0;
+  margin: 0;
+}
+
+.header {
+  // Top-level items only: the panel's right-aligned fit-content rows. The
+  // submenu items are governed by the details[open] block below – a plain
+  // descendant here would leak the staircase onto the wide bar's submenu.
+  &__menu > li {
+    justify-content: flex-end;
+    width: fit-content;
+    align-self: flex-end;
+
+    & > a,
+    & > details > summary {
+      justify-self: flex-end;
+      padding: 0 2rem;
+    }
+
+    & > button.btn--secondary {
+      margin-top: 0.5rem;
+      margin-right: 2rem;
+    }
+  }
+
+  &__nav {
+    flex: 1;
+    &--open .header__menu {
+      display: flex;
+    }
+  }
+
+  &__hamburger {
+    display: flex;
+  }
+
+  &__menu {
+    display: none;
+    position: fixed;
+    top: 4rem;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    flex-direction: column;
+    gap: 0;
+    overflow-y: auto;
+    background-color: color-mix(
+      in srgb,
+      var(--color-deep-indigo) 25%,
+      color-mix(in srgb, var(--color-black) 91.6%, transparent)
+    );
+    z-index: 40;
+
+    & > li.dropdown {
+      flex-direction: column;
+    }
+
+    & > li > a,
+    & > li > summary.dropdown__trigger {
+      justify-content: right;
+    }
+  }
+}
+
+.dropdown {
+  text-align: right;
+  align-items: flex-end;
+  justify-content: flex-end;
+  width: 100%;
+
+  details {
+    height: 100%;
+    align-self: flex-end;
+  }
+}
 details[open] > .dropdown-content {
   display: flex;
   flex-direction: column;
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 0;
-  max-width: calc(100vw - 1rem);
-  max-height: calc(100vh - 5rem);
-  overflow-y: auto;
-  z-index: 10;
-}
+  position: static;
+  transform: none;
+  max-width: none;
+  max-height: none;
+  overflow: visible;
+  justify-content: unset;
+  align-self: flex-end;
 
-.dropdown-content > li {
-  list-style: none;
-  background-color: var(--color-deep-indigo);
-  border-bottom: 1px dashed var(--color-dark-green);
-
-  &:first-child {
-    border-top: 1px dashed var(--color-dark-green);
-  }
-  & > a {
+  li {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 44px;
-    padding: 0 1.5rem;
-    text-decoration: none;
-    color: var(--color-text-primary);
+    align-items: flex-end;
+    justify-content: flex-end;
+    // Panel staircase: content-width rows aligned right. The lg block
+    // restores the wide bar's uniform full-width rows.
+    width: fit-content;
+    align-self: flex-end;
+    padding-right: 0;
+    margin: 0;
 
-    &:hover,
-    &:focus-visible {
-      background-color: var(--color-primary-violet);
-      color: var(--color-white);
-      border-radius: 0;
-      outline-offset: -2px;
+    &:not(:last-of-type) {
+      border: none;
+    }
+
+    // The panel's submenu links keep the shared 44px touch target and the
+    // wide-bar hover/focus chrome (the width/weight/margin overrides are
+    // the panel's own).
+    a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      min-height: 44px;
+      padding: 0 1.5rem;
+      text-decoration: none;
+      color: var(--color-text-primary);
+      font-weight: 500;
+      margin-right: 0.5rem;
+
+      &:hover,
+      &:focus-visible {
+        background-color: var(--color-primary-violet);
+        color: var(--color-white);
+        border-radius: 0;
+        outline-offset: -2px;
+      }
+
+      &:hover {
+        color: var(--color-accent-strong);
+      }
     }
   }
 }
 
-// The full menu (Dashboard, Webcams, Details, About, astro toggle) wraps to
-// two rows below ~850px, so the hamburger panel takes over
-// from 900px down - a wider point than before, covering narrow desktop
-// windows too.
-@media (max-width: 1100px) {
+// At the lg Breakpoint the wide bar returns: hamburger hidden, menu inline
+// with absolute dropdowns over the page (the pre-panel layout).
+@include respond-to(lg) {
   .header__menu-backdrop {
-    position: fixed;
-    inset: 0;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 35;
-  }
-
-  .nava {
-    padding-right: 0 !important;
-    margin: 0 !important;
+    display: none;
   }
 
   .header {
-    &__menu li {
-      justify-content: flex-end;
-      width: fit-content;
-      align-self: flex-end;
-
-      & > a,
-      & > details > summary {
-        justify-self: flex-end;
-        padding: 0 2rem !important;
-      }
-
-      & > button {
-        margin-top: 0.5rem;
-        margin-right: 2rem !important;
-      }
-    }
-
     &__nav {
-      flex: 1;
+      // The narrow panel lets the nav take the row (flex: 1); the wide bar
+      // shrinks to its content again.
+      flex: initial;
+
       &--open .header__menu {
         display: flex;
       }
     }
 
     &__hamburger {
-      display: flex;
+      display: none;
     }
 
     &__menu {
-      display: none;
-      position: fixed;
-      top: 4rem;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      flex-direction: column;
-      gap: 0;
-      overflow-y: auto;
-      background-color: color-mix(
-        in srgb,
-        var(--color-deep-indigo) 25%,
-        rgba(0, 0, 0, 0.916)
-      );
-      z-index: 40;
+      display: flex;
+      position: static;
+      flex-direction: row;
+      gap: 0.25rem;
+      overflow: visible;
+      background: transparent;
+      z-index: auto;
 
-      & > li.dropdown {
-        flex-direction: column;
-      }
+      & > li {
+        justify-content: center;
+        width: auto;
+        align-self: auto;
 
-      & > li > a,
-      & > li > summary.dropdown__trigger {
-        justify-content: flex-start;
-        justify-content: right;
+        & > a,
+        & > details > summary {
+          justify-self: auto;
+          justify-content: center;
+          padding: 0 var(--nav-horizontal-gap);
+        }
+
+        & > button.btn--secondary {
+          margin-top: 0;
+          margin-right: var(--nav-horizontal-gap);
+        }
       }
     }
   }
 
   .dropdown {
-    text-align: right;
-    align-items: flex-end;
-    justify-content: flex-end;
-    width: 100%;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+    width: auto;
 
     details {
-      height: 100%;
-      align-self: flex-end;
+      height: auto;
+      align-self: auto;
     }
   }
-  details[open] > .dropdown-content {
-    position: static;
-    transform: none;
-    max-width: none;
-    max-height: none;
-    overflow: visible;
-    justify-content: unset;
-    align-self: flex-end;
+  // Scoped under .header so every rule out-specifies the narrow panel's
+  // descendant selectors instead of fighting them on source order alone.
+  .header details[open] > .dropdown-content {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 0;
+    max-width: calc(100vw - 1rem);
+    max-height: calc(100vh - 5rem);
+    overflow-y: auto;
+    justify-content: initial;
+    align-self: auto;
+    z-index: 10;
 
     li {
-      display: flex;
-      align-items: flex-end;
-      justify-content: flex-end;
-      padding-right: 0;
-      margin: 0;
-      background: unset !important;
+      // The wide bar's submenu rows: uniform, full-width, block flow —
+      // undoing the panel's fit-content right-aligned staircase.
+      display: block;
+      width: auto;
+      align-self: normal;
+      background-color: var(--color-deep-indigo);
+      border-bottom: 1px dashed var(--color-dark-green);
+
+      &:first-child {
+        border-top: 1px dashed var(--color-dark-green);
+      }
 
       &:hover {
-        background: unset !important;
+        background: var(--color-deep-indigo);
       }
 
-      &:not(:last-of-type) {
-        border: none;
-      }
+      & > a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: auto;
+        min-height: 44px;
+        padding: 0 1.5rem;
+        text-decoration: none;
+        color: var(--color-text-primary);
+        font-weight: inherit;
+        margin-right: 0;
 
-      a {
-        width: 100%;
-        font-weight: 500;
-        margin-right: 0.5rem;
-
-        &:hover {
-          color: var(--color-accent-strong);
+        &:hover,
+        &:focus-visible {
+          background-color: var(--color-primary-violet);
+          color: var(--color-white);
+          border-radius: 0;
+          outline-offset: -2px;
         }
       }
     }
