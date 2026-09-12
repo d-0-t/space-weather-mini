@@ -1118,3 +1118,66 @@ describe("Local conditions under the Display timezone (ticket 02)", () => {
     expect(bandTime("Night")).toBe("22:00");
   });
 });
+
+describe("Local conditions daylight chart rotation", () => {
+  const mockFetch = vi.fn();
+
+  beforeEach(() => {
+    localStorage.clear();
+    mockFetch.mockReset();
+    vi.stubGlobal("fetch", mockFetch);
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+    restoreGeolocation();
+  });
+
+  it("names the rotate toggle by title plus sr-only text, never aria-label", () => {
+    atNoon("2026-09-15T12:00:00Z");
+    seedOslo();
+    mockFetch.mockResolvedValue(jsonResponse(openMeteoKirunaFixture));
+    renderPage();
+    const rotate = screen.getByRole("button", {
+      name: "Rotate daylight chart",
+    });
+    expect(rotate).toHaveClass("btn--secondary");
+    expect(rotate).toHaveAttribute("title", "Rotate daylight chart");
+    expect(rotate).not.toHaveAttribute("aria-label");
+    expect(
+      rotate.querySelector(".sr-only"),
+    ).toHaveTextContent("Rotate daylight chart");
+    expect(rotate).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("toggles the vertical reading back and forth", async () => {
+    atNoon("2026-09-15T12:00:00Z");
+    seedOslo();
+    mockFetch.mockResolvedValue(jsonResponse(openMeteoKirunaFixture));
+    const user = userEvent.setup();
+    renderPage();
+    const rotate = screen.getByRole("button", {
+      name: "Rotate daylight chart",
+    });
+    const headingEl = screen.getByRole("heading", {
+      name: "Today's daylight chart",
+    });
+    const section = headingEl.closest("section") as HTMLElement;
+    const timeline = () =>
+      section.querySelector(".conditions__timeline") as HTMLElement;
+
+    expect(timeline()).not.toHaveClass("conditions__timeline--vertical");
+    await user.click(rotate);
+    expect(rotate).toHaveAttribute("aria-pressed", "true");
+    expect(timeline()).toHaveClass("conditions__timeline--vertical");
+    // The bands survive the rotation: still one full 24 h day.
+    const total = within(section)
+      .getAllByRole("listitem")
+      .reduce((sum, li) => sum + Number((li as HTMLElement).style.flexGrow), 0);
+    expect(total).toBeCloseTo(1440, 6);
+    await user.click(rotate);
+    expect(rotate).toHaveAttribute("aria-pressed", "false");
+    expect(timeline()).not.toHaveClass("conditions__timeline--vertical");
+  });
+});

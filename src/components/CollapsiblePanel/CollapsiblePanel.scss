@@ -2,6 +2,7 @@
 
 .collapsible-panel {
   &__head {
+    position: relative;
     display: flex;
     align-items: center;
     flex-wrap: wrap;
@@ -76,6 +77,7 @@
   }
 
   &__body {
+    position: relative;
     margin-top: 0.5rem;
     padding: 1rem;
   }

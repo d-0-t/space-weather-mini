@@ -1,4 +1,6 @@
 import "./LuminosityTimeline.scss";
+import { useState } from "react";
+import Rotate90DegreesCwIcon from "@mui/icons-material/Rotate90DegreesCw";
 import { useDisplayTimezone } from "../../../../DisplayTimezone/DisplayTimezoneContext";
 import type { DaylightDay } from "../../../../../data/sun";
 import { formatClock } from "../../../../../products/display-time";
@@ -91,14 +93,38 @@ export const buildTimeline = (day: DaylightDay): TimelineBand[] => {
  * ratio, dark to bright left to right on wide screens and top to bottom on
  * narrow ones. Each band shows its start time at the break and its name;
  * the last band closes at 24:00. The band times are instants and render in
- * the Display timezone (ticket 02).
+ * the Display timezone (ticket 02). On wide screens the chart reads
+ * horizontally; the rotate toggle (visible only there, like the oval glow
+ * modal's portrait-only rotate) forces the narrow vertical reading back
+ * for users who prefer it.
  */
 const LuminosityTimeline: React.FC<{ day: DaylightDay }> = ({ day }) => {
   const bands = buildTimeline(day);
   const last = bands.length - 1;
   const { displayTimezone } = useDisplayTimezone();
+  // Vertical reading preference on wide screens: layout lives entirely in
+  // the sm breakpoint, so on narrow screens the chart is already vertical
+  // and a stale state renders the same – no viewport listener needed.
+  const [vertical, setVertical] = useState(false);
   return (
-    <ul className="conditions__timeline">
+    <>
+      <button
+        type="button"
+        className="btn--secondary conditions__timeline-rotate"
+        title="Rotate daylight chart"
+        aria-pressed={vertical}
+        onClick={() => setVertical((current) => !current)}
+      >
+        <Rotate90DegreesCwIcon aria-hidden="true" fontSize="small" />
+        <span className="sr-only">Rotate daylight chart</span>
+      </button>
+      <ul
+        className={
+          vertical
+            ? "conditions__timeline conditions__timeline--vertical"
+            : "conditions__timeline"
+        }
+      >
       {bands.map((band, index) => (
         <li
           key={index}
@@ -124,7 +150,8 @@ const LuminosityTimeline: React.FC<{ day: DaylightDay }> = ({ day }) => {
           ) : null}
         </li>
       ))}
-    </ul>
+      </ul>
+    </>
   );
 };
 

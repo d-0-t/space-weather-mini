@@ -87,6 +87,47 @@
     }
   }
 
+  // Rotate toggle: appears only where the chart reads horizontally (the
+  // sm Breakpoint and up), mirroring the oval glow modal's portrait-only
+  // rotate – on narrow screens the timeline is already vertical, so the
+  // toggle is simply not there. Icon-only naming follows the house rule:
+  // title plus sr-only text, never aria-label.
+  &__timeline-rotate {
+    display: none;
+    margin-top: 0.5rem;
+
+    @include respond-to(sm) {
+      display: inline-flex;
+      position: absolute;
+      top: -3.5rem;
+      right: 1rem;
+    }
+
+    &[aria-pressed="true"] svg {
+      transform: rotate(180deg);
+    }
+  }
+
+  // Forced vertical reading on wide screens: re-asserts the narrow column
+  // layout (taller box, horizontal names, in-band break times) with one
+  // extra class of specificity over each sm rule it undoes, so source
+  // order never decides.
+  &__timeline.conditions__timeline--vertical {
+    @include respond-to(sm) {
+      flex-direction: column;
+      height: min(70vh, 16rem);
+    }
+  }
+
+  &__timeline--vertical .conditions__band-name {
+    @include respond-to(sm) {
+      height: auto;
+      white-space: nowrap;
+      writing-mode: horizontal-tb;
+      transform: none;
+    }
+  }
+
   &__band-name {
     height: auto;
     display: flex;
@@ -160,6 +201,44 @@
       top: -1rem;
       bottom: auto;
       color: var(--color-white);
+    }
+  }
+
+  // Vertical-override break times: back inside the bands (the narrow
+  // placement), the outside pipes gone. Each selector carries the timeline
+  // modifier on top of its horizontal twin, so it always wins.
+  @include respond-to(sm) {
+    &__timeline--vertical
+      &__band:nth-child(odd)
+      > .conditions__band-time:not(.conditions__band-time--end),
+    &__timeline--vertical
+      &__band:nth-child(even)
+      > .conditions__band-time:not(.conditions__band-time--end) {
+      display: block;
+      top: 0.25rem;
+      bottom: auto;
+      left: 0.35rem;
+      right: auto;
+      color: inherit;
+
+      &::before {
+        content: none;
+      }
+    }
+    &__timeline--vertical &__band:nth-child(odd) > .conditions__band-time--end,
+    &__timeline--vertical
+      &__band:nth-child(even)
+      > .conditions__band-time--end {
+      display: block;
+      top: auto;
+      bottom: 0.25rem;
+      left: auto;
+      right: 0.35rem;
+      color: inherit;
+
+      &::before {
+        content: none;
+      }
     }
   }
 }
