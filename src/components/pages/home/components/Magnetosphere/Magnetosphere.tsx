@@ -38,6 +38,9 @@ import {
 const KIRUNA_MAGNETOGRAM_URL =
   "https://spaceweather.irf.se/data/irf-kir-mag.png";
 
+/** The Magnetosphere panel's collapsible body id. */
+const MAGNETOSPHERE_BODY_ID = "magnetosphere-panel-body";
+
 const fetchHemiPower = async () => {
   const response = await fetch(HEMI_POWER_URL);
   if (!response.ok) throw new Error(`NOAA returned ${response.status}`);
@@ -194,7 +197,7 @@ const Magnetosphere: React.FC = () => {
     <article className="live-panel magnetosphere">
       <CollapsiblePanel
         heading={<h2>Magnetosphere</h2>}
-        bodyId="magnetosphere-panel-body"
+        bodyId={MAGNETOSPHERE_BODY_ID}
       >
       <div className="live-panel__grid">
         <SparklineCard

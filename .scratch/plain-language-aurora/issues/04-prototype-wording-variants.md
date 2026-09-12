@@ -2,7 +2,9 @@
 
 Type: prototype
 
-Status: open
+Status: wontfix
+
+Superseded 2026-09-12: during the ticket-03 build review the human picked the voice directly — ONE merged paragraph, one concise sentence per row, no P1/P2 variants, no per-row cards — so the compare-two-prototypes experiment is closed. The shipped wording lives in `src/products/interval-texts.ts` (stable sentence keys, unit-pinned); ticket 08 reviews it as the final wording. See ticket 03's amended done note.
 
 Blocked by: 01 (done)
 

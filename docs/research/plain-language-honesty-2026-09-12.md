@@ -193,6 +193,31 @@ Geophys. 2023 (114 km emission peaks); NASA SVS aurora infographic; NPS aurora
 colors (mid-latitude red dominance); CCMC OVATION Prime catalog.
 Secondary, quoted only where primary wording is recalled: SpaceWeatherLive
 OVATION page (HP legend wording — **[RE-VERIFY]**).
+
+## 8. Post-publication verification (2026-09-12, ticket 03 build)
+
+- **SWPC reachability resolved:** `www.swpc.noaa.gov` was reachable this time.
+  The Aurora - 30 Minute Forecast page was fetched live and confirms the
+  claims used by the interpreter: the HPI definition ("an estimate of the
+  total auroral energy input at each pole"), the 30–90-minute lead
+  ("the forecast lead time is the time it takes for the solar wind to
+  travel from the L1 observation point to Earth"), the 1000 km sighting
+  distance ("can be observed from as much as a 1000 km away when the
+  aurora is bright and if conditions are right"), the daylight no-go, and
+  the Kp-fallback mode ("there is no forecast lead time").
+- **HP legend [RE-VERIFY] resolved:** the legend wording was confirmed via
+  SpaceWeatherLive's Auroral oval page ("below about 20 GW… little or no
+  aurora observable; between 20 and 50… you may need to be near the aurora
+  to see it; above 50… quite observable with lots of activity and motion;
+  100 or more… a very significant geomagnetic storm"), with the same
+  wording independently quoted on sol24.net and lral.lv (the latter citing
+  SWPC's own page). The `hemiPowerIntervalText` sentences match this
+  wording and additionally carry the model-uncertainty budget; the HP
+  sentences state the 30-minute forecast horizon per N5.
+- The Bz→Kp NO-GO (N1) was applied to the expert card itself: the Solar
+  Wind Bz help rows now speak gate language (weakly/coupled/strongly
+  coupled/severe driving) with sustained-hours framing, and its test
+  asserts no Kp outcome survives.
 Repo (read at inventory time): `products/solar-wind.ts`,
 `products/noaa-planetary-k-index.ts`, `products/thresholds.ts`,
 `products/hemi-power.ts`, `products/kyoto-dst.ts`, `products/ovation.ts`,

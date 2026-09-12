@@ -244,6 +244,20 @@ _Avoid_: weather code (without WMO), WMO icon (the icon is a presentation of the
 The always-enabled Refresh button at the top of the weather card that reissues the same Open-Meteo fetch for the same place and updates the fetched-at timestamp. Manual only – no polling and no refetch on focus, an intentional exception to the live polling discipline (ADR 0003, ADR 0005).
 _Avoid_: refresh button (as a term), weather refresh (as a synonym for the timestamp)
 
+### Plain language
+
+**Interpreter**:
+The plain-language summary at the top of the Aurora Now panel: ONE merged paragraph — one short sentence each for the Kp index, the solar-wind stream and the magnetic gate (hemispheric power stays expert-only) — always fully open, with a time-ahead selector for the L1 readings (from the value arriving at Earth now to the freshest measurement still in transit) and one As-of line. The L1 claims run on 5-minute averages, never single 1-min readings — the Solar Wind panel's displayed current values use the same averaging. Deep links into the expert detail were removed in the human's decluttering pass; the numbers sit directly below.
+_Avoid_: translator, explainer panel, dashboard (the Dashboard is the whole page)
+
+**Interval text**:
+A pre-written sentence per value interval in the interpreter's tables: value → sentence key, level, wording, source. Tables are pure data over the existing product hooks, pinned per interval including boundaries; the mapping source of every claim rides with the sentence.
+_Avoid_: canned text, template sentence, copy block
+
+**Plain levels**:
+The interpreter's three-step reading scale per row — calm / active / storm-like — plus the honest missing-data state ("no data", never zero). "Storm-like" is deliberately hedged: it names storm-range viewing conditions without asserting a NOAA storm scale level.
+_Avoid_: severity colors as level names, storm (as the level's name on its own)
+
 ### Offline and personal oval
 
 **Offline (PWA)**:

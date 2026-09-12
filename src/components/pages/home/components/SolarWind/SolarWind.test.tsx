@@ -83,6 +83,57 @@ describe("SolarWind", () => {
     expect(screen.getAllByText(/South/).length).toBeGreaterThan(0);
   });
 
+  it("shows 5-minute averages as the displayed current values, not single 1-min readings", async () => {
+    // Wind rows of 100 and 300 km/s inside the ±2.5 min window around the
+    // Now instant (the 22:05 freshest reading minus the ~88 min transit of
+    // the 283 km/s stream → Now ≈ 20:37), 283 elsewhere: the Speed
+    // headline must read the 200 km/s mean, never the flickering readings.
+    const rows: { time_tag: string; proton_speed: number; proton_density: number; source: string }[] = [];
+    const start = Date.UTC(2026, 7, 26, 19, 0, 0);
+    const nowMs = start + (185 - 88) * 60_000;
+    for (let i = 0; i <= 185; i++) {
+      const ms = start + i * 60_000;
+      const speed =
+        ms === nowMs - 60_000
+          ? 100
+          : ms === nowMs
+            ? 300
+            : 283;
+      rows.push({
+        time_tag: new Date(ms).toISOString().slice(0, 19),
+        proton_speed: speed,
+        proton_density: 5,
+        source: "IMAP",
+      });
+    }
+    mockFetch.mockImplementation((url: string) => {
+      const u = typeof url === "string" ? url : "";
+      if (u.includes("rtsw_wind_1m.json"))
+        return Promise.resolve({ ok: true, text: async () => JSON.stringify(rows) });
+      if (u.includes("rtsw_mag_1m.json"))
+        return Promise.resolve({ ok: true, text: async () => rtswMagFixture });
+      return Promise.resolve({ ok: true, text: async () => "" });
+    });
+    renderSolarWind();
+    await waitFor(() => expect(screen.getByText("Speed")).toBeInTheDocument());
+    // The ±2.5 min window around Now catches 20:35–20:39:
+    // mean(283, 100, 300, 283, 283) = 249.8 → the headline reads 250,
+    // and neither flickering single reading appears anywhere.
+    await waitFor(() =>
+      expect(screen.getAllByText(/250/).length).toBeGreaterThan(0),
+    );
+    expect(screen.queryByText(/^100$/)).toBeNull();
+    expect(screen.queryByText(/^300$/)).toBeNull();
+  });
+
+  it("says the displayed current values are 5-minute averages in the delay note", async () => {
+    renderSolarWind();
+    await waitFor(() => expect(screen.getByText(/We are \d+ minutes behind/)).toBeInTheDocument());
+    expect(
+      screen.getByText(/The displayed current values are 5-minute averages\./),
+    ).toBeInTheDocument();
+  });
+
   it("labels every chart with a descriptive accessible name", async () => {
     renderSolarWind();
     await waitFor(() =>
@@ -170,6 +221,21 @@ describe("SolarWind", () => {
       /Interplanetary magnetic field \(IMF\), Bz \(GSM\) component/i,
     );
     expect(bzHelp.textContent).toMatch(/southward \(negative\) Bz/i);
+  });
+
+  it("frames Bz bands as a duration-gated gate with no Kp outcome (N1)", async () => {
+    const user = userEvent.setup();
+    renderSolarWind();
+    await waitFor(() => expect(screen.getByText("Bz")).toBeInTheDocument());
+    const bzHelp = screen
+      .getByText("Bz")
+      .closest("section")!
+      .querySelector(".live-panel__help")! as HTMLDetailsElement;
+    await user.click(bzHelp.querySelector("summary")!);
+    // No help row promises a Kp outcome: no "active (Kp3-4)"-shaped band.
+    expect(bzHelp.textContent).not.toMatch(/Kp\s*\d/i);
+    // Sustained-hours framing is present (duration beats instant value).
+    expect(bzHelp.textContent).toMatch(/sustained|hours/i);
   });
 
   it("attributes the panel to NOAA/SWPC in its footer", async () => {

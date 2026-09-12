@@ -1,0 +1,23 @@
+// The plain-language summary at the top of the panel body: one paragraph,
+// always fully open, with the time-ahead selector for the L1 readings.
+.aurora-now__summary {
+  margin: 0 0 0.75rem;
+}
+
+.aurora-now__summary__offset {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: var(--font-size-caption);
+
+  select {
+    height: 44px;
+    border-radius: 8px;
+    background-color: black;
+  }
+}
+
+.aurora-now__summary__text {
+  margin: 0 0 0.5rem;
+}

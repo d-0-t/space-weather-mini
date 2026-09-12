@@ -127,6 +127,34 @@ describe("Home Live Now dashboard (ticket 01)", () => {
     );
   });
 
+  it("fetches each shared feed exactly once across all mounted panels", async () => {
+    // The Aurora Now summary reuses the expert panels' query keys, so
+    // TanStack Query must dedupe: one network fetch per feed, not one per
+    // consumer.
+    renderHome();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: /^Aurora Now$/i }),
+      ).toBeInTheDocument(),
+    );
+    await waitFor(() => expect(screen.getByText("Speed")).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText(/Aurora intensity is currently low/i)).toBeInTheDocument(),
+    );
+    for (const url of [
+      "rtsw_wind_1m.json",
+      "rtsw_mag_1m.json",
+      "noaa-planetary-k-index.json",
+      "noaa-planetary-k-index-forecast.json",
+      "aurora-nowcast-hemi-power.txt",
+    ]) {
+      const calls = mockFetch.mock.calls.filter(([u]) =>
+        String(u).includes(url),
+      );
+      expect(calls).toHaveLength(1);
+    }
+  });
+
   it("opens a media modal full size and closes on Escape", async () => {
     const user = userEvent.setup();
     renderHome();

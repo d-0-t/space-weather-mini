@@ -204,6 +204,38 @@ export function valueAt(
 }
 
 /**
+ * Mean of the non-null readings within a symmetric 5-minute window
+ * (±2.5 min) around the given instant. The 1-min RTSW bursts 2–4 rows per
+ * minute, so single readings flicker; the displayed current values are
+ * the average instead. An anchor minute without its own reading still
+ * yields the mean of its window neighbours. Returns the mean with the
+ * anchor instant as its time tag, or null when no reading falls inside
+ * the window (no data, never zero).
+ */
+export function averagedValueAt(
+  rows: { time_tag: string; value: number | null }[],
+  timeTag: string,
+): { value: number | null; timeTag: string | null } {
+  const anchor = parseTimeTag(timeTag);
+  if (Number.isNaN(anchor)) return { value: null, timeTag: null };
+  const halfWindowMs = 2.5 * 60_000;
+  let sum = 0;
+  let count = 0;
+  for (const row of rows) {
+    if (row.value === null) continue;
+    const ms = parseTimeTag(row.time_tag);
+    if (Number.isNaN(ms)) continue;
+    if (Math.abs(ms - anchor) <= halfWindowMs) {
+      sum += row.value;
+      count += 1;
+    }
+  }
+  return count > 0
+    ? { value: sum / count, timeTag }
+    : { value: null, timeTag: null };
+}
+
+/**
  * Rounds the largest absolute GW reading up to a symmetric chart ceiling
  * (18 → 20), falling back to 10 when there is no data. Used to make a
  * mirrored second series span the Y axis symmetrically (20 → 0 → 20).

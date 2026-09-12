@@ -15,6 +15,7 @@ import {
   SMOOTHING,
   SparklineCard,
   addMinutes,
+  averagedValueAt,
   latestValue,
   smoothPoints,
   transitMinutes,
@@ -27,13 +28,16 @@ import {
   useIsOffline,
 } from "../offline/offline";
 
-const fetchWind = async () => {
+/** The Solar Wind panel's collapsible body id (deep-link target). */
+export const SOLAR_WIND_BODY_ID = "solar-wind-panel-body";
+
+export const fetchWind = async () => {
   const response = await fetch(RTSW_WIND_URL);
   if (!response.ok) throw new Error(`NOAA returned ${response.status}`);
   return parseRtswWind(await response.text());
 };
 
-const fetchMagField = async () => {
+export const fetchMagField = async () => {
   const response = await fetch(RTSW_MAG_FIELD_URL);
   if (!response.ok) throw new Error(`NOAA returned ${response.status}`);
   return parseRtswMagField(await response.text());
@@ -67,7 +71,7 @@ const SolarWind: React.FC = () => {
       <article className="live-panel solar-wind" aria-busy="true">
         <CollapsiblePanel
           heading={<h2>Solar Wind</h2>}
-          bodyId="solar-wind-panel-body"
+          bodyId={SOLAR_WIND_BODY_ID}
         >
           <p>Loading solar wind…</p>
         </CollapsiblePanel>
@@ -113,13 +117,14 @@ const SolarWind: React.FC = () => {
   const l1Window = BEFORE_NOW_MINUTES + transit;
   const l1AnchorOffset = Math.round(transit / SMOOTHING.solarWind);
 
-  // Headline values show the reading closest to "Now" (arriving at Earth now),
-  // not the freshest measurement (still propagating to Earth). The freshness
+  // Headline values show the 5-minute average around the reading closest
+  // to "Now" (arriving at Earth now), not a single 1-min reading – the
+  // 1-min feed bursts 2–4 rows per minute and flickers. The freshness
   // line instead tracks the feed's freshest reading – when it was updated.
-  const speedNow = valueAt(speedRows, windNowTag);
-  const densityNow = valueAt(densityRows, windNowTag);
-  const btNow = valueAt(btRows, magNowTag);
-  const bzNow = valueAt(bzRows, magNowTag);
+  const speedNow = averagedValueAt(speedRows, windNowTag);
+  const densityNow = averagedValueAt(densityRows, windNowTag);
+  const btNow = averagedValueAt(btRows, magNowTag);
+  const bzNow = averagedValueAt(bzRows, magNowTag);
 
   const state = (query: { isError: boolean; data?: unknown }) =>
     liveDataState(query, offline);
@@ -128,15 +133,18 @@ const SolarWind: React.FC = () => {
     <article className="live-panel solar-wind">
       <CollapsiblePanel
         heading={<h2>Solar wind</h2>}
-        bodyId="solar-wind-panel-body"
+        bodyId={SOLAR_WIND_BODY_ID}
       >
-        {transit > 0 ? (
-          <p className="live-panel__explain">
-            We are {transit} minutes behind{" "}
-            {latestSource ? `${latestSource}'s` : "the L1 spacecraft's"} data,
-            based on solar wind speed.
-          </p>
-        ) : null}
+        <p className="live-panel__explain">
+          {transit > 0 ? (
+            <>
+              We are {transit} minutes behind{" "}
+              {latestSource ? `${latestSource}'s` : "the L1 spacecraft's"}{" "}
+              data, based on solar wind speed.{" "}
+            </>
+          ) : null}
+          The displayed current values are 5-minute averages.
+        </p>
         <div className="live-panel__grid">
           <SparklineCard
             title="Speed"
@@ -222,14 +230,13 @@ const SolarWind: React.FC = () => {
             help={{
               label: "About Bz",
               rows: [
-                ["+ (northward)", "quiet"],
-                ["- (southward)", "potential"],
-                ["0 to −5 nT", "mild"],
-                ["−5 to −10 nT", "active (Kp3-4)"],
-                ["−10 to −20 nT", "storm (Kp5-7)"],
-                ["< −20 nT", "major storm (Kp7+)"],
+                ["+ (northward)", "gate closed"],
+                ["0 to −5 nT", "weakly coupled"],
+                ["−5 to −10 nT", "coupled"],
+                ["−10 to −20 nT", "strongly coupled"],
+                ["< −20 nT", "severe driving"],
               ],
-              text: "Interplanetary magnetic field (IMF), Bz (GSM) component – the north-south component of the solar wind's magnetic field in GSM coordinates. Southward (negative) Bz reconnects with Earth's magnetic field, coupling energy into the magnetosphere and driving aurora.",
+              text: "Interplanetary magnetic field (IMF), Bz (GSM) component – the north-south component of the solar wind's magnetic field in GSM coordinates. Southward (negative) Bz reconnects with Earth's magnetic field, coupling energy into the magnetosphere and driving aurora. Coupling is probabilistic and duration-gated: hours of sustained southward field can drive storming, one reading never does – these bands name the coupling strength, never a Kp outcome.",
             }}
             value={
               bzNow.value !== null

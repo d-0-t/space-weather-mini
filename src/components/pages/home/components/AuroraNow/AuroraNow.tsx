@@ -13,6 +13,7 @@ import {
 import { getMoonPhase } from "../../../../moon/moon";
 import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
 import { KpBar, fetchKpObserved, formatKp } from "../kp-panel/kp-panel";
+import AuroraSummary from "./AuroraSummary";
 import OvalGlow from "./OvalGlow";
 import ViewDistanceLine from "./ViewDistanceLine";
 
@@ -189,6 +190,7 @@ const AuroraNow: React.FC = () => {
         {(observedQuery.isError || offline) && observed ? (
           <StaleDataNotice />
         ) : null}
+        <AuroraSummary />
         <OvalGlow />
         <ViewDistanceLine />
         <SourceAttribution source={AURORA_SOURCE} />

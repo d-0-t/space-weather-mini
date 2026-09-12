@@ -53,6 +53,9 @@ import "./Forecast.scss";
 const ENLIL_VIDEO_URL = "https://spaceweather.irf.se/data/swpc_enlil.mp4";
 const ENLIL_SOURCE_URL = "https://spaceweather.irf.se/forecast/enlil/";
 
+/** The Forecast panel's collapsible body id. */
+const FORECAST_BODY_ID = "forecast-panel-body";
+
 /** Two-line tick for chart: "Aug 18\n00:00" → two tspans */
 const KpChartTick = (props: {
   x?: number;
@@ -122,7 +125,7 @@ const Forecast: React.FC = () => {
       <article className="forecast" aria-busy="true">
         <CollapsiblePanel
           heading={<h2>Forecast</h2>}
-          bodyId="forecast-panel-body"
+          bodyId={FORECAST_BODY_ID}
         >
           <p>Loading Kp forecast…</p>
         </CollapsiblePanel>
@@ -134,7 +137,7 @@ const Forecast: React.FC = () => {
       <article className="forecast">
         <CollapsiblePanel
           heading={<h2>Forecast</h2>}
-          bodyId="forecast-panel-body"
+          bodyId={FORECAST_BODY_ID}
         >
           <p>{COULDNT_LOAD_COPY}</p>
         </CollapsiblePanel>
@@ -218,7 +221,7 @@ const Forecast: React.FC = () => {
     <article className="forecast">
       <CollapsiblePanel
         heading={<h2>Forecast</h2>}
-        bodyId="forecast-panel-body"
+        bodyId={FORECAST_BODY_ID}
       >
         {showingSaved ? <StaleDataNotice /> : null}
         <div

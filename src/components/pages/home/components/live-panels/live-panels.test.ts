@@ -5,6 +5,7 @@ import {
   dedupeTooltipEntries,
   smoothPoints,
   splitSeriesByColor,
+  averagedValueAt,
   symmetricCeiling,
   transitMinutes,
   withNowAnchor,
@@ -194,5 +195,43 @@ describe("dedupeTooltipEntries", () => {
       { name: "North hemispheric power", value: 20, color: "#yellow" },
       { name: "South hemispheric power", value: 35, color: "#red" },
     ]);
+  });
+});
+describe("averagedValueAt - 5-minute average at an instant", () => {
+  const base = Date.UTC(2026, 7, 26, 22, 10); // 22:10
+  const row = (minutes: number, value: number | null) => ({
+    time_tag: new Date(base + minutes * 60_000).toISOString(),
+    value,
+  });
+
+  it("averages the non-null readings within a symmetric 5-minute window", () => {
+    const rows = [
+      row(-3, 100), // outside the +-2.5 min window
+      row(-2, 300),
+      row(-1, 400),
+      row(0, 500),
+      row(1, 600),
+      row(2, 700),
+      row(3, 900), // outside
+    ];
+    const result = averagedValueAt(rows, new Date(base).toISOString());
+    // mean(300..700) = 500; the anchor tag is the instant itself
+    expect(result.value).toBeCloseTo(500);
+    expect(result.timeTag).toBe(new Date(base).toISOString());
+  });
+
+  it("returns null when no non-null reading falls in the window", () => {
+    const rows = [row(-10, 300), row(10, 500)];
+    expect(averagedValueAt(rows, new Date(base).toISOString()).value).toBeNull();
+  });
+
+  it("skips null readings instead of poisoning the average", () => {
+    const rows = [row(-1, 300), row(0, null), row(1, 500)];
+    expect(averagedValueAt(rows, new Date(base).toISOString()).value).toBeCloseTo(400);
+  });
+
+  it("matches valueAt on a single-reading window (the expert card contract)", () => {
+    const rows = [row(-1, 280), row(0, 281)];
+    expect(averagedValueAt(rows, new Date(base).toISOString()).value).toBeCloseTo(280.5);
   });
 });
