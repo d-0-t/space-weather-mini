@@ -15,6 +15,7 @@ A spec to hand off (nothing built in this effort): a plain-language interpreter 
 
 - [01: Foundations (merged 01+02+03+07)](issues/01-foundations.md): pitfalls audit + honesty inventory with 12-item NO-GO list + interpreter content decisions (4 rows × 3 levels, both tabs, gated sky line) + guide scope (5-section outline, latitude-aware where-to-look, "Guide" at `/about/guide`, spin-off popups) — done; facts in `docs/research/plain-language-pitfalls-2026-09-12.md` and `docs/research/plain-language-honesty-2026-09-12.md`, build spec in `spec.md`. Absorbed files removed.
 - Build tickets 02–09 published from the specs and numbered clean (02 moon wiring; 03 tables+shell+expert-Bz fix; 04 merged prototype; 05 meters; 06 sky line; 07 inline glossary popups; 08 review+verification, last; 09 guide page build). Specs: `spec.md` (panel) + `guide-spec.md` (guide).
+- [02: Moon position wiring (done 2026-09-12)](issues/02-moon-position-wiring.md): `src/data/moon.ts` — altitude gate, rise/set per day over suncalc v2, pinned to time.now literals in `docs/research/plain-language-moon-2026-09-12.md`. The sky line's moon half un-cages with ticket 06.
 
 ## Not yet specified
 

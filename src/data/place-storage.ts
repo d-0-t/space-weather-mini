@@ -60,7 +60,7 @@ export const PLACE_PRESETS: readonly GeocodedPlace[] = [
  * Default geocoded place when nothing is stored: Luleå, Sweden at
  * 65.5848 N 22.1546 E (same value as LULEA_PLACE). Human decision
  * 2026-09-12: home town over the Östersund fallback. Trade-off recorded
- * 2026-09-01 still applies — at 65.58 N the Night band (sun below −18°)
+ * 2026-09-01 still applies – at 65.58 N the Night band (sun below −18°)
  * is shallow around early September and absent near the solstice.
  */
 export const DEFAULT_PLACE: GeocodedPlace = {
