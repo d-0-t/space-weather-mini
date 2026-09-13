@@ -221,7 +221,14 @@ describe("Legend max marker", () => {
     expect(maxGlowValue(parseOvation(makeGrid([[10, 70, 0]])))).toBeNull();
     // Boundary rows alone paint nothing, so there is no max either.
     expect(
-      maxGlowValue(parseOvation(makeGrid([[0, 0, 5], [10, 90, 3]]))),
+      maxGlowValue(
+        parseOvation(
+          makeGrid([
+            [0, 0, 5],
+            [10, 90, 3],
+          ]),
+        ),
+      ),
     ).toBeNull();
   });
 
@@ -252,9 +259,7 @@ describe("Legend max marker", () => {
     });
     const { container } = renderGlow();
     await canvases();
-    expect(
-      container.querySelector(".oval-glow__legend__marker"),
-    ).toBeNull();
+    expect(container.querySelector(".oval-glow__legend__marker")).toBeNull();
   });
 });
 
@@ -276,7 +281,7 @@ describe("OvalGlow", () => {
     );
     expect(disclosure).not.toBeNull();
     expect(controls.firstElementChild).toBe(disclosure);
-    const checkbox = screen.getByRole("checkbox", { name: "Color-blind mode" });
+    const checkbox = screen.getByRole("checkbox", { name: "Color-blind" });
     expect(controls.lastElementChild).toBe(checkbox.closest("label"));
     // Off by default: unchecked, the hue gradient, no brightness note.
     expect(checkbox).not.toBeChecked();
@@ -297,7 +302,7 @@ describe("OvalGlow", () => {
     const user = userEvent.setup();
     const { container } = renderGlow();
     await canvases();
-    const checkbox = screen.getByRole("checkbox", { name: "Color-blind mode" });
+    const checkbox = screen.getByRole("checkbox", { name: "Color-blind" });
     await user.click(checkbox);
     expect(checkbox).toBeChecked();
     expect(localStorage.getItem("sw:oval:cb:v1")).toBe(
@@ -327,7 +332,7 @@ describe("OvalGlow", () => {
     );
     const { container } = renderGlow();
     await canvases();
-    expect(screen.getByRole("checkbox", { name: "Color-blind mode" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Color-blind" })).toBeChecked();
     const bar = container.querySelector(
       ".oval-glow__legend__bar",
     ) as HTMLElement;
@@ -729,7 +734,9 @@ describe("Full size map modal", () => {
     expect(modal.querySelector(".oval-glow__legend")).not.toBeNull();
     // While open, both maps are in the tree: the inline one and the full
     // size one (closed, the modal stays out of the a11y tree entirely).
-    expect(await screen.findAllByRole("img", { name: /oval glow/i })).toHaveLength(2);
+    expect(
+      await screen.findAllByRole("img", { name: /oval glow/i }),
+    ).toHaveLength(2);
     await user.keyboard("{Escape}");
     expect(dialog.open).toBe(false);
   });

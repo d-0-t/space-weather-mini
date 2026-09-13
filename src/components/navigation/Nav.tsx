@@ -27,11 +27,12 @@ const FORECAST_ITEMS: readonly DropdownItem[] = [
   { to: "/forecasts/discussion", label: "Forecast Discussion" },
 ];
 
-/** The About submenu (ticket 01): This site / Sources / Explainers. */
+/** The About submenu (ticket 01, extended by ticket 09): This site / Sources / Explainers / Aurora guide. */
 const ABOUT_ITEMS: readonly DropdownItem[] = [
   { to: "/about", label: "This site" },
   { to: "/about/sources", label: "Sources" },
   { to: "/explainers", label: "Explainers" },
+  { to: "/about/guide", label: "Aurora guide" },
 ];
 
 /**

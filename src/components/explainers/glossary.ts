@@ -43,6 +43,11 @@ export const GLOSSARY_ENTRIES: GlossaryEntry[] = [
     body: "Geospace is the near-Earth space environment – magnetosphere, ionosphere, radiation belts. It is also the name of the fourth section of the forecast discussion; the word is never used as a synonym for geomagnetic activity.",
   },
   {
+    id: "solar-wind",
+    title: "Solar wind",
+    body: "The solar wind is the stream of charged particles flowing outward from the Sun, measured by its speed, density, and the interplanetary magnetic field it carries. A faster, denser stream brings more energy toward Earth, but the interplanetary magnetic field’s direction decides how much of it couples in and starts aurora.",
+  },
+  {
     id: "solar-radiation-storm",
     title: "Solar radiation storm",
     body: "A solar radiation storm is an S1–S5 scale event of elevated energetic particles that can affect satellites, astronauts, and high-altitude flights. S1 is minor, S5 is extreme. The scale comes from NOAA’s solar radiation storm scale.",
@@ -56,6 +61,21 @@ export const GLOSSARY_ENTRIES: GlossaryEntry[] = [
     id: "aurora-forecast",
     title: "Aurora forecast",
     body: "The aurora forecast shows the OVATION 30-minute aurora images for the north and south polar regions. Green bands near the poles mean a higher chance of visible aurora if skies are dark and clear.",
+  },
+  {
+    id: "night",
+    title: "Night",
+    body: "Night is the interval at a place when the sun sits below −18 degrees, between astronomical dusk and the next astronomical dawn. It is the darkest band of the Local conditions luminosity timeline, and the time faint aurora shows best – a set sun is not yet a dark sky.",
+  },
+  {
+    id: "oval",
+    title: "Oval",
+    body: "The oval is the ring of forecast glow around each magnetic pole, painted from NOAA’s OVATION model on a 1° grid. Each cell is a 30-minute forecast, not a live photo: a bright band means aurora is expected there, and cloud, Moon and light pollution can still hide it.",
+  },
+  {
+    id: "view-distance",
+    title: "View distance",
+    body: "View distance is the app’s estimate of how far the nearest forecast glow with a value of 6 or more is from your stored place, out to 600 km: Overhead / Nearby (0–100 km, Likely), Distant (100–300 km, Possible), Far (300–600 km, Unlikely), and Over 600 km (Not in range). It is a forecast 30–90 minutes ahead, not a sighting guarantee.",
   },
   {
     id: "interplanetary-magnetic-field",

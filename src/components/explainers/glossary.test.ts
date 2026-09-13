@@ -30,6 +30,20 @@ describe("glossary source", () => {
     }
   });
 
+  it("covers the Aurora guide's terms under their CONTEXT.md titles", () => {
+    // Ticket 09: the guide narrates these terms, so they graduated from
+    // CONTEXT.md into the Explainers glossary – one source, no redefinition.
+    for (const [id, title] of [
+      ["solar-wind", "Solar wind"],
+      ["night", "Night"],
+      ["oval", "Oval"],
+      ["view-distance", "View distance"],
+    ] as const) {
+      expect(getGlossaryEntry(id), `missing glossary entry for ${id}`).toBeDefined();
+      expect(getGlossaryEntry(id)!.title).toBe(title);
+    }
+  });
+
   it("gives every entry a unique, non-empty id", () => {
     const ids = GLOSSARY_ENTRIES.map((entry) => entry.id);
     expect(ids.every((id) => id.length > 0)).toBe(true);

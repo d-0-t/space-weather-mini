@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 
 import "./AuroraSummary.scss";
 import {
@@ -95,7 +96,8 @@ const MarkedSentence: React.FC<{ text: string; marks?: SentenceMark[] }> = ({
  * measured readings still propagating here; displayed values are 5-minute
  * averages, never single 1-min readings. It ends with two extra sentences:
  * the Moon wash-out caveat (only while the Moon is up and lit enough to
- * matter) and the stored place's View distance reach. The paragraph is
+ * matter) and the stored place's View distance reach, then one link to the
+ * Aurora guide read-through. The paragraph is
  * always fully open; a feed that hasn't landed yet leaves its sentence out
  * (never a mid-paragraph loading/error line), and one that failed for good
  * reads the honest "No data right now." Shares the expert panels' query
@@ -273,10 +275,9 @@ const AuroraSummary: React.FC = () => {
   // measured reading the merged L1 sentence reads; the feed's update
   // time is one fact). The Kp block's freshness is the panel's own As-of
   // line under the Kp readout – never duplicated here.
-  const asOfCandidates = [
-    latestWind?.time_tag,
-    latestMag?.time_tag,
-  ].filter((tag): tag is string => typeof tag === "string");
+  const asOfCandidates = [latestWind?.time_tag, latestMag?.time_tag].filter(
+    (tag): tag is string => typeof tag === "string",
+  );
   const asOf =
     asOfCandidates.length > 0
       ? asOfCandidates.reduce((oldest, tag) =>
@@ -363,6 +364,12 @@ const AuroraSummary: React.FC = () => {
           As of {formatShort(asOf, displayTimezone)}. Updated {formatAge(asOf)}.
         </p>
       ) : null}
+      {/* One path from the quick check to the full read-through (ticket 09):
+          the Aurora guide, at the end of the summary so nothing interrupts
+          the live claims. */}
+      <p className="aurora-now__summary__guide">
+        <Link to="/about/guide">Read aurora guide →</Link>
+      </p>
     </div>
   );
 };

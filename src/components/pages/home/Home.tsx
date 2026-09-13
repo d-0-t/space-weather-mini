@@ -1,4 +1,5 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useLocation } from "react-router-dom";
 import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 
 import "../Pages.scss";
@@ -15,11 +16,36 @@ import { ALERTS_ENABLED } from "../../../features";
 const COMPACT_VIEW_KEY = "compact-view";
 
 const Home: React.FC = () => {
+  const location = useLocation();
   const [compact, setCompact] = useState(
     () => localStorage.getItem(COMPACT_VIEW_KEY) === "on",
   );
   const alertsButtonRef = useRef<HTMLButtonElement>(null);
   const alertsDialogRef = useRef<HTMLDialogElement>(null);
+
+  // Deep links from the Aurora guide ("/#view-distance", "/#oval-glow"): the
+  // Aurora Now panels mount only after their feeds land, so scroll when the
+  // target element first appears rather than at mount alone.
+  useEffect(() => {
+    const id = location.hash.slice(1);
+    if (!id) return;
+    let observer: MutationObserver | null = null;
+    const scrollToTarget = (): void => {
+      const target = document.getElementById(id);
+      if (!target) return;
+      target.scrollIntoView();
+      observer?.disconnect();
+    };
+    scrollToTarget();
+    if (!document.getElementById(id)) {
+      observer = new MutationObserver(scrollToTarget);
+      observer.observe(
+        document.getElementById("main-content") ?? document.body,
+        { childList: true, subtree: true },
+      );
+    }
+    return () => observer?.disconnect();
+  }, [location.hash]);
 
   const handleCompactChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const next = event.target.checked;

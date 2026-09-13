@@ -107,9 +107,10 @@ test("the local conditions page renders the luminosity timeline for the default 
   await expect(
     page.getByRole("heading", { level: 1, name: "Local conditions" }),
   ).toBeVisible();
-  // The place chip shows the short name as visible text; the full display
-  // name lives on the title attribute (default is Luleå since 2026-09-12).
-  const chip = page.locator(".conditions__place");
+  // The place pill (the PlaceFinder trigger) shows the short name as
+  // visible text; the full display name lives on the title attribute
+  // (default is Luleå since 2026-09-12).
+  const chip = page.locator(".place-finder__trigger");
   await expect(chip).toContainText("Luleå, Norrbotten County");
   await expect(chip).toHaveAttribute(
     "title",
@@ -193,13 +194,11 @@ test("the local conditions page renders the weather card from the Kiruna fixture
     page.getByText(/Updated at \d{2}:\d{2}, near/),
   ).toBeVisible();
   // h2 sections are now collapsible via CollapsiblePanel – the headings are
-  // toggle buttons with aria-expanded (exact match: "Find my location"
-  // contains "Location" as a substring, so the toggle needs exact:true).
+  // toggle buttons with aria-expanded. The place picker moved into the
+  // header trigger's Change location modal (ticket 05/06), so no Location
+  // panel exists any more.
   await expect(
     page.getByRole("button", { name: "Weather", exact: true }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Location", exact: true }),
   ).toBeVisible();
   await expect(
     page.getByRole("button", { name: "External maps", exact: true }),
@@ -244,17 +243,23 @@ test("the place search journey shows five matches and updates the place, dayligh
   await stubExternalImages(page);
   await page.goto("/conditions");
 
-  // One h1, default Luleå place chip (short name visible, full on title).
+  // One h1, default Luleå place pill (short name visible, full on title).
   await expect(
     page.getByRole("heading", { level: 1, name: "Local conditions" }),
   ).toBeVisible();
   await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
-  const chip = page.locator(".conditions__place");
+  const chip = page.locator(".place-finder__trigger");
   await expect(chip).toContainText("Luleå, Norrbotten County");
 
-  // Visible label on the search field; no per-keystroke fetch happens.
+  // The search lives in the Change location modal now: the header pill opens
+  // it, moves focus to the search field, and nothing is stored until Apply.
+  await chip.click();
+  await expect(
+    page.getByRole("heading", { level: 2, name: "Change location" }),
+  ).toBeVisible();
   const field = page.getByRole("searchbox", { name: "Search for a place" });
   await expect(field).toBeVisible();
+  await expect(field).toBeFocused();
   await expect(page.getByText("Search for a place")).toBeVisible();
 
   // Type a place and submit with Enter → five radio matches appear.
@@ -268,12 +273,15 @@ test("the place search journey shows five matches and updates the place, dayligh
     }),
   ).toBeVisible();
 
-  // Picking one updates the stored place chip …
+  // Picking one stages it; Apply commits it and closes the modal.
   await page
     .getByRole("radio", {
       name: "Springfield, Hampden County, Massachusetts, United States",
     })
     .click();
+  await expect(page.getByText(/Selected: /)).toBeVisible();
+  await page.getByRole("button", { name: "Apply and close" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
   await expect(chip).toContainText("Springfield, Hampden County");
   await expect(chip).toHaveAttribute(
     "title",
@@ -336,6 +344,7 @@ test("the June at 69 N place shows the midnight-sun polar copy", async ({
   await page.goto("/conditions");
 
   const field = page.getByRole("searchbox", { name: "Search for a place" });
+  await page.locator(".place-finder__trigger").click();
   await field.fill("Kiruna");
   await field.press("Enter");
   await expect(page.getByRole("radio")).toHaveCount(2);
@@ -344,6 +353,7 @@ test("the June at 69 N place shows the midnight-sun polar copy", async ({
       name: "Kiruna, Kiruna kommun, Norrbottens län, 981 30, Sverige",
     })
     .click();
+  await page.getByRole("button", { name: "Apply and close" }).click();
 
   // Only Today renders (Tomorrow removed per product decision, ticket 04);
   // the single Day band carries the honest polar copy.
@@ -367,11 +377,17 @@ test("the page meets the ticket 05 accessibility bar", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
 
   // Search field has a visible label; the five matches use radio semantics.
+  // The picker lives in the Change location modal, so open it first.
+  await page.locator(".place-finder__trigger").click();
   await expect(page.getByText("Search for a place")).toBeVisible();
   const field = page.getByRole("searchbox", { name: "Search for a place" });
   await field.fill("Springfield");
   await field.press("Enter");
   await expect(page.getByRole("radio")).toHaveCount(5);
+  // Cancel dismisses the modal; the page behind it stays put. (Escape would
+  // only clear the search field while it has focus.)
+  await page.getByRole("button", { name: "Cancel" }).click();
+  await expect(page.getByRole("dialog")).toHaveCount(0);
 
   // Hourly strip is a list, daily row is a table with a caption.
   await expect(

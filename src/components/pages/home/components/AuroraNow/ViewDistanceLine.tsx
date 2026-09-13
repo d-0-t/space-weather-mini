@@ -69,7 +69,7 @@ const ViewDistanceLine: React.FC = () => {
         : `Aurora ${viewDistance.confidence.toLowerCase()}`;
 
   return (
-    <section className="view-distance">
+    <section className="view-distance" id="view-distance">
       {/* A div, not a <p>: the (i) popover's <details> is not phrasing
           content, so a browser would auto-close a <p> around it and break
           the line apart. */}

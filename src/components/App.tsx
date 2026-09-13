@@ -13,6 +13,7 @@ import DailyGeomagneticIndices from "./pages/forecasts/daily-geomagnetic-indices
 import Webcams from "./pages/webcams/webcams";
 import Explainers from "./pages/explainers";
 import Sources from "./pages/Sources";
+import Guide from "./pages/Guide";
 
 const LocalConditions = lazy(() => import("./pages/conditions/conditions"));
 
@@ -41,6 +42,7 @@ const App: React.FC = () => {
       </Route>
       <Route path={"about"} element={<About />} />
       <Route path={"about/sources"} element={<Sources />} />
+      <Route path={"about/guide"} element={<Guide />} />
       <Route path={"explainers"} element={<Explainers />} />
     </Routes>
   );

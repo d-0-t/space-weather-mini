@@ -139,7 +139,7 @@ _Avoid_: local time (without qualifier), place time
 ### Navigation
 
 **About submenu**:
-The header's About disclosure (ticket 01 of the display-timezone effort), a native `<details>/<summary>` disclosure sharing the Details submenu's shape and keyboard behavior: a trigger summary opening an sr-only-labelled list of This site (the biography and future-plans article at `/about`), Sources (the Data & Sources article at `/about/sources`) and Explainers (`/explainers`). Explainers appears only inside this submenu, never at the top level.
+The header's About disclosure (ticket 01 of the display-timezone effort), a native `<details>/<summary>` disclosure sharing the Details submenu's shape and keyboard behavior: a trigger summary opening an sr-only-labelled list of This site (the biography and future-plans article at `/about`), Sources (the Data & Sources article at `/about/sources`), Explainers (`/explainers`) and Aurora guide (`/about/guide`). Explainers appears only inside this submenu, never at the top level.
 _Avoid_: about page (when the submenu is meant), sources link (without the subpage name)
 
 ### Presentation
@@ -247,7 +247,7 @@ _Avoid_: refresh button (as a term), weather refresh (as a synonym for the times
 ### Plain language
 
 **Interpreter**:
-The plain-language summary at the top of the Aurora Now panel: ONE merged paragraph — one short sentence each for the Kp index, the solar-wind stream and the magnetic gate (hemispheric power stays expert-only) — always fully open, with a time-ahead selector for the L1 readings (from the value arriving at Earth now to the freshest measurement still in transit) and one As-of line. It ends with the Moon wash-out caveat (only while the Moon is above the horizon and lit enough to matter) and the View distance reach sentence ("Nearest glow 0-100 km away (Likely)."). The L1 claims run on 5-minute averages, never single 1-min readings — the Solar Wind panel's displayed current values use the same averaging. Deep links into the expert detail were removed in the human's decluttering pass; the numbers sit directly below.
+The plain-language summary at the top of the Aurora Now panel: ONE merged paragraph — one short sentence each for the Kp index, the solar-wind stream and the magnetic gate (hemispheric power stays expert-only) — always fully open, with a time-ahead selector for the L1 readings (from the value arriving at Earth now to the freshest measurement still in transit) and one As-of line. It ends with the Moon wash-out caveat (only while the Moon is above the horizon and lit enough to matter) and the View distance reach sentence ("Nearest glow 0-100 km away (Likely)."). The L1 claims run on 5-minute averages, never single 1-min readings — the Solar Wind panel's displayed current values use the same averaging. Deep links into the expert detail were removed in the human's decluttering pass; the numbers sit directly below, and one link to the Aurora guide closes the summary.
 _Avoid_: translator, explainer panel, dashboard (the Dashboard is the whole page)
 
 **Interval text**:
@@ -261,6 +261,10 @@ _Avoid_: severity colors as level names, storm (as the level's name on its own)
 **Darkest (window)**:
 The weather line's label for the deepest darkness the reference day reaches at the stored place — "Darkest (night): 22:38 to 02:23." when the sun crosses −18°, otherwise the deepest twilight band it reaches (astronomical, nautical, then civil, named in the parentheses), so a nightless summer day still names its darkest stretch. Midnight sun reads "Polar day." and deep polar night "Darkest (night): all day." Times render in the Display timezone.
 _Avoid_: dark hours, night window (without "darkest" or the band qualifier)
+
+**Aurora guide**:
+The read-through narrative page at `/about/guide`, reachable as the About submenu's Aurora guide entry and linked once from the end of the Interpreter. Five sections in the evening's order — what auroras are, when to look, where to look, what can hide aurora, before you go out — written for a layman or traveler: terms open the shared glossary popups, where-to-look is latitude-aware and defers the live position to the Dashboard's Oval glow intensity and View distance anchors (`/#oval-glow`, `/#view-distance`), never a blanket "face north". Every claim stays inside the honesty bounds: no promises, no colour promises, no city strings, no light-pollution numbers.
+_Avoid_: guide page, what-are-auroras page
 
 ### Offline and personal oval
 

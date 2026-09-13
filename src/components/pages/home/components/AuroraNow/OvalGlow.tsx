@@ -673,21 +673,21 @@ const OvalGlow: React.FC = () => {
 
   if (ovalQuery.isPending && !product) {
     return (
-      <section className="oval-glow" aria-busy="true">
+      <section id="oval-glow" className="oval-glow" aria-busy="true">
         <p>Loading oval glow…</p>
       </section>
     );
   }
   if (state === "never-loaded" || !product) {
     return (
-      <section className="oval-glow">
+      <section id="oval-glow" className="oval-glow">
         <p>{COULDNT_LOAD_COPY}</p>
       </section>
     );
   }
 
   return (
-    <section className="oval-glow">
+    <section id="oval-glow" className="oval-glow">
       <div className="oval-glow__head">
         <h3 className="oval-glow__title">Oval glow intensity</h3>
         <HelpPopover

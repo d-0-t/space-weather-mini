@@ -7,6 +7,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { MemoryRouter } from "react-router-dom";
 
 import { DisplayTimezoneProvider } from "../../../../DisplayTimezone/DisplayTimezoneContext";
 import { saveDisplayTimezone } from "../../../../../products/display-timezone";
@@ -90,11 +91,13 @@ beforeEach(() => {
 
 const renderSummary = () =>
   render(
-    <QueryClientProvider client={queryClient()}>
-      <DisplayTimezoneProvider>
-        <AuroraSummary />
-      </DisplayTimezoneProvider>
-    </QueryClientProvider>,
+    <MemoryRouter>
+      <QueryClientProvider client={queryClient()}>
+        <DisplayTimezoneProvider>
+          <AuroraSummary />
+        </DisplayTimezoneProvider>
+      </QueryClientProvider>
+    </MemoryRouter>,
   );
 
 /** The summary paragraph – the mark spans split the text, so match a
@@ -293,6 +296,21 @@ describe("Aurora Now plain-language summary (human decisions 2026-09-12/13)", ()
     await waitFor(() =>
       expect(screen.getByText(/As of .* UTC\. Updated/)).toBeInTheDocument(),
     );
+  });
+
+  it("links once to the Aurora guide at the end of the summary", async () => {
+    renderSummary();
+    await waitForParagraph();
+    const links = screen.getAllByRole("link", { name: /read aurora guide/i });
+    expect(links).toHaveLength(1);
+    expect(links[0]).toHaveAttribute("href", "/about/guide");
+    // The reader finishes the summary claims and the As-of line, then finds
+    // the full read-through – never an interruption mid-paragraph.
+    const paragraphText = paragraph();
+    expect(
+      paragraphText.compareDocumentPosition(links[0]) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it("appends the view-distance reach as the summary's last sentence", async () => {

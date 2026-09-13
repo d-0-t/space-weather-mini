@@ -22,6 +22,11 @@
   margin: 0 0 0.5rem;
 }
 
+// The summary's one link out to the full Aurora guide read-through.
+.aurora-now__summary__guide {
+  margin: 0.5rem 0 0;
+}
+
 // Verdict keywords (fast, dense, wrong way…) highlighted in the palette's
 // good/bad hues. Color reinforces the word – the keyword text stays.
 .aurora-now__summary__mark--good {

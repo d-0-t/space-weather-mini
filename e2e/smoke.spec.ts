@@ -2,6 +2,11 @@ import { expect, test } from "@playwright/test";
 
 const dataTimeout = 60_000;
 
+// The data-dependent journeys wait up to `dataTimeout` on live NOAA
+// fetches, so the per-test budget must clear it (the global default is
+// 60 s and a stalled feed would otherwise always kill the test).
+test.describe.configure({ timeout: 120_000 });
+
 test("the app boots with navigation chrome on every page", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { level: 1, name: "Dashboard" })).toBeVisible();
