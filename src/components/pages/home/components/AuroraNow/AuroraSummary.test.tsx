@@ -23,9 +23,9 @@ const mockFetch = vi.fn();
 
 // Deterministic feeds. Speed 280.85 km/s → L1→Earth transit ≈ 89 min, so
 // "Arriving now" reads the measurement taken ~89 min before the freshest
-// one. Mag rows put an ACTIVE gate (−2 nT) at the arriving-now instant and
-// a STORM-range gate (−15 nT) 30 min later, so the time-ahead selector
-// visibly changes the gate sentence.
+// one. Mag rows put an ACTIVE field (−2 nT) at the arriving-now instant
+// and a STORM-range field (−15 nT) 30 min later, so the time-ahead
+// selector visibly changes the merged L1 sentence.
 const SPEED = 280.85;
 const TRANSIT = Math.round(1_500_000 / SPEED / 60); // 89
 const OBSERVED_TIME = "2026-08-25T12:00:00";
@@ -45,10 +45,10 @@ const windRows = Array.from({ length: 121 }, (_, i) => ({
 const windFixture = JSON.stringify(windRows);
 const magRows = Array.from({ length: 121 }, (_, i) => {
   const ms = WIND_LATEST - (120 - i) * 60_000;
-  // The gate: −2 nT (active) through the arriving-now instant, then
-  // −15 nT (storm range) for the readings arriving later – the step sits
-  // 28 min past arriving-now so the ±2.5 min windows around "now" and
-  // "in ~30 min" each land fully inside one band.
+  // The field: −2 nT (weakly right) through the arriving-now instant,
+  // then −15 nT (strongly right) for the readings arriving later – the
+  // step sits 28 min past arriving-now so the ±2.5 min windows around
+  // "now" and "in ~30 min" each land fully inside one band.
   const arrivingNowMs = WIND_LATEST - TRANSIT * 60_000;
   return {
     time_tag: new Date(ms).toISOString().slice(0, 19),
@@ -83,20 +83,35 @@ const renderSummary = () =>
     </QueryClientProvider>,
   );
 
-describe("Aurora Now plain-language summary (human decision 2026-09-12)", () => {
-  it("renders one concise paragraph summing up Kp, stream and gate – no hemispheric power", async () => {
+/** The summary paragraph – the mark spans split the text, so match a
+ * function instead of a text node. */
+const paragraph = () =>
+  screen
+    .getAllByText(
+      (_, node) =>
+        node instanceof Element &&
+        node.classList.contains("aurora-now__summary__text"),
+    )
+    .at(-1)!
+    .closest("p")!;
+
+const waitForParagraph = async () =>
+  waitFor(() =>
+    expect(paragraph().textContent).toMatch(/Aurora intensity is currently/),
+  );
+
+describe("Aurora Now plain-language summary (human decisions 2026-09-12/13)", () => {
+  it("renders one concise paragraph summing up Kp plus the merged stream-and-field sentence – no hemispheric power", async () => {
     renderSummary();
+    await waitForParagraph();
     await waitFor(() =>
-      expect(screen.getByText(/Aurora intensity is currently low/i)).toBeInTheDocument(),
-    );
-    const paragraph = () =>
-      screen.getByText(/Aurora intensity is currently low/i).closest("p")!;
-    await waitFor(() =>
-      expect(paragraph().textContent).toMatch(/running slow and calm/),
+      expect(paragraph().textContent).toMatch(/running slow/),
     );
     await waitFor(() =>
-      expect(paragraph().textContent).toMatch(/cracked open/),
+      expect(paragraph().textContent).toMatch(/weakly toward aurora/),
     );
+    // Two sentences total: Kp + the merged L1 sentence.
+    expect(paragraph().textContent).toMatch(/magnetic field/);
     // HP was dropped from the interpreter (human decision: OVATION's
     // synthesis of the same inputs, expert card only).
     expect(paragraph().textContent).not.toMatch(/Energy is/i);
@@ -104,18 +119,14 @@ describe("Aurora Now plain-language summary (human decision 2026-09-12)", () => 
 
   it("carries no caveat line and no sources line", async () => {
     renderSummary();
-    await waitFor(() =>
-      expect(screen.getByText(/Aurora intensity is currently low/i)).toBeInTheDocument(),
-    );
+    await waitForParagraph();
     expect(screen.queryByText(/approximate averages/i)).toBeNull();
     expect(screen.queryByText(/Sources:/i)).toBeNull();
   });
 
   it("always renders the full paragraph open, with no Read more button or clamp", async () => {
     renderSummary();
-    await waitFor(() =>
-      expect(screen.getByText(/Aurora intensity is currently low/i)).toBeInTheDocument(),
-    );
+    await waitForParagraph();
     expect(screen.queryByRole("button", { name: "Read more" })).toBeNull();
     expect(screen.queryByRole("button", { name: "Read less" })).toBeNull();
     expect(
@@ -128,17 +139,25 @@ describe("Aurora Now plain-language summary (human decision 2026-09-12)", () => 
     expect(localStorage.getItem(SUMMARY_KEY)).toBeNull();
   });
 
-  it("defaults the stream reading to arriving now and offers offsets up to the transit horizon", async () => {
+  it("defaults the L1 reading to now and offers offsets up to the transit horizon, each with its verdict word", async () => {
     renderSummary();
-    await waitFor(() =>
-      expect(screen.getByText(/Aurora intensity is currently low/i)).toBeInTheDocument(),
-    );
-    // Default "Arriving now": the gate at the arriving-now instant is −2 →
-    // active level, not the storm-range value measured later upstream.
-    expect(screen.getByText(/cracked open/i).textContent).not.toMatch(/open wide/);
+    await waitForParagraph();
+    // Default "Now": the field at the arriving-now instant is
+    // −2 → weakly right, not the storm-range value measured later upstream.
+    expect(paragraph().textContent).toMatch(/weakly toward aurora/);
     const select = screen.getByRole("combobox", {
       name: "Summary",
     }) as HTMLSelectElement;
+    const labels = Array.from(select.options).map((o) => o.textContent ?? "");
+    // "Arriving now" is plain "Now", and every option carries its
+    // strongest-driver verdict word. The fixture's now-reading (280 km/s
+    // slow, thin, −2 nT weakly-right, Kp 1) grades faint, not moderate.
+    expect(labels[0]).toBe("Now – faint");
+    expect(labels).toContain("In 15 min – faint");
+    expect(labels).toContain("In 30 min – moderate");
+    expect(labels[labels.length - 1]).toBe(
+      `In ${TRANSIT} min (latest) – moderate`,
+    );
     const options = Array.from(select.options).map((o) => o.value);
     expect(options[0]).toBe("0");
     expect(options).toContain("15");
@@ -147,19 +166,17 @@ describe("Aurora Now plain-language summary (human decision 2026-09-12)", () => 
     expect(options[options.length - 1]).toBe(String(TRANSIT));
   });
 
-  it("switches the stream and gate sentences to the reading arriving at the chosen offset", async () => {
+  it("switches the merged L1 sentence to the reading arriving at the chosen offset", async () => {
     const user = userEvent.setup();
     renderSummary();
-    await waitFor(() =>
-      expect(screen.getByText(/Aurora intensity is currently low/i)).toBeInTheDocument(),
-    );
+    await waitForParagraph();
     const select = screen.getByRole("combobox", {
       name: "Summary",
     });
     await user.selectOptions(select, "30");
     // +30 min ahead: the −15 nT reading is the one arriving → storm range.
     await waitFor(() =>
-      expect(screen.getByText(/open wide/i).textContent).toMatch(/drive a storm/),
+      expect(paragraph().textContent).toMatch(/pushing hard/),
     );
   });
 
@@ -178,18 +195,14 @@ describe("Aurora Now plain-language summary (human decision 2026-09-12)", () => 
       return Promise.resolve({ ok: true, text: async () => "" });
     });
     renderSummary();
-    await waitFor(() =>
-      expect(screen.getByText(/Aurora intensity is currently low/i)).toBeInTheDocument(),
-    );
+    await waitForParagraph();
     expect(screen.queryByRole("combobox")).toBeNull();
     expect(screen.getAllByText(/No data right now\./i).length).toBeGreaterThan(0);
   });
 
   it("marks the summary as showing saved data when the browser is offline", async () => {
     renderSummary();
-    await waitFor(() =>
-      expect(screen.getByText(/Aurora intensity is currently low/i)).toBeInTheDocument(),
-    );
+    await waitForParagraph();
     act(() => {
       window.dispatchEvent(new Event("offline"));
     });
@@ -201,13 +214,11 @@ describe("Aurora Now plain-language summary (human decision 2026-09-12)", () => 
     // "Couldn't load – connect to refresh" between its sentences.
     renderSummary();
     expect(screen.queryByText(COULDNT_LOAD_COPY)).toBeNull();
-    await waitFor(() =>
-      expect(screen.getByText(/Aurora intensity is currently low/i)).toBeInTheDocument(),
-    );
+    await waitForParagraph();
     expect(screen.queryByText(COULDNT_LOAD_COPY)).toBeNull();
   });
 
-  it("reads no data for a feed that failed for good, never the loading copy", async () => {
+  it("reads no data when either L1 feed failed for good, never the loading copy", async () => {
     mockFetch.mockImplementation((url: string) => {
       const u = typeof url === "string" ? url : "";
       if (u.includes("rtsw_mag_1m.json"))
@@ -223,20 +234,21 @@ describe("Aurora Now plain-language summary (human decision 2026-09-12)", () => 
       return Promise.resolve({ ok: true, text: async () => "" });
     });
     renderSummary();
+    // The failed mag feed pulls the whole merged sentence to the honest
+    // missing-data row – never a half sentence – so only the Kp line and
+    // the missing-data copy render.
     await waitFor(() =>
-      expect(screen.getByText(/running slow and calm/i)).toBeInTheDocument(),
+      expect(screen.getByText(/No data right now\./i)).toBeInTheDocument(),
     );
-    // The failed gate feed reads the honest missing-data sentence.
-    expect(screen.getByText(/No data right now\./i)).toBeInTheDocument();
+    expect(paragraph().textContent).toMatch(/Aurora intensity is currently/);
+    expect(paragraph().textContent).not.toMatch(/running slow/);
     expect(screen.queryByText(COULDNT_LOAD_COPY)).toBeNull();
   });
 
   it("keeps one real update timestamp across every selector interval", async () => {
     const user = userEvent.setup();
     renderSummary();
-    await waitFor(() =>
-      expect(screen.getByText(/Aurora intensity is currently low/i)).toBeInTheDocument(),
-    );
+    await waitForParagraph();
     // The As-of is the feed's freshest reading (oldest of the two L1
     // feeds' freshest: mag at 23:26:01Z), never the selected offset's
     // anchor instant – it must not move when the selector moves.
@@ -246,7 +258,7 @@ describe("Aurora Now plain-language summary (human decision 2026-09-12)", () => 
     const select = screen.getByRole("combobox", { name: "Summary" });
     await user.selectOptions(select, "30");
     await waitFor(() =>
-      expect(screen.getByText(/open wide/i).textContent).toMatch(/drive a storm/),
+      expect(paragraph().textContent).toMatch(/pushing hard/),
     );
     expect(asOfText()).toBe(before);
     await user.selectOptions(select, String(TRANSIT));

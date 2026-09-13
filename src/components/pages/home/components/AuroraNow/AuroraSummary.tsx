@@ -3,11 +3,13 @@ import { useQuery } from "@tanstack/react-query";
 
 import "./AuroraSummary.scss";
 import {
-  bzIntervalText,
   kpIntervalText,
-  speedIntervalText,
+  l1IntervalText,
+  l1Word,
+  overallWord,
   type IntervalText,
   type NoDataText,
+  type SentenceMark,
 } from "../../../../../products/interval-texts";
 import {
   formatAge,
@@ -37,17 +39,55 @@ import {
 const OFFSET_STEPS = [15, 30] as const;
 
 /**
+ * Splits a sentence into plain and highlighted runs by its marks. Marks
+ * are exact substrings; each renders as a good/bad span so color
+ * reinforces the word (the word itself stays for screen readers and
+ * color-blind users). A mark not found in its sentence would silently
+ * drop its highlight, so the tests pin every mark against its sentence.
+ */
+const MarkedSentence: React.FC<{ text: string; marks?: SentenceMark[] }> = ({
+  text,
+  marks,
+}) => {
+  if (!marks || marks.length === 0) return <>{text}</>;
+  const spans: React.ReactNode[] = [];
+  let cursor = 0;
+  for (const mark of marks) {
+    const at = text.indexOf(mark.text, cursor);
+    if (at < 0) continue;
+    if (at > cursor) spans.push(text.slice(cursor, at));
+    spans.push(
+      <span
+        key={`${mark.text}-${at}`}
+        className={
+          mark.polarity === "good"
+            ? "aurora-now__summary__mark--good"
+            : "aurora-now__summary__mark--bad"
+        }
+      >
+        {mark.text}
+      </span>,
+    );
+    cursor = at + mark.text.length;
+  }
+  if (cursor < text.length) spans.push(text.slice(cursor));
+  return <>{spans}</>;
+};
+
+/**
  * The Aurora Now panel's plain-language summary: ONE concise paragraph
- * summing up the live Kp index, the solar-wind stream and the magnetic
- * gate (hemispheric power stays expert-only in the Magnetosphere panel –
- * it is the OVATION synthesis of the same L1 inputs). The L1 half follows
- * the time-ahead selector: "now" is the reading arriving at Earth, the
- * offsets pick measured readings still propagating here; displayed values
- * are 5-minute averages, never single 1-min readings. The paragraph is
- * always fully open; a feed that hasn't landed yet leaves its sentence
- * out (never a mid-paragraph loading/error line), and one that failed for
- * good reads the honest "No data right now." Shares the expert panels'
- * query keys, so each feed is still fetched exactly once.
+ * summing up the live Kp index plus one merged L1 sentence covering the
+ * solar-wind stream AND the magnetic field together (hemispheric power
+ * stays expert-only in the Magnetosphere panel – it is the OVATION
+ * synthesis of the same L1 inputs; the two L1 readings share one sentence
+ * per the 2026-09-13 human decision). The L1 half follows the time-ahead
+ * selector: "now" is the reading arriving at Earth, the offsets pick
+ * measured readings still propagating here; displayed values are 5-minute
+ * averages, never single 1-min readings. The paragraph is always fully
+ * open; a feed that hasn't landed yet leaves its sentence out (never a
+ * mid-paragraph loading/error line), and one that failed for good reads
+ * the honest "No data right now." Shares the expert panels' query keys,
+ * so each feed is still fetched exactly once.
  */
 const AuroraSummary: React.FC = () => {
   const offline = useIsOffline();
@@ -81,6 +121,10 @@ const AuroraSummary: React.FC = () => {
   const windRows = (windQuery.data ?? []).map((p) => ({
     time_tag: p.time_tag,
     value: p.speed,
+  }));
+  const densityRows = (windQuery.data ?? []).map((p) => ({
+    time_tag: p.time_tag,
+    value: p.density,
   }));
   const magRows = (magQuery.data ?? []).map((p) => ({
     time_tag: p.time_tag,
@@ -120,14 +164,66 @@ const AuroraSummary: React.FC = () => {
           addMinutes(latestMag.time_tag, offsetMinutes - transit),
         )
       : { value: null, timeTag: null };
+  // Same 5-minute-average rule as speed: the density adjective reads the
+  // same instant the speed clause reads (both ride the rtsw-wind feed,
+  // one fetch). No wind feed → no density reading either.
+  const selectedDensity =
+    latestWind && latestWind.value !== null
+      ? averagedValueAt(
+          densityRows,
+          addMinutes(latestWind.time_tag, offsetMinutes - transit),
+        )
+      : { value: null, timeTag: null };
 
-  const speedText: IntervalText | NoDataText = speedIntervalText(
+  const l1Text: IntervalText | NoDataText = l1IntervalText(
     selectedWind.value,
+    selectedMag.value,
+    selectedDensity.value,
   );
-  const bzText: IntervalText | NoDataText = bzIntervalText(selectedMag.value);
   const kpText: IntervalText | NoDataText = kpIntervalText(
     latestObserved ? latestObserved.Kp : null,
   );
+
+  // One-word verdict per selector option: the strongest driver's word on
+  // the inactive→intense ladder, computed per offset from THAT offset's
+  // L1 readings – graded finely (field direction base rung, speed lift,
+  // density ignored) so a slow, thin, weakly-leaning stream reads faint,
+  // not the coarse level's "moderate". The Kp readout is planetary and
+  // stays put. An option whose L1 reading is missing carries no word –
+  // never a guessed one.
+  const optionWord = (offset: number): string | null => {
+    const wordAt = (
+      wind: number | null,
+      mag: number | null,
+      dens: number | null,
+    ) => {
+      const l1 = l1IntervalText(wind, mag, dens);
+      if (l1.level === "no-data") return null;
+      const windWord = l1Word(wind, mag);
+      return overallWord(latestObserved ? latestObserved.Kp : null, windWord);
+    };
+    if (offset === offsetMinutes) {
+      const word = wordAt(
+        selectedWind.value,
+        selectedMag.value,
+        selectedDensity.value,
+      );
+      return word;
+    }
+    const windAt = averagedValueAt(
+      windRows,
+      addMinutes(latestWind?.time_tag ?? "", offset - transit),
+    );
+    const magAt = averagedValueAt(
+      magRows,
+      addMinutes(latestMag?.time_tag ?? "", offset - transit),
+    );
+    const densAt = averagedValueAt(
+      densityRows,
+      addMinutes(latestWind?.time_tag ?? "", offset - transit),
+    );
+    return wordAt(windAt.value, magAt.value, densAt.value);
+  };
 
   const pending = (query: { isPending: boolean; data?: unknown }) =>
     query.isPending && !query.data;
@@ -139,9 +235,9 @@ const AuroraSummary: React.FC = () => {
   // One As-of line for the summary's own claims: the real update time of
   // its two L1 feeds – the oldest of their FRESHEST readings. It never
   // moves with the time-ahead selector (that selector picks which
-  // measured reading the sentences read; the feed's update time is one
-  // fact). The Kp block's freshness is the panel's own As-of line under
-  // the Kp readout – never duplicated here.
+  // measured reading the merged L1 sentence reads; the feed's update
+  // time is one fact). The Kp block's freshness is the panel's own As-of
+  // line under the Kp readout – never duplicated here.
   const asOfCandidates = [
     latestWind?.time_tag,
     latestMag?.time_tag,
@@ -167,30 +263,39 @@ const AuroraSummary: React.FC = () => {
             value={String(offsetMinutes)}
             onChange={(event) => setOffsetMinutes(Number(event.target.value))}
           >
-            {offsets.map((offset) => (
-              <option key={offset} value={String(offset)}>
-                {offset === 0
-                  ? "Arriving now"
+            {offsets.map((offset) => {
+              const word = optionWord(offset);
+              const label =
+                offset === 0
+                  ? "Now"
                   : offset === transit
                     ? `In ${offset} min (latest)`
-                    : `In ${offset} min`}
-              </option>
-            ))}
+                    : `In ${offset} min`;
+              return (
+                <option key={offset} value={String(offset)}>
+                  {word ? `${label} – ${word}` : label}
+                </option>
+              );
+            })}
           </select>
         </label>
       ) : null}
       <p className="aurora-now__summary__text">
         {[
           { text: kpText, loading: pending(observedQuery) },
-          { text: speedText, loading: pending(windQuery) },
-          { text: bzText, loading: pending(magQuery) },
+          {
+            text: l1Text,
+            loading: pending(windQuery) || pending(magQuery),
+          },
         ]
           .filter((part) => !part.loading)
           .map((part, index) => (
             <span key={part.text.key}>
               {index > 0 ? " " : null}
-              {part.text.sentence}
-            </span>
+              <MarkedSentence
+                text={part.text.sentence}
+                marks={part.text.level === "no-data" ? undefined : part.text.marks}
+              />            </span>
           ))}
       </p>
       {asOf ? (

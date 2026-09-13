@@ -45,11 +45,7 @@ $aurora-kp-colors: (
     );
   background-repeat: repeat;
   background-size: 50%;
-
-  h3,
-  &__current__time {
-    text-shadow: var(--text-stroke-black);
-  }
+  text-shadow: var(--text-stroke-black);
 
   & > .collapsible-panel {
     position: relative;
@@ -61,6 +57,7 @@ $aurora-kp-colors: (
     inset: 0;
     width: 100%;
     height: 75%;
+    max-height: 20rem;
     overflow: hidden;
     pointer-events: none;
 
@@ -113,7 +110,7 @@ $aurora-kp-colors: (
     &__kp {
       display: flex;
       align-items: center;
-      padding: 1rem 1rem 4rem 1rem;
+      padding: 1rem 1rem 3rem 1rem;
 
       // Frozen data readout (ADR-0009): the current-Kp figure keeps its
       // tuned literal size, outside the type roles.

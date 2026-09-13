@@ -159,22 +159,6 @@ describe("AuroraNow", () => {
     );
   });
 
-  it("shows the freshness line as 'As of {time}. Updated {age}.' in the chosen zone, no bullet", async () => {
-    renderAuroraNow();
-    await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
-    // Local mode (the default): the device clock bare, no zone suffix.
-    // Fixture's latest observed reading is at 2026-08-25T12:00:00 → 14:00 in Sweden.
-    expect(screen.getByText(/As of 14:00\. Updated/)).toBeInTheDocument();
-    // UTC mode: the NOAA-legacy shape with suffix.
-    saveDisplayTimezone(localStorage, "utc");
-    cleanup();
-    renderAuroraNow();
-    await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());
-    expect(
-      screen.getByText(/As of Aug 25 12:00 UTC\. Updated/),
-    ).toBeInTheDocument();
-  });
-
   it("shows the stale notice with saved data when the browser goes offline", async () => {
     renderAuroraNow();
     await waitFor(() => expect(document.querySelector(".kp-bar")).toBeInTheDocument());

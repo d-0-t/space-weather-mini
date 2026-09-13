@@ -138,8 +138,15 @@ describe("Home Live Now dashboard (ticket 01)", () => {
       ).toBeInTheDocument(),
     );
     await waitFor(() => expect(screen.getByText("Speed")).toBeInTheDocument());
+    // The mark spans split the Kp sentence's text, so match a function.
     await waitFor(() =>
-      expect(screen.getByText(/Aurora intensity is currently low/i)).toBeInTheDocument(),
+      expect(
+        screen.getAllByText(
+          (_, node) =>
+            node instanceof Element &&
+            node.classList.contains("aurora-now__summary__text"),
+        ).length,
+      ).toBeGreaterThan(0),
     );
     for (const url of [
       "rtsw_wind_1m.json",

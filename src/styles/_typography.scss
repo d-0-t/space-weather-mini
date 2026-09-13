@@ -55,7 +55,7 @@ h4 {
 
 // The md step: the unitless line-height tokens scale with their size token
 // and need no step of their own.
-@include respond-to(md) {
+@include respond-to(lg) {
   :root {
     --font-size-body: 1rem;
     --font-size-lead: 1.15rem;

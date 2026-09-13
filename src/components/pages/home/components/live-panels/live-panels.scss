@@ -82,10 +82,10 @@
         color: inherit;
         // Frozen icon-glyph size: the emoji moon badge is sized like a
         // glyph, not like text (ADR-0009 exception)
-        font-size: 2.7rem;
+        font-size: var(--font-size-h1);
         cursor: help;
         user-select: none;
-        margin-right: -1rem;
+        margin-right: -0.5rem;
 
         &:hover {
           background: transparent;

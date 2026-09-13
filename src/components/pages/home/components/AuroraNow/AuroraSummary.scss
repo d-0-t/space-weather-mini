@@ -6,18 +6,30 @@
 
 .aurora-now__summary__offset {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: baseline;
   gap: 0.5rem;
   font-size: var(--font-size-caption);
+  margin: 1rem 0 0.75rem 0;
 
-  select {
-    height: 44px;
-    border-radius: 8px;
-    background-color: black;
+  h3 {
+    margin: 0;
   }
 }
 
 .aurora-now__summary__text {
   margin: 0 0 0.5rem;
+}
+
+// Verdict keywords (fast, dense, wrong way…) highlighted in the palette's
+// good/bad hues. Color reinforces the word – the keyword text stays.
+.aurora-now__summary__mark--good {
+  color: var(--color-accent-strong);
+  font-weight: 600;
+}
+
+.aurora-now__summary__mark--bad {
+  color: var(--color-orange);
+  font-weight: 600;
 }

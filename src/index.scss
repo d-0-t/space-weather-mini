@@ -264,6 +264,15 @@ button.header__astro.btn--secondary:has(> .btn__label) {
   }
 }
 
+select {
+  height: 44px;
+  border-radius: 8px;
+  background-color: var(--color-black);
+  padding-left: 0.5rem;
+  font-size: var(--font-size-small);
+  font-weight: 500;
+}
+
 /* Skip link – first focusable element, visible only on focus */
 .skip-link {
   position: absolute;

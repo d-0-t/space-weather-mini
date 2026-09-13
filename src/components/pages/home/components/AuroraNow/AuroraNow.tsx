@@ -183,10 +183,10 @@ const AuroraNow: React.FC = () => {
           </span>
         </div>
         <KpBar kp={currentKpRounded} />
-        <FreshnessLine
+        {/* <FreshnessLine
           asOf={latestObserved.time_tag}
           updated={formatAge(latestObserved.time_tag)}
-        />
+        /> */}
         {(observedQuery.isError || offline) && observed ? (
           <StaleDataNotice />
         ) : null}
