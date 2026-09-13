@@ -64,7 +64,9 @@ describe("DailyGeomagneticIndices page", () => {
     expect(
       screen.getByText(/Prepared by the U\.S\. Dept\. of Commerce/)
     ).toBeInTheDocument();
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /refresh/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows one Issued line in UTC mode – the NOAA clock with suffix and the (UTC) label", async () => {
@@ -118,6 +120,8 @@ describe("DailyGeomagneticIndices page", () => {
     expect(
       await screen.findByText(/couldn't load the daily geomagnetic indices/i)
     ).toBeInTheDocument();
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /refresh/i }),
+    ).not.toBeInTheDocument();
   });
 });

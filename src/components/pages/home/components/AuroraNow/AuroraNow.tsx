@@ -35,7 +35,7 @@ const MoonPhaseBadge: React.FC = () => {
         rows: [["Current Moon phase", phase.name]],
         text: `A bright Moon washes out faint aurora, so the darkest skies around the new moon are best for aurora watching.`,
       }}
-      summary={
+      trigger={
         <>
           <span aria-hidden="true" title={phase.name}>
             {phase.emoji}

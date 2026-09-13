@@ -59,7 +59,9 @@ describe("TwentySevenDayOutlook page", () => {
     expect(
       screen.getByText(/Prepared by the US Dept\. of Commerce/)
     ).toBeInTheDocument();
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /refresh/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows one Issued line in UTC mode – the NOAA clock with suffix and the (UTC) label", async () => {
@@ -111,7 +113,9 @@ describe("TwentySevenDayOutlook page", () => {
     mockFetch.mockRejectedValue(new Error("network down"));
     renderPage();
     expect(await screen.findByText(/couldn't load the 27-day outlook/i)).toBeInTheDocument();
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /refresh/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("keeps the last data visible when a background refetch fails", async () => {

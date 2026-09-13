@@ -1,21 +1,51 @@
+// A glossary term in running prose: a real focusable button styled like a
+// dotted-underline link, with a visible focus ring. The button (not a Link)
+// keeps the term valid phrasing content inside paragraphs and headings.
 .glossary-term {
   color: var(--color-accent-strong);
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  text-underline-offset: 3px;
   font-weight: 600;
-  cursor: pointer;
 
-  &:hover,
-  &:focus-visible {
-    text-decoration-style: solid;
-    background-color: color-mix(
-      in srgb,
-      var(--color-accent-strong) 15%,
-      transparent
-    );
-    outline: 2px solid var(--color-accent-strong);
-    outline-offset: 2px;
-    border-radius: 2px;
+  &__label {
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    text-underline-offset: 3px;
+  }
+
+  > button {
+    display: inline;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    font-weight: inherit;
+    cursor: pointer;
+
+    &:hover .glossary-term__label,
+    &:focus-visible .glossary-term__label {
+      text-decoration-style: solid;
+      background-color: color-mix(
+        in srgb,
+        var(--color-accent-strong) 15%,
+        transparent
+      );
+      border-radius: 2px;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-accent-strong);
+      outline-offset: 2px;
+    }
+  }
+}
+
+// The glossary popover is slightly wider than the info popovers for prose,
+// and its body has no internal paragraph rhythm; the rest of the chrome comes
+// from the shared .help-popover base (HelpPopover.scss).
+.glossary-term__popover {
+  width: min(320px, 80vw);
+
+  p {
+    margin: 0;
   }
 }

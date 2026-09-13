@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 
@@ -17,6 +18,7 @@ import ForecastDiscussion from "../pages/forecasts/forecast-discussion";
 import WeeklyReport from "../pages/forecasts/weekly-report";
 import GeophysicalAlert from "../pages/forecasts/geophysical-alert";
 import { DisplayTimezoneProvider } from "../DisplayTimezone/DisplayTimezoneContext";
+import { getGlossaryEntry } from "./glossary";
 
 const queryClient = () =>
   new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -37,77 +39,72 @@ const renderWithRouter = (ui: React.ReactNode) =>
     </QueryClientProvider>,
   );
 
-describe("Product pages link to the explainers glossary", () => {
-  it("27-day outlook links to radio flux, A index and Kp index explainers", async () => {
+/** A term is a popup control now, never a link that navigates away. */
+const expectGlossaryTerm = (name: RegExp): void => {
+  expect(screen.getByRole("button", { name })).toBeInTheDocument();
+  expect(screen.queryByRole("link", { name })).toBeNull();
+};
+
+describe("Product pages offer inline glossary popups", () => {
+  it("27-day outlook explains radio flux, A index and Kp index", async () => {
     mockFetch.mockResolvedValue({ ok: true, text: async () => fixture27 });
     renderWithRouter(<TwentySevenDayOutlook />);
     expect(await screen.findByText(/27-Day Outlook/)).toBeInTheDocument();
-    // At least one glossary term link per relevant concept
-    expect(screen.getByRole("link", { name: /radio flux/i })).toHaveAttribute(
-      "href",
-      expect.stringContaining("/explainers#radio-flux"),
-    );
-    expect(screen.getByRole("link", { name: /a index/i })).toHaveAttribute(
-      "href",
-      expect.stringContaining("/explainers#a-index"),
-    );
-    expect(screen.getByRole("link", { name: /^kp index$/i })).toHaveAttribute(
-      "href",
-      expect.stringContaining("/explainers#kp-index"),
-    );
+    expectGlossaryTerm(/radio flux/i);
+    expectGlossaryTerm(/a index/i);
+    expectGlossaryTerm(/^kp index$/i);
   });
 
-  it("daily geomagnetic indices links to Kp index and A index explainers", async () => {
+  it("opens the shared entry verbatim and links to the full glossary", async () => {
+    const user = userEvent.setup();
+    mockFetch.mockResolvedValue({ ok: true, text: async () => fixture27 });
+    renderWithRouter(<TwentySevenDayOutlook />);
+    expect(await screen.findByText(/27-Day Outlook/)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /radio flux/i }));
+    expect(screen.getByText(getGlossaryEntry("radio-flux")!.body)).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /read the full glossary/i }),
+    ).toHaveAttribute("href", "/explainers#radio-flux");
+  });
+
+  it("daily geomagnetic indices explains Kp index and A index", async () => {
     mockFetch.mockResolvedValue({ ok: true, text: async () => fixtureDaily });
     renderWithRouter(<DailyGeomagneticIndices />);
     expect(await screen.findByText(/Daily Geomagnetic Indices/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /kp index/i })).toHaveAttribute(
-      "href",
-      expect.stringContaining("/explainers#kp-index"),
-    );
-    expect(screen.getByRole("link", { name: /a index/i })).toBeInTheDocument();
+    expectGlossaryTerm(/kp index/i);
+    expectGlossaryTerm(/a index/i);
   });
 
-  it("3-day forecast links to geomagnetic activity, solar radiation storm and radio blackout explainers", async () => {
+  it("3-day forecast explains geomagnetic activity, solar radiation storm and radio blackout", async () => {
     mockFetch.mockResolvedValue({ ok: true, text: async () => fixture3Day });
     renderWithRouter(<ThreeDayForecast />);
     expect(await screen.findByText(/3-Day Forecast/)).toBeInTheDocument();
-    expect(
-      screen.getByRole("link", { name: /geomagnetic activity/i }),
-    ).toHaveAttribute("href", expect.stringContaining("/explainers#geomagnetic-activity"));
-    expect(
-      screen.getByRole("link", { name: /solar radiation storm/i }),
-    ).toHaveAttribute("href", expect.stringContaining("/explainers#solar-radiation-storm"));
-    expect(
-      screen.getByRole("link", { name: /radio blackout/i }),
-    ).toHaveAttribute("href", expect.stringContaining("/explainers#radio-blackout"));
+    expectGlossaryTerm(/geomagnetic activity/i);
+    expectGlossaryTerm(/solar radiation storm/i);
+    expectGlossaryTerm(/radio blackout/i);
   });
 
-  it("forecast discussion links to geospace explainer", async () => {
+  it("forecast discussion explains geospace", async () => {
     mockFetch.mockResolvedValue({ ok: true, text: async () => fixtureDiscussion });
     renderWithRouter(<ForecastDiscussion />);
     expect(await screen.findByText(/Forecast Discussion/)).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /geospace/i })).toHaveAttribute(
-      "href",
-      expect.stringContaining("/explainers#geospace"),
-    );
+    expectGlossaryTerm(/geospace/i);
   });
 
-  it("weekly report links to its explainer", async () => {
+  it("weekly report explains its own product", async () => {
     mockFetch.mockResolvedValue({ ok: true, text: async () => fixtureWeekly });
     renderWithRouter(<WeeklyReport />);
     expect(await screen.findByText(/Weekly Report/)).toBeInTheDocument();
-    // Weekly report page should link back to the weekly report definition
-    const links = screen.getAllByRole("link");
-    expect(links.some((l) => (l.getAttribute("href") ?? "").includes("/explainers"))).toBe(true);
+    expectGlossaryTerm(/weekly report/i);
   });
 
-  it("geophysical alert links to its explainer", async () => {
+  it("geophysical alert explains its own product without linking away", async () => {
     mockFetch.mockResolvedValue({ ok: true, text: async () => fixtureAlert });
     renderWithRouter(<GeophysicalAlert />);
-    expect(await screen.findByText(/Geophysical Observations and Predictions/)).toBeInTheDocument();
-    const links = screen.getAllByRole("link");
-    expect(links.some((l) => (l.getAttribute("href") ?? "").includes("/explainers"))).toBe(true);
+    expect(
+      await screen.findByText(/Geophysical Observations and Predictions/),
+    ).toBeInTheDocument();
+    expectGlossaryTerm(/geophysical alert/i);
   });
 });
 

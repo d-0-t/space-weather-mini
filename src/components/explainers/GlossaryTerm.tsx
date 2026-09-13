@@ -1,4 +1,7 @@
 import { Link } from "react-router-dom";
+
+import HelpPopover from "../HelpPopover/HelpPopover";
+import { getGlossaryEntry } from "./glossary";
 import "./glossary-term.scss";
 
 interface GlossaryTermProps {
@@ -9,17 +12,31 @@ interface GlossaryTermProps {
 }
 
 /**
- * An accessible, keyboard-focusable link into the explainers glossary.
- * Renders as a React Router Link so navigation stays inside the SPA and the
- * hash scrolls to the matching explainer section. The link is styled with a
- * dotted underline so it reads as a glossary term in running prose, but it is
- * never hover-only: it is a real focusable anchor with a visible focus ring.
+ * An accessible, keyboard-focusable glossary term. It renders as a real
+ * button inside running prose (valid inline, unlike the old link) and opens
+ * the shared glossary entry in a HelpPopover at the term, so the reader never
+ * loses their place by navigating away. The popover body is the same entry the
+ * Explainers page renders, verbatim, and offers a quiet link to the full
+ * glossary anchor for readers who want the page. A term with no entry renders
+ * as plain text rather than a dead control.
  */
 const GlossaryTerm: React.FC<GlossaryTermProps> = ({ termId, children }) => {
+  const entry = getGlossaryEntry(termId);
+  if (!entry) return <>{children}</>;
+
   return (
-    <Link to={`/explainers#${termId}`} className="glossary-term">
-      {children}
-    </Link>
+    <HelpPopover
+      className="glossary-term"
+      popoverClassName="glossary-term__popover"
+      content={{
+        label: entry.title,
+        text: entry.body,
+        footnote: (
+          <Link to={`/explainers#${entry.id}`}>Read the full glossary</Link>
+        ),
+      }}
+      trigger={<span className="glossary-term__label">{children}</span>}
+    />
   );
 };
 

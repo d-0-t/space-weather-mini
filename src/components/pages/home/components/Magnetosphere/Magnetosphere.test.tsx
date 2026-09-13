@@ -86,18 +86,19 @@ describe("Magnetosphere", () => {
     await waitFor(() =>
       expect(screen.getByText("Hemispheric power")).toBeInTheDocument(),
     );
-    // One info-icon help per card – 4 cards, all collapsible via native <details>
+    // One info-icon help per card – 4 cards, all toggled by a real button
     const helps = document.querySelectorAll(".live-panel__help");
     expect(helps.length).toBeGreaterThanOrEqual(4);
-    expect(
-      document.querySelectorAll(".live-panel__help > summary.btn--icon").length,
-    ).toBeGreaterThanOrEqual(4);
+    const triggers = document.querySelectorAll(
+      ".live-panel__help > button.btn--icon",
+    );
+    expect(triggers.length).toBeGreaterThanOrEqual(4);
     expect(screen.getByText("About hemispheric power")).toBeInTheDocument();
     expect(screen.getByText("About Dst")).toBeInTheDocument();
     expect(screen.getByText("About the Kiruna magnetogram")).toBeInTheDocument();
     expect(screen.getByText("About the NOAA magnetometer")).toBeInTheDocument();
-    for (const details of Array.from(helps)) {
-      expect(details).toHaveProperty("open", false);
+    for (const trigger of Array.from(triggers)) {
+      expect(trigger).toHaveAttribute("aria-expanded", "false");
     }
   });
 
@@ -135,9 +136,10 @@ describe("Magnetosphere", () => {
     const boulderHelp = screen
       .getByText("NOAA magnetometer (Boulder)")
       .closest("section")!
-      .querySelector(".live-panel__help")! as HTMLDetailsElement;
-    await user.click(boulderHelp.querySelector("summary")!);
-    const popover = boulderHelp.querySelector(".live-panel__popover")!;
+      .querySelector(".live-panel__help")!;
+    const boulderTrigger = boulderHelp.querySelector("button")!;
+    await user.click(boulderTrigger);
+    const popover = document.querySelector(".live-panel__popover")!;
     // Both the scale list and the description render, stacked, not overlapped
     expect(popover.querySelectorAll("li").length).toBeGreaterThan(3);
     expect(popover.querySelector("li b")?.textContent).toBe("0-2");
@@ -152,9 +154,9 @@ describe("Magnetosphere", () => {
     ).toBe(Node.DOCUMENT_POSITION_FOLLOWING);
     // A click outside the popover closes it; a click inside keeps it open
     fireEvent.pointerDown(boulderHelp, { clientX: 0, clientY: 0 });
-    expect(boulderHelp.open).toBe(true);
-    fireEvent.pointerDown(document, { clientX: 0, clientY: 0 });
-    expect(boulderHelp.open).toBe(false);
+    expect(boulderTrigger).toHaveAttribute("aria-expanded", "true");
+    fireEvent.pointerDown(document.body, { clientX: 0, clientY: 0 });
+    expect(boulderTrigger).toHaveAttribute("aria-expanded", "false");
   });
 
   it("shows the Kiruna magnetogram image and the NOAA Boulder chart as separate cards", async () => {

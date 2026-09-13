@@ -258,8 +258,8 @@ _Avoid_: canned text, template sentence, copy block
 The interpreter's three-step reading scale per row — calm / active / storm-like — plus the honest missing-data state ("no data", never zero). "Storm-like" is deliberately hedged: it names storm-range viewing conditions without asserting a NOAA storm scale level.
 _Avoid_: severity colors as level names, storm (as the level's name on its own)
 
-**Darkest window**:
-The weather line's label for the deepest darkness the reference day reaches at the stored place — "Darkest window (night): 22:38 to 02:23." when the sun crosses −18°, otherwise the deepest twilight band it reaches (astronomical, nautical, then civil, named in the parentheses), so a nightless summer day still names its darkest stretch. Midnight sun reads "Polar day." and deep polar night "Darkest window (night): all day." Times render in the Display timezone.
+**Darkest (window)**:
+The weather line's label for the deepest darkness the reference day reaches at the stored place — "Darkest (night): 22:38 to 02:23." when the sun crosses −18°, otherwise the deepest twilight band it reaches (astronomical, nautical, then civil, named in the parentheses), so a nightless summer day still names its darkest stretch. Midnight sun reads "Polar day." and deep polar night "Darkest (night): all day." Times render in the Display timezone.
 _Avoid_: dark hours, night window (without "darkest" or the band qualifier)
 
 ### Offline and personal oval

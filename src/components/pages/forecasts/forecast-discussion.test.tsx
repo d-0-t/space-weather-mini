@@ -78,7 +78,9 @@ describe("ForecastDiscussion page", () => {
     expect(
       screen.getByText(/Prepared by the U\.S\. Dept\. of Commerce/)
     ).toBeInTheDocument();
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /refresh/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows one Issued line in UTC mode – the NOAA clock with suffix and the (UTC) label", async () => {
@@ -95,6 +97,8 @@ describe("ForecastDiscussion page", () => {
     expect(
       await screen.findByText(/couldn't load the forecast discussion/i)
     ).toBeInTheDocument();
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /refresh/i }),
+    ).not.toBeInTheDocument();
   });
 });

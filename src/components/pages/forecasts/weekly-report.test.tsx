@@ -87,7 +87,9 @@ describe("WeeklyReport page", () => {
     expect(
       screen.getByText(/Prepared by the US Dept\. of Commerce/)
     ).toBeInTheDocument();
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /refresh/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows one Issued line in UTC mode – the NOAA clock with suffix and the (UTC) label", async () => {
@@ -104,6 +106,8 @@ describe("WeeklyReport page", () => {
     expect(
       await screen.findByText(/couldn't load the weekly report/i)
     ).toBeInTheDocument();
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /refresh/i }),
+    ).not.toBeInTheDocument();
   });
 });

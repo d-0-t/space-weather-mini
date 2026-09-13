@@ -1,8 +1,37 @@
+// The shared popover body chrome, owned by the HelpPopover block. Each
+// consuming surface adds its own popoverClassName only for the deltas (width,
+// paragraph rhythm). The body is portalled to the document and positioned
+// with inline fixed coordinates by the component.
+.help-popover {
+  position: fixed;
+  // Border-box so the width is the true outer width: content-box would add
+  // padding/border on top, pushing the popover past the viewport on narrow
+  // screens
+  box-sizing: border-box;
+  width: min(300px, 70vw);
+  margin: 0;
+  padding: 0.6rem;
+  // Reserve the top-right corner for the close X
+  padding-right: 2.25rem;
+  background: var(--gradient-card);
+  border: 1px solid var(--color-border-muted);
+  border-radius: 6px;
+  font-size: var(--font-size-small);
+  line-height: var(--line-height-small);
+  z-index: 30;
+  box-shadow: 0 4px 12px var(--color-black);
+}
+
+// The optional closing line, e.g. the glossary's provenance link
+.help-popover__footnote {
+  margin: 0.5rem 0 0;
+  font-size: var(--font-size-caption);
+}
+
 // Chrome for the HelpPopover close button: a small X in the popover body's
-// top-right corner. Each popover family (.live-panel__popover,
-// .oval-glow__popover) reserves the corner with padding-right so text never
-// runs under it. Colors come from tokens; the hover inverts to white like
-// the other help controls.
+// top-right corner. Each popover family reserves the corner with padding-right
+// on .help-popover so text never runs under it. Colors come from tokens; the
+// hover inverts to white like the other help controls.
 .help-popover__close {
   position: absolute;
   top: 0.3rem;

@@ -58,7 +58,10 @@ const OSLO_PLACE = {
 const findSunState = (state: "day" | "civil-twilight" | "dark"): Date => {
   for (let minutes = 0; minutes < 24 * 60; minutes += 5) {
     const ms = Date.UTC(2026, 7, 26, 0, minutes);
-    if (sunState(OSLO_PLACE.latitude, OSLO_PLACE.longitude, new Date(ms)) === state) {
+    if (
+      sunState(OSLO_PLACE.latitude, OSLO_PLACE.longitude, new Date(ms)) ===
+      state
+    ) {
       return new Date(ms);
     }
   }
@@ -160,9 +163,7 @@ describe("AuroraNow", () => {
     await waitFor(() =>
       expect(document.querySelector(".kp-bar")).toBeInTheDocument(),
     );
-    const moon = document.querySelector(
-      ".live-panel__help--moon",
-    ) as HTMLDetailsElement;
+    const moon = document.querySelector(".live-panel__help--moon")!;
     expect(moon).not.toBeNull();
     // Fake system time is 2026-08-26T22:00Z → Waxing gibbous
     expect(
@@ -170,12 +171,12 @@ describe("AuroraNow", () => {
     ).toBeInTheDocument();
     expect(moon.querySelector("[aria-hidden='true']")!.textContent).toBe("🌔");
     // The popover explains the phase and why it matters for aurora
-    await user.click(moon.querySelector("summary")!);
-    expect(moon.open).toBe(true);
-    expect(moon.querySelector(".live-panel__popover")?.textContent).toMatch(
-      /Waxing gibbous/,
-    );
-    expect(moon.querySelector(".live-panel__popover")?.textContent).toMatch(
+    const moonTrigger = moon.querySelector("button")!;
+    await user.click(moonTrigger);
+    expect(moonTrigger).toHaveAttribute("aria-expanded", "true");
+    const moonPopover = document.querySelector(".live-panel__popover")!;
+    expect(moonPopover.textContent).toMatch(/Waxing gibbous/);
+    expect(moonPopover.textContent).toMatch(
       /darkest skies around the new moon/,
     );
   });
@@ -305,7 +306,7 @@ describe("AuroraNow", () => {
     expect(line.textContent).toContain("19% cloud.");
     expect(line.textContent).not.toMatch(/Humidity|low|mid|high/);
     // The darkest window names the deepest band the day reaches.
-    expect(line.textContent).toMatch(/Darkest window \(night\):/);
+    expect(line.textContent).toMatch(/Darkest \(night\):/);
     // The link to the Local conditions page
     const link = within(line).getByRole("link", { name: "Local conditions →" });
     expect(link.getAttribute("href")).toBe("/conditions");

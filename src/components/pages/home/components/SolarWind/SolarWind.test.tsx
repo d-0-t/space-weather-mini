@@ -151,42 +151,45 @@ describe("SolarWind", () => {
     }
   });
 
-  it("explains every chart in a native collapsible help toggle", async () => {
+  it("explains every chart in a collapsible help popover", async () => {
     const user = userEvent.setup();
     renderSolarWind();
     await waitFor(() => expect(screen.getByText("Speed")).toBeInTheDocument());
-    // One info-icon help per card – 4 cards, all collapsible via native <details>
+    // One info-icon help per card – 4 cards, all toggled by a real button
     const helps = document.querySelectorAll(".live-panel__help");
     expect(helps.length).toBeGreaterThanOrEqual(4);
-    expect(
-      document.querySelectorAll(".live-panel__help > summary.btn--icon").length,
-    ).toBeGreaterThanOrEqual(4);
+    const triggers = document.querySelectorAll(
+      ".live-panel__help > button.btn--icon",
+    );
+    expect(triggers.length).toBeGreaterThanOrEqual(4);
     // Per-card sr-only labels
     expect(screen.getByText("About solar wind")).toBeInTheDocument();
     expect(screen.getByText("About particle density")).toBeInTheDocument();
     expect(screen.getByText("About Bt")).toBeInTheDocument();
     expect(screen.getByText("About Bz")).toBeInTheDocument();
-    for (const details of Array.from(helps)) {
-      expect(details).toHaveProperty("open", false);
+    for (const trigger of Array.from(triggers)) {
+      expect(trigger).toHaveAttribute("aria-expanded", "false");
     }
     // Opening the Speed help reveals its compact scale
     const speedHelp = screen
       .getByText("Speed")
       .closest("section")!
-      .querySelector(".live-panel__help")! as HTMLDetailsElement;
-    await user.click(speedHelp.querySelector("summary")!);
-    expect(speedHelp.open).toBe(true);
-    expect(speedHelp.querySelector("li b")?.textContent).toBe("< 400 km/s");
-    expect(speedHelp.textContent).toMatch(/900 km\/s.*very high/);
+      .querySelector(".live-panel__help")!;
+    const speedTrigger = speedHelp.querySelector("button")!;
+    await user.click(speedTrigger);
+    expect(speedTrigger).toHaveAttribute("aria-expanded", "true");
+    const popover = document.querySelector(".live-panel__popover")!;
+    expect(popover.querySelector("li b")?.textContent).toBe("< 400 km/s");
+    expect(popover.textContent).toMatch(/900 km\/s.*very high/);
     // Escape closes it and returns focus to the info trigger
     await user.keyboard("{Escape}");
-    expect(speedHelp.open).toBe(false);
-    expect(speedHelp.querySelector("summary")).toHaveFocus();
+    expect(speedTrigger).toHaveAttribute("aria-expanded", "false");
+    expect(speedTrigger).toHaveFocus();
     // Clicking toggles it open and closed again
-    await user.click(speedHelp.querySelector("summary")!);
-    expect(speedHelp.open).toBe(true);
-    await user.click(speedHelp.querySelector("summary")!);
-    expect(speedHelp.open).toBe(false);
+    await user.click(speedTrigger);
+    expect(speedTrigger).toHaveAttribute("aria-expanded", "true");
+    await user.click(speedTrigger);
+    expect(speedTrigger).toHaveAttribute("aria-expanded", "false");
   });
 
   it("explains the propagation delay behind the Now line", async () => {
@@ -206,21 +209,23 @@ describe("SolarWind", () => {
     const btHelp = screen
       .getByText("Bt")
       .closest("section")!
-      .querySelector(".live-panel__help")! as HTMLDetailsElement;
-    await user.click(btHelp.querySelector("summary")!);
-    expect(btHelp.textContent).toMatch(
+      .querySelector(".live-panel__help")!;
+    await user.click(btHelp.querySelector("button")!);
+    let popover = document.querySelector(".live-panel__popover")!;
+    expect(popover.textContent).toMatch(
       /Interplanetary magnetic field \(IMF\), Bt component/i,
     );
-    expect(btHelp.textContent).toMatch(/strength of the Sun's magnetic field/);
+    expect(popover.textContent).toMatch(/strength of the Sun's magnetic field/);
     const bzHelp = screen
       .getByText("Bz")
       .closest("section")!
-      .querySelector(".live-panel__help")! as HTMLDetailsElement;
-    await user.click(bzHelp.querySelector("summary")!);
-    expect(bzHelp.textContent).toMatch(
+      .querySelector(".live-panel__help")!;
+    await user.click(bzHelp.querySelector("button")!);
+    popover = document.querySelector(".live-panel__popover")!;
+    expect(popover.textContent).toMatch(
       /Interplanetary magnetic field \(IMF\), Bz \(GSM\) component/i,
     );
-    expect(bzHelp.textContent).toMatch(/southward \(negative\) Bz/i);
+    expect(popover.textContent).toMatch(/southward \(negative\) Bz/i);
   });
 
   it("frames Bz bands as a duration-gated gate with no Kp outcome (N1)", async () => {
@@ -230,12 +235,13 @@ describe("SolarWind", () => {
     const bzHelp = screen
       .getByText("Bz")
       .closest("section")!
-      .querySelector(".live-panel__help")! as HTMLDetailsElement;
-    await user.click(bzHelp.querySelector("summary")!);
+      .querySelector(".live-panel__help")!;
+    await user.click(bzHelp.querySelector("button")!);
+    const popover = document.querySelector(".live-panel__popover")!;
     // No help row promises a Kp outcome: no "active (Kp3-4)"-shaped band.
-    expect(bzHelp.textContent).not.toMatch(/Kp\s*\d/i);
+    expect(popover.textContent).not.toMatch(/Kp\s*\d/i);
     // Sustained-hours framing is present (duration beats instant value).
-    expect(bzHelp.textContent).toMatch(/sustained|hours/i);
+    expect(popover.textContent).toMatch(/sustained|hours/i);
   });
 
   it("attributes the panel to NOAA/SWPC in its footer", async () => {

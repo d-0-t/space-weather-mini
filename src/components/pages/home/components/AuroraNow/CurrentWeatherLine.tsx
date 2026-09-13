@@ -15,7 +15,7 @@ import { useWeather } from "./useWeather";
 
 import "./CurrentWeatherLine.scss";
 
-/** Lowercase band names for the "Darkest window (…)" label. */
+/** Lowercase band names for the "Darkest (…)" label. */
 const DARKEST_BAND_LABEL: Record<DarkestBand, string> = {
   night: "night",
   "astronomical-twilight": "astronomical twilight",
@@ -27,7 +27,7 @@ const DARKEST_BAND_LABEL: Record<DarkestBand, string> = {
  * The local-sky one-liner under the location / Aurora-likeliness line: the
  * sky-condition icon (its WMO text only for screen readers), the
  * temperature and the total cloud coverage – no humidity, no low/mid/high
- * split – plus the darkest window at the place ("Darkest window (night):
+ * split – plus the darkest window at the place ("Darkest (night):
  * 22:38 to 02:23.", or the deepest twilight band the day reaches) and the
  * Local conditions link. It shares the weather subscription with the
  * interpreter, so a place picked in the Change location modal refetches the

@@ -33,7 +33,7 @@
           align-items: center;
           font-weight: 500;
 
-          summary {
+          .live-panel__help > button {
             min-height: unset;
           }
         }
@@ -47,33 +47,16 @@
   &__location {
     overflow-wrap: anywhere;
   }
+}
 
-  // The (i) popover anchors to its trigger like the oval-glow family's:
-  // absolutely positioned below the (i) icon, clamped by HelpPopover so it
-  // never leaves the viewport – never an in-flow text block flooding the
-  // panel.
-  &__popover {
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
-    box-sizing: border-box;
-    width: min(300px, 70vw);
-    margin: 0;
-    padding: 0.6rem;
-    padding-right: 2.25rem;
-    background: var(--gradient-card);
-    border: 1px solid var(--color-border-muted);
-    border-radius: 6px;
-    font-size: var(--font-size-small);
-    z-index: 30;
-    box-shadow: 0 4px 12px var(--color-black);
+// The view-distance family adds only its paragraph rhythm to the shared
+// .help-popover chrome (HelpPopover.scss).
+.view-distance__popover {
+  p {
+    margin: 0 0 0.4rem;
 
-    p {
-      margin: 0 0 0.4rem;
-
-      &:last-child {
-        margin-bottom: 0;
-      }
+    &:last-child {
+      margin-bottom: 0;
     }
   }
 }

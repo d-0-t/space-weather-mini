@@ -276,7 +276,7 @@ describe("OvalGlow", () => {
     );
     expect(disclosure).not.toBeNull();
     expect(controls.firstElementChild).toBe(disclosure);
-    const checkbox = screen.getByRole("checkbox", { name: "Color-blind" });
+    const checkbox = screen.getByRole("checkbox", { name: "Color-blind mode" });
     expect(controls.lastElementChild).toBe(checkbox.closest("label"));
     // Off by default: unchecked, the hue gradient, no brightness note.
     expect(checkbox).not.toBeChecked();
@@ -297,7 +297,7 @@ describe("OvalGlow", () => {
     const user = userEvent.setup();
     const { container } = renderGlow();
     await canvases();
-    const checkbox = screen.getByRole("checkbox", { name: "Color-blind" });
+    const checkbox = screen.getByRole("checkbox", { name: "Color-blind mode" });
     await user.click(checkbox);
     expect(checkbox).toBeChecked();
     expect(localStorage.getItem("sw:oval:cb:v1")).toBe(
@@ -327,7 +327,7 @@ describe("OvalGlow", () => {
     );
     const { container } = renderGlow();
     await canvases();
-    expect(screen.getByRole("checkbox", { name: "Color-blind" })).toBeChecked();
+    expect(screen.getByRole("checkbox", { name: "Color-blind mode" })).toBeChecked();
     const bar = container.querySelector(
       ".oval-glow__legend__bar",
     ) as HTMLElement;
@@ -666,7 +666,7 @@ describe("OvalGlow", () => {
       screen.queryByText(
         /Cloud coverage, moon phase and light pollution affect visibility/i,
       );
-    expect(note()).not.toBeVisible();
+    expect(note()).toBeNull();
     const info = screen.getByTitle("About this map");
     expect(info.classList.contains("btn--icon")).toBe(true);
     await user.click(info);

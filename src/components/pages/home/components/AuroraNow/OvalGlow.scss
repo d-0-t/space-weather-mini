@@ -16,37 +16,6 @@
     margin: 0;
   }
 
-  // The info disclosure itself (.live-panel__help) comes from HelpPopover.
-  &__popover {
-    position: absolute;
-    top: calc(100% + 6px);
-    right: 0;
-    // Border-box so min(300px, 70vw) is the true outer width: content-box
-    // added ~48px of padding/border on top, pushing the popover past 70vw
-    // (and past both viewport edges) on very narrow screens
-    box-sizing: border-box;
-    width: min(300px, 70vw);
-    margin: 0;
-    padding: 0.6rem;
-    // Reserve the top-right corner for the close X (HelpPopover), so text
-    // never runs under the button's box
-    padding-right: 2.25rem;
-    background: var(--gradient-card);
-    border: 1px solid var(--color-border-muted);
-    border-radius: 6px;
-    font-size: var(--font-size-small);
-    z-index: 30;
-    box-shadow: 0 4px 12px var(--color-black);
-
-    p {
-      margin: 0 0 0.4rem;
-
-      &:last-child {
-        margin-bottom: 0;
-      }
-    }
-  }
-
   &__fresh {
     margin: 0.25rem 0;
     font-size: var(--font-size-small);
@@ -336,6 +305,18 @@
         height: var(--oval-rotated-w);
         transform: translate(-50%, -50%) rotate(90deg);
       }
+    }
+  }
+}
+
+// The oval-glow family adds only its paragraph rhythm to the shared
+// .help-popover chrome (HelpPopover.scss).
+.oval-glow__popover {
+  p {
+    margin: 0 0 0.4rem;
+
+    &:last-child {
+      margin-bottom: 0;
     }
   }
 }

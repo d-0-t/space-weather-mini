@@ -76,7 +76,9 @@ describe("ThreeDayForecast page", () => {
     expect(
       screen.getByText(/Prepared by the U\.S\. Dept\. of Commerce/)
     ).toBeInTheDocument();
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /refresh/i }),
+    ).not.toBeInTheDocument();
   });
 
   it("shows one Issued line in UTC mode – the NOAA clock with suffix and the (UTC) label", async () => {
@@ -118,6 +120,8 @@ describe("ThreeDayForecast page", () => {
     mockFetch.mockRejectedValue(new Error("network down"));
     renderPage();
     expect(await screen.findByText(/couldn't load the 3-day forecast/i)).toBeInTheDocument();
-    expect(screen.queryByRole("button")).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /refresh/i }),
+    ).not.toBeInTheDocument();
   });
 });

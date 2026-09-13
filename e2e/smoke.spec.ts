@@ -309,9 +309,9 @@ test("home shows live now dashboard with Kp, mini charts and Kp min/max table", 
   ).toBeVisible();
   // Propagation-delay explainer
   await expect(page.getByText(/We are \d+ minutes behind .*data, based on solar wind speed/)).toBeVisible();
-  // Native collapsible "?" help on every card
+  // Collapsible "?" help on every card, toggled by a real button
   await expect(page.locator(".live-panel .live-panel__help").first()).toBeVisible();
-  await page.locator(".live-panel .live-panel__help").first().locator("summary").click();
+  await page.locator(".live-panel .live-panel__help").first().locator("button").click();
   await expect(page.getByText(/< 400 km\/s/)).toBeVisible();
   // The popover label (and its "Close:" twin) stay attached
   await expect(page.getByText("About solar wind").first()).toBeAttached();

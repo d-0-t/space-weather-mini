@@ -54,26 +54,14 @@
   }
 
   &__help {
-    position: relative;
-
-    // Raise the open popover above neighbouring cards
-    &[open] {
-      z-index: 30;
-    }
-
-    summary {
-      list-style: none;
-      cursor: pointer;
+    // The trigger is a real button so glossary terms stay valid inline in prose
+    > button {
       user-select: none;
-
-      &::-webkit-details-marker {
-        display: none;
-      }
     }
 
     // Custom trigger (e.g. the moon phase badge): no "?" circle chrome
     &--moon {
-      summary {
+      > button {
         width: auto;
         height: auto;
         border: 0;
@@ -92,49 +80,6 @@
           color: inherit;
         }
       }
-    }
-
-    // Overlay popover – never reflows the card
-    .live-panel__popover {
-      position: absolute;
-      top: calc(100% + 6px);
-      right: 0;
-      // Border-box so min(300px, 70vw) is the true outer width: content-box
-      // added ~48px of padding/border on top, pushing the popover past 70vw
-      // (and past both viewport edges) on very narrow screens
-      box-sizing: border-box;
-      width: min(300px, 70vw);
-      margin: 0;
-      padding: 0.6rem;
-      // Reserve the top-right corner for the close X (HelpPopover), so text
-      // never runs under the button's box
-      padding-right: 2.25rem;
-      background: var(--gradient-card);
-      border: 1px solid var(--color-border-muted);
-      border-radius: 6px;
-      font-size: var(--font-size-small);
-      z-index: 30;
-      box-shadow: 0 4px 12px var(--color-black);
-
-      ul {
-        padding-left: 0.6rem;
-      }
-    }
-
-    .live-panel__scale {
-      list-style: none;
-      padding-left: 0rem;
-      li {
-        margin: 0.2rem 0;
-      }
-
-      b {
-        color: var(--color-accent);
-      }
-    }
-
-    p {
-      margin-top: 0.35rem;
     }
   }
 
@@ -221,5 +166,29 @@
         filter: invert(1);
       }
     }
+  }
+}
+
+// The live-panel family adds only its list/prose rhythm to the shared
+// .help-popover chrome (HelpPopover.scss).
+.live-panel__popover {
+  ul {
+    padding-left: 0.6rem;
+  }
+
+  p {
+    margin-top: 0.35rem;
+  }
+}
+
+.live-panel__scale {
+  list-style: none;
+  padding-left: 0rem;
+  li {
+    margin: 0.2rem 0;
+  }
+
+  b {
+    color: var(--color-accent);
   }
 }
