@@ -52,6 +52,15 @@ $aurora-kp-colors: (
     z-index: 1;
   }
 
+  // The moon badge emoji sits on the near-black starry header; the dark
+  // new-moon glyph vanishes against it (and the crescents are mostly dark
+  // too). text-shadow cannot outline a color-emoji glyph, so halo the
+  // rendered pixels with stacked light drop-shadows instead.
+  .live-panel__help--moon > summary span[aria-hidden="true"] {
+    filter: drop-shadow(0 0 1px var(--color-white))
+      drop-shadow(0 0 5px var(--color-gold));
+  }
+
   &__curtain {
     position: absolute;
     inset: 0;
