@@ -91,13 +91,13 @@ describe("Aurora guide page (ticket 09)", () => {
     renderGuide();
     for (const name of [
       "solar wind",
-      "Night",
+      "night",
       "Kp index",
-      "Oval",
+      "aurora oval",
       "View distance",
     ]) {
       expect(screen.getByRole("button", { name })).toBeVisible();
     }
-    expect(screen.queryByRole("link", { name: "Night" })).toBeNull();
+    expect(screen.queryByRole("link", { name: "night" })).toBeNull();
   });
 });

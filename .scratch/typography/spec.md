@@ -13,14 +13,14 @@ A typography system, decided in ADR-0009 and extending the color-token approach 
 ## User Stories
 
 1. As a chaser on a phone, I want headings sized for a small viewport, so titles don't crowd out the forecast content.
-2. As a chaser on a tablet or desktop, I want h1 and h2 to step up at the md breakpoint, so the page reads as a display page rather than a shrunken one.
+2. As a chaser on a tablet or desktop, I want h1 and h2 to step up at the lg breakpoint, so the page reads as a display page rather than a shrunken one.
 3. As a chaser, I want body text to be the same size on every page, so the app reads as one product instead of six.
 4. As a chaser, I want captions (timestamps, attributions, source lines) at one consistent size, so small print is small everywhere for the same reason.
 5. As a chaser, I want line-heights matched to each text role, so prose and tables are readable at each size rather than randomly spaced.
 6. As a chaser who enlarges browser text, I want all sizing in rem against the real root, so my zoom preference scales every part of the app proportionally.
 7. As a chaser using a screen reader, I want the heading structure and semantic order untouched by the restyling, so my navigation is unchanged.
 8. As a chaser on a mid-size window, I want layout media queries to fire at the same widths the type steps at, so text and layout never disagree about where "tablet" starts.
-9. As a maintainer, I want semantic role names instead of magic numbers, so `font-size: var(--font-size-small)` tells me what the text *is*.
+9. As a maintainer, I want semantic role names instead of magic numbers, so `font-size: var(--font-size-small)` tells me what the text _is_.
 10. As a maintainer, I want each type role defined in one place, so tuning the h1 size for all pages is a one-line change.
 11. As a maintainer, I want a canonical breakpoint map, so new components never invent a 419px-style width again.
 12. As a maintainer, I want a `respond-to` mixin that only emits min-width queries, so the codebase stays mobile-first without discipline depending on memory.
@@ -35,7 +35,7 @@ A typography system, decided in ADR-0009 and extending the color-token approach 
 - **Stepped, not fluid** (ADR-0009): sizes change at breakpoints via standard media queries; no `clamp()`.
 - **Semantic role naming** over a numbered scale: caption, small, body, lead, h1, h2, h3, h4 — consistent with the semantic color aliases of ADR-0002.
 - **Paired line-height tokens**: each font-size role has a matching line-height custom property, applied as two declarations (no `font:` shorthand).
-- **Scale values** (mobile → md step): caption 0.75rem, small 0.85rem, body 0.95→1rem, lead 1.1→1.15rem, h4 1rem, h3 1.25rem, h2 1.5→1.75rem, h1 2→2.5rem.
+- **Scale values** (mobile → lg step): caption 0.75rem, small 0.85rem, body 0.95→1rem, lead 1.1→1.15rem, h4 1rem, h3 1.25rem, h2 1.5→1.75rem, h1 2→2.5rem.
 - **Canonical breakpoints**: sm 480px, md 810px, lg 1100px, mobile-first (min-width) only, behind a `respond-to(sm|md|lg)` mixin over a SCSS breakpoint map; raw pixel values in media queries are forbidden.
 - **Global heading sizing**: one set of h1–h4 element rules in the typography partial; the per-component heading-size rules are deleted (no h5/h6 exist in the markup).
 - **Body element on the body token**, so text that never declared a size inherits the scale (this is the "absorbs 1rem" row of the confirmed table).
@@ -45,7 +45,7 @@ A typography system, decided in ADR-0009 and extending the color-token approach 
 
 ## Testing Decisions
 
-- A good test asserts only external behavior: **computed styles of rendered pages** (h1–h4, body, captions) at widths below and above the md breakpoint, proving the tokens are applied and the step actually steps — never tests of SCSS internals.
+- A good test asserts only external behavior: **computed styles of rendered pages** (h1–h4, body, captions) at widths below and above the lg breakpoint, proving the tokens are applied and the step actually steps — never tests of SCSS internals.
 - The seam is the existing one: **Playwright against the rendered app at multiple viewport widths**, plus the existing Vitest a11y specs as regression cover for structure/contrast.
 - Prior art: the existing Vitest + Playwright accessibility specs referenced by ADR-0002.
 - Convention compliance ("no raw rem font-sizes, no raw px media queries outside the frozen exceptions") is verified by grep as acceptance criteria, not automated tests — mirroring how ADR-0002 handles its color-token rule.

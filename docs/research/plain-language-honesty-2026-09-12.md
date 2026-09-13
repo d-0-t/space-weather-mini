@@ -230,3 +230,51 @@ Repo (read at inventory time): `products/solar-wind.ts`,
 `conditions/conditions.tsx`, `ExternalLinks.tsx`, ADRs 0001/0003/0005–0008,
 `CONTEXT.md`, `docs/research/plain-language-pitfalls-2026-09-12.md`,
 `docs/research/aurora-local-conditions-2026-09-01.md`.
+
+## 9. Post-publication verification (2026-09-14, plain-language ticket 08 review pass)
+
+Resolves the remaining **[RE-VERIFY]** markers in §2 (HP legend) and §3
+(city strings) for the shipped panel. All pages below fetched live on
+2026-09-14.
+
+**Kp wording — Tips on Viewing the Aurora, confirmed against the shipped
+sentences.** Kp 0–2: "far north, quite dim in intensity, and not very
+active" (kp-calm sits inside the band). Kp 3–5: "move further from the
+poles, it will become brighter and there will be more auroral activity
+(motion and formations). If you are in the right place, these aurora can be
+quite pleasing to look at" (kp-active). Kp 6–9: "move even further from the
+poles… possible to see the aurora from the northern edge of the United
+States" / "overhead from the northern states" (kp-storm's farther-south
+reach; the far-south red expectation comes from §4, never a promise). The
+page's own caveats read verbatim: "the relationship between Kp and auroral
+latitude are approximate and represent averages" and "holds true in
+geomagnetic latitude, not geographic." Shipped copy keeps may-not-will; the
+caveats ride the tables' source keys, per the recorded human decision of
+2026-09-12 (ticket 03). The Kp→latitude rule (66° − 2°/Kp) and the 1000 km
+sighting distance are unchanged.
+
+**City strings [RE-VERIFY resolved — read live, deliberately not shipped].**
+The NOAA Space Weather Scales explanation page carries, per G level: G1
+(Kp 5) "aurora is commonly visible at high latitudes (northern Michigan and
+Maine)"; G2 (Kp 6) "aurora has been seen as low as New York and Idaho
+(typically 55° geomagnetic lat.)"; G3 (Kp 7) "aurora has been seen as low as
+Illinois and Oregon (typically 50° geomagnetic lat.)"; G4 (Kp 8) "aurora has
+been seen as low as Alabama and northern California (typically 45°
+geomagnetic lat.)"; G5 (Kp 9) "aurora has been seen as low as Florida and
+southern Texas (typically 40° geomagnetic lat.)." No city string ships: N11
+holds until the dedicated effort re-verifies and decides, and the human
+opened `.scratch/aurora-city-strings/` (ticket 08, 2026-09-14) whose first
+ticket owns that reading.
+
+**HP legend wording — nothing unresolved ships.** The interpreter dropped
+its HP row on 2026-09-12 (OVATION's synthesis of the same L1 inputs, human
+decision), so no HP sentence can carry the recalled legend; §8's
+verification stands for the expert-only rows. Correction to §8: it names
+`hemiPowerIntervalText`, which the 2026-09-13 rewording deleted along with
+the row — the wording now lives only in the expert card and its tests.
+
+**Interpreter product pages re-confirmed** (Aurora - 30 Minute Forecast):
+the HPI definition ("an estimate of the total auroral energy input at each
+pole"), the 30–90 minute lead from L1, the 1000 km sighting distance, the
+daylight no-go, and the Kp-fallback mode ("there is no forecast lead time")
+— the fallback remains a recorded residual (no flag on `OvationProduct`).
