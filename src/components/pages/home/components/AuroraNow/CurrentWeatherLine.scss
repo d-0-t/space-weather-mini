@@ -19,4 +19,10 @@
     align-items: center;
     gap: 0.3rem;
   }
+
+  // The darkest-window clause sits with the conditions on the left; its auto
+  // right margin absorbs the free space so the link stays pushed right.
+  &__darkest {
+    margin-right: auto;
+  }
 }

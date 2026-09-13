@@ -91,6 +91,37 @@ export function isSunBelowHorizon(
   return solarElevationDegrees(latitudeDeg, longitudeDeg, date) < 0;
 }
 
+/**
+ * The instant's light at a place, in three honest steps: "day" while the sun
+ * is up, "civil-twilight" while it sits 0 to −6° below the horizon (still too
+ * bright for faint aurora), and "dark" once it is lower (nautical and
+ * astronomical twilight and Night). Used by Home surfaces that must not
+ * promise aurora in a bright sky.
+ */
+export type SunState = "day" | "civil-twilight" | "dark";
+
+/**
+ * Classifies a solar elevation in degrees: at or above the horizon is day,
+ * 0 to −6 is civil twilight, lower is dark. Pure, so the boundaries are
+ * unit-pinned independently of the solar model.
+ */
+export function sunStateFromElevation(elevationDegrees: number): SunState {
+  if (elevationDegrees >= 0) return "day";
+  if (elevationDegrees >= -6) return "civil-twilight";
+  return "dark";
+}
+
+/** The instant's light state at a place (the NOAA solar elevation classified). */
+export function sunState(
+  latitudeDeg: number,
+  longitudeDeg: number,
+  date: Date,
+): SunState {
+  return sunStateFromElevation(
+    solarElevationDegrees(latitudeDeg, longitudeDeg, date),
+  );
+}
+
 /** The daylight events of one calendar day at a place, for Local conditions. */
 export interface DaylightDay {
   /** UTC midnight of the day the events belong to. */
@@ -210,4 +241,65 @@ export function daylightTimes(
     today: dayTimes(latitudeDeg, longitudeDeg, day),
     tomorrow: dayTimes(latitudeDeg, longitudeDeg, new Date(day.getTime() + DAY_MS)),
   };
+}
+
+/** The darkest luminosity band a day reaches, for the weather line's label. */
+export type DarkestBand =
+  | "night"
+  | "astronomical-twilight"
+  | "nautical-twilight"
+  | "civil-twilight";
+
+/**
+ * The darkest period of the reference day at a place: a window in the
+ * deepest band the day reaches – the Night band when the sun crosses −18°,
+ * else the deepest twilight it reaches (astronomical → nautical → civil) –
+ * or one of the two flat polar states. A window's `start` is that band's
+ * evening entry and `end` the next morning's exit, so it always names the
+ * coming dark stretch (or the one in progress). `all-dark` is the deep
+ * polar night where the sun never leaves the Night band; `polar-day` is
+ * midnight sun, when no dark window exists at all.
+ */
+export type DarkestWindow =
+  | { kind: "window"; band: DarkestBand; start: Date; end: Date }
+  | { kind: "all-dark" }
+  | { kind: "polar-day" };
+
+export function darkestWindow(daylight: DaylightTimes): DarkestWindow {
+  const { today, tomorrow } = daylight;
+  if (today.darkWindowStart && today.darkWindowEnd) {
+    return {
+      kind: "window",
+      band: "night",
+      start: today.darkWindowStart,
+      end: today.darkWindowEnd,
+    };
+  }
+  if (today.nauticalDusk && tomorrow.nauticalDawn) {
+    return {
+      kind: "window",
+      band: "astronomical-twilight",
+      start: today.nauticalDusk,
+      end: tomorrow.nauticalDawn,
+    };
+  }
+  if (today.civilDusk && tomorrow.civilDawn) {
+    return {
+      kind: "window",
+      band: "nautical-twilight",
+      start: today.civilDusk,
+      end: tomorrow.civilDawn,
+    };
+  }
+  if (today.sunset && tomorrow.sunrise) {
+    return {
+      kind: "window",
+      band: "civil-twilight",
+      start: today.sunset,
+      end: tomorrow.sunrise,
+    };
+  }
+  return today.polar === "polar-night"
+    ? { kind: "all-dark" }
+    : { kind: "polar-day" };
 }

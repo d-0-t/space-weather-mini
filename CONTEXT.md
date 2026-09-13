@@ -230,7 +230,7 @@ _Avoid_: twilight (without the nautical qualifier)
 
 **Day (Local conditions)**:
 The luminosity band of the Local conditions timeline when the sun is above the horizon at a geocoded place, between sunrise and sunset. During midnight sun it spans the whole day.
-_Avoid_: daylight (when the band is meant), daytime
+_Avoid_: daylight (when the band is meant)
 
 **Weather (Local conditions)**:
 The Open-Meteo view at the geocoded place: current conditions, a 24-hour horizontally scrolling hourly strip and a 3-day daily row, each with temperature, humidity, cloud cover (total plus the low/mid/high split where the contract carries it) and a WMO weather code rendered through the local lookup. Fetched once per place change plus each Refresh tap, with the "Updated at HH:MM, near {shortName}" fetched-at timestamp and a "Source: Open-Meteo" attribution.
@@ -247,7 +247,7 @@ _Avoid_: refresh button (as a term), weather refresh (as a synonym for the times
 ### Plain language
 
 **Interpreter**:
-The plain-language summary at the top of the Aurora Now panel: ONE merged paragraph — one short sentence each for the Kp index, the solar-wind stream and the magnetic gate (hemispheric power stays expert-only) — always fully open, with a time-ahead selector for the L1 readings (from the value arriving at Earth now to the freshest measurement still in transit) and one As-of line. The L1 claims run on 5-minute averages, never single 1-min readings — the Solar Wind panel's displayed current values use the same averaging. Deep links into the expert detail were removed in the human's decluttering pass; the numbers sit directly below.
+The plain-language summary at the top of the Aurora Now panel: ONE merged paragraph — one short sentence each for the Kp index, the solar-wind stream and the magnetic gate (hemispheric power stays expert-only) — always fully open, with a time-ahead selector for the L1 readings (from the value arriving at Earth now to the freshest measurement still in transit) and one As-of line. It ends with the Moon wash-out caveat (only while the Moon is above the horizon and lit enough to matter) and the View distance reach sentence ("Nearest glow 0-100 km away (Likely)."). The L1 claims run on 5-minute averages, never single 1-min readings — the Solar Wind panel's displayed current values use the same averaging. Deep links into the expert detail were removed in the human's decluttering pass; the numbers sit directly below.
 _Avoid_: translator, explainer panel, dashboard (the Dashboard is the whole page)
 
 **Interval text**:
@@ -257,6 +257,10 @@ _Avoid_: canned text, template sentence, copy block
 **Plain levels**:
 The interpreter's three-step reading scale per row — calm / active / storm-like — plus the honest missing-data state ("no data", never zero). "Storm-like" is deliberately hedged: it names storm-range viewing conditions without asserting a NOAA storm scale level.
 _Avoid_: severity colors as level names, storm (as the level's name on its own)
+
+**Darkest window**:
+The weather line's label for the deepest darkness the reference day reaches at the stored place — "Darkest window (night): 22:38 to 02:23." when the sun crosses −18°, otherwise the deepest twilight band it reaches (astronomical, nautical, then civil, named in the parentheses), so a nightless summer day still names its darkest stretch. Midnight sun reads "Polar day." and deep polar night "Darkest window (night): all day." Times render in the Display timezone.
+_Avoid_: dark hours, night window (without "darkest" or the band qualifier)
 
 ### Offline and personal oval
 
@@ -269,7 +273,7 @@ The forecast glow painted from `ovation_aurora_latest.json` per 1° cell on one 
 _Avoid_: ovation map (when the forecast cells are meant), aurora oval (without forecast qualifier when the model is meant)
 
 **View distance**:
-The estimated band from the stored geocoded place to the nearest forecast oval cell with `Aurora ≥6` within 600 km: `Overhead / Nearby ~0-100 km • Likely / Distant ~100-300 km • Possible / Far ~300-600 km • Unlikely / Not in range` with a confidence label. A forecast estimate for the `Forecast Time` 30–90 min ahead, not a sighting guarantee.
+The estimated band from the stored geocoded place to the nearest forecast oval cell with `Aurora ≥6` within 600 km: `Overhead / Nearby ~0-100 km • Likely / Distant ~100-300 km • Possible / Far ~300-600 km • Unlikely / Not in range` with a confidence label. A forecast estimate for the `Forecast Time` 30–90 min ahead, not a sighting guarantee. When the sun is too bright for aurora the line names the light instead of a band — "Daytime" with the sun up, "Civil twilight" while the sun sits 0 to −6° below the horizon — and reads a band only once it is darker.
 _Avoid_: distance to aurora (without view / band qualifier), aurora x km away (as a single-number fact)
 
 **Color-blind mode**:

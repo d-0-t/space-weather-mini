@@ -4,6 +4,7 @@ import HelpPopover from "../../../../HelpPopover/HelpPopover";
 import PlaceFinder from "../../../../PlaceFinder/PlaceFinder";
 import { useGeocodedPlace } from "../../../../PlaceFinder/useGeocodedPlace";
 import { shortPlace } from "../../../../../data/short-display-name";
+import { sunState } from "../../../../../data/sun";
 import {
   VIEW_DISTANCE_BANDS,
   distanceToNearestAurora,
@@ -29,16 +30,19 @@ const VIEW_DISTANCE_COPY =
   "km. Cloud/moon/town lights can still hide it. Forecast Time 30-90 min ahead.";
 
 /**
- * The View distance band line under the oval: `Aurora {band} (i) – {place}
- * [icon]`. The confidence reads lowercase mid-sentence (no preposition –
- * `from`/`at` do not work for every band), the place is plain text, and one
- * icon-only `btn--secondary` trigger (title + sr-only `Change location`)
- * opens the shared PlaceFinder modal. The `(i)` sits right after the info
- * it explains and carries the approved copy, the band table and the
- * provenance link. Below it sits the current-weather one-liner with the
- * Local conditions link (CurrentWeatherLine), sharing this place. Hidden
- * while the grid has not loaded – the oval map above carries the loading
- * and error states.
+ * The View distance band line under the oval: `{state} (i) – {place}
+ * [icon]`. While the sun is too bright for aurora the line names the light
+ * instead of a band – "Daytime" with the sun up, "Civil twilight" in the
+ * 0 to −6° window – and reads `Aurora {band}` only once it is genuinely
+ * dark; the reach is never promised under a bright sky. The confidence
+ * reads lowercase mid-sentence (no preposition – `from`/`at` do not work
+ * for every band), the place is plain text, and one icon-only
+ * `btn--secondary` trigger (title + sr-only `Change location`) opens the
+ * shared PlaceFinder modal. The `(i)` sits right after the info it explains
+ * and carries the approved copy, the band table and the provenance link.
+ * Below it sits the current-weather one-liner with the Local conditions link
+ * (CurrentWeatherLine), sharing this place. Hidden while the grid has not
+ * loaded – the oval map above carries the loading and error states.
  */
 const ViewDistanceLine: React.FC = () => {
   const { place, pick } = useGeocodedPlace();
@@ -56,6 +60,14 @@ const ViewDistanceLine: React.FC = () => {
 
   if (!product || !viewDistance) return null;
 
+  const light = sunState(place.latitude, place.longitude, new Date());
+  const stateLabel =
+    light === "day"
+      ? "Daytime"
+      : light === "civil-twilight"
+        ? "Civil twilight"
+        : `Aurora ${viewDistance.confidence.toLowerCase()}`;
+
   return (
     <section className="view-distance">
       {/* A div, not a <p>: the (i) popover's <details> is not phrasing
@@ -69,21 +81,24 @@ const ViewDistanceLine: React.FC = () => {
             actionLabel="Change location"
           />
           <div className="view-distance__probability__location__text">
-            <span>Aurora {viewDistance.confidence.toLowerCase()}</span>
-            <br />
+            <span>
+              {stateLabel}{" "}
+              <HelpPopover
+                popoverClassName="view-distance__popover"
+                content={{
+                  label: "About view distance",
+                  rows: VIEW_DISTANCE_BANDS.map(
+                    ({ label, range, confidence }) => [
+                      range ? `${label} ~${range}` : label,
+                      confidence,
+                    ],
+                  ),
+                }}
+              />
+            </span>
             <span>{shortName}</span>
           </div>
         </div>
-        <HelpPopover
-          popoverClassName="view-distance__popover"
-          content={{
-            label: "About view distance",
-            rows: VIEW_DISTANCE_BANDS.map(({ label, range, confidence }) => [
-              range ? `${label} ~${range}` : label,
-              confidence,
-            ]),
-          }}
-        />
       </div>
       {/* The current-weather one-liner plus the Local conditions link,
           sharing this section's place so the modal pick refetches it. */}

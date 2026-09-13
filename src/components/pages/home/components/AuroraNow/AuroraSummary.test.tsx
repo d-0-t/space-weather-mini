@@ -10,9 +10,21 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { DisplayTimezoneProvider } from "../../../../DisplayTimezone/DisplayTimezoneContext";
 import { saveDisplayTimezone } from "../../../../../products/display-timezone";
+import { ovationJson } from "../../../../../test/ovation-test-utils";
 import AuroraSummary from "./AuroraSummary";
 
 import { COULDNT_LOAD_COPY, STALE_DATA_NOTICE } from "../offline/offline";
+
+// The Moon gate is driven deterministically (its own suites pin the ephemeris);
+// by default the Moon is down so the extra caveat sentence stays out.
+let mockMoonUp = false;
+let mockIllumination = 0;
+vi.mock("../../../../../data/moon", () => ({
+  isMoonAboveHorizon: () => mockMoonUp,
+}));
+vi.mock("../../../../moon/moon", () => ({
+  moonIllumination: () => mockIllumination,
+}));
 
 const SUMMARY_KEY = "sw:aurora-now:summary:v1";
 
@@ -60,6 +72,8 @@ const magFixture = JSON.stringify(magRows);
 
 beforeEach(() => {
   localStorage.clear();
+  mockMoonUp = false;
+  mockIllumination = 0;
   mockFetch.mockReset();
   mockFetch.mockImplementation((url: string) => {
     const u = typeof url === "string" ? url : "";
@@ -278,6 +292,49 @@ describe("Aurora Now plain-language summary (human decisions 2026-09-12/13)", ()
     renderSummary();
     await waitFor(() =>
       expect(screen.getByText(/As of .* UTC\. Updated/)).toBeInTheDocument(),
+    );
+  });
+
+  it("appends the view-distance reach as the summary's last sentence", async () => {
+    // The default place is Luleå; a qualifying cell on it reads Nearby.
+    mockFetch.mockImplementation((url: string) => {
+      const u = typeof url === "string" ? url : "";
+      if (u.includes("noaa-planetary-k-index.json"))
+        return Promise.resolve({ ok: true, text: async () => observedFixture });
+      if (u.includes("rtsw_wind_1m.json"))
+        return Promise.resolve({ ok: true, text: async () => windFixture });
+      if (u.includes("rtsw_mag_1m.json"))
+        return Promise.resolve({ ok: true, text: async () => magFixture });
+      if (u.includes("ovation_aurora_latest.json"))
+        return Promise.resolve({
+          ok: true,
+          text: async () => ovationJson([[22.1546, 65.5848, 12]]),
+        });
+      return Promise.resolve({ ok: true, text: async () => "" });
+    });
+    renderSummary();
+    await waitForParagraph();
+    await waitFor(() =>
+      expect(paragraph().textContent).toMatch(
+        /Nearest glow 0-100 km away \(Likely\)\.$/,
+      ),
+    );
+  });
+
+  it("warns about the Moon only while it is up and lit enough", async () => {
+    mockMoonUp = true;
+    mockIllumination = 0.1;
+    renderSummary();
+    await waitForParagraph();
+    expect(paragraph().textContent).not.toMatch(/Moon is up/);
+    cleanup();
+    mockMoonUp = true;
+    mockIllumination = 1;
+    renderSummary();
+    await waitFor(() =>
+      expect(paragraph().textContent).toMatch(
+        /The Moon is up and can wash out faint aurora\./,
+      ),
     );
   });
 });

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import "./AuroraSummary.scss";
@@ -6,7 +6,9 @@ import {
   kpIntervalText,
   l1IntervalText,
   l1Word,
+  moonWashoutText,
   overallWord,
+  viewDistanceText,
   type IntervalText,
   type NoDataText,
   type SentenceMark,
@@ -17,13 +19,21 @@ import {
   parseTimeTag,
 } from "../../../../../products/display-time";
 import {
+  distanceToNearestAurora,
+  loadViewDistanceThreshold,
+} from "../../../../../products/view-distance";
+import {
   addMinutes,
   averagedValueAt,
   transitMinutes,
 } from "../live-panels/live-panels";
 import { useDisplayTimezone } from "../../../../DisplayTimezone/DisplayTimezoneContext";
+import { isMoonAboveHorizon } from "../../../../../data/moon";
+import { moonIllumination } from "../../../../moon/moon";
+import { useGeocodedPlace } from "../../../../PlaceFinder/useGeocodedPlace";
 import { fetchMagField, fetchWind } from "../SolarWind/SolarWind";
 import { fetchKpObserved } from "../kp-panel/kp-panel";
+import { useOvationQuery } from "./useOvationQuery";
 import {
   STALE_DATA_NOTICE,
   liveDataState,
@@ -83,11 +93,13 @@ const MarkedSentence: React.FC<{ text: string; marks?: SentenceMark[] }> = ({
  * per the 2026-09-13 human decision). The L1 half follows the time-ahead
  * selector: "now" is the reading arriving at Earth, the offsets pick
  * measured readings still propagating here; displayed values are 5-minute
- * averages, never single 1-min readings. The paragraph is always fully
- * open; a feed that hasn't landed yet leaves its sentence out (never a
- * mid-paragraph loading/error line), and one that failed for good reads
- * the honest "No data right now." Shares the expert panels' query keys,
- * so each feed is still fetched exactly once.
+ * averages, never single 1-min readings. It ends with two extra sentences:
+ * the Moon wash-out caveat (only while the Moon is up and lit enough to
+ * matter) and the stored place's View distance reach. The paragraph is
+ * always fully open; a feed that hasn't landed yet leaves its sentence out
+ * (never a mid-paragraph loading/error line), and one that failed for good
+ * reads the honest "No data right now." Shares the expert panels' query
+ * keys, so each feed is still fetched exactly once.
  */
 const AuroraSummary: React.FC = () => {
   const offline = useIsOffline();
@@ -117,6 +129,11 @@ const AuroraSummary: React.FC = () => {
     staleTime: 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
+  const { place } = useGeocodedPlace();
+  // The chaser-set threshold is read once per mount (the View distance line's
+  // discipline); the Oval grid query is shared with the map and band line.
+  const [threshold] = useState(() => loadViewDistanceThreshold(localStorage));
+  const ovalQuery = useOvationQuery();
 
   const windRows = (windQuery.data ?? []).map((p) => ({
     time_tag: p.time_tag,
@@ -136,6 +153,24 @@ const AuroraSummary: React.FC = () => {
     observedQuery.data && observedQuery.data.length > 0
       ? observedQuery.data[observedQuery.data.length - 1]
       : null;
+
+  // The two extra interpreter sentences: the Moon wash-out caveat (only while
+  // the Moon is up and lit enough to matter) and the View distance reach for
+  // the stored place. Both are omitted when their data has not landed.
+  const now = new Date();
+  const ovalProduct = ovalQuery.data ?? null;
+  const viewDistance = useMemo(
+    () =>
+      ovalProduct
+        ? distanceToNearestAurora(place, ovalProduct.coordinates, threshold)
+        : null,
+    [place, ovalProduct, threshold],
+  );
+  const moonText = moonWashoutText(
+    isMoonAboveHorizon(place.latitude, place.longitude, now),
+    moonIllumination(now),
+  );
+  const reachText = viewDistance ? viewDistanceText(viewDistance) : null;
 
   // The selector's horizon: the freshest L1 measurement is `transit`
   // minutes from Earth, so no offset beyond it has a measured reading.
@@ -282,20 +317,45 @@ const AuroraSummary: React.FC = () => {
       ) : null}
       <p className="aurora-now__summary__text">
         {[
-          { text: kpText, loading: pending(observedQuery) },
           {
-            text: l1Text,
+            key: kpText.key,
+            sentence: kpText.sentence,
+            marks: kpText.level === "no-data" ? undefined : kpText.marks,
+            loading: pending(observedQuery),
+          },
+          {
+            key: l1Text.key,
+            sentence: l1Text.sentence,
+            marks: l1Text.level === "no-data" ? undefined : l1Text.marks,
             loading: pending(windQuery) || pending(magQuery),
           },
+          ...(moonText
+            ? [
+                {
+                  key: "moon-washout",
+                  sentence: moonText,
+                  marks: undefined,
+                  loading: false,
+                },
+              ]
+            : []),
+          ...(reachText
+            ? [
+                {
+                  key: "view-distance",
+                  sentence: reachText,
+                  marks: undefined,
+                  loading: false,
+                },
+              ]
+            : []),
         ]
           .filter((part) => !part.loading)
           .map((part, index) => (
-            <span key={part.text.key}>
+            <span key={part.key}>
               {index > 0 ? " " : null}
-              <MarkedSentence
-                text={part.text.sentence}
-                marks={part.text.level === "no-data" ? undefined : part.text.marks}
-              />            </span>
+              <MarkedSentence text={part.sentence} marks={part.marks} />
+            </span>
           ))}
       </p>
       {asOf ? (

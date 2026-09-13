@@ -5,7 +5,14 @@ process.env.TZ = "UTC";
 
 import { describe, expect, it } from "vitest";
 
-import { daylightTimes, isSunBelowHorizon, solarElevationDegrees } from "./sun";
+import {
+  darkestWindow,
+  daylightTimes,
+  isSunBelowHorizon,
+  solarElevationDegrees,
+  sunState,
+  sunStateFromElevation,
+} from "./sun";
 
 /**
  * Expected times are pinned to sunrise-sunset.org v2 (NOAA model) literals,
@@ -79,6 +86,84 @@ describe("isSunBelowHorizon – actual sunrise/sunset of the day", () => {
     expect(isSunBelowHorizon(62.45, -114.37, new Date("2026-01-15T20:00:00Z"))).toBe(false);
     // 03:00 UTC = ~20:00 local – deep winter night
     expect(isSunBelowHorizon(62.45, -114.37, new Date("2026-01-15T03:00:00Z"))).toBe(true);
+  });
+});
+
+describe("sunState – day / civil twilight / dark for bright-sky labels", () => {
+  it("pins the elevation boundaries: 0° is day, −6° is the last civil degree", () => {
+    expect(sunStateFromElevation(10)).toBe("day");
+    expect(sunStateFromElevation(0)).toBe("day");
+    expect(sunStateFromElevation(-0.1)).toBe("civil-twilight");
+    expect(sunStateFromElevation(-5.9)).toBe("civil-twilight");
+    expect(sunStateFromElevation(-6)).toBe("civil-twilight");
+    expect(sunStateFromElevation(-6.1)).toBe("dark");
+    expect(sunStateFromElevation(-30)).toBe("dark");
+  });
+
+  it("reads day at local noon and dark at local midnight at Oslo", () => {
+    // Oslo, 2026-09-15: solar noon ≈ 11:12Z, local midnight ≈ 22:00Z.
+    expect(
+      sunState(59.91, 10.75, new Date("2026-09-15T11:12:00Z")),
+    ).toBe("day");
+    expect(
+      sunState(59.91, 10.75, new Date("2026-09-15T23:00:00Z")),
+    ).toBe("dark");
+  });
+
+  it("reads civil twilight in the sunset window at Oslo", () => {
+    // Sunset ≈ 17:41Z on 2026-09-15; ~17:55Z sits 0 to −6° below the horizon.
+    expect(
+      sunState(59.91, 10.75, new Date("2026-09-15T17:55:00Z")),
+    ).toBe("civil-twilight");
+  });
+});
+
+describe("darkestWindow – the weather line's darkest stretch", () => {
+  it("names the Night window when the sun crosses −18°", () => {
+    const darkest = darkestWindow(
+      daylightTimes(59.91, 10.75, new Date("2026-09-15T12:00:00Z")),
+    );
+    expect(darkest.kind).toBe("window");
+    if (darkest.kind !== "window") return;
+    expect(darkest.band).toBe("night");
+    // The window is the evening entry to the next morning's exit.
+    expect(darkest.start.getTime()).toBeLessThan(darkest.end.getTime());
+  });
+
+  it("falls back to astronomical twilight when the sun never reaches Night", () => {
+    // Luleå on 2026-08-26 bottoms out near −14°, so the deepest band is
+    // astronomical twilight.
+    const darkest = darkestWindow(
+      daylightTimes(65.5848, 22.1546, new Date("2026-08-26T12:00:00Z")),
+    );
+    expect(darkest.kind).toBe("window");
+    if (darkest.kind !== "window") return;
+    expect(darkest.band).toBe("astronomical-twilight");
+  });
+
+  it("falls back to civil twilight at Luleå around the summer solstice", () => {
+    // Luleå's midsummer midnight sun only dips to ~−1°, still civil twilight.
+    const darkest = darkestWindow(
+      daylightTimes(65.5848, 22.1546, new Date("2026-06-21T12:00:00Z")),
+    );
+    expect(darkest.kind).toBe("window");
+    if (darkest.kind !== "window") return;
+    expect(darkest.band).toBe("civil-twilight");
+  });
+
+  it("reads polar day at Svalbard on the summer solstice", () => {
+    const darkest = darkestWindow(
+      daylightTimes(78.22, 15.63, new Date("2026-06-21T12:00:00Z")),
+    );
+    expect(darkest.kind).toBe("polar-day");
+  });
+
+  it("reads all-dark when the sun never leaves the Night band", () => {
+    // At 85°N around the winter solstice the noon sun stays below −18°.
+    const darkest = darkestWindow(
+      daylightTimes(85, 15.63, new Date("2026-12-21T12:00:00Z")),
+    );
+    expect(darkest.kind).toBe("all-dark");
   });
 });
 

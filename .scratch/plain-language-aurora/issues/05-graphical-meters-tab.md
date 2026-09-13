@@ -6,7 +6,7 @@
 
 **Blocked by:** 03 (needs the panel shell and levels).
 
-**Status:** ready-for-agent
+**Status:** wontfix
 
 - [ ] Meters readable without color (lightness + shape, never hue alone, consistent with the color-blind-safe oval treatment); each meter exposed as real text with its level name for assistive tech
 - [ ] Tabs operable as real tabs with visible focus and full keyboard path; no animation beyond the app baseline; respects reduced-motion

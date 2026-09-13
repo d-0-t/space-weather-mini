@@ -38,6 +38,8 @@
  * only in the expert Bz card.
  */
 
+import { viewDistanceBand, type ViewDistance } from "./view-distance";
+
 /** The three plain levels of the interpreter, plus the missing-data state. */
 export type InterpreterLevel = "calm" | "active" | "storm-like" | "no-data";
 
@@ -339,4 +341,41 @@ function noData(): NoDataText {
     sentence: "No data right now.",
     source: "",
   };
+}
+
+/**
+ * The interpreter's reach sentence for the stored place's View distance:
+ * "Nearest glow 0-100 km away (Likely)." – the band plus confidence, never a
+ * single-km fact or a city string. Out of range reads the approved band
+ * label: "Nearest glow over 600 km away."
+ */
+export function viewDistanceText(viewDistance: ViewDistance): string {
+  const spec = viewDistanceBand(viewDistance.band);
+  if (viewDistance.band === "not-in-range") {
+    return `Nearest glow ${spec.label.toLowerCase()} away.`;
+  }
+  return `Nearest glow ${spec.range} away (${spec.confidence}).`;
+}
+
+/**
+ * The illuminated fraction at or above which an up Moon is called a wash-out
+ * risk. No source fixes a threshold, so this is a documented in-app
+ * convention: below a quarter-lit Moon the disk is too dark to matter for
+ * faint aurora.
+ */
+export const MOON_WASHOUT_MIN_ILLUMINATION = 0.25;
+
+/**
+ * The Moon wash-out caveat for the interpreter, or null when the Moon is
+ * down or too dark to matter (new Moon or a thin crescent). The gate only
+ * ever warns while the Moon is actually above the horizon (N7).
+ */
+export function moonWashoutText(
+  moonUp: boolean,
+  illuminationFraction: number,
+): string | null {
+  if (!moonUp || illuminationFraction < MOON_WASHOUT_MIN_ILLUMINATION) {
+    return null;
+  }
+  return "The Moon is up and can wash out faint aurora.";
 }

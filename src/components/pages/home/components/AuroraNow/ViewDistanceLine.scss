@@ -15,14 +15,27 @@
 
     &__location {
       display: flex;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       align-items: center;
       gap: 0.4rem;
       line-height: var(--line-height-small);
 
+      button {
+        min-height: 44px;
+      }
+
       &__text {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
         & > span:first-of-type {
+          display: flex;
+          align-items: center;
           font-weight: 500;
+
+          summary {
+            min-height: unset;
+          }
         }
         & > span:nth-of-type(2) {
           font-size: var(--font-size-small);

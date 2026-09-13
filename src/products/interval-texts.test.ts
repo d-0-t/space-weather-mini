@@ -1,11 +1,28 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  MOON_WASHOUT_MIN_ILLUMINATION,
   kpIntervalText,
   l1IntervalText,
   l1Word,
+  moonWashoutText,
   overallWord,
+  viewDistanceText,
 } from "./interval-texts";
+import type { ViewDistance, ViewDistanceBand } from "./view-distance";
+
+/** A View distance result for a band, with the approved confidence. */
+const view = (band: ViewDistanceBand): ViewDistance => {
+  const confidence: ViewDistance["confidence"] =
+    band === "nearby"
+      ? "Likely"
+      : band === "distant"
+        ? "Possible"
+        : band === "far"
+          ? "Unlikely"
+          : "Not in range";
+  return { band, confidence, distanceKm: band === "not-in-range" ? null : 50 };
+};
 
 /**
  * The summary's condensed single-sentence contract (human decisions
@@ -303,5 +320,48 @@ describe("l1Word - the fine-graded L1 verdict word", () => {
   it("says no word when either L1 reading is missing", () => {
     expect(l1Word(null, -2)).toBeNull();
     expect(l1Word(550, null)).toBeNull();
+  });
+});
+
+describe("viewDistanceText - the interpreter's reach sentence", () => {
+  it("names the band and its confidence for an in-range glow", () => {
+    expect(viewDistanceText(view("nearby"))).toBe(
+      "Nearest glow 0-100 km away (Likely).",
+    );
+    expect(viewDistanceText(view("distant"))).toBe(
+      "Nearest glow 100-300 km away (Possible).",
+    );
+    expect(viewDistanceText(view("far"))).toBe(
+      "Nearest glow 300-600 km away (Unlikely).",
+    );
+  });
+
+  it("reads out of range as over 600 km away", () => {
+    expect(viewDistanceText(view("not-in-range"))).toBe(
+      "Nearest glow over 600 km away.",
+    );
+  });
+});
+
+describe("moonWashoutText - Moon wash-out caveat", () => {
+  it("warns while the Moon is up and lit enough", () => {
+    expect(moonWashoutText(true, 1)).toBe(
+      "The Moon is up and can wash out faint aurora.",
+    );
+    expect(moonWashoutText(true, MOON_WASHOUT_MIN_ILLUMINATION)).toBe(
+      "The Moon is up and can wash out faint aurora.",
+    );
+  });
+
+  it("stays silent when the Moon is below the horizon", () => {
+    expect(moonWashoutText(false, 1)).toBeNull();
+    expect(moonWashoutText(false, 0)).toBeNull();
+  });
+
+  it("stays silent for a new Moon or a thin crescent too dark to matter", () => {
+    expect(moonWashoutText(true, 0)).toBeNull();
+    expect(
+      moonWashoutText(true, MOON_WASHOUT_MIN_ILLUMINATION - 0.01),
+    ).toBeNull();
   });
 });

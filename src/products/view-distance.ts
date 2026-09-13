@@ -45,6 +45,14 @@ const BAND_BY_NAME = new Map(
   VIEW_DISTANCE_BANDS.map((spec) => [spec.band, spec] as const),
 );
 
+/**
+ * The approved band spec for a band name – the one lookup consumers use
+ * instead of re-walking `VIEW_DISTANCE_BANDS` (the composer, the popover).
+ */
+export function viewDistanceBand(band: ViewDistanceBand): ViewDistanceBandSpec {
+  return BAND_BY_NAME.get(band)!;
+}
+
 /** The View distance product: band, exact distance, and its confidence. */
 export interface ViewDistance {
   band: ViewDistanceBand;
@@ -155,7 +163,7 @@ export function distanceToNearestAurora(
   const spec =
     VIEW_DISTANCE_BANDS.find(
       (entry) => nearestKm !== null && nearestKm <= entry.upToKm,
-    ) ?? BAND_BY_NAME.get("not-in-range")!;
+    ) ?? viewDistanceBand("not-in-range");
   return {
     band: spec.band,
     distanceKm: nearestKm,

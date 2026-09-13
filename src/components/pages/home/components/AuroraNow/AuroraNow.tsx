@@ -190,9 +190,9 @@ const AuroraNow: React.FC = () => {
         {(observedQuery.isError || offline) && observed ? (
           <StaleDataNotice />
         ) : null}
+        <ViewDistanceLine />
         <AuroraSummary />
         <OvalGlow />
-        <ViewDistanceLine />
         <SourceAttribution source={AURORA_SOURCE} />
       </CollapsiblePanel>
     </article>
