@@ -426,7 +426,7 @@ export const webcamRegistry: WebcamEntry[] = [
       "Free for private/non-commercial use with credit – commercial use needs a licence",
     note: null,
     alt: "Panomax – Nordkapp, Scandinavia – current sky view",
-    siteUrl: "https://www.panomax.com/cams/5067",
+    siteUrl: "https://nordkapp.panomax.com/",
   },
   {
     type: "image",
@@ -444,7 +444,7 @@ export const webcamRegistry: WebcamEntry[] = [
       "Free for private/non-commercial use with credit – commercial use needs a licence",
     note: null,
     alt: "Panomax – Loen, Scandinavia – current sky view",
-    siteUrl: "https://www.panomax.com/cams/1941",
+    siteUrl: "https://loenskylift.panomax.com/",
   },
   {
     type: "image",
