@@ -34,6 +34,9 @@ const queryClient = () =>
 
 const mockFetch = vi.fn();
 
+/** The observed Kp payload the mock serves; tests can swap in a variant. */
+let kpFixtureText = kpObservedFixture;
+
 /** The synthetic Oval grid the OVATION fetch mock serves; tests override it. */
 let ovationGrid: Array<[number, number, number]> = [
   [0, 70, 3],
@@ -82,10 +85,11 @@ beforeEach(() => {
     [10, 65, 8],
   ];
   mockFetch.mockReset();
+  kpFixtureText = kpObservedFixture;
   mockFetch.mockImplementation((url: string) => {
     const u = typeof url === "string" ? url : "";
     if (u.includes("noaa-planetary-k-index.json"))
-      return Promise.resolve({ ok: true, text: async () => kpObservedFixture });
+      return Promise.resolve({ ok: true, text: async () => kpFixtureText });
     if (u.includes("ovation_aurora_latest.json"))
       return Promise.resolve({
         ok: true,
@@ -155,6 +159,36 @@ describe("AuroraNow", () => {
     );
     expect(screen.getByText("12:00 - 15:00 UTC")).toBeInTheDocument();
     expect(kpBadge()).toBe("Kp1");
+  });
+
+  it("mounts the Reach towns element under the Kp block for the current observed Kp", async () => {
+    // Winter-solstice noon UTC: Fairbanks sits at 02:10 local, deep night,
+    // and the fixture's latest observed Kp 1 puts it inside the 64° edge.
+    vi.setSystemTime(new Date("2026-12-21T12:00:00Z"));
+    renderAuroraNow();
+    await waitFor(() =>
+      expect(document.querySelector(".kp-bar")).toBeInTheDocument(),
+    );
+    expect(screen.getByText("Fairbanks")).toBeInTheDocument();
+  });
+
+  it("drives the Reach towns from the raw observed Kp, not the rounded badge", async () => {
+    // The latest observed reading is fractional: the raw edge is
+    // 66 − 2 × 2.33 = 61.34°, so Anchorage (MLAT 61.93) is Possible. The
+    // rounded badge (Kp 2 → edge 62°) would have dropped it. 12:00Z on the
+    // winter solstice is 02:04 local solar at Anchorage – deep night.
+    vi.setSystemTime(new Date("2026-12-21T12:00:00Z"));
+    const observed = JSON.parse(kpObservedFixture) as Array<{ Kp: number }>;
+    observed[observed.length - 1].Kp = 2.33;
+    kpFixtureText = JSON.stringify(observed);
+    renderAuroraNow();
+    await waitFor(() =>
+      expect(document.querySelector(".kp-bar")).toBeInTheDocument(),
+    );
+    expect(screen.getByText("Anchorage")).toBeInTheDocument();
+    expect(
+      document.querySelector(".aurora-now__current__kp")?.textContent,
+    ).toBe("Kp2.33");
   });
 
   it("shows the current moon phase emoji in a help popover with sr-only label", async () => {

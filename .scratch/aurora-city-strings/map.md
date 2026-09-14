@@ -15,10 +15,11 @@ Decide whether the app ships a "towns where it may be visible" element for the i
 ## Decisions so far
 
 - [01: Verify city strings live + element decision (resolved 2026-09-14)](issues/01-verify-city-strings-live.md): Scales page read live — G1–G5 aurora clauses captured verbatim, including the missed fact that G1 has no geomagnetic-latitude qualifier and uses frequency language while G2–G5 are sighting records; the US-only strings ship nowhere. Tips re-confirmed as the visibility owner (Kp bands, 66° − 2°/Kp rule, approximate-averages + geomagnetic-not-geographic caveats; Kp 6 wording conflict flagged — Tips wins). **Human decision: ship a global towns element** — Tips rule + static city geomagnetic latitudes, dark-filtered (sun ≤ −12°), in Aurora now under the Kp block, flag + city + ordinal probability (icon, ranked, color, title attrib, alt), one city per probability per country. Build ticket [02](issues/02-global-towns-in-aurora-now.md) published with the confirmed seams.
+- [02: Global towns element built (resolved 2026-09-14)](issues/02-global-towns-in-aurora-now.md): Reach towns ships in Aurora now — 53-town static array (45–70° |MLAT|, 23 countries, centered-dipole IGRF-14 2025.0 pole, spot-checked ≤ 0.3° against WDC Kyoto), Tips edge + dark gate in pure `reach-towns.ts`, banded ordinal words (Possible / Likely / Very likely), one per band per country, capped at 12, 60 s tick, caveat line + Tips attribution, CONTEXT term graduated. Not committed — awaiting human review.
 
 ## Not yet specified
 
-- (Ticket 01 resolved 2026-09-14: the element is wanted and its home is decided — Aurora now, under the Kp block; construction is the Tips rule over a static global city array with approximate geomagnetic latitudes, dark-filtered; far-north and non-US viewers are served by the global array, so no per-region string handling is needed. Open details live in build ticket 02: city selection and MLAT method, probability band wording, render cap, flag assets, caveat copy, glossary term.)
+- None — the destination is met: ticket 01 decided the element and ticket 02 built it (2026-09-14). Open items left: human review of the uncommitted build, including confirming the render cap (recommended 12).
 
 ## Out of scope
 

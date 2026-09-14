@@ -258,6 +258,10 @@ _Avoid_: canned text, template sentence, copy block
 The interpreter's three-step reading scale per row — calm / active / storm-like — plus the honest missing-data state ("no data", never zero). "Storm-like" is deliberately hedged: it names storm-range viewing conditions without asserting a NOAA storm scale level.
 _Avoid_: severity colors as level names, storm (as the level's name on its own)
 
+**Reach towns**:
+The Aurora now panel's global town list under the Kp block, headed "Towns where it may be visible": one flag, town name and ranked probability per row. A town appears only while its approximate |geomagnetic latitude| is at or poleward of the Tips reach edge (66° − 2° × Kp) and the sun there is at or below −12° (astronomical twilight or darker). At most one town per probability per country (largest margin wins, then alphabetical), ordered Very likely first and capped at 12 rows; nothing renders when no town qualifies. The probability is one of three ordinal words — Possible / Likely / Very likely — never a percentage; the icon ranks them by filled bars and its colour is redundant. The list is an approximate average in geomagnetic latitude, not geographic, and never a per-town promise.
+_Avoid_: city strings (the NOAA Scales US rows that ship nowhere), town list, visibility list
+
 **Darkest (window)**:
 The weather line's label for the deepest darkness the reference day reaches at the stored place — "Darkest (night): 22:38 to 02:23." when the sun crosses −18°, otherwise the deepest twilight band it reaches (astronomical, nautical, then civil, named in the parentheses), so a nightless summer day still names its darkest stretch. Midnight sun reads "Polar day." and deep polar night "Darkest (night): all day." Times render in the Display timezone.
 _Avoid_: dark hours, night window (without "darkest" or the band qualifier)

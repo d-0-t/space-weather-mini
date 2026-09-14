@@ -15,6 +15,7 @@ import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
 import { KpBar, fetchKpObserved, formatKp } from "../kp-panel/kp-panel";
 import AuroraSummary from "./AuroraSummary";
 import OvalGlow from "./OvalGlow";
+import ReachTowns from "./ReachTowns";
 import ViewDistanceLine from "./ViewDistanceLine";
 
 import "./AuroraNow.scss";
@@ -186,7 +187,7 @@ const AuroraNow: React.FC = () => {
         {/* <FreshnessLine
           asOf={latestObserved.time_tag}
           updated={formatAge(latestObserved.time_tag)}
-        /> */}
+          /> */}
         {(observedQuery.isError || offline) && observed ? (
           <StaleDataNotice />
         ) : null}
@@ -194,6 +195,7 @@ const AuroraNow: React.FC = () => {
         <AuroraSummary />
         <OvalGlow />
         <SourceAttribution source={AURORA_SOURCE} />
+        <ReachTowns kp={currentKp} />
       </CollapsiblePanel>
     </article>
   );

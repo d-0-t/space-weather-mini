@@ -46,7 +46,7 @@ The conventions every change to this repo must follow. Enforced by review, not t
 ## Testing
 
 - **Vitest** — parser unit tests with real NOAA fixtures (fetched once, checked in); component smoke tests (renders, key landmarks present). No snapshot tests of parser output.
-- **Playwright** — one render journey per page, plus the axe audit. Typography changes carry computed-style checks in `e2e/typography.spec.ts`: the type scale is asserted at a viewport width below and above the md Breakpoint (h1, h2, h3, body and a caption-role element), so the tokens are provably applied and the scale provably steps.
+- **Playwright** — one render journey per page, plus the axe audit. Typography changes carry computed-style checks in `e2e/typography.spec.ts`: the type scale is asserted at a viewport width below and above the lg Breakpoint (h1, h2, h3, body and a caption-role element), so the tokens are provably applied and the scale provably steps.
 - A change that touches a parser or a page adds or updates its tests.
 - Time-sensitive tests pin the timezone per file — `process.env.TZ = "Europe/Stockholm"` as the first statement, above the imports (the global setup pins none) — and cover both Display timezone modes: the Local default plus UTC seeded via `saveDisplayTimezone(localStorage, "utc")` before render. Display-time unit tests drive the clock by injection (`formatAge`'s `now`) instead of mocking `Date.now`.
 - Component suites wrap consumers in `DisplayTimezoneProvider` (the provider sits at the app root, `src/index.tsx`).

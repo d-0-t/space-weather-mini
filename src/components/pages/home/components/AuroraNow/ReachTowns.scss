@@ -1,0 +1,106 @@
+// Reach towns – the global town list under the Kp block in Aurora now
+// (CONTEXT.md "Reach towns"). Each row is ranked bars + flag + city; the
+// band color is redundant only (the filled-bar count is the ordinal), so
+// no red/green good-bad semantics ride on it.
+.reach-towns {
+  margin: 0 0 0.75rem;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.35rem;
+    margin: 0 0 0.25rem;
+  }
+
+  &__popover__links {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+
+    a {
+      display: flex;
+      min-height: 44px;
+      align-items: center;
+    }
+  }
+
+  &__heading {
+    margin: 0;
+  }
+
+  &__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin: 0 0 0.5rem;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__town {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: var(--font-size-small);
+    line-height: var(--line-height-small);
+  }
+
+  &__probability {
+    display: inline-flex;
+    flex: none;
+
+    &-icon {
+      display: inline-flex;
+      padding: 1px;
+      line-height: 0;
+    }
+
+    &--possible {
+      color: var(--color-orange);
+    }
+
+    &--likely {
+      color: var(--color-gold);
+    }
+
+    &--very-likely {
+      color: var(--color-light-lime);
+    }
+  }
+
+  &__town {
+    border: 1px solid white;
+    border-radius: 8px;
+    padding: 0 6px 0 0px;
+    background-color: var(--color-black);
+    background: var(--gradient-card-transparent);
+    border-width: 2px;
+
+    &--possible {
+      border-color: color-mix(in srgb, var(--color-orange) 50%, transparent);
+      border-style: dotted;
+    }
+
+    &--likely {
+      border-color: color-mix(in srgb, var(--color-gold) 60%, transparent);
+      border-style: dashed;
+    }
+
+    &--very-likely {
+      border-color: color-mix(
+        in srgb,
+        var(--color-light-lime) 50%,
+        transparent
+      );
+    }
+  }
+
+  &__flag {
+    flex: none;
+  }
+
+  &__city {
+    overflow-wrap: anywhere;
+  }
+}

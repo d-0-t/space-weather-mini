@@ -2,7 +2,7 @@
 
 **Type:** task
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Blocked by:** 01 (resolved 2026-09-14)
 
@@ -72,12 +72,12 @@ twilight or darker).
 
 **Checklist:**
 
-- [ ] City array authored, MLAT method + IGRF epoch documented and cited, spot values pinned
-- [ ] Pure logic + boundary tests
-- [ ] Component mounted under the Kp block (Aurora now); flags/title/alt, not colour-only; axe clean
-- [ ] Caveat line + Tips attribution
-- [ ] CONTEXT.md term graduated
-- [ ] Full suite green (Vitest + Playwright + typecheck + build)
+- [x] City array authored, MLAT method + IGRF epoch documented and cited, spot values pinned
+- [x] Pure logic + boundary tests
+- [x] Component mounted under the Kp block (Aurora now); flags/title/alt, not colour-only; axe clean
+- [x] Caveat line + Tips attribution
+- [x] CONTEXT.md term graduated
+- [x] Full suite green (Vitest + Playwright + typecheck + build)
 
 **Bounds:** no per-town promise; no percentages; no copy or parity from the
 Scales page's US rows; no editing NOAA wording; no Bortle/SQM; no backend
@@ -85,3 +85,54 @@ Scales page's US rows; no editing NOAA wording; no Bortle/SQM; no backend
 
 **Deliverable:** the towns element live in Aurora now, tests green — or a written
 back-out naming the seam that failed.
+
+---
+
+## Answer
+
+Built and verified 2026-09-14; **not committed** — awaiting human review, per
+the session's instruction. The Reach towns element ships in Aurora now,
+mounted directly under `<KpBar />` and above `<ViewDistanceLine />`, driven
+by the raw observed `currentKp` (never the rounded badge); the rest of the
+panel is unchanged. Nothing on the NOAA Scales page's US rows was shipped or
+paraphrased.
+
+What landed, against the confirmed seams:
+
+- **City data** — `src/data/reach-cities.ts`: 53 towns between 45 and 70°
+  |MLAT| across 23 countries (Europe, North America, Asia, Oceania, South
+  America). MLAT is the documented centered-dipole approximation against the
+  IGRF-14 geomagnetic north pole at epoch 2025.0, 80.8° N 72.8° W (WDC for
+  Geomagnetism, Kyoto pole table, read live 2026-09-14). Residual against WDC
+  Kyoto's own IGRF-14 dipole transformation is ≤ 0.3° (Tromsø 67.51 vs 67.40,
+  Rovaniemi 63.62 vs 63.49, Yellowknife 68.52 vs 68.37, Hobart −49.58 vs
+  −49.40, Ushuaia −45.63 vs −45.44) — spot checks pinned in
+  `reach-cities.test.ts`. Coordinates from Open-Meteo geocoding (read
+  2026-09-14). Flags need lowercase codes (flagcdn 404s uppercase), so the
+  array stores lowercased ISO 3166-1 alpha-2.
+- **Pure logic** — `src/products/reach-towns.ts`: Tips edge `E = 66° − 2° ×
+  Kp`, bands `0 ≤ d < 2` Possible / `2 ≤ d < 6` Likely / `d ≥ 6` Very likely,
+  the `−12°` dark gate, one town per band per country (largest margin wins,
+  ties alphabetical), order band → margin desc → city, cap
+  `REACH_TOWNS_LIMIT = 12`. The solar model is injected, so every boundary is
+  unit-pinned in `reach-towns.test.ts` without a clock.
+- **Component** — `ReachTowns.tsx` + `ReachTowns.scss`: 60 s tick (the
+  webcams pattern) plus the panel's 5-minute Kp refetch; the probability glyph
+  is 1/2/3 MUI signal bars (the filled-bar count carries the rank; colour is
+  redundant), titled with the band explanation and named by an sr-only ordinal
+  word; flags via `flagSrc` with 2x/3x srcSet, `alt`/`title` = country, lazy;
+  one visible caveat line (may be seen, approximate averages,
+  geomagnetic-not-geographic, Kp a 3-hour average, absence ≠ no aurora) with
+  the Tips on Viewing the Aurora attribution link. Empty state: renders
+  nothing.
+- **Docs** — `CONTEXT.md` gains the "Reach towns" term; the Interpreter entry
+  is untouched (the panel's shape did not change).
+- **Tests** — Vitest 88 files / 908 tests green; Playwright 83/83 on a fresh
+  build (the two-worker run flaked on live-NOAA pages — smoke and weekly
+  report — each of which passed standalone and in the single-worker run);
+  typecheck and build clean. The pre-existing stale md-vs-lg
+  `e2e/typography.spec.ts` (failing on HEAD) was aligned to the `lg` step
+  decided in `.scratch/typography/spec.md`; ADR-0009 carries a revision note
+  and the coding standards wording is updated.
+
+The cap of 12 was the recommended default — review may confirm or lower it.

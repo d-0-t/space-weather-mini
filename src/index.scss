@@ -42,6 +42,11 @@
     color-mix(in srgb, var(--color-primary-violet) 10%, black),
     color-mix(in srgb, var(--color-deep-indigo) 45%, black)
   );
+  --gradient-card-transparent: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--color-primary-violet) 10%, rgba(0, 0, 0, 0.66)),
+    color-mix(in srgb, var(--color-deep-indigo) 45%, rgba(0, 0, 0, 0.67))
+  );
   --gradient-header: linear-gradient(
     30deg,
     color-mix(in srgb, var(--color-deep-indigo) 100%, black) 20%,

@@ -28,7 +28,7 @@ A typography system, decided in ADR-0009 and extending the color-token approach 
 14. As a maintainer, I want the three large data readouts deliberately kept as literal one-offs, so the storm-display numbers keep their tuned sizes independent of heading roles.
 15. As a maintainer adding a page, I want headings sized by global rules, so a new page needs zero sizing CSS — just semantic `<h1>`–`<h4>`.
 16. As an AFK agent implementing future components, I want Type token and Breakpoint defined in the glossary and cited in the coding standards, so new code reaches for the system instead of eyeballing values.
-17. As a maintainer reviewing this work, I want computed-style tests at two viewports, so the md step provably steps and regressions surface in CI.
+17. As a maintainer reviewing this work, I want computed-style tests at two viewports, so the lg step provably steps and regressions surface in CI.
 
 ## Implementation Decisions
 

@@ -3,7 +3,7 @@
 // Headings h1–h4 are sized once here by global element rules – a new page
 // needs zero sizing CSS, just semantic <h1>–<h4> – and the body element
 // carries the body token so all text inherits the scale. Stepped, not fluid:
-// only body, lead, h1 and h2 step, at the canonical md Breakpoint. All
+// only body, lead, h1 and h2 step, at the canonical lg Breakpoint. All
 // sizing is rem against the real 16px root, so browser text-zoom scales
 // every part of the app.
 @use "breakpoints" as *;
@@ -53,7 +53,7 @@ h4 {
   line-height: var(--line-height-h4);
 }
 
-// The md step: the unitless line-height tokens scale with their size token
+// The lg step: the unitless line-height tokens scale with their size token
 // and need no step of their own.
 @include respond-to(lg) {
   :root {
