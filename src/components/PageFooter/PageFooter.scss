@@ -1,0 +1,13 @@
+@use "../../styles/breakpoints" as *;
+
+.page-footer {
+  display: flex;
+  justify-content: center;
+  padding: 1rem;
+}
+
+// Programmatic h1 focus from Jump to top must not flash a focus ring:
+// the h1 is focusable for screen-reader and keyboard context only.
+main h1[tabindex="-1"]:focus {
+  outline: none;
+}

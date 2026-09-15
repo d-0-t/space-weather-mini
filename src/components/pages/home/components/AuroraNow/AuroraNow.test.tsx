@@ -239,15 +239,16 @@ describe("AuroraNow", () => {
     );
   });
 
-  it("attributes the oval forecast images to the NOAA aurora product page", async () => {
+  it("leaves the oval forecast attribution to the Oval glow intensity panel", async () => {
     renderAuroraNow();
     await waitFor(() =>
       expect(document.querySelector(".kp-bar")).toBeInTheDocument(),
     );
-    const source = screen.getByRole("link", { name: /^NOAA\/SWPC$/ });
-    expect(source.getAttribute("href")).toBe(
-      "https://www.swpc.noaa.gov/products/aurora-30-minute-forecast",
-    );
+    // Ticket 01 split: the Oval glow intensity panel owns the map and its
+    // NOAA aurora product attribution (covered by Home.aurora-split).
+    expect(
+      screen.queryByRole("link", { name: /^NOAA\/SWPC$/ }),
+    ).toBeNull();
   });
 
   it("shows the stale notice with saved data when the browser goes offline", async () => {

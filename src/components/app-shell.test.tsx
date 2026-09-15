@@ -5,6 +5,8 @@ import { MemoryRouter } from "react-router-dom";
 
 import App from "./App";
 import Nav from "./navigation/Nav";
+import PageFooter from "./PageFooter/PageFooter";
+import { useDocumentTitle } from "./PageFooter/documentTitle";
 import { DisplayTimezoneProvider } from "./DisplayTimezone/DisplayTimezoneContext";
 import geoAlertFixture from "../products/fixtures/geophysical-alert.txt?raw";
 import threeDayFixture from "../products/fixtures/3-day-forecast.txt?raw";
@@ -25,23 +27,33 @@ const createFetchMock = () =>
 
 /**
  * Helper that renders the shell the way index.tsx composes it: skip link,
- * header/nav, main – no footer. Mirrors src/index.tsx.
+ * header/nav, main, shared page-footer. Mirrors src/index.tsx.
  */
+const ShellProbe: React.FC = () => {
+  useDocumentTitle();
+  return (
+    <>
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+      <Nav />
+      <div className="app-shell">
+        <main id="main-content" tabIndex={-1}>
+          <App />
+        </main>
+        <PageFooter />
+      </div>
+    </>
+  );
+};
+
 const renderShell = (initialRoute = "/") => {
   vi.stubGlobal("fetch", createFetchMock());
   return render(
     <QueryClientProvider client={queryClient()}>
       <DisplayTimezoneProvider>
         <MemoryRouter initialEntries={[initialRoute]}>
-          <a href="#main-content" className="skip-link">
-            Skip to main content
-          </a>
-          <Nav />
-          <div className="app-shell">
-            <main id="main-content" tabIndex={-1}>
-              <App />
-            </main>
-          </div>
+          <ShellProbe />
         </MemoryRouter>
       </DisplayTimezoneProvider>
     </QueryClientProvider>,

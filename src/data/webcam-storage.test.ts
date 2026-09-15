@@ -224,15 +224,18 @@ describe("Webcam pins storage", () => {
     expect(loadPinnedIds(localStorage)).toEqual([]);
   });
 
-  it("defaults the Dashboard pins auto-refresh to off and round-trips it", () => {
+  it("defaults the Dashboard pins auto-refresh to on and round-trips it", () => {
+    expect(loadPinsAutoRefresh(localStorage)).toBe(true);
+    savePinsAutoRefresh(localStorage, false);
+    expect(localStorage.getItem(PINS_AUTO_REFRESH_STORAGE_KEY)).toBe("false");
     expect(loadPinsAutoRefresh(localStorage)).toBe(false);
     savePinsAutoRefresh(localStorage, true);
     expect(localStorage.getItem(PINS_AUTO_REFRESH_STORAGE_KEY)).toBe("true");
     expect(loadPinsAutoRefresh(localStorage)).toBe(true);
     localStorage.setItem(PINS_AUTO_REFRESH_STORAGE_KEY, "not json");
-    expect(loadPinsAutoRefresh(localStorage)).toBe(false);
+    expect(loadPinsAutoRefresh(localStorage)).toBe(true);
     localStorage.setItem(PINS_AUTO_REFRESH_STORAGE_KEY, JSON.stringify(1));
-    expect(loadPinsAutoRefresh(localStorage)).toBe(false);
+    expect(loadPinsAutoRefresh(localStorage)).toBe(true);
   });
 });
 

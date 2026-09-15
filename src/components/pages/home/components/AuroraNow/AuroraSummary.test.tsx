@@ -163,7 +163,7 @@ describe("Aurora Now plain-language summary (human decisions 2026-09-12/13)", ()
     // −2 → weakly right, not the storm-range value measured later upstream.
     expect(paragraph().textContent).toMatch(/weakly toward aurora/);
     const select = screen.getByRole("combobox", {
-      name: "Summary",
+      name: "Time",
     }) as HTMLSelectElement;
     const labels = Array.from(select.options).map((o) => o.textContent ?? "");
     // "Arriving now" is plain "Now", and every option carries its
@@ -188,7 +188,7 @@ describe("Aurora Now plain-language summary (human decisions 2026-09-12/13)", ()
     renderSummary();
     await waitForParagraph();
     const select = screen.getByRole("combobox", {
-      name: "Summary",
+      name: "Time",
     });
     await user.selectOptions(select, "30");
     // +30 min ahead: the −15 nT reading is the one arriving → storm range.
@@ -272,7 +272,7 @@ describe("Aurora Now plain-language summary (human decisions 2026-09-12/13)", ()
     const asOfText = () => screen.getByText(/^As of /).textContent;
     const before = asOfText()!;
     expect(before).toMatch(/Aug 27 01:26/); // 23:26:01Z in the pinned zone
-    const select = screen.getByRole("combobox", { name: "Summary" });
+    const select = screen.getByRole("combobox", { name: "Time" });
     await user.selectOptions(select, "30");
     await waitFor(() =>
       expect(paragraph().textContent).toMatch(/pushing hard/),

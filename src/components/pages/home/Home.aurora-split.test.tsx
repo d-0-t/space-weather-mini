@@ -129,10 +129,10 @@ describe("Dashboard Aurora split (ticket 01)", () => {
         screen.getByRole("heading", { name: /^Summary$/i }),
       ).toBeInTheDocument(),
     );
-    // Time-ahead selector is named Summary via its label.
+    // Time-ahead selector is named Time via its label.
     await waitFor(() =>
       expect(
-        screen.getByRole("combobox", { name: /summary/i }),
+        screen.getByRole("combobox", { name: /^Time$/i }),
       ).toBeInTheDocument(),
     );
     expect(screen.getAllByText(/^As of /).length).toBeGreaterThanOrEqual(1);

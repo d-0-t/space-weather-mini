@@ -6,6 +6,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import "./index.scss";
 import App from "./components/App";
 import Nav from "./components/navigation/Nav";
+import PageFooter from "./components/PageFooter/PageFooter";
+import { useDocumentTitle } from "./components/PageFooter/documentTitle";
 import { DisplayTimezoneProvider } from "./components/DisplayTimezone/DisplayTimezoneContext";
 import { installPreloadErrorReload } from "./preload-error";
 import reportWebVitals from "./reportWebVitals";
@@ -24,6 +26,29 @@ const queryClient = new QueryClient({
   defaultOptions: { queries: { networkMode: "always" } },
 });
 
+/**
+ * The app shell inside the router: skip link, nav, routed main and the
+ * shared page-footer Jump to top. The Document title stays in sync with
+ * the route here so push, back and forward all update the tab.
+ */
+const Shell: React.FC = () => {
+  useDocumentTitle();
+  return (
+    <>
+      <a href="#main-content" className="skip-link">
+        Skip to main content
+      </a>
+      <Nav />
+      <div className="app-shell">
+        <main id="main-content" tabIndex={-1}>
+          <App />
+        </main>
+        <PageFooter />
+      </div>
+    </>
+  );
+};
+
 root.render(
   // NOTE: React.StrictMode will render everything twice in development, but not in production
   // Comment out if you only want one render for dev
@@ -31,15 +56,7 @@ root.render(
     <QueryClientProvider client={queryClient}>
       <DisplayTimezoneProvider>
         <BrowserRouter>
-          <a href="#main-content" className="skip-link">
-            Skip to main content
-          </a>
-          <Nav />
-          <div className="app-shell">
-            <main id="main-content" tabIndex={-1}>
-              <App />
-            </main>
-          </div>
+          <Shell />
         </BrowserRouter>
       </DisplayTimezoneProvider>
     </QueryClientProvider>

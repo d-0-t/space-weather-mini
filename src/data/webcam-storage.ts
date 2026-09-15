@@ -156,7 +156,7 @@ export function savePinnedIds(
   );
 }
 
-/** Loads the Dashboard pinned-webcams auto-refresh consent, defaulting to off. */
+/** Loads the Dashboard pinned-webcams auto-refresh consent, defaulting to on. */
 export function loadPinsAutoRefresh(
   storage: Pick<Storage, "getItem">,
 ): boolean {
@@ -164,7 +164,8 @@ export function loadPinsAutoRefresh(
     const raw = storage.getItem(PINS_AUTO_REFRESH_STORAGE_KEY);
     if (raw === null) return true;
     const parsed: unknown = JSON.parse(raw);
-    return parsed === true;
+    if (typeof parsed !== "boolean") return true;
+    return parsed;
   } catch {
     return true;
   }
