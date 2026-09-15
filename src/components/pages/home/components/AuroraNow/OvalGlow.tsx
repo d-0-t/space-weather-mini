@@ -142,10 +142,10 @@ const OvalLegend: React.FC<{
 );
 
 /**
- * Oval glow intensity Dashboard panel – the real OVATION 1-degree grid as
+ * Oval glow Dashboard panel – the real OVATION 1-degree grid as
  * one continuous NASA-style glow ramp on a single pole-to-pole world canvas
  * over a Natural Earth land basemap painted with the same projection,
- * headed Oval glow intensity with forecast time, glow intensity table,
+ * headed Oval glow with forecast time, glow intensity table,
  * color-blind toggle, map, legend and full-size view. Color wash only in
  * the default mode; Color-blind (ticket 06) swaps the ramp to the viridis
  * palette via the toggle beside the legend (permanent from 2026-09-08; the
@@ -232,17 +232,6 @@ const OvalGlow: React.FC = () => {
     content = (
       <div id="oval-glow" className="oval-glow">
         <p className="oval-glow__fresh">
-          <HelpPopover
-            popoverClassName="oval-glow__popover"
-            content={{
-              label: "About this map",
-              paragraphs: [
-                "Cloud coverage, moon phase and light pollution affect visibility.",
-                "Glow levels are local brightness per 1-degree cell – not the Kp storm scale.",
-                "Dim green spreading beyond the bright ring is diffuse glow; transparent areas have no glow forecast.",
-              ],
-            }}
-          />
           Forecast Time {formatShort(product.forecastTime, displayTimezone)} –
           30–90 min lead.
         </p>
@@ -306,7 +295,7 @@ const OvalGlow: React.FC = () => {
               content concatenation. The corner chip is the visible hint that
               the map opens bigger. */}
           <FullSizeModal
-            label="Oval glow intensity, full size"
+            label="Oval glow, full size"
             triggerClassName="oval-glow__expand"
             trigger={
               <span className="oval-glow__expand__hint">
@@ -356,8 +345,21 @@ const OvalGlow: React.FC = () => {
   return (
     <article className="oval-glow-panel">
       <CollapsiblePanel
-        heading={<h2>Oval glow intensity</h2>}
+        heading={<h2>Oval glow</h2>}
         bodyId="oval-glow-panel-body"
+        adornment={
+          <HelpPopover
+            popoverClassName="oval-glow__popover"
+            content={{
+              label: "About this map",
+              paragraphs: [
+                "Cloud coverage, moon phase and light pollution affect visibility.",
+                "Glow levels are local brightness per 1-degree cell – not the Kp storm scale.",
+                "Dim green spreading beyond the bright ring is diffuse glow; transparent areas have no glow forecast.",
+              ],
+            }}
+          />
+        }
       >
         {content}
       </CollapsiblePanel>

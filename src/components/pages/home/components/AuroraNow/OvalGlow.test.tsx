@@ -386,7 +386,7 @@ describe("OvalGlow", () => {
     expect(name).not.toMatch(/16\s*\+/);
   });
 
-  it("heads the panel as Oval glow intensity with no Kp", async () => {
+  it("heads the panel as Oval glow with no Kp", async () => {
     // OvalGlow is the panel: its h2 names the unit, the content carries the
     // map, table and legend with no duplicate heading.
     renderGlow();
@@ -722,7 +722,7 @@ describe("Full size map modal", () => {
     const { container } = renderGlow();
     await canvases();
     const trigger = screen.getByRole("button", {
-      name: "Oval glow intensity, full size",
+      name: "Oval glow, full size",
     });
     const dialog = document.querySelector(
       "dialog.image-modal",
@@ -756,7 +756,7 @@ describe("Full size map modal", () => {
     const { container } = renderGlow();
     await canvases();
     await user.click(
-      screen.getByRole("button", { name: "Oval glow intensity, full size" }),
+      screen.getByRole("button", { name: "Oval glow, full size" }),
     );
     const rotate = screen.getByRole("button", { name: /rotate map/i });
     expect(rotate).toHaveAttribute("aria-pressed", "false");

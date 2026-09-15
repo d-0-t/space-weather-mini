@@ -6,16 +6,10 @@ import {
   type ReachProbability,
   type ReachTown,
 } from "../../../../../products/reach-towns";
-import HelpPopover from "../../../../HelpPopover/HelpPopover";
 import { flagSrc } from "../../../webcams/webcam-card-parts";
 import { useReachTowns } from "./useReachTowns";
 
 import "./ReachTowns.scss";
-import OpenInNew from "@mui/icons-material/OpenInNew";
-import { Link } from "react-router-dom";
-
-/** The Tips on Viewing the Aurora page that owns the reach rule. */
-const TIPS_URL = "https://www.swpc.noaa.gov/content/tips-viewing-aurora";
 
 /**
  * The Reach towns list (CONTEXT.md Possible locations content): the global
@@ -70,28 +64,6 @@ const ReachTowns: React.FC<{ kp: number; towns?: ReachTown[] }> = ({
 
   return (
     <div className="reach-towns">
-      <div className="reach-towns__head">
-        <HelpPopover
-          popoverClassName="reach-towns__popover"
-          content={{
-            label: "About these towns",
-            paragraphs: [
-              "The aurora may be seen in these places, but isn't guaranteed.",
-              "The list is based on the Kp index, which is a 3-hour world average that changes.",
-              "Only dark enough locations are shown.",
-            ],
-            footnote: (
-              <span className="reach-towns__popover__links">
-                <Link to={"about/guide"}>Aurora Guide</Link>
-                <a href={TIPS_URL} target="_blank" rel="noopener noreferrer">
-                  NOAA/SWPC's Tips on Viewing the Aurora{" "}
-                  <OpenInNew aria-hidden="true" fontSize="inherit" />
-                </a>
-              </span>
-            ),
-          }}
-        />
-      </div>
       <ul className="reach-towns__list">
         {towns.map((town) => {
           const ProbabilityIcon = PROBABILITY_ICONS[town.probability];

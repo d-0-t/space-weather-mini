@@ -4,6 +4,9 @@ import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
 import { fetchKpObserved } from "../kp-panel/kp-panel";
 import ReachTowns from "./ReachTowns";
 import { useReachTowns } from "./useReachTowns";
+import HelpPopover from "../../../../HelpPopover/HelpPopover";
+import { Link } from "react-router-dom";
+import OpenInNew from "@mui/icons-material/OpenInNew";
 
 /**
  * Possible locations Dashboard panel (ticket 01): the Reach towns list as
@@ -30,11 +33,36 @@ const PossibleLocationsPanel: React.FC = () => {
 
   if (currentKp === null || towns.length === 0) return null;
 
+  /** The Tips on Viewing the Aurora page that owns the reach rule. */
+  const TIPS_URL = "https://www.swpc.noaa.gov/content/tips-viewing-aurora";
+
   return (
     <article className="possible-locations-panel">
       <CollapsiblePanel
         heading={<h2>Possible locations</h2>}
         bodyId="possible-locations-panel-body"
+        adornment={
+          <HelpPopover
+            popoverClassName="reach-towns__head__popover"
+            content={{
+              label: "About these towns",
+              paragraphs: [
+                "The aurora may be seen in these places, but isn't guaranteed.",
+                "The list is based on the Kp index, which is a 3-hour world average that changes.",
+                "Only dark enough locations are shown.",
+              ],
+              footnote: (
+                <span className="reach-towns__head__popover__links">
+                  <Link to={"about/guide"}>Aurora Guide</Link>
+                  <a href={TIPS_URL} target="_blank" rel="noopener noreferrer">
+                    NOAA/SWPC's Tips on Viewing the Aurora{" "}
+                    <OpenInNew aria-hidden="true" fontSize="inherit" />
+                  </a>
+                </span>
+              ),
+            }}
+          />
+        }
       >
         <ReachTowns kp={currentKp} towns={towns} />
       </CollapsiblePanel>

@@ -88,8 +88,8 @@ const Guide: React.FC = () => {
         </p>
         <p>
           Check the <Link to="/#view-distance">Dashboard</Link>: the{" "}
-          <Link to="/#oval-glow">Oval glow intensity</Link> panel paints the
-          forecast band on a world map, and the{" "}
+          <Link to="/#oval-glow">Oval glow</Link> panel paints the forecast band
+          on a world map, and the{" "}
           <GlossaryTerm termId="view-distance">View distance</GlossaryTerm> line
           reads the nearest glow, its distance band and a confidence label for
           your stored place. Both describe the next 30–90 minutes from the

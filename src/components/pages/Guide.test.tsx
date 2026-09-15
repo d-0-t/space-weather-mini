@@ -49,9 +49,10 @@ describe("Aurora guide page (ticket 09)", () => {
       "href",
       "/#view-distance",
     );
-    expect(
-      screen.getByRole("link", { name: "Oval glow intensity" }),
-    ).toHaveAttribute("href", "/#oval-glow");
+    expect(screen.getByRole("link", { name: "Oval glow" })).toHaveAttribute(
+      "href",
+      "/#oval-glow",
+    );
   });
 
   it("links the sky caveats to the stored place's cloud and light-pollution maps", () => {

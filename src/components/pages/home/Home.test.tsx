@@ -29,7 +29,10 @@ beforeEach(() => {
     ) {
       return Promise.resolve({ ok: true, text: async () => kpForecastFixture });
     }
-    if (typeof url === "string" && url.includes("noaa-planetary-k-index.json")) {
+    if (
+      typeof url === "string" &&
+      url.includes("noaa-planetary-k-index.json")
+    ) {
       return Promise.resolve({ ok: true, text: async () => kpObservedFixture });
     }
     if (typeof url === "string" && url.includes("ovation_aurora_latest.json")) {
@@ -61,7 +64,9 @@ const renderHome = () =>
 describe("Home", () => {
   it("renders the Dashboard heading", () => {
     renderHome();
-    expect(screen.getByRole("heading", { level: 1, name: "Dashboard" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Dashboard" }),
+    ).toBeInTheDocument();
   });
 
   it("hides the alert settings button while the feature flag is off", () => {
@@ -124,19 +129,17 @@ describe("Home", () => {
         screen.getByRole("img", { name: /oval glow/i }),
       ).toBeInTheDocument(),
     );
-    // Ticket 01: Aurora now and Oval glow intensity are independent panels;
+    // Ticket 01: Aurora now and Oval glow are independent panels;
     // collapsing Aurora now hides its Kp numbers but leaves the Oval map up.
     const auroraToggle = screen.getByRole("button", { name: /^Aurora Now$/i });
     expect(auroraToggle).toHaveAttribute("aria-expanded", "true");
     const ovalToggle = screen.getByRole("button", {
-      name: /^Oval glow intensity$/i,
+      name: /^Oval glow$/i,
     });
 
     await user.click(auroraToggle);
     expect(auroraToggle).toHaveAttribute("aria-expanded", "false");
-    expect(
-      screen.getByRole("img", { name: /oval glow/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /oval glow/i })).toBeInTheDocument();
 
     await user.click(auroraToggle);
     expect(auroraToggle).toHaveAttribute("aria-expanded", "true");
@@ -149,9 +152,7 @@ describe("Home", () => {
 
     await user.click(ovalToggle);
     expect(ovalToggle).toHaveAttribute("aria-expanded", "true");
-    expect(
-      screen.getByRole("img", { name: /oval glow/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: /oval glow/i })).toBeInTheDocument();
   });
 
   it("collapses a panel on Escape and keeps focus on the toggle", async () => {

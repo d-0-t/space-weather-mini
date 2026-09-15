@@ -145,10 +145,8 @@ describe("AuroraNow", () => {
       expect(document.querySelector(".kp-bar")).toBeInTheDocument(),
     );
     expect(document.querySelector(".aurora-now__current")).toBeInTheDocument();
-    // Ticket 01 split: the Oval glow intensity panel owns the map now.
-    expect(
-      screen.queryByRole("img", { name: /oval glow/i }),
-    ).toBeNull();
+    // Ticket 01 split: the Oval glow panel owns the map now.
+    expect(screen.queryByRole("img", { name: /oval glow/i })).toBeNull();
   });
 
   it("labels the current 3-hour window in the chosen timezone, same slot in both modes", async () => {
@@ -239,16 +237,14 @@ describe("AuroraNow", () => {
     );
   });
 
-  it("leaves the oval forecast attribution to the Oval glow intensity panel", async () => {
+  it("leaves the oval forecast attribution to the Oval glow panel", async () => {
     renderAuroraNow();
     await waitFor(() =>
       expect(document.querySelector(".kp-bar")).toBeInTheDocument(),
     );
-    // Ticket 01 split: the Oval glow intensity panel owns the map and its
+    // Ticket 01 split: the Oval glow panel owns the map and its
     // NOAA aurora product attribution (covered by Home.aurora-split).
-    expect(
-      screen.queryByRole("link", { name: /^NOAA\/SWPC$/ }),
-    ).toBeNull();
+    expect(screen.queryByRole("link", { name: /^NOAA\/SWPC$/ })).toBeNull();
   });
 
   it("shows the stale notice with saved data when the browser goes offline", async () => {
@@ -275,14 +271,12 @@ describe("AuroraNow", () => {
   });
 
   it("no longer embeds the Oval glow; Forecast Time lives in its own panel", async () => {
-    // Ticket 01 split: the Oval glow intensity panel owns the map now.
+    // Ticket 01 split: the Oval glow panel owns the map now.
     renderAuroraNow();
     await waitFor(() =>
       expect(document.querySelector(".kp-bar")).toBeInTheDocument(),
     );
-    expect(
-      screen.queryByRole("img", { name: /oval glow/i }),
-    ).toBeNull();
+    expect(screen.queryByRole("img", { name: /oval glow/i })).toBeNull();
     expect(screen.queryByText(/Forecast Time/i)).toBeNull();
   });
 
@@ -377,9 +371,7 @@ describe("AuroraNow", () => {
     ovationGrid = [[10.7522, 60.4139, 12]];
     renderAuroraNow();
     await screen.findByText(/Aurora likely/);
-    expect(
-      document.querySelector(".aurora-now__summary__text"),
-    ).toBeNull();
+    expect(document.querySelector(".aurora-now__summary__text")).toBeNull();
   });
 
   it("refetches the weather for the place picked in the modal", async () => {
@@ -542,7 +534,7 @@ describe("AuroraNow", () => {
 
   it("carries no Forecast Time itself; the Oval panel owns the one freshness line", async () => {
     // Ticket 01 split: the oval's `Forecast Time ... lead.` lives in the
-    // Oval glow intensity panel now. Aurora now keeps no As-of of its own
+    // Oval glow panel now. Aurora now keeps no As-of of its own
     // (the Kp freshness line stays commented out).
     seedPlace(OSLO_PLACE);
     ovationGrid = [[10.7522, 60.4139, 12]];

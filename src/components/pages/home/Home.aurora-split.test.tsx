@@ -35,7 +35,10 @@ beforeEach(() => {
     ) {
       return Promise.resolve({ ok: true, text: async () => kpForecastFixture });
     }
-    if (typeof url === "string" && url.includes("noaa-planetary-k-index.json")) {
+    if (
+      typeof url === "string" &&
+      url.includes("noaa-planetary-k-index.json")
+    ) {
       return Promise.resolve({ ok: true, text: async () => kpObservedFixture });
     }
     if (typeof url === "string" && url.includes("ovation_aurora_latest.json")) {
@@ -69,7 +72,7 @@ const renderHome = () =>
   );
 
 describe("Dashboard Aurora split (ticket 01)", () => {
-  it("shows Aurora now, Summary, Oval glow intensity and Possible locations as separate h2 panels in default order", async () => {
+  it("shows Aurora now, Summary, Oval glow and Possible locations as separate h2 panels in default order", async () => {
     renderHome();
     await waitFor(() =>
       expect(
@@ -83,7 +86,7 @@ describe("Dashboard Aurora split (ticket 01)", () => {
     );
     await waitFor(() =>
       expect(
-        screen.getByRole("heading", { name: /^Oval glow intensity$/i }),
+        screen.getByRole("heading", { name: /^Oval glow$/i }),
       ).toBeInTheDocument(),
     );
 
@@ -95,7 +98,7 @@ describe("Dashboard Aurora split (ticket 01)", () => {
       "Aurora now",
       "Pinned webcams",
       "Summary",
-      "Oval glow intensity",
+      "Oval glow",
       "Possible locations",
       "Solar wind",
       "Magnetosphere",
@@ -112,7 +115,7 @@ describe("Dashboard Aurora split (ticket 01)", () => {
     // The split's own four keep their relative order.
     const auroraIdx = headings.findIndex((t) => t === "Aurora now");
     const summaryIdx = headings.findIndex((t) => t === "Summary");
-    const ovalIdx = headings.findIndex((t) => t === "Oval glow intensity");
+    const ovalIdx = headings.findIndex((t) => t === "Oval glow");
     expect(auroraIdx).toBeGreaterThanOrEqual(0);
     expect(summaryIdx).toBeGreaterThan(auroraIdx);
     expect(ovalIdx).toBeGreaterThan(summaryIdx);
@@ -144,7 +147,7 @@ describe("Dashboard Aurora split (ticket 01)", () => {
     renderHome();
     await waitFor(() =>
       expect(
-        screen.getByRole("heading", { name: /^Oval glow intensity$/i }),
+        screen.getByRole("heading", { name: /^Oval glow$/i }),
       ).toBeInTheDocument(),
     );
     await waitFor(() =>
@@ -163,14 +166,12 @@ describe("Dashboard Aurora split (ticket 01)", () => {
         screen.getAllByRole("img", { name: /oval glow/i }).length,
       ).toBeGreaterThan(0),
     );
-    expect(
-      document.querySelector(".oval-glow__legend"),
-    ).not.toBeNull();
+    expect(document.querySelector(".oval-glow__legend")).not.toBeNull();
     // Full-size view travels with the Oval panel.
     await waitFor(() =>
       expect(
         screen.getByRole("button", {
-          name: "Oval glow intensity, full size",
+          name: "Oval glow, full size",
         }),
       ).toBeInTheDocument(),
     );
@@ -205,9 +206,7 @@ describe("Dashboard Aurora split (ticket 01)", () => {
       ),
     ).toBe(true);
     // Moon badge.
-    expect(
-      screen.getByText(/Current Moon phase:/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Current Moon phase:/i)).toBeInTheDocument();
   });
 
   it("keeps the Oval and View distance anchors landable for Guide deep-links", async () => {
