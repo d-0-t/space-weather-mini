@@ -10,10 +10,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import LocalConditions from "./conditions";
 import { PLACE_STORAGE_KEY } from "../../../data/place-storage";
 import type { WeatherData } from "../../../data/weather";
-import {
-  loadWeather,
-  saveWeather,
-} from "../../../data/weather-storage";
+import { loadWeather, saveWeather } from "../../../data/weather-storage";
 import { DISPLAY_TIMEZONE_STORAGE_KEY } from "../../../products/display-timezone";
 import { DisplayTimezoneProvider } from "../../DisplayTimezone/DisplayTimezoneContext";
 import kirunaFixture from "../../../data/fixtures/nominatim-kiruna.json";
@@ -149,7 +146,8 @@ const bandNames = (heading = "Today's daylight chart"): string[] =>
 /** The flex-grow ratio (duration in minutes) of the named band. */
 const bandGrow = (name: string, heading = "Today's daylight chart"): number => {
   const li = bandsInDay(heading).find(
-    (item) => item.querySelector(".conditions__band-name")?.textContent === name,
+    (item) =>
+      item.querySelector(".conditions__band-name")?.textContent === name,
   )!;
   return Number(li.style.flexGrow);
 };
@@ -374,18 +372,17 @@ describe("Local conditions search (shared modal, ticket 02)", () => {
     expect(document.activeElement).toBe(radios[1]);
     // No selection yet - still default
     const before = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
-    expect(before.place.displayName).toBe(
-      "Luleå, Norrbotten County, Sweden",
-    );
+    expect(before.place.displayName).toBe("Luleå, Norrbotten County, Sweden");
     await user.keyboard("{Enter}");
     // Enter only stages: still the default, modal still open
     const staged = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
-    expect(staged.place.displayName).toBe(
-      "Luleå, Norrbotten County, Sweden",
-    );
+    expect(staged.place.displayName).toBe("Luleå, Norrbotten County, Sweden");
     expect(
-      (document.querySelector("dialog.place-finder__modal") as HTMLDialogElement)
-        .open,
+      (
+        document.querySelector(
+          "dialog.place-finder__modal",
+        ) as HTMLDialogElement
+      ).open,
     ).toBe(true);
     await user.click(screen.getByRole("button", { name: "Apply and close" }));
     const stored = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
@@ -412,9 +409,7 @@ describe("Local conditions search (shared modal, ticket 02)", () => {
     );
     // Clicking only stages: the store still holds the default
     const pending = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
-    expect(pending.place.displayName).toBe(
-      "Luleå, Norrbotten County, Sweden",
-    );
+    expect(pending.place.displayName).toBe("Luleå, Norrbotten County, Sweden");
     await user.click(screen.getByRole("button", { name: "Apply and close" }));
     const stored = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
     expect(stored.v).toBe(1);
@@ -432,8 +427,11 @@ describe("Local conditions search (shared modal, ticket 02)", () => {
     expect(bandNames()).toEqual(["Day"]);
     // The pick is confirmed - the modal closes behind it
     expect(
-      (document.querySelector("dialog.place-finder__modal") as HTMLDialogElement)
-        .open,
+      (
+        document.querySelector(
+          "dialog.place-finder__modal",
+        ) as HTMLDialogElement
+      ).open,
     ).toBe(false);
   });
 
@@ -453,9 +451,7 @@ describe("Local conditions search (shared modal, ticket 02)", () => {
   });
 
   it("shows the busy copy on 429", async () => {
-    mockFetch.mockResolvedValue(
-      jsonResponse({}, 429).withRetryAfter(5),
-    );
+    mockFetch.mockResolvedValue(jsonResponse({}, 429).withRetryAfter(5));
     const user = userEvent.setup();
     renderPage();
     await openModal(user);
@@ -509,7 +505,12 @@ describe("Local conditions search (shared modal, ticket 02)", () => {
   });
 
   it("proposes the device fix with ±m and writes the geocoded place only on confirm", async () => {
-    stubGeolocation({ kind: "ok", latitude: 69.6492, longitude: 18.9553, accuracy: 12 });
+    stubGeolocation({
+      kind: "ok",
+      latitude: 69.6492,
+      longitude: 18.9553,
+      accuracy: 12,
+    });
     mockFetch.mockResolvedValue(jsonResponse(reverseTromsoFixture));
     const user = userEvent.setup();
     renderPage();
@@ -517,16 +518,12 @@ describe("Local conditions search (shared modal, ticket 02)", () => {
     await user.click(screen.getByRole("button", { name: "Find my location" }));
     // The fix is proposed, not stored: the place is still the default
     const proposed = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
-    expect(proposed.place.displayName).toBe(
-      "Luleå, Norrbotten County, Sweden",
-    );
+    expect(proposed.place.displayName).toBe("Luleå, Norrbotten County, Sweden");
     expect(screen.getByText("±12m")).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "Use this location" }));
     // Staging the fix stores nothing yet
     const staged = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
-    expect(staged.place.displayName).toBe(
-      "Luleå, Norrbotten County, Sweden",
-    );
+    expect(staged.place.displayName).toBe("Luleå, Norrbotten County, Sweden");
     await user.click(screen.getByRole("button", { name: "Apply and close" }));
     const stored = JSON.parse(localStorage.getItem(PLACE_STORAGE_KEY)!);
     expect(stored.place.displayName).toBe(
@@ -576,13 +573,16 @@ describe("Local conditions weather (ticket 03)", () => {
     expect(within(current).getByText("mid: 0%")).toBeInTheDocument();
     expect(within(current).getByText("high: 2%")).toBeInTheDocument();
     expect(current.querySelector(".sr-only")?.textContent).toBeDefined();
-    expect(current.querySelector(".weather-icon[title=\"Clear sky\"]")).toBeInTheDocument();
+    expect(
+      current.querySelector('.weather-icon[title="Clear sky"]'),
+    ).toBeInTheDocument();
     expect(
       current.querySelector(".weather-current__main .sr-only")?.textContent,
     ).toBe("Clear sky");
-    expect(
-      screen.getByRole("link", { name: "Open-Meteo" }),
-    ).toHaveAttribute("href", "https://open-meteo.com/");
+    expect(screen.getByRole("link", { name: "Open-Meteo" })).toHaveAttribute(
+      "href",
+      "https://open-meteo.com/",
+    );
     expect(
       screen.getByText(
         (_, el) =>
@@ -607,11 +607,13 @@ describe("Local conditions weather (ticket 03)", () => {
     // The strip starts at the observation's hour (01:00, forecast_hours=24).
     expect(within(hours[0]).getByText("01:00")).toBeInTheDocument();
     expect(within(hours[0]).getByText("3°C")).toBeInTheDocument();
-    expect(within(hours[0]).getAllByText("Clear sky").length).toBeGreaterThan(0);
+    expect(within(hours[0]).getAllByText("Clear sky").length).toBeGreaterThan(
+      0,
+    );
     expect(within(hours[0]).getByText("87%")).toBeInTheDocument();
     // low/mid/high split is shown in current only; hourly shows total cloud only
     expect(
-      hours[0].querySelector(".weather-icon[title=\"Clear sky\"]"),
+      hours[0].querySelector('.weather-icon[title="Clear sky"]'),
     ).toBeInTheDocument();
     expect(within(hours[23]).getByText("00:00")).toBeInTheDocument();
   });
@@ -623,7 +625,7 @@ describe("Local conditions weather (ticket 03)", () => {
     renderPage();
     const table = await screen.findByRole("table");
     expect(table.querySelector("caption")?.textContent).toMatch(
-      /3-day weather forecast/,
+      /Three-day weather forecast/,
     );
     expect(table.querySelector("caption")?.getAttribute("title")).toBe(
       "Kiruna, Norrbotten County, Sweden",
@@ -701,9 +703,7 @@ describe("Local conditions weather (ticket 03)", () => {
       }),
     );
     renderPage();
-    expect(
-      screen.getByText("Loading weather…"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Loading weather…")).toBeInTheDocument();
     resolveFetch(jsonResponse(openMeteoKirunaFixture));
     expect(
       await screen.findByText(
@@ -805,12 +805,7 @@ describe("Local conditions weather offline (saved weather survives reload)", () 
 
   it("shows the saved weather with its true fetch time when the refetch fails offline", async () => {
     seedKiruna();
-    saveWeather(
-      localStorage,
-      67.8558,
-      20.2253,
-      savedWeather(),
-    );
+    saveWeather(localStorage, 67.8558, 20.2253, savedWeather());
     mockFetch.mockRejectedValue(new TypeError("failed to fetch"));
     renderPage();
     // The hydrated data renders without ever flashing "Loading weather…".
@@ -862,9 +857,7 @@ describe("Local conditions weather offline (saved weather survives reload)", () 
     mockFetch.mockRejectedValue(new TypeError("failed to fetch"));
     renderPage();
     expect(
-      await screen.findByText(
-        "Couldn't load the weather – check back later.",
-      ),
+      await screen.findByText("Couldn't load the weather – check back later."),
     ).toBeInTheDocument();
     expect(
       screen.queryByText(
@@ -1012,11 +1005,13 @@ describe("Local conditions full composition (ticket 04)", () => {
     seedKiruna();
     mockFetch.mockResolvedValue(jsonResponse(openMeteoKirunaFixture));
     renderPage();
-    const strip = await screen.findByRole("list", { name: "24-hour hourly strip" });
+    const strip = await screen.findByRole("list", {
+      name: "24-hour hourly strip",
+    });
     expect(within(strip).getAllByRole("listitem")).toHaveLength(24);
     const table = await screen.findByRole("table");
     expect(table.querySelector("caption")?.textContent).toMatch(
-      /3-day weather forecast/,
+      /Three-day weather forecast/,
     );
     expect(within(table).getAllByRole("row")).toHaveLength(4);
     expect(screen.getByRole("button", { name: "Refresh" })).toBeEnabled();
@@ -1119,6 +1114,9 @@ describe("Local conditions under the Display timezone (ticket 02)", () => {
   });
 });
 
+/* Rotate toggle retired 2026-09-15: the daylight chart now always reads
+   vertically and the toggle is commented out in LuminosityTimeline.tsx.
+   Kept for reference – restore alongside the component code.
 describe("Local conditions daylight chart rotation", () => {
   const mockFetch = vi.fn();
 
@@ -1181,3 +1179,4 @@ describe("Local conditions daylight chart rotation", () => {
     expect(timeline()).not.toHaveClass("conditions__timeline--vertical");
   });
 });
+*/

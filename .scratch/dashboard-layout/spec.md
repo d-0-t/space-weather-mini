@@ -8,7 +8,7 @@ Chasers open the Dashboard on phones, rotated phones, laptops and wide monitors,
 
 ## Solution
 
-Split Aurora now into four Dashboard panels (Aurora now, Summary, Oval glow intensity, Possible locations), make every Dashboard panel rearrangeable per layout bucket through an Arrange modal, go wide (Dashboard to 1600px with 1fr 2fr 1fr 3-column at the new xl breakpoint, Webcams full-bleed, Local conditions 2-column at lg with the 3-day weather forecast as its own section), replace the global Compact view with per-panel Compact on Solar wind, Magnetosphere and Pinned webcams, give Pinned webcams a side-by-side toggle for two pins, add a shared Jump to top footer button that restores focus to the h1, and derive every document title from its h1 as `{H1} – Space Weather`.
+Split Aurora now into four Dashboard panels (Aurora now, Summary, Oval glow intensity, Possible locations), make every Dashboard panel rearrangeable per layout bucket through an Arrange modal, go wide (Dashboard to 1600px with 1fr 2fr 1fr 3-column at the new xl breakpoint, Webcams full-bleed, Local conditions 2-column at lg with the Three-day weather forecast as its own section), replace the global Compact view with per-panel Compact on Solar wind, Magnetosphere and Pinned webcams, give Pinned webcams a side-by-side toggle for two pins, add a shared Jump to top footer button that restores focus to the h1, and derive every document title from its h1 as `{H1} – Space Weather`.
 
 - **Aurora split:** Aurora now keeps Kp numbers, View distance line with place picker, attribution and the Moon badge. Summary is the Interpreter paragraph standalone with time-ahead selector, As-of line and Aurora guide link. Oval glow intensity owns forecast time, glow intensity table disclosure, color-blind toggle, canvas, legend and full-size view. Possible locations is the Reach towns list under its new heading with unchanged eligibility rules. Guide deep-links to the Oval and View distance anchors keep working from their new panels.
 - **Rearrange:** one saved object holds per-bucket column membership (1-column list, 2-column A/B, 3-column A/B/C) with the agreed defaults; resize switches buckets immediately; unknown ids append rather than vanish; empty columns collapse. The Arrange modal (native dialog, tabs per bucket, drag handles plus up/down buttons and arrow keys, Apply commits all, Cancel and dismiss discard, focus returns) is the only editor.
@@ -34,8 +34,8 @@ Split Aurora now into four Dashboard panels (Aurora now, Summary, Oval glow inte
 14. As a phone chaser rotating to landscape, I want the normal 2-column reflow instead of a tall single column, so that the width is used.
 15. As a portrait-phone chaser, I want to stay in 1-column with Pinned webcams right after Aurora now, so that the sky check stays near the top.
 16. As a webcams visitor on a wide screen, I want the gallery full-bleed with padding, so that cards use the width.
-17. As a Local conditions chaser on a wide screen, I want daylight plus external maps left and weather plus 3-day weather forecast right, so that planning reads side by side.
-18. As a Local conditions chaser, I want the 3-day weather forecast as its own section with the daily table unchanged, so that it collapses and anchors independently.
+17. As a Local conditions chaser on a wide screen, I want daylight plus external maps left and weather plus Three-day weather forecast right, so that planning reads side by side.
+18. As a Local conditions chaser, I want the Three-day weather forecast as its own section with the daily table unchanged, so that it collapses and anchors independently.
 19. As a mobile Local conditions chaser, I want daylight, weather, 3-day, external maps top to bottom, so that the story still flows.
 20. As a chaser, I want per-panel Compact on Solar wind, Magnetosphere and Pinned webcams with an icon-led label, so that I can densify only the noisy panels.
 21. As a chaser with the old global Compact on, I want my choice migrated to all three panels on, so that nothing silently expands.
@@ -44,7 +44,7 @@ Split Aurora now into four Dashboard panels (Aurora now, Summary, Oval glow inte
 24. As a reader on a short page that does not scroll, I want no Jump to top button, so that there is no dead control.
 25. As a tab-hoarder, I want every route to set the tab text from its h1 (`{H1} – Space Weather`), so that Dashboard, Webcams, Local conditions, Details pages, About subpages, Explainers and the Aurora guide are distinguishable.
 26. As a keyboard user, I want skip link, visible focus, heading order and one h1 per page preserved through all of the above, so that nothing regresses on a11y.
-27. As a developer, I want the new vocabulary (Dashboard, Dashboard panel, Summary, Oval glow intensity, Possible locations, Compact, Arrange modal, Layout bucket, Jump to top, Document title, 3-day weather forecast) used in code, copy and tests, so that names stop drifting.
+27. As a developer, I want the new vocabulary (Dashboard, Dashboard panel, Summary, Oval glow intensity, Possible locations, Compact, Arrange modal, Layout bucket, Jump to top, Document title, Three-day weather forecast) used in code, copy and tests, so that names stop drifting.
 
 ## Implementation Decisions
 

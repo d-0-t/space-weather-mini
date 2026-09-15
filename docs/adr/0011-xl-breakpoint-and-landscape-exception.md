@@ -4,6 +4,8 @@ The canonical breakpoints gain xl 1600px through the existing `respond-to` mixin
 
 **Status**: accepted
 
+**Amendment 2026-09-15**: Local conditions now goes 2-column at md (810px), not lg — the single column wrapped too early on tablets and narrow desktop windows, and the weather-heavy right column (now 3-to-2 over the left) stays readable there with its internally-scrolling strip and table. Ticket 03's "at lg" line is superseded; the change stays on the canonical scale via `respond-to(md)`.
+
 **Considered Options**:
 
 - 3-column at lg 1100px — rejected: three live panels plus the Oval canvas crowd at that width on real hardware.

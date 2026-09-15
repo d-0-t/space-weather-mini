@@ -1,8 +1,7 @@
 .conditions {
-  &__day {
-    margin-top: 1.25rem;
-  }
-
+  // Section spacing lives on the `.conditions__grid` shell in
+  // conditions.scss (stacked margins below lg, grid gap at lg), so this
+  // partial owns only the polar note.
   &__polar-note {
     margin: 0.5rem 0;
     color: var(--color-gold);

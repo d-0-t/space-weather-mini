@@ -7,7 +7,7 @@ import { formatCelsius } from "../../../../weather/format";
 import { formatPlaceLocal } from "../../../../../products/display-time";
 import WeatherIcon from "../../../../weather/WeatherIcon";
 
-/** The 3 day daily row as a semantic table: one card per day with max and min, WMO icon and text and sunrise and sunset for reference. The naive place-local sun times render in the Display timezone (ticket 02). */
+/** The daily Open-Meteo table: one row per day with max and min, WMO icon and text and sunrise and sunset for reference. The naive place-local sun times render in the Display timezone (ticket 02). The owning section supplies the h2 heading; the caption names the table and labels this scroll region. */
 const WeatherDaily: React.FC<{ data: WeatherData; place: GeocodedPlace }> = ({
   data,
   place,
@@ -19,14 +19,15 @@ const WeatherDaily: React.FC<{ data: WeatherData; place: GeocodedPlace }> = ({
       className="weather-daily"
       role="region"
       // Keyboard access for the scrollable table region on narrow screens
-      // (scrollable-region-focusable); named by the sr-only span below.
+      // (scrollable-region-focusable); named by the table caption, never
+      // aria-label (coding-standards).
       tabIndex={0}
+      aria-labelledby="weather-daily-caption"
     >
-      <h3>3-day weather forecast</h3>
       <table>
-        <caption title={place.displayName}>
+        <caption id="weather-daily-caption" title={place.displayName}>
           {" "}
-          <span className="sr-only">3-day weather forecast</span>
+          <span className="sr-only">Three-day weather forecast</span>
           {/*  at{" "}
           {countryCode ? (
             <img

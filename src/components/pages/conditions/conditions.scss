@@ -7,11 +7,21 @@
 //
 //   components/DayBlock/DayBlock.scss
 //   components/LuminosityTimeline/LuminosityTimeline.scss
+//   components/ThreeDayForecast/ThreeDayForecast.scss
 //   components/Weather/WeatherBlock.scss
 //   components/Weather/WeatherCurrent.scss
 //   components/Weather/WeatherHourly.scss
 //   components/Weather/WeatherDaily.scss
 //   ../../../weather/WeatherIcon.scss
+
+@use "../../../styles/breakpoints" as *;
+
+// Wider shell for the 2-column era (dashboard-layout ticket 03 follow-up):
+// the 800px page default squeezes the weather column's hourly cards and
+// daily table, so conditions caps at the Home/Webcams width instead.
+.container.conditions {
+  max-width: 1200px;
+}
 
 .conditions {
   // Stable page width: without width:100% the flex-centered container
@@ -34,13 +44,77 @@
     }
   }
 
+  // Dashboard-layout ticket 03: two independent flex columns from md up
+  // (daylight plus external maps left, Weather plus Three-day weather forecast
+  // right) – one stack per column, so uneven card heights never leave the
+  // ragged cross-column whitespace a grid row would. The weather-heavy
+  // right column runs wider (3 to 2). Below md the columns dissolve and
+  // the sections stack in mobile order via CSS order (DOM order is the
+  // column grouping).
+  &__grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    width: 100%;
+
+    @include respond-to(md) {
+      flex-direction: row;
+      align-items: start;
+      gap: 1rem;
+    }
+  }
+
+  &__col {
+    // Below md the wrapper generates no box: its sections lay out as
+    // direct items of the column flow in mobile stack order.
+    display: contents;
+
+    @include respond-to(md) {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      min-width: 0;
+    }
+
+    &--left {
+      @include respond-to(md) {
+        flex: 2 1 0;
+      }
+    }
+
+    &--right {
+      @include respond-to(md) {
+        flex: 3 1 0;
+      }
+    }
+  }
+
+  // Mobile stack order (visual only – DOM order is the column grouping).
+  &__day {
+    order: 1;
+  }
+
+  &__weather {
+    order: 2;
+  }
+
+  &__threeday {
+    order: 3;
+  }
+
+  &__external {
+    order: 4;
+  }
+
   &__weather,
   &__day,
+  &__threeday,
   &__external {
-    margin-top: 1.25rem;
+    margin-top: 0;
     border: 1px solid var(--color-border-muted-transparent);
     border-radius: 12px;
     background: var(--gradient-card);
+    min-width: 0;
 
     .collapsible-panel__body {
       margin-top: 0;

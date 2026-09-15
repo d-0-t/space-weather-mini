@@ -1,13 +1,21 @@
-# 03: Local conditions 2-column with split 3-day weather forecast
+# 03: Local conditions 2-column with split Three-day weather forecast
 
-**What to build:** A wide 2-column Local conditions layout with the daily table promoted to its own section, so planning reads side by side on desktop and stacks honestly on phones. At lg and above the left column holds Today's daylight plus External maps and the right column holds Weather (current plus hourly with fetched-at timestamp) plus the new 3-day weather forecast section owning the daily table as-is; below lg the stack is daylight, weather, 3-day, external maps.
+**What to build:** A wide 2-column Local conditions layout with the daily table promoted to its own section, so planning reads side by side on desktop and stacks honestly on phones. At lg and above the left column holds Today's daylight plus External maps and the right column holds Weather (current plus hourly with fetched-at timestamp) plus the new Three-day weather forecast section owning the daily table as-is; below lg the stack is daylight, weather, 3-day, external maps.
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** done
 
-- [ ] Wide viewports show daylight plus external maps left and weather plus 3-day weather forecast right at equal halves
-- [ ] The 3-day weather forecast is its own collapsible section with its own heading, collapses and anchors independently, table shape unchanged
-- [ ] Weather keeps current plus hourly, fetched-at line and Open-Meteo attribution; nothing duplicates
-- [ ] Mobile stacks daylight, weather, 3-day, external maps with no horizontal overflow
-- [ ] Typecheck, unit suite and axe audit stay green
+- [x] Wide viewports show daylight plus external maps left and weather plus Three-day weather forecast right at equal halves
+- [x] The Three-day weather forecast is its own collapsible section with its own heading, collapses and anchors independently, table shape unchanged
+- [x] Weather keeps current plus hourly, fetched-at line and Open-Meteo attribution; nothing duplicates
+- [x] Mobile stacks daylight, weather, 3-day, external maps with no horizontal overflow
+- [x] Typecheck, unit suite and axe audit stay green
+
+## Comments
+
+2026-09-15 – Implemented via TDD (red: conditions.three-day-split.test.tsx 4 failing, green, review fixes). New ThreeDayForecast section (own h2 + bodyId conditions-3day-body, collapses independently) owns the daily Open-Meteo table as-is; WeatherBlock keeps current, hourly strip, fetched-at line, Refresh and attribution. Both share one Open-Meteo query via the extracted useWeather hook (same query key, TanStack Query dedupes to one fetch per place – asserted by test). conditions.tsx composes daylight, Weather, 3-day, external maps in a conditions**grid: single column below lg, equal-halves 2-column at lg via grid-template-areas (daylight + external maps left, Weather + 3-day right, respond-to(lg)). DOM order stays the mobile stack order, so the wide second row tabs right-then-left – the logical story sequence wins over visual row order (noted in conditions.scss). DayBlock margin consolidated into the grid shell (was double-spacing row 1 at lg via later-cascade win). Review fixes: glossary vocabulary in copy/comments, own three-day-forecast**status BEM element with paired type tokens, scroll region named via aria-labelledby (never aria-label), per-section stale-data notice on failed refetch. Verification: tsc clean, 924 unit tests green (92 files, incl. 5 new split tests), 18 Playwright tests green (conditions-a11y incl. axe audit, new conditions-layout 3-test spec, mobile-layout). Ready for review – not committed.
+
+2026-09-15 – Follow-up restyle on human feedback (still uncommitted). Grid replaced with two independent flex columns (daylight + external maps left, Weather + 3-day right): grid coupled row heights across columns, leaving ragged whitespace; one stack per column keeps a uniform gap. Fractions 2 to 3 (right wider for the weather data), shell capped at 1200px like Home/Webcams (the 800px page default cramped the strip and table). Below lg the column wrappers dissolve (display: contents) and CSS order restores the mobile visual stack (daylight, Weather, 3-day, external maps); DOM/SR order follows the column grouping – each story stays independent behind its own heading. Rotate toggle retired: button, state and imports commented out but kept in LuminosityTimeline.tsx (restore together), chart always renders vertical; its two unit tests commented out but kept in conditions.test.tsx; e2e timeline assertions reworked to the vertical reading (column flow, unrotated names, in-band times). Condition lines (hourly/daily/current WMO text) allow mid-word break via overflow-wrap. Verification: tsc clean, 922 unit tests green (2 rotate tests retired), 18 Playwright tests green (incl. axe audit), screenshot-reviewed at 1280px. Ready for review – not committed.
+
+2026-09-15 – Breakpoint follow-up on human feedback (still uncommitted): the 2-to-1 column switch moved from lg (1100px) to md (810px) via respond-to(md) – the only sanctioned narrower step, raw widths forbidden. New mid-width e2e test locks two columns at 900px (side-by-side, 2-to-3 fractions, no overflow); screenshot-reviewed at 900px. ADR-0011 amended accordingly. Verification: tsc clean, conditions unit files green, layout/a11y/mobile e2e green. Ready for review – not committed.

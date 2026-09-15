@@ -1,0 +1,14 @@
+// Three-day weather forecast section (dashboard-layout ticket 03): the card
+// chrome (border, surface, spacing) rides on the `.conditions__threeday`
+// rule in conditions.scss alongside the sibling sections; the daily table
+// owns its own styles in components/Weather/WeatherDaily.scss. The status
+// line is this block's own BEM element (never the weather block's): the
+// shared `.btn--*` classes are the one sanctioned cross-block exception.
+.three-day-forecast {
+  &__status {
+    margin: 0.5rem 0 0;
+    color: var(--color-gold);
+    font-size: var(--font-size-small);
+    line-height: var(--line-height-small);
+  }
+}

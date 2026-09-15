@@ -46,5 +46,8 @@
 
   &__wmo {
     margin-left: 0.4rem;
+    // Long condition names may break mid-word rather than force the
+    // table wider on narrow columns.
+    overflow-wrap: break-word;
   }
 }

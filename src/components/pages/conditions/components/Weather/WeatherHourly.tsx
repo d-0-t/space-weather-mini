@@ -34,7 +34,11 @@ const WeatherHourly: React.FC<{ data: WeatherData }> = ({ data }) => {
           return (
             <li key={hour.time} className="weather-hourly__hour">
               <span className="weather-hourly__hour__time">
-                {formatPlaceLocal(hour.time, data.utcOffsetSeconds, displayTimezone)}
+                {formatPlaceLocal(
+                  hour.time,
+                  data.utcOffsetSeconds,
+                  displayTimezone,
+                )}
               </span>
               <span className="weather-hourly__hour__main">
                 <WeatherIcon code={hour.weatherCode} />{" "}
@@ -44,15 +48,17 @@ const WeatherHourly: React.FC<{ data: WeatherData }> = ({ data }) => {
                 </span>
               </span>
               <span className="weather-hourly__hour__wmo">{wmoText}</span>
-              <span className="weather-hourly__hour__detail">
-                <WaterDropIcon aria-hidden="true" fontSize="inherit" />
-                <span className="sr-only">Humidity</span> {hour.humidityPercent}
-                %
-              </span>
-              <span className="weather-hourly__hour__detail">
-                <CloudIcon aria-hidden="true" fontSize="inherit" />
-                <span className="sr-only">Cloud coverage</span>{" "}
-                {hour.cloudCoverPercent}%
+              <span className="weather-hourly__hour__details">
+                <span className="weather-hourly__hour__details__detail">
+                  <WaterDropIcon aria-hidden="true" fontSize="inherit" />
+                  <span className="sr-only">Humidity</span>{" "}
+                  {hour.humidityPercent}%
+                </span>
+                <span className="weather-hourly__hour__details__detail">
+                  <CloudIcon aria-hidden="true" fontSize="inherit" />
+                  <span className="sr-only">Cloud coverage</span>{" "}
+                  {hour.cloudCoverPercent}%
+                </span>
               </span>
               {/* <span className="weather-hourly__hour__detail weather-hourly__hour__detail--cloud-split">
                 <span>low {hour.cloudLowPercent}%</span>

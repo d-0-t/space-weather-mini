@@ -123,34 +123,39 @@ test("the local conditions page renders the luminosity timeline for the default 
     page.getByRole("listitem").filter({ hasText: "Day" }).first(),
   ).toBeVisible();
 
-  // Break times alternate top/bottom between neighbouring bands so they
-  // never collide: the first band's start (00:00) sits high, the second
-  // band's start low, the third high again.
+  // Vertical reading (the rotate toggle is retired – the chart always
+  // reads top to bottom): bands stack in a column, names read
+  // horizontally with no rotation, and each break time sits inside its
+  // own band instead of alternating above and below it.
   const bands = page.getByRole("listitem");
-  const timeBoxes = await bands.evaluateAll((items) =>
-    items.map((item) => {
-      const time = item.querySelector(".conditions__band-time");
-      if (!time) return null;
-      const rect = time.getBoundingClientRect();
-      return { y: rect.y + rect.height / 2, height: rect.height };
-    }),
-  );
-  const atTop = timeBoxes.filter((box) => box !== null) as Array<{
-    y: number;
-    height: number;
-  }>;
-  expect(atTop.length).toBeGreaterThanOrEqual(3);
-  const midY = (index: number) => atTop[index].y;
-  expect(midY(0)).toBeLessThan(midY(1));
-  expect(midY(2)).toBeLessThan(midY(1));
-
-  // Names read vertically on wide screens, rotated 180° from the plain
-  // vertical flow
+  const timeline = page.locator(".conditions__timeline");
+  await expect(timeline).toBeVisible();
+  expect(
+    await timeline.evaluate((el) => getComputedStyle(el).flexDirection),
+  ).toBe("column");
   const rotation = await page
     .locator(".conditions__band-name")
     .first()
     .evaluate((el) => getComputedStyle(el).transform);
-  expect(rotation).toContain("matrix(-1");
+  expect(rotation).toBe("none");
+  const inBand = (
+    await bands.evaluateAll((items) =>
+      items.map((item) => {
+        const time = item.querySelector(".conditions__band-time");
+        if (!time) return null;
+        const band = item.getBoundingClientRect();
+        const box = time.getBoundingClientRect();
+        return (
+          box.top >= band.top - 1 &&
+          box.bottom <= band.bottom + 1 &&
+          box.left >= band.left - 1 &&
+          box.right <= band.right + 1
+        );
+      }),
+    )
+  ).filter((value) => value !== null);
+  expect(inBand.length).toBeGreaterThanOrEqual(3);
+  expect(inBand.every(Boolean)).toBe(true);
 });
 
 test("the local conditions page renders the weather card from the Kiruna fixture", async ({
@@ -190,9 +195,7 @@ test("the local conditions page renders the weather card from the Kiruna fixture
     "href",
     "https://open-meteo.com/",
   );
-  await expect(
-    page.getByText(/Updated at \d{2}:\d{2}, near/),
-  ).toBeVisible();
+  await expect(page.getByText(/Updated at \d{2}:\d{2}, near/)).toBeVisible();
   // h2 sections are now collapsible via CollapsiblePanel – the headings are
   // toggle buttons with aria-expanded. The place picker moved into the
   // header trigger's Change location modal (ticket 05/06), so no Location
@@ -217,7 +220,7 @@ test("the local conditions page renders the weather card from the Kiruna fixture
   expect(scrolls.scrollWidth).toBeGreaterThan(scrolls.clientWidth);
 
   // The 3 day daily row is a semantic table with a caption and three rows.
-  const table = page.getByRole("table", { name: /3-day weather forecast/ });
+  const table = page.getByRole("table", { name: /Three-day weather forecast/ });
   await expect(table).toBeVisible();
   await expect(table.getByRole("row")).toHaveCount(4);
   await expect(table.getByText("2026-09-09")).toBeVisible();
@@ -305,7 +308,7 @@ test("the place search journey shows five matches and updates the place, dayligh
     clientWidth: el.clientWidth,
   }));
   expect(scrolls.scrollWidth).toBeGreaterThan(scrolls.clientWidth);
-  const table = page.getByRole("table", { name: /3-day weather forecast/ });
+  const table = page.getByRole("table", { name: /Three-day weather forecast/ });
   await expect(table.getByRole("row")).toHaveCount(4);
 
   // … and re-bakes both external links with the picked lat/lon.
@@ -393,9 +396,9 @@ test("the page meets the ticket 05 accessibility bar", async ({ page }) => {
   await expect(
     page.getByRole("list", { name: "24-hour hourly strip" }),
   ).toBeVisible();
-  const table = page.getByRole("table", { name: /3-day weather forecast/ });
+  const table = page.getByRole("table", { name: /Three-day weather forecast/ });
   await expect(table.locator("caption")).toContainText(
-    "3-day weather forecast",
+    "Three-day weather forecast",
   );
 
   // Icon buttons use title plus visible/sr-only text – never aria-label

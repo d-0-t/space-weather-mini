@@ -1,6 +1,7 @@
-// Weather card (ticket 03): current conditions, the 24 h scrolling hourly
-// strip and the 3 day daily row from one Open-Meteo fetch, with the
-// always-enabled Refresh button and the fetched-at timestamp at the top.
+// Weather card: current conditions and the 24 h scrolling hourly strip
+// from one Open-Meteo fetch, with the always-enabled Refresh button and the
+// fetched-at timestamp at the top. The 3 day daily table lives in its own
+// Three-day weather forecast section (dashboard-layout ticket 03).
 .weather-block {
   svg {
     color: var(--color-gray);

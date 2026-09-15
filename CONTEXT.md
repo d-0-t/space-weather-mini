@@ -278,7 +278,7 @@ _Avoid_: daylight (when the band is meant)
 The Open-Meteo view at the geocoded place: current conditions and a 24-hour horizontally scrolling hourly strip, each with temperature, humidity, cloud cover (total plus the low/mid/high split where the contract carries it) and a WMO weather code rendered through the local lookup. Fetched once per place change plus each Refresh tap, with the "Updated at HH:MM, near {shortName}" fetched-at timestamp and a "Source: Open-Meteo" attribution.
 _Avoid_: local weather (when the Local conditions weather card is meant), forecast (the NOAA products own that word)
 
-**3-day weather forecast**:
+**Three-day weather forecast**:
 The daily Open-Meteo table split out of the Weather card into its own Local conditions section: one row per day with conditions, max/min temperature and sunrise/sunset.
 _Avoid_: daily forecast (without the 3-day qualifier), weather table (when the split section is meant)
 
