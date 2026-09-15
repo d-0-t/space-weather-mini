@@ -86,7 +86,7 @@ const MarkedSentence: React.FC<{ text: string; marks?: SentenceMark[] }> = ({
 };
 
 /**
- * The Aurora Now panel's plain-language summary: ONE concise paragraph
+ * The Summary Dashboard panel's plain-language summary: ONE concise paragraph
  * summing up the live Kp index plus one merged L1 sentence covering the
  * solar-wind stream AND the magnetic field together (hemispheric power
  * stays expert-only in the Magnetosphere panel – it is the OVATION
@@ -294,7 +294,7 @@ const AuroraSummary: React.FC = () => {
       ) : null}
       {offsets.length > 1 ? (
         <label className="aurora-now__summary__offset">
-          <h3>Summary</h3>
+          <span className="aurora-now__summary__offset-label">Time</span>
           <select
             value={String(offsetMinutes)}
             onChange={(event) => setOffsetMinutes(Number(event.target.value))}

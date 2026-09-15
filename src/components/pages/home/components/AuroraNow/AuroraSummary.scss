@@ -10,10 +10,10 @@
   justify-content: space-between;
   align-items: baseline;
   gap: 0.5rem;
-  font-size: var(--font-size-caption);
-  margin: 1rem 0 0.75rem 0;
+  margin: 0 0 0.75rem 0;
+  font-weight: 500;
 
-  h3 {
+  &-label {
     margin: 0;
   }
 }

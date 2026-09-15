@@ -15,7 +15,8 @@ import {
   parseOvation,
 } from "../../../../../products/ovation";
 import { WORLD_LAND_URL } from "../../../../../products/world-land";
-import OvalGlow, {
+import OvalGlow from "./OvalGlow";
+import {
   ovalCellPoint,
   ovalCanvasLabel,
   ovalLegendGradientCss,
@@ -26,7 +27,7 @@ import OvalGlow, {
   blurGlowFrame,
   OVAL_CANVAS_WIDTH,
   OVAL_LAND_FILL,
-} from "./OvalGlow";
+} from "./oval-glow-paint";
 import { DisplayTimezoneProvider } from "../../../../DisplayTimezone/DisplayTimezoneContext";
 import { saveDisplayTimezone } from "../../../../../products/display-timezone";
 import { COULDNT_LOAD_COPY, STALE_DATA_NOTICE } from "../offline/offline";
@@ -385,11 +386,13 @@ describe("OvalGlow", () => {
     expect(name).not.toMatch(/16\s*\+/);
   });
 
-  it("heads the section as local glow intensity, not Kp or storm", async () => {
+  it("heads the panel as Oval glow intensity with no Kp", async () => {
+    // OvalGlow is the panel: its h2 names the unit, the content carries the
+    // map, table and legend with no duplicate heading.
     renderGlow();
     await canvases();
     const heading = screen.getByRole("heading", {
-      level: 3,
+      level: 2,
       name: /oval glow intensity/i,
     });
     expect(heading).toBeInTheDocument();

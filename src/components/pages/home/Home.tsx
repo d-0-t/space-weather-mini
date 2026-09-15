@@ -5,6 +5,9 @@ import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 import "../Pages.scss";
 import "./Home.scss";
 import AuroraNow from "./components/AuroraNow/AuroraNow";
+import SummaryPanel from "./components/AuroraNow/SummaryPanel";
+import OvalGlow from "./components/AuroraNow/OvalGlow";
+import PossibleLocationsPanel from "./components/AuroraNow/PossibleLocationsPanel";
 import Forecast from "./components/Forecast/Forecast";
 import SolarWind from "./components/SolarWind/SolarWind";
 import Magnetosphere from "./components/Magnetosphere/Magnetosphere";
@@ -81,15 +84,25 @@ const Home: React.FC = () => {
             ) : null}
           </div>
         </div>
+        {/* Ticket 01 split: the two columns concatenate to the agreed
+            1-column default order (Aurora now, Pinned webcams, Summary, Oval
+            glow intensity, Possible locations, Solar wind, Magnetosphere,
+            Forecast), so portrait phones and narrow widths stack correctly
+            with Pinned webcams right after Aurora now. Per-bucket 2/3-column
+            membership is ticket 04's job; this grouping is the 1-col prefix
+            split, not the bucket defaults. */}
         <div className="home__flow">
           <div className="home__flow__col">
             <AuroraNow />
             <PinnedWebcams />
-            <Forecast />
+            <SummaryPanel />
+            <OvalGlow />
           </div>
           <div className="home__flow__col">
+            <PossibleLocationsPanel />
             <SolarWind />
             <Magnetosphere />
+            <Forecast />
           </div>
         </div>
         {ALERTS_ENABLED ? (

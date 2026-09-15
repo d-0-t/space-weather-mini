@@ -4,9 +4,7 @@ import "./PinnedWebcams.scss";
 import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
 import FullSizeModal from "../../../../FullSizeModal";
 import {
-  loadPinsAutoRefresh,
   loadPinnedIds,
-  savePinsAutoRefresh,
 } from "../../../../../data/webcam-storage";
 import {
   webcamRegistry,
@@ -41,13 +39,13 @@ const useTabVisible = (): boolean => {
 /**
  * One pinned webcam on the Dashboard: flag + name + latitude title, the
  * operator's still in a full-size dialog, and the source attribution.
- * Image pins reload on the operator's cadence while the consent is on;
+ * Image pins always reload on the operator's cadence;
  * the live pin has no cadence (its live frames come via SSE on the webcams
  * page), so its placeholder stays still.
  */
 const PinnedImageCard: React.FC<{
   entry: WebcamImageEntry | WebcamLiveEntry;
-  /** Auto-refresh is only armed while the Dashboard's consent is on and the tab is visible. */
+  /** Auto-refresh is only armed while the tab is visible. */
   refresh: boolean;
 }> = ({ entry, refresh }) => {
   const [src, setSrc] = useState(entry.imageUrl);
@@ -121,15 +119,18 @@ const PinnedTwitchCard: React.FC<{ entry: WebcamTwitchEntry }> = ({
 /**
  * Pinned Webcams – the 1-2 cams the visitor pinned on the webcams page,
  * shown under Aurora Now in a collapsible panel (like the other home
- * panels). The opt-in auto-refresh reloads the pinned stills on their
- * operators' cadences; the panel hides itself while nothing is pinned.
+ * panels). Pinned stills always reload on their operators' cadences; the
+ * panel hides itself while nothing is pinned.
  */
 const PinnedWebcams: React.FC<{ entries?: WebcamEntry[] }> = ({
   entries = webcamRegistry,
 }) => {
-  const [autoRefresh, setAutoRefresh] = useState(() =>
-    loadPinsAutoRefresh(localStorage),
-  );
+  // Auto-refresh is always on: the opt-in consent checkbox is commented out
+  // per the human's request, so stills reload on their operators' cadences
+  // with no toggle. (The webcams page keeps its own auto-refresh control.)
+  // const [autoRefresh, setAutoRefresh] = useState(() =>
+  //   loadPinsAutoRefresh(localStorage),
+  // );
   const tabVisible = useTabVisible();
 
   // Resolved against the current registry so a cam removed from the config
@@ -146,13 +147,13 @@ const PinnedWebcams: React.FC<{ entries?: WebcamEntry[] }> = ({
 
   if (pinned.length === 0) return null;
 
-  const handleAutoRefreshChange = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const next = event.target.checked;
-    savePinsAutoRefresh(localStorage, next);
-    setAutoRefresh(next);
-  };
+  // const handleAutoRefreshChange = (
+  //   event: React.ChangeEvent<HTMLInputElement>,
+  // ) => {
+  //   const next = event.target.checked;
+  //   savePinsAutoRefresh(localStorage, next);
+  //   setAutoRefresh(next);
+  // };
 
   return (
     <article className="pinned-webcams">
@@ -160,7 +161,9 @@ const PinnedWebcams: React.FC<{ entries?: WebcamEntry[] }> = ({
         heading={<h2>Pinned webcams</h2>}
         bodyId="pinned-webcams-panel-body"
       >
-        <label className="pinned-webcams__autorefresh">
+        {/* Auto-refresh consent toggle, commented out: always on.
+        <label className="btn--secondary pinned-webcams__autorefresh">
+          Auto-refresh
           <input
             type="checkbox"
             className="pinned-webcams__autorefresh__checkbox"
@@ -168,8 +171,8 @@ const PinnedWebcams: React.FC<{ entries?: WebcamEntry[] }> = ({
             checked={autoRefresh}
             onChange={handleAutoRefreshChange}
           />
-          Auto-refresh
         </label>
+        */}
         <div className="pinned-webcams__cards">
           {pinned.map((entry) =>
             entry.type === "twitch" ? (
@@ -178,7 +181,7 @@ const PinnedWebcams: React.FC<{ entries?: WebcamEntry[] }> = ({
               <PinnedImageCard
                 key={entry.id}
                 entry={entry}
-                refresh={autoRefresh && tabVisible}
+                refresh={tabVisible}
               />
             ),
           )}

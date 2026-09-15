@@ -124,17 +124,31 @@ describe("Home", () => {
         screen.getByRole("img", { name: /oval glow/i }),
       ).toBeInTheDocument(),
     );
-    const toggle = screen.getByRole("button", { name: /^Aurora Now$/i });
-    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    // Ticket 01: Aurora now and Oval glow intensity are independent panels;
+    // collapsing Aurora now hides its Kp numbers but leaves the Oval map up.
+    const auroraToggle = screen.getByRole("button", { name: /^Aurora Now$/i });
+    expect(auroraToggle).toHaveAttribute("aria-expanded", "true");
+    const ovalToggle = screen.getByRole("button", {
+      name: /^Oval glow intensity$/i,
+    });
 
-    await user.click(toggle);
-    expect(toggle).toHaveAttribute("aria-expanded", "false");
+    await user.click(auroraToggle);
+    expect(auroraToggle).toHaveAttribute("aria-expanded", "false");
+    expect(
+      screen.getByRole("img", { name: /oval glow/i }),
+    ).toBeInTheDocument();
+
+    await user.click(auroraToggle);
+    expect(auroraToggle).toHaveAttribute("aria-expanded", "true");
+
+    await user.click(ovalToggle);
+    expect(ovalToggle).toHaveAttribute("aria-expanded", "false");
     expect(
       screen.queryByRole("img", { name: /oval glow/i }),
     ).not.toBeInTheDocument();
 
-    await user.click(toggle);
-    expect(toggle).toHaveAttribute("aria-expanded", "true");
+    await user.click(ovalToggle);
+    expect(ovalToggle).toHaveAttribute("aria-expanded", "true");
     expect(
       screen.getByRole("img", { name: /oval glow/i }),
     ).toBeInTheDocument();

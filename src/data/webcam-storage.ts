@@ -25,7 +25,9 @@ export function loadHiddenSourceIds(
     if (!raw) return [];
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return [...new Set(parsed.filter((id): id is string => typeof id === "string"))];
+    return [
+      ...new Set(parsed.filter((id): id is string => typeof id === "string")),
+    ];
   } catch {
     return [];
   }
@@ -68,10 +70,7 @@ export function saveFilteredRegions(
   storage: Pick<Storage, "setItem">,
   regions: WebcamRegion[],
 ): void {
-  storage.setItem(
-    WEBCAM_FILTER_STORAGE_KEY,
-    JSON.stringify({ v: 1, regions }),
-  );
+  storage.setItem(WEBCAM_FILTER_STORAGE_KEY, JSON.stringify({ v: 1, regions }));
 }
 
 /** Loads the opt-in auto-refresh setting, defaulting to off when missing or corrupt. */
@@ -99,9 +98,7 @@ export function saveAutoRefresh(
  * links section), defaulting to none when missing or corrupt – every section
  * opens wide on a fresh visit.
  */
-export function loadClosedPanels(
-  storage: Pick<Storage, "getItem">,
-): string[] {
+export function loadClosedPanels(storage: Pick<Storage, "getItem">): string[] {
   try {
     const raw = storage.getItem(WEBCAM_PANELS_STORAGE_KEY);
     if (!raw) return [];
@@ -132,9 +129,7 @@ export function saveClosedPanels(
  * stored ids are resolved against the registry at render time, so stale ids
  * of removed cams stay inert in storage.
  */
-export function loadPinnedIds(
-  storage: Pick<Storage, "getItem">,
-): string[] {
+export function loadPinnedIds(storage: Pick<Storage, "getItem">): string[] {
   try {
     const raw = storage.getItem(PINNED_WEBCAMS_STORAGE_KEY);
     if (!raw) return [];
@@ -142,7 +137,9 @@ export function loadPinnedIds(
     if (typeof parsed !== "object" || parsed === null) return [];
     const { v, pins } = parsed as Record<string, unknown>;
     if (v !== 1 || !Array.isArray(pins)) return [];
-    return pins.filter((id): id is string => typeof id === "string").slice(0, 2);
+    return pins
+      .filter((id): id is string => typeof id === "string")
+      .slice(0, 2);
   } catch {
     return [];
   }
@@ -165,11 +162,11 @@ export function loadPinsAutoRefresh(
 ): boolean {
   try {
     const raw = storage.getItem(PINS_AUTO_REFRESH_STORAGE_KEY);
-    if (raw === null) return false;
+    if (raw === null) return true;
     const parsed: unknown = JSON.parse(raw);
     return parsed === true;
   } catch {
-    return false;
+    return true;
   }
 }
 
@@ -187,9 +184,7 @@ export type WebcamView = "curated" | "selection" | "all";
 const WEBCAM_VIEWS: readonly WebcamView[] = ["curated", "selection", "all"];
 
 /** Loads the selected viewing mode, defaulting to "curated" when missing or corrupt. */
-export function loadViewMode(
-  storage: Pick<Storage, "getItem">,
-): WebcamView {
+export function loadViewMode(storage: Pick<Storage, "getItem">): WebcamView {
   try {
     const raw = storage.getItem(WEBCAM_VIEW_STORAGE_KEY);
     if (raw === null) return "curated";

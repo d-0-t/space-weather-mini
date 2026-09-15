@@ -1,29 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 
 import HelpPopover from "../../../../HelpPopover/HelpPopover";
-import { SourceAttribution } from "../../../../sources";
-import { formatAge, formatSlot } from "../../../../../products/display-time";
+import { formatSlot } from "../../../../../products/display-time";
 import { useDisplayTimezone } from "../../../../DisplayTimezone/DisplayTimezoneContext";
 import {
   COULDNT_LOAD_COPY,
-  FreshnessLine,
   StaleDataNotice,
   useIsOffline,
 } from "../offline/offline";
 import { getMoonPhase } from "../../../../moon/moon";
 import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
 import { KpBar, fetchKpObserved, formatKp } from "../kp-panel/kp-panel";
-import AuroraSummary from "./AuroraSummary";
-import OvalGlow from "./OvalGlow";
-import ReachTowns from "./ReachTowns";
 import ViewDistanceLine from "./ViewDistanceLine";
 
 import "./AuroraNow.scss";
-
-const AURORA_SOURCE = {
-  label: "NOAA/SWPC",
-  href: "https://www.swpc.noaa.gov/products/aurora-30-minute-forecast",
-};
 
 /** Emoji-only moon badge – opens a help popover with the phase label and what it means for aurora. */
 const MoonPhaseBadge: React.FC = () => {
@@ -112,8 +102,9 @@ const AuroraCurtain: React.FC<{ kp: number }> = ({ kp }) => {
 };
 
 /**
- * Aurora Now – current Kp index on the starry sky, plus the NOAA Ovation
- * 30-minute aurora oval forecast images for both hemispheres.
+ * Aurora Now – current Kp index on the starry sky, plus the View distance
+ * line with place picker. Ticket 01 split the bundle: Summary, Oval glow
+ * intensity and Possible locations are sibling Dashboard panels now.
  */
 const AuroraNow: React.FC = () => {
   const offline = useIsOffline();
@@ -192,10 +183,6 @@ const AuroraNow: React.FC = () => {
           <StaleDataNotice />
         ) : null}
         <ViewDistanceLine />
-        <AuroraSummary />
-        <OvalGlow />
-        <SourceAttribution source={AURORA_SOURCE} />
-        <ReachTowns kp={currentKp} />
       </CollapsiblePanel>
     </article>
   );

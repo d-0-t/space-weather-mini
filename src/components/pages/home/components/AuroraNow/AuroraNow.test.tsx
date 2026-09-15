@@ -19,6 +19,7 @@ import kpObservedFixture from "../../../../../products/fixtures/noaa-planetary-k
 import kirunaFixture from "../../../../../data/fixtures/nominatim-kiruna.json";
 import openMeteoKirunaFixture from "../../../../../data/fixtures/open-meteo-kiruna.json";
 import AuroraNow from "./AuroraNow";
+import PossibleLocationsPanel from "./PossibleLocationsPanel";
 import { AlertsProvider } from "../Alerts/AlertsContext";
 import { DisplayTimezoneProvider } from "../../../../DisplayTimezone/DisplayTimezoneContext";
 import { saveDisplayTimezone } from "../../../../../products/display-timezone";
@@ -119,8 +120,21 @@ const renderAuroraNow = () =>
     </QueryClientProvider>,
   );
 
+const renderPossibleLocations = () =>
+  render(
+    <QueryClientProvider client={queryClient()}>
+      <MemoryRouter>
+        <DisplayTimezoneProvider>
+          <AlertsProvider>
+            <PossibleLocationsPanel />
+          </AlertsProvider>
+        </DisplayTimezoneProvider>
+      </MemoryRouter>
+    </QueryClientProvider>,
+  );
+
 describe("AuroraNow", () => {
-  it("renders heading Aurora Now, current Kp with bar and the oval glow", async () => {
+  it("renders heading Aurora Now with current Kp and bar; the oval glow lives in its own panel", async () => {
     renderAuroraNow();
     await waitFor(() =>
       expect(
@@ -131,11 +145,10 @@ describe("AuroraNow", () => {
       expect(document.querySelector(".kp-bar")).toBeInTheDocument(),
     );
     expect(document.querySelector(".aurora-now__current")).toBeInTheDocument();
-    await waitFor(() =>
-      expect(screen.getAllByRole("img", { name: /oval glow/i })).toHaveLength(
-        1,
-      ),
-    );
+    // Ticket 01 split: the Oval glow intensity panel owns the map now.
+    expect(
+      screen.queryByRole("img", { name: /oval glow/i }),
+    ).toBeNull();
   });
 
   it("labels the current 3-hour window in the chosen timezone, same slot in both modes", async () => {
@@ -161,18 +174,20 @@ describe("AuroraNow", () => {
     expect(kpBadge()).toBe("Kp1");
   });
 
-  it("mounts the Reach towns element under the Kp block for the current observed Kp", async () => {
+  it("mounts the Possible locations panel for the current observed Kp (ticket 01 split)", async () => {
     // Winter-solstice noon UTC: Fairbanks sits at 02:10 local, deep night,
     // and the fixture's latest observed Kp 1 puts it inside the 64° edge.
     vi.setSystemTime(new Date("2026-12-21T12:00:00Z"));
-    renderAuroraNow();
+    renderPossibleLocations();
     await waitFor(() =>
-      expect(document.querySelector(".kp-bar")).toBeInTheDocument(),
+      expect(
+        screen.getByRole("heading", { name: /^Possible locations$/i }),
+      ).toBeInTheDocument(),
     );
     expect(screen.getByText("Fairbanks")).toBeInTheDocument();
   });
 
-  it("drives the Reach towns from the raw observed Kp, not the rounded badge", async () => {
+  it("drives the Possible locations from the raw observed Kp, not the rounded badge", async () => {
     // The latest observed reading is fractional: the raw edge is
     // 66 − 2 × 2.33 = 61.34°, so Anchorage (MLAT 61.93) is Possible. The
     // rounded badge (Kp 2 → edge 62°) would have dropped it. 12:00Z on the
@@ -181,14 +196,23 @@ describe("AuroraNow", () => {
     const observed = JSON.parse(kpObservedFixture) as Array<{ Kp: number }>;
     observed[observed.length - 1].Kp = 2.33;
     kpFixtureText = JSON.stringify(observed);
+    // The badge (Aurora now panel) shows the fractional reading…
     renderAuroraNow();
     await waitFor(() =>
       expect(document.querySelector(".kp-bar")).toBeInTheDocument(),
     );
-    expect(screen.getByText("Anchorage")).toBeInTheDocument();
     expect(
       document.querySelector(".aurora-now__current__kp")?.textContent,
     ).toBe("Kp2.33");
+    cleanup();
+    // …and the Possible locations panel lists Anchorage from the raw edge.
+    renderPossibleLocations();
+    await waitFor(() =>
+      expect(
+        screen.getByRole("heading", { name: /^Possible locations$/i }),
+      ).toBeInTheDocument(),
+    );
+    expect(screen.getByText("Anchorage")).toBeInTheDocument();
   });
 
   it("shows the current moon phase emoji in a help popover with sr-only label", async () => {
@@ -249,17 +273,16 @@ describe("AuroraNow", () => {
     );
   });
 
-  it("embeds the Oval glow with Forecast Time", async () => {
+  it("no longer embeds the Oval glow; Forecast Time lives in its own panel", async () => {
+    // Ticket 01 split: the Oval glow intensity panel owns the map now.
     renderAuroraNow();
     await waitFor(() =>
       expect(document.querySelector(".kp-bar")).toBeInTheDocument(),
     );
-    await waitFor(() =>
-      expect(screen.getAllByRole("img", { name: /oval glow/i })).toHaveLength(
-        1,
-      ),
-    );
-    expect(screen.getByText(/Forecast Time 16:33/i)).toBeInTheDocument();
+    expect(
+      screen.queryByRole("img", { name: /oval glow/i }),
+    ).toBeNull();
+    expect(screen.queryByText(/Forecast Time/i)).toBeNull();
   });
 
   it("renders the band line: info, place in text and one Change location button", async () => {
@@ -346,17 +369,16 @@ describe("AuroraNow", () => {
     expect(link.getAttribute("href")).toBe("/conditions");
   });
 
-  it("carries the view-distance reach as the summary's last sentence", async () => {
+  it("no longer carries the summary; the reach sentence lives in the Summary panel", async () => {
+    // Ticket 01 split: AuroraSummary (with its view-distance reach last
+    // sentence) is the Summary panel now – see AuroraSummary.test.tsx.
     seedPlace(OSLO_PLACE);
     ovationGrid = [[10.7522, 60.4139, 12]];
     renderAuroraNow();
     await screen.findByText(/Aurora likely/);
-    const summary = document.querySelector(".aurora-now__summary__text");
-    await waitFor(() =>
-      expect(summary?.textContent).toMatch(
-        /Nearest glow 0-100 km away \(Likely\)\.$/,
-      ),
-    );
+    expect(
+      document.querySelector(".aurora-now__summary__text"),
+    ).toBeNull();
   });
 
   it("refetches the weather for the place picked in the modal", async () => {
@@ -517,9 +539,10 @@ describe("AuroraNow", () => {
     ).toContain("Kiruna");
   });
 
-  it("keeps the freshness once - the oval line above, no second As of below", async () => {
-    // The user removed the duplicated As-of line: the oval's
-    // `Forecast Time ... lead.` is the one freshness surface.
+  it("carries no Forecast Time itself; the Oval panel owns the one freshness line", async () => {
+    // Ticket 01 split: the oval's `Forecast Time ... lead.` lives in the
+    // Oval glow intensity panel now. Aurora now keeps no As-of of its own
+    // (the Kp freshness line stays commented out).
     seedPlace(OSLO_PLACE);
     ovationGrid = [[10.7522, 60.4139, 12]];
     renderAuroraNow();
@@ -527,7 +550,7 @@ describe("AuroraNow", () => {
       expect(document.querySelector(".kp-bar")).toBeInTheDocument(),
     );
     await screen.findByText(/Aurora likely/);
-    expect(await screen.findByText(/Forecast Time 16:33/)).toBeInTheDocument();
+    expect(screen.queryByText(/Forecast Time/i)).toBeNull();
     expect(screen.queryByText(/As of Sep 4 14:33 UTC/)).toBeNull();
     expect(screen.queryByText(/As of 16:33/)).toBeNull();
   });

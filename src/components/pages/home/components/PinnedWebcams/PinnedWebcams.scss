@@ -1,6 +1,7 @@
 .pinned-webcams {
   &__autorefresh {
     display: flex;
+    justify-self: flex-end;
     align-items: center;
     gap: 0.4rem;
     margin: 0 0 0.75rem;

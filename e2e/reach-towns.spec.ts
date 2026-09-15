@@ -6,15 +6,15 @@ import AxeBuilder from "@axe-core/playwright";
 import { ovationJson } from "../src/test/ovation-test-utils";
 
 /**
- * The Reach towns element's Home journey (aurora-city-strings ticket 02):
+ * The Possible locations panel's Home journey (dashboard-layout ticket 01):
  * the built app names the towns where the aurora may be seen for the
- * current observed Kp, under the Kp block and above the View distance
- * line, only while each town is dark; the panel passes an axe audit and
- * the element survives the narrow layout.
+ * current observed Kp in its own Dashboard panel after the Oval glow
+ * intensity panel, only while each town is dark; the panel passes an axe
+ * audit and the element survives the narrow layout.
  *
  * Seams under test (DOM only, no internals): `.reach-towns` rows with
  * their flag alt and probability class, DOM order against `.kp-bar` and
- * `.view-distance`, the absence of the element when nothing qualifies,
+ * `.oval-glow`, the absence of the element when nothing qualifies,
  * the axe result and the page width at 390px. Every journey pins the
  * device clock and serves checked-in fixtures.
  */
@@ -74,7 +74,7 @@ const openHome = async (page: Page, instant: string): Promise<void> => {
   await page.goto("/");
 };
 
-test("names the towns in reach for the current Kp under the Kp block", async ({
+test("names the towns in reach for the current Kp in the Possible locations panel", async ({
   page,
 }) => {
   // The fixture's latest observed Kp 1 puts the edge at 64°; at
@@ -101,20 +101,23 @@ test("names the towns in reach for the current Kp under the Kp block", async ({
     fairbanks.locator(".reach-towns__probability-icon"),
   ).toHaveAttribute("title", /Possible .*May be seen, not promised\./);
 
-  // The element sits under the Kp block and above the View distance line.
-  await expect(page.locator(".view-distance")).toBeVisible();
+  // The list lives in its own panel after the Oval glow intensity panel.
+  await expect(
+    page.getByRole("heading", { name: /^Possible locations$/ }),
+  ).toBeVisible();
+  await expect(page.locator(".oval-glow")).toBeVisible();
   expect(
     await page.evaluate(() => {
       const kpBar = document.querySelector(".kp-bar")!;
+      const oval = document.querySelector(".oval-glow")!;
       const towns = document.querySelector(".reach-towns")!;
-      const viewDistance = document.querySelector(".view-distance")!;
       return (
         Boolean(
           kpBar.compareDocumentPosition(towns) &
           Node.DOCUMENT_POSITION_FOLLOWING,
         ) &&
         Boolean(
-          towns.compareDocumentPosition(viewDistance) &
+          oval.compareDocumentPosition(towns) &
           Node.DOCUMENT_POSITION_FOLLOWING,
         )
       );
@@ -154,16 +157,16 @@ test("renders nothing when no town is both in reach and dark", async ({
   await expect(page.locator(".reach-towns")).toHaveCount(0);
 });
 
-test("the Reach towns element passes an axe audit", async ({ page }) => {
+test("the Possible locations panel passes an axe audit", async ({ page }) => {
   await openHome(page, "2026-12-21T12:00:00Z");
   await expect(page.locator(".reach-towns")).toBeVisible();
   const results = await new AxeBuilder({ page })
-    .include(".aurora-now")
+    .include(".possible-locations-panel")
     .analyze();
   expect(results.violations).toEqual([]);
 });
 
-test.describe("the Reach towns element at a narrow width", () => {
+test.describe("the Possible locations panel at a narrow width", () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
   test("fits the viewport without horizontal overflow", async ({ page }) => {

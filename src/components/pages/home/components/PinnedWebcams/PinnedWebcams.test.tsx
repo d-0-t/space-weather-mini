@@ -2,10 +2,7 @@ import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import PinnedWebcams from "./PinnedWebcams";
-import {
-  PINS_AUTO_REFRESH_STORAGE_KEY,
-  PINNED_WEBCAMS_STORAGE_KEY,
-} from "../../../../../data/webcam-storage";
+import { PINNED_WEBCAMS_STORAGE_KEY } from "../../../../../data/webcam-storage";
 import type { WebcamEntry } from "../../../../../data/webcams";
 
 const fixtureEntries: WebcamEntry[] = [
@@ -115,33 +112,23 @@ describe("Pinned Webcams panel", () => {
     ).toBeInTheDocument();
   });
 
-  it("persists the opt-in auto-refresh consent and defaults it to off", () => {
+  it("offers no Auto-refresh toggle: stills always reload on their cadence", () => {
+    // The opt-in consent checkbox is commented out per the human's request;
+    // pinned stills refresh with no toggle.
     setPins("aurora-ridge");
     render(<PinnedWebcams entries={fixtureEntries} />);
-    const checkbox = screen.getByRole("checkbox", { name: "Auto-refresh" });
-    expect(checkbox).not.toBeChecked();
-    expect(checkbox).toHaveAttribute(
-      "title",
-      "Reloads each pinned image on its operator's cadence – uses data",
-    );
-    fireEvent.click(checkbox);
-    expect(localStorage.getItem(PINS_AUTO_REFRESH_STORAGE_KEY)).toBe("true");
-    expect(screen.getByRole("checkbox", { name: "Auto-refresh" })).toBeChecked();
+    expect(
+      screen.queryByRole("checkbox", { name: "Auto-refresh" }),
+    ).toBeNull();
   });
 
-  it("reloads pinned image stills at their operator cadence while consent is on, and never without it", () => {
+  it("reloads pinned image stills at their operator cadence with no consent step", () => {
     vi.useFakeTimers();
     setPins("aurora-ridge");
     render(<PinnedWebcams entries={fixtureEntries} />);
     const img = () => cardImage("Aurora Ridge, Canada – current sky view");
 
-    // Consent off – no reloads
-    act(() => vi.advanceTimersByTime(20 * 60_000));
-    expect(img().getAttribute("src")).toBe(
-      "https://cdn.example.org/aurora-ridge.jpg",
-    );
-
-    fireEvent.click(screen.getByRole("checkbox", { name: "Auto-refresh" }));
+    // Always on: the 2-minute cadence busts the still with no toggle tap.
     act(() => vi.advanceTimersByTime(119_999));
     expect(img().getAttribute("src")).toBe(
       "https://cdn.example.org/aurora-ridge.jpg",

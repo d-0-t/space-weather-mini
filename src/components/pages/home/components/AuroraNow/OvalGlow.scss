@@ -2,22 +2,16 @@
 // own, only layout. All non-data color comes from tokens; the glow ramp is
 // data encoding (see OVAL_RAMP_STOPS in OvalGlow.tsx), not UI chrome.
 .oval-glow {
-  margin-top: 1rem;
   text-shadow: var(--text-stroke-black);
-
-  &__head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-  }
 
   &__title {
     margin: 0;
   }
 
   &__fresh {
-    margin: 0.25rem 0;
+    display: flex;
+    align-items: center;
+    margin: 0 0 0.25rem 0;
     font-size: var(--font-size-small);
   }
 

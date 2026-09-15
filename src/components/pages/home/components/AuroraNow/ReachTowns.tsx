@@ -1,16 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
 import SignalCellular1Bar from "@mui/icons-material/SignalCellular1Bar";
 import SignalCellular2Bar from "@mui/icons-material/SignalCellular2Bar";
 import SignalCellular3Bar from "@mui/icons-material/SignalCellular3Bar";
 
-import { REACH_CITIES } from "../../../../../data/reach-cities";
-import { solarElevationDegrees } from "../../../../../data/sun";
 import {
-  selectReachTowns,
   type ReachProbability,
+  type ReachTown,
 } from "../../../../../products/reach-towns";
 import HelpPopover from "../../../../HelpPopover/HelpPopover";
 import { flagSrc } from "../../../webcams/webcam-card-parts";
+import { useReachTowns } from "./useReachTowns";
 
 import "./ReachTowns.scss";
 import OpenInNew from "@mui/icons-material/OpenInNew";
@@ -20,18 +18,19 @@ import { Link } from "react-router-dom";
 const TIPS_URL = "https://www.swpc.noaa.gov/content/tips-viewing-aurora";
 
 /**
- * The Reach towns element (CONTEXT.md; ticket 01 decision, ticket 02
- * build): a global town list under the Kp block naming where the aurora
- * may be seen for the current observed Kp. A town shows only while its
- * approximate |geomagnetic latitude| is at or poleward of the Tips reach
- * edge E = 66° − 2° × Kp AND the sun there is at or below −12°
- * (astronomical twilight or darker; data/sun.ts). The solar state is
- * recomputed on a 60 s tick and on the panel's own 5-minute Kp refetch,
- * so the list is never stale. When nothing qualifies it renders nothing –
- * no empty heading and no filler. The honesty bounds ("may be seen",
- * rough guide, magnetic-not-normal latitude, Kp a 3-hour average, only
- * dark towns listed, absence ≠ no aurora) live behind the heading's info
- * popover with the rule's owner at NOAA/SWPC as its footnote.
+ * The Reach towns list (CONTEXT.md Possible locations content): the global
+ * town list naming where the aurora may be seen for the current observed Kp.
+ * A town shows only while its approximate |geomagnetic latitude| is at or
+ * poleward of the Tips reach edge E = 66° − 2° × Kp AND the sun there is at
+ * or below −12° (astronomical twilight or darker; data/sun.ts). The solar
+ * state follows the shared 60 s tick (useReachTowns) and the Kp half rides
+ * the caller's 5-minute refetch, so the list is never stale. When nothing
+ * qualifies it renders nothing – no empty list and no filler. The honesty
+ * bounds ("may be seen", rough guide, magnetic-not-normal latitude, Kp a
+ * 3-hour average, only dark towns listed, absence ≠ no aurora) live behind
+ * the info popover with the rule's owner at NOAA/SWPC as its footnote. The
+ * Possible locations Dashboard panel owns the h2 heading; this element is
+ * the list plus its info control only.
  */
 
 /** The ranked probability glyph: more filled bars = more confident. */
@@ -57,31 +56,21 @@ const PROBABILITY_TITLES: Record<ReachProbability, string> = {
     "Very likely – deep inside the aurora's reach. May be seen, not promised.",
 };
 
-const ReachTowns: React.FC<{ kp: number }> = ({ kp }) => {
-  // The sun state follows the clock on a 60 s tick (the webcams pattern);
-  // the Kp halves of the list ride the parent's 5-minute refetch.
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const id = window.setInterval(() => setNow(new Date()), 60_000);
-    return () => window.clearInterval(id);
-  }, []);
-
-  const towns = useMemo(
-    () =>
-      selectReachTowns(REACH_CITIES, kp, (entry) =>
-        solarElevationDegrees(entry.lat, entry.lon, now),
-      ),
-    [kp, now],
-  );
+const ReachTowns: React.FC<{ kp: number; towns?: ReachTown[] }> = ({
+  kp,
+  towns: townsProp,
+}) => {
+  // The panel shell pre-selects through the same hook to decide empty vs
+  // list; passing its rows in skips the second tick so shell and rows can
+  // never disagree. Standalone use (kp only) selects here.
+  const hooked = useReachTowns(townsProp === undefined ? kp : null);
+  const towns = townsProp ?? hooked;
 
   if (towns.length === 0) return null;
 
   return (
-    <section className="reach-towns" aria-labelledby="reach-towns-heading">
+    <div className="reach-towns">
       <div className="reach-towns__head">
-        <h3 className="reach-towns__heading" id="reach-towns-heading">
-          Possible locations
-        </h3>
         <HelpPopover
           popoverClassName="reach-towns__popover"
           content={{
@@ -142,7 +131,7 @@ const ReachTowns: React.FC<{ kp: number }> = ({ kp }) => {
           );
         })}
       </ul>
-    </section>
+    </div>
   );
 };
 
