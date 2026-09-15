@@ -165,8 +165,50 @@ A named semantic role for text sizing (caption, small, body, lead, h1–h4) decl
 _Avoid_: font-size value (as a raw literal), heading class, clamp (as the sizing mechanism)
 
 **Breakpoint**:
-A canonical viewport width at which the type scale and layout step: sm 480px, md 810px, lg 1100px, applied mobile-first (min-width) only through the `respond-to` mixin.
+A canonical viewport width at which the type scale and layout step: sm 480px, md 810px, lg 1100px, xl 1600px, applied mobile-first (min-width) only through the `respond-to` mixin.
 _Avoid_: media query (as the concept's name), tablet/desktop names, legacy widths (419px, 900px, ~1000px)
+
+### Dashboard
+
+**Dashboard**:
+The top-level home route view that assembles the aurora, solar-wind and webcam panels into one-, two- or three-column layouts.
+_Avoid_: home page (when the assembled panels are meant), dashboard (lowercase, as a synonym for the Interpreter)
+
+**Dashboard panel**:
+One top-level collapsible unit on the Dashboard: Aurora now, Summary, Oval glow intensity, Possible locations, Pinned webcams, Forecast, Solar wind or Magnetosphere.
+_Avoid_: section (when the Dashboard unit is meant), card (the live cards inside Solar wind and Magnetosphere), widget
+
+**Summary**:
+The Interpreter paragraph as its own Dashboard panel, headed Summary, with its time-ahead selector, As-of line and Aurora guide link.
+_Avoid_: aurora summary (without the panel qualifier), explainer panel
+
+**Oval glow intensity**:
+The Oval map with its forecast time, glow intensity table and color-blind toggle, as its own Dashboard panel headed Oval glow intensity.
+_Avoid_: oval map (when the panel is meant), aurora map
+
+**Possible locations**:
+The Reach towns list as its own Dashboard panel, headed Possible locations.
+_Avoid_: town list, visibility list
+
+**Compact**:
+A per-panel dense-mode checkbox (compress icon left of the label) on Solar wind, Magnetosphere and Pinned webcams; persisted per panel, default off.
+_Avoid_: Compact view (the removed global toggle), condensed mode
+
+**Arrange modal**:
+The Dashboard header's native dialog for rearranging panels, with one reorder list per layout bucket (1-column, 2-column, 3-column); Apply saves all buckets, Cancel and dismiss discard.
+_Avoid_: layout editor, drag dialog (as the control's name)
+
+**Layout bucket**:
+One Dashboard column shape: 1-column below md, 2-column from md to below xl, 3-column at xl and above, plus the landscape-phone exception; each bucket stores its own column membership.
+_Avoid_: viewport (without the bucket qualifier), responsive mode
+
+**Jump to top**:
+The shared page-footer's static button, hidden unless the page overflows, that returns scroll to the top and moves focus to the page h1.
+_Avoid_: back to top (as the label), floating button
+
+**Document title**:
+The browser tab text derived from the page h1 as `{H1} – Space Weather`, updated on every route change with no dynamic suffixes.
+_Avoid_: page title (without the h1-derivation qualifier), tab name
 
 ### Webcams
 
@@ -233,8 +275,12 @@ The luminosity band of the Local conditions timeline when the sun is above the h
 _Avoid_: daylight (when the band is meant)
 
 **Weather (Local conditions)**:
-The Open-Meteo view at the geocoded place: current conditions, a 24-hour horizontally scrolling hourly strip and a 3-day daily row, each with temperature, humidity, cloud cover (total plus the low/mid/high split where the contract carries it) and a WMO weather code rendered through the local lookup. Fetched once per place change plus each Refresh tap, with the "Updated at HH:MM, near {shortName}" fetched-at timestamp and a "Source: Open-Meteo" attribution.
+The Open-Meteo view at the geocoded place: current conditions and a 24-hour horizontally scrolling hourly strip, each with temperature, humidity, cloud cover (total plus the low/mid/high split where the contract carries it) and a WMO weather code rendered through the local lookup. Fetched once per place change plus each Refresh tap, with the "Updated at HH:MM, near {shortName}" fetched-at timestamp and a "Source: Open-Meteo" attribution.
 _Avoid_: local weather (when the Local conditions weather card is meant), forecast (the NOAA products own that word)
+
+**3-day weather forecast**:
+The daily Open-Meteo table split out of the Weather card into its own Local conditions section: one row per day with conditions, max/min temperature and sunrise/sunset.
+_Avoid_: daily forecast (without the 3-day qualifier), weather table (when the split section is meant)
 
 **WMO weather code**:
 The World Meteorological Organization code (0–99) Open-Meteo returns for current, hourly and daily conditions, rendered through the closed local lookup file as short English text plus an icon name. Codes outside the lookup fall back to the safe "Unknown" entry.
@@ -247,7 +293,7 @@ _Avoid_: refresh button (as a term), weather refresh (as a synonym for the times
 ### Plain language
 
 **Interpreter**:
-The plain-language summary at the top of the Aurora Now panel: ONE merged paragraph — one short sentence each for the Kp index, the solar-wind stream and the magnetic gate (hemispheric power stays expert-only) — always fully open, with a time-ahead selector for the L1 readings (from the value arriving at Earth now to the freshest measurement still in transit) and one As-of line. It ends with the Moon wash-out caveat (only while the Moon is above the horizon and lit enough to matter) and the View distance reach sentence ("Nearest glow 0-100 km away (Likely)."). The L1 claims run on 5-minute averages, never single 1-min readings — the Solar Wind panel's displayed current values use the same averaging. Deep links into the expert detail were removed in the human's decluttering pass; the numbers sit directly below, and one link to the Aurora guide closes the summary.
+The plain-language summary in the Summary panel: ONE merged paragraph — one short sentence each for the Kp index, the solar-wind stream and the magnetic gate (hemispheric power stays expert-only) — always fully open, with a time-ahead selector for the L1 readings (from the value arriving at Earth now to the freshest measurement still in transit) and one As-of line. It ends with the Moon wash-out caveat (only while the Moon is above the horizon and lit enough to matter) and the View distance reach sentence ("Nearest glow 0-100 km away (Likely)."). The L1 claims run on 5-minute averages, never single 1-min readings — the Solar Wind panel's displayed current values use the same averaging. Deep links into the expert detail were removed in the human's decluttering pass; the numbers sit directly below, and one link to the Aurora guide closes the summary.
 _Avoid_: translator, explainer panel, dashboard (the Dashboard is the whole page)
 
 **Interval text**:
@@ -259,7 +305,7 @@ The interpreter's three-step reading scale per row — calm / active / storm-lik
 _Avoid_: severity colors as level names, storm (as the level's name on its own)
 
 **Reach towns**:
-The Aurora now panel's global town list under the Kp block, headed "Towns where it may be visible": one flag, town name and ranked probability per row. A town appears only while its approximate |geomagnetic latitude| is at or poleward of the Tips reach edge (66° − 2° × Kp) and the sun there is at or below −12° (astronomical twilight or darker). At most one town per probability per country (largest margin wins, then alphabetical), ordered Very likely first and capped at 12 rows; nothing renders when no town qualifies. The probability is one of three ordinal words — Possible / Likely / Very likely — never a percentage; the icon ranks them by filled bars and its colour is redundant. The list is an approximate average in geomagnetic latitude, not geographic, and never a per-town promise.
+The Possible locations panel's global town list, headed "Possible locations" (earlier "Towns where it may be visible"): one flag, town name and ranked probability per row. A town appears only while its approximate |geomagnetic latitude| is at or poleward of the Tips reach edge (66° − 2° × Kp) and the sun there is at or below −12° (astronomical twilight or darker). At most one town per probability per country (largest margin wins, then alphabetical), ordered Very likely first and capped at 12 rows; nothing renders when no town qualifies. The probability is one of three ordinal words — Possible / Likely / Very likely — never a percentage; the icon ranks them by filled bars and its colour is redundant. The list is an approximate average in geomagnetic latitude, not geographic, and never a per-town promise.
 _Avoid_: city strings (the NOAA Scales US rows that ship nowhere), town list, visibility list
 
 **Darkest (window)**:
@@ -285,5 +331,5 @@ The estimated band from the stored geocoded place to the nearest forecast oval c
 _Avoid_: distance to aurora (without view / band qualifier), aurora x km away (as a single-number fact)
 
 **Color-blind mode**:
-The per-user toggle that keeps the map readable without color (ADR-0006, ticket 06): default shows the green-to-magenta color wash only; when on, the glow repaints through the viridis ramp – dark violet rising monotonically in lightness through blue, teal and green to opaque bright yellow – and the legend bar swaps to the same viridis gradient (permanent palette 2026-09-08; the earlier pure-brightness white ramp is commented out in `OvalGlow.tsx`). Viridis is perceptually uniform, so the lightness climb is the one channel every color-vision type (deutan, protan, tritan) and greyscale/night-vision reads identically, with hue as a redundant cue. The control is a checkbox pill like Compact view (checkbox rendered on the right), sitting on the same row as the glow intensity table disclosure with space-between and wrap; it persists versioned under `sw:oval:cb:v1`, defaults off, and its checked state carries the mode. The canvas name notes the viridis ramp while it is on. No hatch or contour is layered on (approved deviation 2026-09-06: band-edge patterns cannot survive the continuous blurred gradient).
+The per-user toggle that keeps the map readable without color (ADR-0006, ticket 06): default shows the green-to-magenta color wash only; when on, the glow repaints through the viridis ramp – dark violet rising monotonically in lightness through blue, teal and green to opaque bright yellow – and the legend bar swaps to the same viridis gradient (permanent palette 2026-09-08; the earlier pure-brightness white ramp is commented out in `OvalGlow.tsx`). Viridis is perceptually uniform, so the lightness climb is the one channel every color-vision type (deutan, protan, tritan) and greyscale/night-vision reads identically, with hue as a redundant cue. The control is a checkbox pill like Compact (checkbox rendered on the right), sitting on the same row as the glow intensity table disclosure with space-between and wrap; it persists versioned under `sw:oval:cb:v1`, defaults off, and its checked state carries the mode. The canvas name notes the viridis ramp while it is on. No hatch or contour is layered on (approved deviation 2026-09-06: band-edge patterns cannot survive the continuous blurred gradient).
 _Avoid_: color blind palette (as a persistent theme), accessible map (without the toggle name)
