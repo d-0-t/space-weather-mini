@@ -393,7 +393,7 @@ describe("OvalGlow", () => {
     await canvases();
     const heading = screen.getByRole("heading", {
       level: 2,
-      name: /oval glow intensity/i,
+      name: /^oval glow$/i,
     });
     expect(heading).toBeInTheDocument();
     expect(screen.queryByText(/Kp1/i)).toBeNull();

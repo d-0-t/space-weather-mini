@@ -3,9 +3,10 @@
 .container.webcams {
   // As a flex item of #main-content the container would shrink-wrap its
   // content; the auto-fill grid needs a definite width to count tracks, so
-  // fill the viewport and let max-width cap it.
+  // fill the viewport. Dashboard-layout ticket 04: full-bleed with page
+  // padding kept (no max-width cap).
   width: 100%;
-  max-width: 1200px;
+  max-width: none;
 }
 
 .webcams {

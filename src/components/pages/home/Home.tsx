@@ -16,7 +16,22 @@ import { AlertsProvider } from "./components/Alerts/AlertsContext";
 import AlertsDialog from "./components/Alerts/AlertsDialog";
 import { ALERTS_ENABLED } from "../../../features";
 
+import { getBucketColumns, loadDashboardLayout, useLayoutBucket } from "./dashboardLayout";
+import type { DashboardPanelId } from "./dashboardLayout";
+
 const COMPACT_VIEW_KEY = "compact-view";
+
+/** Dashboard panel registry: stable id to its collapsible unit. */
+const PANEL_REGISTRY: Record<DashboardPanelId, React.FC> = {
+  "aurora-now": AuroraNow,
+  "pinned-webcams": PinnedWebcams,
+  summary: SummaryPanel,
+  "oval-glow": OvalGlow,
+  "possible-locations": PossibleLocationsPanel,
+  "solar-wind": SolarWind,
+  magnetosphere: Magnetosphere,
+  forecast: Forecast,
+};
 
 const Home: React.FC = () => {
   const location = useLocation();
@@ -49,6 +64,15 @@ const Home: React.FC = () => {
     }
     return () => observer?.disconnect();
   }, [location.hash]);
+
+  const [layout] = useState(() => loadDashboardLayout(localStorage));
+  const bucket = useLayoutBucket();
+  // Columns for the active Layout bucket, verbatim: empty columns collapse
+  // (no wrapper element), unknown future ids render nothing but stay in
+  // storage via loadDashboardLayout.
+  const columns = getBucketColumns(layout, bucket).filter(
+    (column) => column.length > 0,
+  );
 
   const handleCompactChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const next = event.target.checked;
@@ -84,26 +108,22 @@ const Home: React.FC = () => {
             ) : null}
           </div>
         </div>
-        {/* Ticket 01 split: the two columns concatenate to the agreed
-            1-column default order (Aurora now, Pinned webcams, Summary, Oval
-            glow intensity, Possible locations, Solar wind, Magnetosphere,
-            Forecast), so portrait phones and narrow widths stack correctly
-            with Pinned webcams right after Aurora now. Per-bucket 2/3-column
-            membership is ticket 04's job; this grouping is the 1-col prefix
-            split, not the bucket defaults. */}
+        {/* Dashboard panels per Layout bucket (ticket 04): the 1-column
+            list, the 2-column A/B pair and the 3-column A/B/C triple each
+            own their column membership; resizing switches buckets
+            immediately via useLayoutBucket. Column count is driven by the
+            rendered columns; the grid fractions ride the viewport width in
+            Home.scss through the same md/xl/landscape queries. */}
         <div className="home__flow">
-          <div className="home__flow__col">
-            <AuroraNow />
-            <PinnedWebcams />
-            <SummaryPanel />
-            <OvalGlow />
-          </div>
-          <div className="home__flow__col">
-            <PossibleLocationsPanel />
-            <SolarWind />
-            <Magnetosphere />
-            <Forecast />
-          </div>
+          {columns.map((column, index) => (
+            <div className="home__flow__col" key={index}>
+              {column.map((id) => {
+                const Panel = PANEL_REGISTRY[id];
+                if (!Panel) return null;
+                return <Panel key={id} />;
+              })}
+            </div>
+          ))}
         </div>
         {ALERTS_ENABLED ? (
           <AlertsDialog

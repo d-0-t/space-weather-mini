@@ -9,6 +9,7 @@ $breakpoints: (
   sm: 480px,
   md: 810px,
   lg: 1100px,
+  xl: 1600px,
 );
 
 @mixin respond-to($name) {

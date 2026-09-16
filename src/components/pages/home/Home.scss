@@ -29,7 +29,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-    max-width: 1200px;
+    max-width: 1600px;
     margin: 0 auto;
     // Very narrow screens: the 32px title's longest word plus the header
     // controls exceed the viewport – wrap the controls under the title
@@ -65,10 +65,16 @@
   }
 
   // Compact view: charts in the Solar Wind and Magnetosphere panels sit two
-  // per row, so the right column needs more room than the left one.
+  // per row, so the right column needs more room than the left one. At xl
+  // the 3-column middle-widest fractions win back (ticket 04 holds the
+  // global toggle until ticket 05 replaces it per panel).
   &--compact &__flow {
     @include respond-to(md) {
       grid-template-columns: 1fr 2fr;
+    }
+
+    @include respond-to(xl) {
+      grid-template-columns: 1fr 2fr 1fr;
     }
   }
 
@@ -82,12 +88,13 @@
     min-width: min-content;
   }
 
-  // Two columns: Aurora Now + Forecast on the left, Solar Wind + Magnetosphere
-  // on the right. On narrow viewports (the mobile default) the grid collapses
-  // to one column, so the right-column panels wrap around and come after the
-  // left-column ones.
+  // Dashboard buckets (ticket 04, ADR-0011): 1-column below md,
+  // equal-halves 2-column from md to below xl, middle-widest 3-column at
+  // xl. The landscape-phone exception renders the normal 2-column reflow
+  // below md; it stays raw (non-width query, ADR-0009) and sits before the
+  // canonical steps so md/xl win when they also match.
   &__flow {
-    max-width: 1200px;
+    max-width: 1600px;
     margin: 0 auto;
     display: grid;
     grid-template-columns: 1fr;
@@ -101,8 +108,16 @@
       min-width: 0;
     }
 
+    @media (orientation: landscape) and (min-width: 670px) and (max-height: 500px) {
+      grid-template-columns: 1fr 1fr;
+    }
+
     @include respond-to(md) {
       grid-template-columns: 1fr 1fr;
+    }
+
+    @include respond-to(xl) {
+      grid-template-columns: 1fr 2fr 1fr;
     }
   }
 }
