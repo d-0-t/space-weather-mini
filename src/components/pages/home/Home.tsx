@@ -19,8 +19,6 @@ import { ALERTS_ENABLED } from "../../../features";
 import { getBucketColumns, loadDashboardLayout, useLayoutBucket } from "./dashboardLayout";
 import type { DashboardPanelId } from "./dashboardLayout";
 
-const COMPACT_VIEW_KEY = "compact-view";
-
 /** Dashboard panel registry: stable id to its collapsible unit. */
 const PANEL_REGISTRY: Record<DashboardPanelId, React.FC> = {
   "aurora-now": AuroraNow,
@@ -35,9 +33,6 @@ const PANEL_REGISTRY: Record<DashboardPanelId, React.FC> = {
 
 const Home: React.FC = () => {
   const location = useLocation();
-  const [compact, setCompact] = useState(
-    () => localStorage.getItem(COMPACT_VIEW_KEY) === "on",
-  );
   const alertsButtonRef = useRef<HTMLButtonElement>(null);
   const alertsDialogRef = useRef<HTMLDialogElement>(null);
 
@@ -74,26 +69,12 @@ const Home: React.FC = () => {
     (column) => column.length > 0,
   );
 
-  const handleCompactChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const next = event.target.checked;
-    setCompact(next);
-    localStorage.setItem(COMPACT_VIEW_KEY, next ? "on" : "off");
-  };
-
   return (
     <AlertsProvider>
-      <div className={compact ? "home home--compact" : "home"}>
+      <div className="home">
         <div className="home__header">
           <h1>Dashboard</h1>
           <div className="home__header-controls">
-            <label className="btn--secondary home__compact-toggle">
-              <input
-                type="checkbox"
-                checked={compact}
-                onChange={handleCompactChange}
-              />
-              <span className="btn__label">Compact view</span>
-            </label>
             {ALERTS_ENABLED ? (
               <button
                 type="button"

@@ -19,11 +19,41 @@
     margin: 0 0 1rem;
   }
 
+  // Per-panel Compact (ticket 05, CONTEXT.md "Compact"): two mechanisms.
+  // Cards sit two per row, falling back to one per row below min-content –
+  // plus wrapping-independent tightening (grid gap, card padding and gap,
+  // explain margin) so the toggle visibly densifies at every width,
+  // including where roomy and compact agree on wrapping (both 1-up on
+  // narrow phones, both 2-up in wide columns). Spacing only: no font-size,
+  // so the type tokens stay untouched. Scoped to the owning panel
+  // (`.live-panel--compact`), so Solar wind and Magnetosphere densify
+  // independently.
+  &--compact &__grid {
+    gap: 0.25rem;
+  }
+
+  &--compact &__grid &__card {
+    flex: 1 1 calc(50% - 0.5rem);
+    // Floor at the card's own min-content (title's longest word + info
+    // icon + padding): on very narrow screens two such cards no longer fit
+    // side by side and the flex-wrap grid falls back to one per row,
+    // instead of squeezing cards below their content and pushing the
+    // headers (and the page) wide.
+    min-width: min-content;
+    gap: 0.25rem;
+    padding: 0.5rem;
+  }
+
+  &--compact &__explain {
+    margin-bottom: 0.5rem;
+  }
+
   &__card {
     display: flex;
-    flex: 1 1 320px;
-    // 320px floor on wide screens; full-width on narrow (mobile) ones
-    min-width: min(320px, 100%);
+    // Roomy (not Compact) stacks one card per row at every width: 2-up is
+    // Compact's job (ticket 05 follow-up), so the toggle always reflows
+    // instead of going quiet where roomy already wrapped.
+    flex: 1 1 100%;
     //max-width: 480px;
     max-height: fit-content;
     box-sizing: border-box;

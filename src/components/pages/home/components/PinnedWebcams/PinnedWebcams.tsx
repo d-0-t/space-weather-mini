@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 
 import "./PinnedWebcams.scss";
 import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
+import CompactToggle, {
+  useCompactPanel,
+} from "../CompactToggle/CompactToggle";
 import FullSizeModal from "../../../../FullSizeModal";
 import {
   loadPinnedIds,
@@ -132,6 +135,10 @@ const PinnedWebcams: React.FC<{ entries?: WebcamEntry[] }> = ({
   //   loadPinsAutoRefresh(localStorage),
   // );
   const tabVisible = useTabVisible();
+  // Compact is per-panel dense mode (ticket 05): one hook for the three
+  // v1 panels. Hooks stay above the empty-pins early return so the hook
+  // order is stable.
+  const [compact, handleCompactChange] = useCompactPanel("pinned-webcams");
 
   // Resolved against the current registry so a cam removed from the config
   // stops showing (its stale id stays inert in storage). Link rows are never
@@ -156,10 +163,17 @@ const PinnedWebcams: React.FC<{ entries?: WebcamEntry[] }> = ({
   // };
 
   return (
-    <article className="pinned-webcams">
+    <article
+      className={
+        compact ? "pinned-webcams pinned-webcams--compact" : "pinned-webcams"
+      }
+    >
       <CollapsiblePanel
         heading={<h2>Pinned webcams</h2>}
         bodyId="pinned-webcams-panel-body"
+        adornment={
+          <CompactToggle checked={compact} onChange={handleCompactChange} />
+        }
       >
         {/* Auto-refresh consent toggle, commented out: always on.
         <label className="btn--secondary pinned-webcams__autorefresh">

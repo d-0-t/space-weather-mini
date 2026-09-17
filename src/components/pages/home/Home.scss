@@ -47,47 +47,6 @@
     gap: 0.5rem;
   }
 
-  &__compact-toggle {
-    cursor: pointer;
-    user-select: none;
-    display: flex;
-    flex-direction: row-reverse;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.5rem;
-
-    input[type="checkbox"] {
-      accent-color: var(--color-medium-green);
-      width: 1.2rem;
-      height: 1.2rem;
-      cursor: pointer;
-    }
-  }
-
-  // Compact view: charts in the Solar Wind and Magnetosphere panels sit two
-  // per row, so the right column needs more room than the left one. At xl
-  // the 3-column middle-widest fractions win back (ticket 04 holds the
-  // global toggle until ticket 05 replaces it per panel).
-  &--compact &__flow {
-    @include respond-to(md) {
-      grid-template-columns: 1fr 2fr;
-    }
-
-    @include respond-to(xl) {
-      grid-template-columns: 1fr 2fr 1fr;
-    }
-  }
-
-  &--compact .live-panel__grid .live-panel__card {
-    flex: 1 1 calc(50% - 0.5rem);
-    // Floor at the card's own min-content (title's longest word + info
-    // icon + padding): on very narrow screens two such cards no longer fit
-    // side by side and the flex-wrap grid falls back to one per row,
-    // instead of squeezing cards below their content and pushing the
-    // headers (and the page) wide
-    min-width: min-content;
-  }
-
   // Dashboard buckets (ticket 04, ADR-0011): 1-column below md,
   // equal-halves 2-column from md to below xl, middle-widest 3-column at
   // xl. The landscape-phone exception renders the normal 2-column reflow

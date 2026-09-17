@@ -1,0 +1,22 @@
+// Compact checkbox pill (dashboard layout ticket 05): mirrors the Oval
+// glow Color-blind pill – pill chrome from .btn--secondary, checkbox
+// rendered on the right of the label text via row-reverse, so the DOM order
+// input → label → icon paints visually as icon → label → checkbox (the
+// compress icon sits left of the "Compact" label).
+.compact-toggle {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem;
+  min-width: fit-content;
+
+  input[type="checkbox"] {
+    accent-color: var(--color-medium-green);
+    width: 1.2rem;
+    height: 1.2rem;
+    cursor: pointer;
+  }
+}

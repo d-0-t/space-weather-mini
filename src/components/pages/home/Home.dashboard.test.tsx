@@ -244,12 +244,11 @@ describe("Home Live Now dashboard (ticket 01)", () => {
   it("opens the alert settings modal from the Dashboard header with matches from the fixture feed", async () => {
     const user = userEvent.setup();
     const { container } = renderHome();
-    // The Alerts icon button sits next to the Compact view toggle in the
-    // Dashboard header, and the settings stay out of sight until it opens
+    // The Alerts icon button lives in the Dashboard header (the legacy
+    // global Compact view toggle is gone in ticket 05), and the settings
+    // stay out of sight until it opens.
     const trigger = screen.getByRole("button", { name: "Alerts" });
-    expect(
-      trigger.closest(".home__header")!.querySelector(".home__compact-toggle"),
-    ).not.toBeNull();
+    expect(trigger.closest(".home__header")).not.toBeNull();
     expect(screen.queryByRole("slider", { name: /Kp alert threshold/ })).toBeNull();
 
     await user.click(trigger);

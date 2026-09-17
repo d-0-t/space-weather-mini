@@ -44,7 +44,7 @@ describe("SolarWind", () => {
     renderSolarWind();
     await waitFor(() =>
       expect(
-        screen.getByRole("heading", { name: /Solar Wind/ }),
+        screen.getByRole("heading", { name: /Solar wind/i }),
       ).toBeInTheDocument(),
     );
     await waitFor(() => expect(screen.getByText("Speed")).toBeInTheDocument());

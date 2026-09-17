@@ -209,7 +209,7 @@ code {
    label becomes visually-hidden (still announced), the title attribute
    names the control for mouse users, and secondary buttons go square.
    Only <button> elements collapse – checkbox <label> pills (auto-refresh,
-   Compact view) keep their text at every width. The responsive state is
+   per-panel Compact) keep their text at every width. The responsive state is
    the default; the wide-screen state is restored at lg. */
 button > .btn__label {
   position: absolute;

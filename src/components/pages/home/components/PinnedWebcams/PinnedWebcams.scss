@@ -1,3 +1,5 @@
+@use "../../../../../styles/breakpoints" as *;
+
 .pinned-webcams {
   &__autorefresh {
     display: flex;
@@ -20,10 +22,53 @@
     flex-direction: column;
     gap: 0.75rem;
   }
+
+  // Per-panel Compact (ticket 05, CONTEXT.md "Compact"): tighter gaps and
+  // shallower stills inside this panel only, independent of the Solar wind
+  // and Magnetosphere panels.
+  &--compact &__cards {
+    gap: 0.4rem;
+  }
+
+  &--compact .pinned-webcam-card {
+    gap: 0.25rem;
+    padding: 0.4rem;
+  }
+
+  // Ticket 06 folded into the Compact toggle (human 2026-09-16: no separate
+  // layout toggle): Compact also lays two pins side by side from sm,
+  // stacking below sm and whenever roomy. Cards share the row equally and
+  // may wrap under their own content; the Twitch player keeps its 16:9
+  // frame (640x360) while fluid so the shrunken row does not stretch it.
+  &--compact &__cards {
+    @include respond-to(sm) {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+  }
+
+  &--compact .pinned-webcam-card {
+    @include respond-to(sm) {
+      flex: 1 1 calc(50% - 0.5rem);
+      min-width: 0;
+    }
+  }
+
+  &--compact .pinned-webcam-card__twitch {
+    @include respond-to(sm) {
+      width: 100%;
+      height: auto;
+      aspect-ratio: 16 / 9;
+    }
+  }
 }
 
 .pinned-webcam-card {
   display: flex;
+  // Border-box like the live-panel cards: padding and border ride inside
+  // the flex basis, so the Compact 2-up row math (50% minus the gap share)
+  // actually fits instead of overflowing by the padding and wrapping.
+  box-sizing: border-box;
   flex-direction: column;
   gap: 0.4rem;
   padding: 0.6rem;

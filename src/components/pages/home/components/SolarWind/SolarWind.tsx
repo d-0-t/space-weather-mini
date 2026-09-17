@@ -22,13 +22,16 @@ import {
   valueAt,
 } from "../live-panels/live-panels";
 import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
+import CompactToggle, {
+  useCompactPanel,
+} from "../CompactToggle/CompactToggle";
 import {
   COULDNT_LOAD_COPY,
   liveDataState,
   useIsOffline,
 } from "../offline/offline";
 
-/** The Solar Wind panel's collapsible body id (deep-link target). */
+/** The Solar wind panel's collapsible body id (deep-link target). */
 export const SOLAR_WIND_BODY_ID = "solar-wind-panel-body";
 
 export const fetchWind = async () => {
@@ -43,9 +46,18 @@ export const fetchMagField = async () => {
   return parseRtswMagField(await response.text());
 };
 
-/** Solar Wind – live L1 solar wind speed, density and IMF (Bt, Bz). */
+/** Solar wind – live L1 solar wind speed, density and IMF (Bt, Bz). */
 const SolarWind: React.FC = () => {
   const offline = useIsOffline();
+  // Compact is per-panel dense mode (ticket 05): one hook for the three
+  // v1 panels, rendered as the CollapsiblePanel adornment.
+  const [compact, handleCompactChange] = useCompactPanel("solar-wind");
+  const compactAdornment = (
+    <CompactToggle checked={compact} onChange={handleCompactChange} />
+  );
+  const articleClassName = compact
+    ? "live-panel solar-wind live-panel--compact"
+    : "live-panel solar-wind";
   const windQuery = useQuery({
     queryKey: ["rtsw-wind", "live"],
     queryFn: fetchWind,
@@ -68,10 +80,11 @@ const SolarWind: React.FC = () => {
 
   if (windQuery.isPending && !wind) {
     return (
-      <article className="live-panel solar-wind" aria-busy="true">
+      <article className={articleClassName} aria-busy="true">
         <CollapsiblePanel
-          heading={<h2>Solar Wind</h2>}
+          heading={<h2>Solar wind</h2>}
           bodyId={SOLAR_WIND_BODY_ID}
+          adornment={compactAdornment}
         >
           <p>Loading solar wind…</p>
         </CollapsiblePanel>
@@ -80,10 +93,11 @@ const SolarWind: React.FC = () => {
   }
   if ((windQuery.isError && !wind) || (magQuery.isError && !mag)) {
     return (
-      <article className="live-panel solar-wind">
+      <article className={articleClassName}>
         <CollapsiblePanel
-          heading={<h2>Solar Wind</h2>}
+          heading={<h2>Solar wind</h2>}
           bodyId="solar-wind-panel-body"
+          adornment={compactAdornment}
         >
           <p>{COULDNT_LOAD_COPY}</p>
         </CollapsiblePanel>
@@ -130,10 +144,11 @@ const SolarWind: React.FC = () => {
     liveDataState(query, offline);
 
   return (
-    <article className="live-panel solar-wind">
+    <article className={articleClassName}>
       <CollapsiblePanel
         heading={<h2>Solar wind</h2>}
         bodyId={SOLAR_WIND_BODY_ID}
+        adornment={compactAdornment}
       >
         <p className="live-panel__explain">
           {transit > 0 ? (

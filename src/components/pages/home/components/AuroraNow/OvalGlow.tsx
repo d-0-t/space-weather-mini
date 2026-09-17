@@ -271,7 +271,7 @@ const OvalGlow: React.FC = () => {
               </tbody>
             </table>
           </details>
-          {/* Color-blind (ticket 06): a checkbox pill like Compact view
+          {/* Color-blind (ticket 06): a checkbox pill like Compact
               (checkbox rendered on the right), named by its visible label
               text; focus is Light Lime through the global button token. */}
           <label className="btn--secondary oval-glow__cb-toggle">

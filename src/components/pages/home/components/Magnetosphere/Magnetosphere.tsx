@@ -28,6 +28,9 @@ import {
   smoothPoints,
 } from "../live-panels/live-panels";
 import CollapsiblePanel from "../../../../CollapsiblePanel/CollapsiblePanel";
+import CompactToggle, {
+  useCompactPanel,
+} from "../CompactToggle/CompactToggle";
 import {
   COULDNT_LOAD_COPY,
   liveDataState,
@@ -170,6 +173,9 @@ const BoulderMagnetometerCard: React.FC = () => {
 /** Magnetosphere – auroral hemispheric power, Dst and ground magnetometers. */
 const Magnetosphere: React.FC = () => {
   const offline = useIsOffline();
+  // Compact is per-panel dense mode (ticket 05): one hook for the three
+  // v1 panels, rendered as the CollapsiblePanel adornment.
+  const [compact, handleCompactChange] = useCompactPanel("magnetosphere");
   const hemiQuery = useQuery({
     queryKey: ["hemi-power", "live"],
     queryFn: fetchHemiPower,
@@ -194,10 +200,19 @@ const Magnetosphere: React.FC = () => {
     liveDataState(query, offline);
 
   return (
-    <article className="live-panel magnetosphere">
+    <article
+      className={
+        compact
+          ? "live-panel magnetosphere live-panel--compact"
+          : "live-panel magnetosphere"
+      }
+    >
       <CollapsiblePanel
         heading={<h2>Magnetosphere</h2>}
         bodyId={MAGNETOSPHERE_BODY_ID}
+        adornment={
+          <CompactToggle checked={compact} onChange={handleCompactChange} />
+        }
       >
       <div className="live-panel__grid">
         <SparklineCard

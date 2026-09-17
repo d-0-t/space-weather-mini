@@ -74,30 +74,13 @@ describe("Home", () => {
     expect(screen.queryByRole("button", { name: "Alerts" })).toBeNull();
   });
 
-  it("toggles compact chart view from the Dashboard header", async () => {
-    const user = userEvent.setup();
-    const { container } = renderHome();
-    const toggle = screen.getByRole("checkbox", { name: "Compact view" });
-    const root = container.querySelector(".home")!;
-    expect(root).not.toHaveClass("home--compact");
-
-    await user.click(toggle);
-    expect(toggle).toBeChecked();
-    expect(root).toHaveClass("home--compact");
-    expect(localStorage.getItem("compact-view")).toBe("on");
-
-    await user.click(toggle);
-    expect(toggle).not.toBeChecked();
-    expect(root).not.toHaveClass("home--compact");
-    expect(localStorage.getItem("compact-view")).toBe("off");
-  });
-
-  it("restores compact view from localStorage on mount", () => {
-    localStorage.setItem("compact-view", "on");
-    const { container } = renderHome();
-    const toggle = screen.getByRole("checkbox", { name: "Compact view" });
-    expect(toggle).toBeChecked();
-    expect(container.querySelector(".home")).toHaveClass("home--compact");
+  it("has no global Compact view toggle: densifying lives per panel (ticket 05)", () => {
+    renderHome();
+    // The removed global header checkbox is gone; per-panel Compact owns
+    // this now (see Home.compact.test.tsx).
+    expect(
+      screen.queryByRole("checkbox", { name: "Compact view" }),
+    ).toBeNull();
   });
 
   it("renders the oval glow map", async () => {
