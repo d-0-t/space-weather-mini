@@ -195,7 +195,7 @@ A per-panel dense-mode checkbox (compress icon left of the label) on Solar wind,
 _Avoid_: Compact view (the removed global toggle), condensed mode
 
 **Arrange modal**:
-The Dashboard header's native dialog for rearranging panels, with one reorder list per layout bucket (1-column, 2-column, 3-column); Apply saves all buckets, Cancel and dismiss discard.
+The Dashboard header's native dialog for rearranging panels, opened by the header's Rearrange button and mounted only while open, with one reorder list per layout bucket (1-column, 2-column, 3-column). Panels are moved by mouse drag, per-row move buttons and arrow keys, all inside the dialog; Apply saves all buckets and re-renders, Reset-to-default restores the agreed defaults into the draft, and Cancel, Escape, the backdrop and X discard. A closed dialog returns focus to the trigger.
 _Avoid_: layout editor, drag dialog (as the control's name)
 
 **Layout bucket**:

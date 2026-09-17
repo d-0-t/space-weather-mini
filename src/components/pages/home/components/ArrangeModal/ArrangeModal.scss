@@ -1,0 +1,230 @@
+@use "../../../../../styles/breakpoints" as *;
+
+// The Arrange modal (dashboard-layout ticket 07) shares the Time modal's
+// chrome: a fixed, centered card surface over a dimmed backdrop. The card
+// takes the viewport when it's narrow and grows to a roomy width on big
+// screens, so the multi-column tabs can show their lists side by side.
+.arrange-dialog {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  box-sizing: border-box;
+  width: min(90vw, 60rem);
+  max-height: 85vh;
+  overflow: auto;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--color-border-muted);
+  border-radius: 15px;
+  background: var(--gradient-card);
+  color: var(--color-text-primary);
+
+  h3 {
+    margin: 0 0 0.75rem;
+    font-weight: 600;
+  }
+
+  &__note {
+    margin: 0.25rem 0 0.75rem;
+    font-size: var(--font-size-small);
+    line-height: var(--line-height-small);
+    color: color-mix(in srgb, var(--color-white) 75%, transparent);
+    text-shadow: var(--text-stroke-black);
+  }
+
+  // Tabs, not buttons: the webcams view tablist's underline state.
+  &__tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  &__tab {
+    flex: 1 1 auto;
+    padding: 0.5rem 0.75rem;
+    border: none;
+    border-bottom: 2px dotted var(--color-border-muted);
+    background: transparent;
+    color: var(--color-gray);
+    font-size: var(--font-size-small);
+    line-height: var(--line-height-small);
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &[aria-selected="true"] {
+      border-bottom: 2px solid var(--color-accent-strong);
+      color: var(--color-accent-strong);
+    }
+
+    &:hover {
+      color: var(--color-accent-strong);
+      border-bottom-color: var(--color-accent-strong);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-accent-strong);
+      outline-offset: 2px;
+    }
+  }
+
+  // The multi-column tabs mirror the Dashboard's column fractions. Mobile
+  // first: the default is the wrap-friendly flex, and each bucket's exact
+  // grid applies once the viewport is wide enough to carry its columns -
+  // 1fr 2fr from lg, 1fr 2fr 1.5fr from xl (the same steps the Dashboard
+  // itself takes, ADR-0009), so the modal looks like the page it arranges.
+  &__panel {
+    &--2-column,
+    &--3-column {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      align-items: start;
+
+      .arrange-dialog__column {
+        flex: 1 1 18rem;
+      }
+    }
+
+    &--2-column .arrange-dialog__column:nth-child(2) {
+      flex-grow: 2;
+    }
+
+    &--3-column .arrange-dialog__column:nth-child(2) {
+      flex-grow: 2;
+    }
+
+    &--3-column .arrange-dialog__column:nth-child(3) {
+      flex-grow: 1.5;
+    }
+
+    &--2-column {
+      @include respond-to(lg) {
+        display: grid;
+        // minmax(0, Nfr): zero floors, so the tracks carry the bucket's
+        // exact fractions; the rows wrap inside instead of pushing the
+        // tracks off ratio.
+        grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+      }
+    }
+
+    &--3-column {
+      @include respond-to(xl) {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) minmax(0, 1.5fr);
+      }
+    }
+  }
+
+  &__column-name {
+    display: block;
+    font-size: var(--font-size-caption);
+    line-height: var(--line-height-caption);
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  &__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-height: 4rem;
+  }
+
+  &__row {
+    cursor: grab;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+    border: 2px solid var(--color-border-muted-transparent);
+    border-radius: 8px;
+    background: var(--color-deep-indigo);
+    background: var(--gradient-card-bright);
+
+    &:focus-visible {
+      outline: 2px solid var(--color-accent-strong);
+      outline-offset: 2px;
+    }
+
+    &--drop {
+      border-color: var(--color-white); //var
+      border-style: dashed;
+    }
+  }
+
+  &__row-copy {
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+    min-width: 0;
+  }
+
+  &__row-label {
+    font-weight: bold;
+  }
+
+  &__row-note {
+    font-size: var(--font-size-caption);
+    line-height: var(--line-height-caption);
+    color: color-mix(in srgb, var(--color-white) 75%, transparent);
+    text-shadow: var(--text-stroke-black);
+  }
+
+  &__row-controls {
+    display: flex;
+    gap: 0.125rem;
+    margin-left: auto;
+
+    button {
+      // Icon-button chrome: line-height 0 is the glyph's box, not text
+      // leading; every other value rides the shared tokens.
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.2rem;
+      border: none;
+      border-radius: 6px;
+      background: transparent;
+      color: var(--color-gray);
+      cursor: pointer;
+      line-height: 0;
+      min-width: 32px;
+      min-height: 44px;
+
+      &:hover {
+        color: var(--color-accent-strong);
+      }
+
+      &:focus-visible {
+        outline: 2px solid var(--color-accent-strong);
+        outline-offset: 2px;
+      }
+    }
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.85rem;
+    border-top: 1px solid var(--color-border-muted-transparent);
+    padding-top: 0.75rem;
+  }
+
+  &__close {
+    // Pinned to the card's top-right corner (the Time modal pattern).
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    padding: 0.35rem;
+    line-height: 0;
+  }
+
+  &::backdrop {
+    background: color-mix(in srgb, var(--color-black) 75%, transparent);
+  }
+}

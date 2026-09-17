@@ -35,6 +35,18 @@ export interface DashboardLayout {
 
 export const DASHBOARD_LAYOUT_STORAGE_KEY = "sw:dashboard:layout:v1";
 
+/** Visible panel heading per id, shared by the Arrange modal's lists. */
+export const PANEL_LABELS: Record<DashboardPanelId, string> = {
+  "aurora-now": "Aurora now",
+  "pinned-webcams": "Pinned webcams",
+  summary: "Summary",
+  "oval-glow": "Oval glow",
+  "possible-locations": "Possible locations",
+  "solar-wind": "Solar wind",
+  magnetosphere: "Magnetosphere",
+  forecast: "Forecast",
+};
+
 /** All eight Dashboard panels in vocabulary order. */
 const KNOWN_PANEL_IDS: readonly DashboardPanelId[] = [
   "aurora-now",
@@ -182,6 +194,27 @@ export function getBucketColumns(
   if (bucket === "1-column") return [layout.single];
   if (bucket === "2-column") return layout.double;
   return layout.triple;
+}
+
+/**
+ * Move one panel to the index of the row it was dropped on (or a column's
+ * end): remove it from its column and insert it at the clamped target
+ * index. The single computation covers every direction - dropping onto a
+ * row lands at that row's position, so a downward move within one column
+ * lands after the hovered row and an upward move before it.
+ */
+export function movePanel(
+  columns: DashboardPanelId[][],
+  fromCol: number,
+  fromIndex: number,
+  toCol: number,
+  toIndex: number,
+): DashboardPanelId[][] {
+  const next = columns.map((column) => [...column]);
+  const [panel] = next[fromCol].splice(fromIndex, 1);
+  const insert = Math.max(0, Math.min(toIndex, next[toCol].length));
+  next[toCol].splice(insert, 0, panel);
+  return next;
 }
 
 /**

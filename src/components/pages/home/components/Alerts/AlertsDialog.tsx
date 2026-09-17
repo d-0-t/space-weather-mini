@@ -1,5 +1,6 @@
-import { useEffect, useId, type RefObject } from "react";
+import { useId, type RefObject } from "react";
 
+import { useDialogModal } from "../../../../Dialog/useDialogModal";
 import Alerts from "./Alerts";
 
 import "./Alerts.scss";
@@ -21,13 +22,8 @@ const AlertsDialog: React.FC<{
 
   // A closed dialog hands focus back to its trigger button (the browser does
   // this for native dialogs; the explicit handler covers test environments).
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    const onDialogClose = () => triggerRef.current?.focus();
-    dialog.addEventListener("close", onDialogClose);
-    return () => dialog.removeEventListener("close", onDialogClose);
-  }, [dialogRef, triggerRef]);
+  // Opening is the Alerts button's showModal; the dialog stays mounted.
+  useDialogModal({ dialogRef, triggerRef });
 
   return (
     <dialog

@@ -16,8 +16,14 @@ import { AlertsProvider } from "./components/Alerts/AlertsContext";
 import AlertsDialog from "./components/Alerts/AlertsDialog";
 import { ALERTS_ENABLED } from "../../../features";
 
-import { getBucketColumns, loadDashboardLayout, useLayoutBucket } from "./dashboardLayout";
+import {
+  getBucketColumns,
+  loadDashboardLayout,
+  useLayoutBucket,
+} from "./dashboardLayout";
 import type { DashboardPanelId } from "./dashboardLayout";
+import ArrangeModal from "./components/ArrangeModal/ArrangeModal";
+import { Dashboard } from "@mui/icons-material";
 
 /** Dashboard panel registry: stable id to its collapsible unit. */
 const PANEL_REGISTRY: Record<DashboardPanelId, React.FC> = {
@@ -35,6 +41,8 @@ const Home: React.FC = () => {
   const location = useLocation();
   const alertsButtonRef = useRef<HTMLButtonElement>(null);
   const alertsDialogRef = useRef<HTMLDialogElement>(null);
+  const arrangeButtonRef = useRef<HTMLButtonElement>(null);
+  const [arrangeOpen, setArrangeOpen] = useState(false);
 
   // Deep links from the Aurora guide ("/#view-distance", "/#oval-glow"): the
   // Aurora Now panels mount only after their feeds land, so scroll when the
@@ -60,7 +68,7 @@ const Home: React.FC = () => {
     return () => observer?.disconnect();
   }, [location.hash]);
 
-  const [layout] = useState(() => loadDashboardLayout(localStorage));
+  const [layout, setLayout] = useState(() => loadDashboardLayout(localStorage));
   const bucket = useLayoutBucket();
   // Columns for the active Layout bucket, verbatim: empty columns collapse
   // (no wrapper element), unknown future ids render nothing but stay in
@@ -75,6 +83,15 @@ const Home: React.FC = () => {
         <div className="home__header">
           <h1>Dashboard</h1>
           <div className="home__header-controls">
+            <button
+              type="button"
+              className="btn--secondary home__arrange-toggle"
+              ref={arrangeButtonRef}
+              onClick={() => setArrangeOpen(true)}
+            >
+              <Dashboard fontSize="small" />
+              <span className="btn__label">Rearrange</span>
+            </button>
             {ALERTS_ENABLED ? (
               <button
                 type="button"
@@ -111,6 +128,13 @@ const Home: React.FC = () => {
             dialogRef={alertsDialogRef}
             triggerRef={alertsButtonRef}
             onClose={() => alertsDialogRef.current?.close()}
+          />
+        ) : null}
+        {arrangeOpen ? (
+          <ArrangeModal
+            triggerRef={arrangeButtonRef}
+            onClose={() => setArrangeOpen(false)}
+            onApply={setLayout}
           />
         ) : null}
       </div>

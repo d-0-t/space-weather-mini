@@ -6,6 +6,7 @@ The conventions every change to this repo must follow. Enforced by review, not t
 
 - `strict: true` in tsconfig. No `any` outside a deliberately-fenced `// eslint-disable-next-line @typescript-eslint/no-explicit-any` with a reason.
 - Every module-level variable (constants, types, parser entry points) gets a short JSDoc or comment when its meaning isn't obvious from its name. Obvious names need no comment; non-obvious ones always do.
+- **Dialog choreography lives in one place**: `src/components/Dialog/useDialogModal.ts` wires a native `<dialog>`'s showModal-on-mount (for the mounted-while-open modals), focus-return-to-trigger on every close path, and optional backdrop dismissal. New dialogs ride the hook instead of re-registering `close`/`pointerdown` listeners (the Time modal, alerts and Arrange modals are its consumers).
 - Parsers are pure functions: `string → Product`. No DOM access, no `dangerouslySetInnerHTML` outside the final render boundary.
 - Narrative prose is reflowed through `normalizeProse` (`src/products/prose.ts`) before pages render it with `white-space: pre-line`: NOAA's mid-sentence column wraps are joined into spaces, a newline survives only after sentence-ending punctuation, and blank lines separate paragraphs.
 - Types come from the domain model — the vocabulary of `CONTEXT.md` is the vocabulary of the types. No synonyms in code (see `_Avoid_` lists).

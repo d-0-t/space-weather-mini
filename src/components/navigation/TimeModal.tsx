@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState, type RefObject } from "react";
 import CloseIcon from "@mui/icons-material/Close";
 
 import { useDisplayTimezone } from "../DisplayTimezone/DisplayTimezoneContext";
+import { useDialogModal } from "../Dialog/useDialogModal";
 
 import "./TimeModal.scss";
 
@@ -20,44 +21,14 @@ const TimeModal: React.FC<{
   const { displayTimezone, setDisplayTimezone } = useDisplayTimezone();
   const [utc, setUtc] = useState(displayTimezone === "utc");
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+  useDialogModal({
+    dialogRef,
+    triggerRef,
+    onClose,
+    openOnMount: true,
+    backdropDismiss: true,
+  });
   const dialogLabelId = useId();
-
-  // Open on mount. On close – Apply, Cancel, X, Escape or the backdrop –
-  // hand focus back to the trigger (the browser does this natively; the
-  // explicit handler covers test environments).
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (!dialog.open) dialog.showModal();
-    const onDialogClose = () => {
-      triggerRef.current?.focus();
-      onCloseRef.current();
-    };
-    dialog.addEventListener("close", onDialogClose);
-    // A click on the backdrop (outside the dialog box) dismisses without
-    // saving. Pointerdown, so keyboard activation of the media controls
-    // (which synthesizes clicks at 0,0) never closes it; only the primary
-    // button closes.
-    const onPointerDown = (event: PointerEvent) => {
-      if (!dialog.open || event.button !== 0) return;
-      const rect = dialog.getBoundingClientRect();
-      if (
-        event.clientX < rect.left ||
-        event.clientX > rect.right ||
-        event.clientY < rect.top ||
-        event.clientY > rect.bottom
-      ) {
-        dialog.close();
-      }
-    };
-    document.addEventListener("pointerdown", onPointerDown);
-    return () => {
-      dialog.removeEventListener("close", onDialogClose);
-      document.removeEventListener("pointerdown", onPointerDown);
-    };
-  }, [triggerRef]);
 
   const dismiss = () => dialogRef.current?.close();
 

@@ -14,7 +14,7 @@ import { ovationJson } from "../src/test/ovation-test-utils";
  * sentences; this spec proves the shipped bundle end to end.
  *
  * Seams under test (DOM only, no internals): `.aurora-now__summary__text`
- * paragraph text, the accessible `Summary` selector and its option labels,
+ * paragraph text, the accessible `Time` selector and its option labels,
  * `.view-distance__probability__location__text`, page overflow at 390px,
  * and the axe result. Every journey pins the device clock and serves
  * checked-in or live-shape fixtures, so nothing depends on the wall clock
@@ -138,7 +138,7 @@ test("the time-ahead selector is keyboard-operable and drives the L1 sentence", 
 }) => {
   await openInterpreter(page);
 
-  const select = page.getByRole("combobox", { name: "Summary" });
+  const select = page.getByRole("combobox", { name: "Time" });
   await expect(select).toBeVisible();
   // Speed 280.85 km/s → an 89 min transit; the offered offsets step to it.
   await expect(select.locator("option")).toHaveText([
@@ -213,7 +213,7 @@ test.describe("the interpreter panel at a narrow width", () => {
     await expect(page.locator(".aurora-now__summary__text")).toContainText(
       "running slow and thin",
     );
-    await expect(page.getByRole("combobox", { name: "Summary" })).toBeVisible();
+    await expect(page.getByRole("combobox", { name: "Time" })).toBeVisible();
     const overflow = await page.evaluate(
       () => document.documentElement.scrollWidth - window.innerWidth,
     );

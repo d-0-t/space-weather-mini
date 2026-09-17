@@ -128,11 +128,11 @@ test("the oval glow map opens full size in a modal and Escape closes it", async 
   const oval = page.getByRole("img", { name: /oval glow/i });
   await expect(oval).toBeVisible({ timeout: dataTimeout });
   await page
-    .getByRole("button", { name: "Oval glow intensity, full size" })
+    .getByRole("button", { name: "Oval glow, full size" })
     .click();
   // Name the dialog: the Dashboard carries one media modal per media.
   const dialog = page.getByRole("dialog", {
-    name: "Oval glow intensity, full size",
+    name: "Oval glow, full size",
   });
   await expect(dialog).toBeVisible();
   // The modal carries its own stage plus the shared legend, and the stage
@@ -157,7 +157,7 @@ test("the full-size modal rotates the map in portrait for more map", async ({
   const oval = page.getByRole("img", { name: /oval glow/i });
   await expect(oval).toBeVisible({ timeout: dataTimeout });
   await page
-    .getByRole("button", { name: "Oval glow intensity, full size" })
+    .getByRole("button", { name: "Oval glow, full size" })
     .click();
   const rotate = page.getByRole("button", { name: /rotate map/i });
   await expect(rotate).toBeVisible();
@@ -171,7 +171,7 @@ test("the full-size modal rotates the map in portrait for more map", async ({
   expect(rotated!.height).toBeGreaterThan(rotated!.width);
   await page.keyboard.press("Escape");
   await expect(
-    page.getByRole("dialog", { name: "Oval glow intensity, full size" }),
+    page.getByRole("dialog", { name: "Oval glow, full size" }),
   ).toBeHidden();
 });
 
