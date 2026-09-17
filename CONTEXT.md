@@ -161,7 +161,7 @@ A green highlight used for links, headings, glossary terms, or focus outlines.
 _Avoid_: highlight, brand color, lime
 
 **Type token**:
-A named semantic role for text sizing (caption, small, body, lead, h1–h4) declared as a paired font-size and line-height CSS custom property and stepped at the Breakpoints; headings h1–h4 are sized once by global element rules from these tokens.
+A named semantic role for text sizing (caption, small, body, lead, h1–h4) declared as a paired font-size and line-height CSS custom property, identical at every width with no breakpoint step; headings h1–h4 are sized once by global element rules from these tokens.
 _Avoid_: font-size value (as a raw literal), heading class, clamp (as the sizing mechanism)
 
 **Breakpoint**:

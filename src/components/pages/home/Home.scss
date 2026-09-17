@@ -31,7 +31,7 @@
     gap: 1rem;
     max-width: 1600px;
     margin: 0 auto;
-    // Very narrow screens: the 32px title's longest word plus the header
+    // Very narrow screens: the 28px title's longest word plus the header
     // controls exceed the viewport – wrap the controls under the title
     // instead of forcing the whole page horizontally scrollable
     flex-wrap: wrap;
@@ -48,7 +48,7 @@
   }
 
   // Dashboard buckets (ticket 04, ADR-0011): 1-column below md,
-  // equal-halves 2-column from md to below xl, middle-widest 3-column at
+  // 1fr 2fr 2-column from md to below xl, middle-widest 3-column at
   // xl. The landscape-phone exception renders the normal 2-column reflow
   // below md; it stays raw (non-width query, ADR-0009) and sits before the
   // canonical steps so md/xl win when they also match.
@@ -72,11 +72,11 @@
     }
 
     @include respond-to(md) {
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr 2fr;
     }
 
     @include respond-to(xl) {
-      grid-template-columns: 1fr 2fr 1fr;
+      grid-template-columns: 1fr 2fr 1.5fr;
     }
   }
 }

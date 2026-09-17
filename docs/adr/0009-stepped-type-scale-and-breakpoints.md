@@ -22,3 +22,5 @@ Why: typography had the same drift color had before ADR-0002 — near-duplicate 
 - Migration is one atomic pass with a visual check per page (home, conditions, webcams, forecasts, about/sources/explainers) plus the existing Vitest + Playwright a11y specs.
 
 **Revision** (2026-09-14): the body/lead/h1/h2 step moved from the `md` breakpoint (810px) to `lg` (1100px) — decided in `.scratch/typography/spec.md` and applied in `src/styles/_typography.scss`; the ADR text above and `e2e/typography.spec.ts` now assert the `lg` step.
+
+**Revision** (2026-09-17): the breakpoint step is removed — the base tokens apply at every width (caption 0.75rem, small 0.85rem, body 0.95rem, lead 1.1rem, h4 1rem, h3 1.25rem, h2 1.5rem, h1 1.75rem). The lg `respond-to` block is deleted from `src/styles/_typography.scss` and `e2e/typography.spec.ts` asserts the same sizes below and above lg. H1 drops from 2rem to 1.75rem (28px) so the Dashboard header wraps less on narrow screens.

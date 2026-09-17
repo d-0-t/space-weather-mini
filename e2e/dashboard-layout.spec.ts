@@ -21,7 +21,7 @@ test.describe("Dashboard wide buckets (dashboard-layout ticket 04)", () => {
     await noOverflow(page);
   });
 
-  test("from md to below xl renders equal-halves 2-column", async ({ page }) => {
+  test("from md to below xl renders 1fr 2fr 2-column", async ({ page }) => {
     await page.setViewportSize({ width: 1000, height: 900 });
     await page.goto("/");
     await expect(
@@ -34,8 +34,8 @@ test.describe("Dashboard wide buckets (dashboard-layout ticket 04)", () => {
     expect(boxes[0]).not.toBeNull();
     expect(boxes[1]).not.toBeNull();
     const ratio = boxes[1]!.width / boxes[0]!.width;
-    expect(ratio).toBeGreaterThan(0.9);
-    expect(ratio).toBeLessThan(1.1);
+    expect(ratio).toBeGreaterThan(1.7);
+    expect(ratio).toBeLessThan(2.3);
     await noOverflow(page);
   });
 
