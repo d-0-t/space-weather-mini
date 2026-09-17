@@ -3,6 +3,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
@@ -20,7 +21,10 @@ import {
   parseAlerts,
   saveSeenAlertKeys,
 } from "../../../../../products/alerts";
-import { parseTimeTag } from "../../../../../products/display-time";
+import {
+  formatAge,
+  parseTimeTag,
+} from "../../../../../products/display-time";
 import {
   NOAA_SCALES_URL,
   gScaleOf,
@@ -55,17 +59,20 @@ const fetchKpForecast = async () => {
 };
 
 /** Fires a system notification, preferring the service worker so mobile
- * browsers (which throw on `new Notification`) still work. */
+ * browsers (which throw on `new Notification`) still work. Uses
+ * getRegistration, never `.ready` – `.ready` pends forever when no worker
+ * is registered (vite dev serves none), which would hang past the
+ * Notification fallback and silence dev entirely. */
 const showBrowserNotification = async (title: string, body: string) => {
   if (typeof Notification === "undefined") return;
   try {
-    const registration = await navigator.serviceWorker?.ready;
+    const registration = await navigator.serviceWorker?.getRegistration();
     if (registration) {
-      registration.showNotification(title, { body });
+      await registration.showNotification(title, { body });
       return;
     }
   } catch {
-    // service worker not registered – fall through to the Notification API
+    // no usable worker – fall through to the Notification API
   }
   try {
     new Notification(title, { body });
@@ -100,6 +107,8 @@ interface AlertsContextValue {
   notificationState: NotificationState;
   /** Asks for Notification permission on user gesture (iOS-safe). */
   enableBrowserAlerts: () => Promise<void>;
+  /** Fires a canned test notification (manual PWA check, no feed needed). */
+  simulateTestAlert: () => void;
   /** True while the alerts feed is loading without cached data. */
   bannerPending: boolean;
   /** True when the alerts feed failed without cached data. */
@@ -114,9 +123,10 @@ const AlertsContext = createContext<AlertsContextValue | null>(null);
 
 /**
  * Owns the alerts polling, threshold and notifications for the whole Home
- * session. Mounted outside any collapsible panel, so closing the Aurora Now
- * panel only hides the strip – polling and browser notifications keep going
- * while the tab is open.
+ * session. Mounted outside any collapsible panel, so closing the alert
+ * settings modal never stops polling – polling and browser notifications
+ * keep going while the tab is open, including in a hidden tab (the PWA
+ * background case). The modal is mounted only while open.
  */
 export const AlertsProvider: React.FC<{ children: ReactNode }> = ({
   children,
@@ -135,7 +145,9 @@ export const AlertsProvider: React.FC<{ children: ReactNode }> = ({
     queryKey: ["alerts", "live"],
     queryFn: fetchAlerts,
     refetchInterval: 5 * 60 * 1000,
-    refetchIntervalInBackground: false,
+    // True so an installed PWA (or a minimized tab) keeps polling NOAA
+    // while hidden; the in-app strip and system notifications stay live.
+    refetchIntervalInBackground: true,
     staleTime: 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
@@ -143,7 +155,7 @@ export const AlertsProvider: React.FC<{ children: ReactNode }> = ({
     queryKey: ["noaa-scales", "live"],
     queryFn: fetchScales,
     refetchInterval: 5 * 60 * 1000,
-    refetchIntervalInBackground: false,
+    refetchIntervalInBackground: true,
     staleTime: 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
@@ -151,10 +163,24 @@ export const AlertsProvider: React.FC<{ children: ReactNode }> = ({
     queryKey: ["planetary-k-index-forecast", "live"],
     queryFn: fetchKpForecast,
     refetchInterval: 5 * 60 * 1000,
-    refetchIntervalInBackground: false,
+    refetchIntervalInBackground: true,
     staleTime: 60 * 1000,
     gcTime: 10 * 60 * 1000,
   });
+
+  /** Strongest Kp forecast breach inside the next 24h, if any. Kept out of
+   * the match memo so the forecast notification effect can edge-trigger on
+   * it directly (new event or rising Kp pings; same or easing stays silent).
+   */
+  const breach = useMemo(
+    () =>
+      forecastBreachInNext24h(
+        forecastQuery.data ?? [],
+        threshold,
+        Date.now(),
+      ),
+    [forecastQuery.data, threshold],
+  );
 
   const match = useMemo<AlertMatch | null>(() => {
     const gThreshold = gScaleForKp(threshold);
@@ -181,11 +207,6 @@ export const AlertsProvider: React.FC<{ children: ReactNode }> = ({
         kind: "alert",
       });
     }
-    const breach = forecastBreachInNext24h(
-      forecastQuery.data ?? [],
-      threshold,
-      Date.now(),
-    );
     if (breach) {
       list.push({
         key: `forecast:${breach.time_tag}`,
@@ -197,19 +218,43 @@ export const AlertsProvider: React.FC<{ children: ReactNode }> = ({
     }
     list.sort((a, b) => parseTimeTag(b.time) - parseTimeTag(a.time));
     return list[0] ?? null;
-  }, [alertsQuery.data, scalesQuery.data, forecastQuery.data, threshold]);
+  }, [alertsQuery.data, scalesQuery.data, breach, threshold]);
 
-  // New matches (not yet in the seen set) fire system notifications once
-  // permission is granted; every notified match is then remembered so the
-  // same alert is not re-notified on the next poll.
+  // Observed kinds (a storm in progress, an issued alert) fire system
+  // notifications once per unseen key while permission is granted; the body
+  // carries the issue age so a late-seen ping reads honestly.
   useEffect(() => {
     if (notificationState !== "granted") return;
-    if (!match) return;
+    if (!match || match.kind === "forecast") return;
     const seen = new Set(loadSeenAlertKeys(localStorage));
     if (seen.has(match.key)) return;
-    void showBrowserNotification(match.title, match.snippet ?? "");
+    const body = match.snippet
+      ? `${match.snippet}\nUpdated ${formatAge(match.time)}.`
+      : "";
+    void showBrowserNotification(match.title, body);
     saveSeenAlertKeys(localStorage, [...seen, match.key]);
   }, [match, notificationState]);
+
+  // The forecast leg is a 24h prediction whose key re-cuts as its window
+  // slides, so a pure seen-set would ping on nearly every poll. Edge-trigger
+  // instead: a new event or a rising Kp pings once per key; the same or an
+  // easing forecast only moves the in-app strip.
+  const prevForecastKp = useRef<number | null>(null);
+  useEffect(() => {
+    if (notificationState !== "granted") return;
+    if (!breach) {
+      prevForecastKp.current = null;
+      return;
+    }
+    const prev = prevForecastKp.current;
+    prevForecastKp.current = breach.kp;
+    if (prev !== null && breach.kp <= prev) return;
+    const key = `forecast:${breach.time_tag}`;
+    const seen = new Set(loadSeenAlertKeys(localStorage));
+    if (seen.has(key)) return;
+    void showBrowserNotification(`Kp ${breach.kp} predicted within 24h`, "");
+    saveSeenAlertKeys(localStorage, [...seen, key]);
+  }, [breach, notificationState]);
 
   const setThreshold = (next: number) => {
     setThresholdState(next);
@@ -226,6 +271,13 @@ export const AlertsProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
+  const simulateTestAlert = () => {
+    void showBrowserNotification(
+      "Test alert – Geomagnetic K-index of 5 expected",
+      "This is a test notification from the Space Weather app.",
+    );
+  };
+
   const staleAge = alertsQuery.data
     ? newestAlertTime(alertsQuery.data)
     : null;
@@ -235,6 +287,7 @@ export const AlertsProvider: React.FC<{ children: ReactNode }> = ({
     setThreshold,
     notificationState,
     enableBrowserAlerts,
+    simulateTestAlert,
     bannerPending: alertsQuery.isPending && !alertsQuery.data,
     bannerError: alertsQuery.isError && !alertsQuery.data,
     staleAge,

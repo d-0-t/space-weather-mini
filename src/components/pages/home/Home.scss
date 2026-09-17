@@ -47,6 +47,17 @@
     gap: 0.5rem;
   }
 
+  // Alerts are desktop-only (see Alerts footnote): hide the Dashboard
+  // header's Alerts toggle on mobile. Narrow is the default (mobile-first,
+  // ADR-0009); respond-to(md) restores it alongside the 2-column bucket.
+  &__alerts-toggle {
+    display: none;
+
+    @include respond-to(md) {
+      display: inline-flex;
+    }
+  }
+
   // Dashboard buckets (ticket 04, ADR-0011): 1-column below md,
   // 1fr 2fr 2-column from md to below xl, middle-widest 3-column at
   // xl. The landscape-phone exception renders the normal 2-column reflow

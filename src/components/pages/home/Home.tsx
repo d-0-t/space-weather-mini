@@ -40,7 +40,7 @@ const PANEL_REGISTRY: Record<DashboardPanelId, React.FC> = {
 const Home: React.FC = () => {
   const location = useLocation();
   const alertsButtonRef = useRef<HTMLButtonElement>(null);
-  const alertsDialogRef = useRef<HTMLDialogElement>(null);
+  const [alertsOpen, setAlertsOpen] = useState(false);
   const arrangeButtonRef = useRef<HTMLButtonElement>(null);
   const [arrangeOpen, setArrangeOpen] = useState(false);
 
@@ -98,7 +98,7 @@ const Home: React.FC = () => {
                 className="btn--secondary home__alerts-toggle"
                 title="Alerts"
                 ref={alertsButtonRef}
-                onClick={() => alertsDialogRef.current?.showModal()}
+                onClick={() => setAlertsOpen(true)}
               >
                 <NotificationsActiveIcon fontSize="small" />
                 <span className="btn__label">Alerts</span>
@@ -123,11 +123,10 @@ const Home: React.FC = () => {
             </div>
           ))}
         </div>
-        {ALERTS_ENABLED ? (
+        {ALERTS_ENABLED && alertsOpen ? (
           <AlertsDialog
-            dialogRef={alertsDialogRef}
             triggerRef={alertsButtonRef}
-            onClose={() => alertsDialogRef.current?.close()}
+            onClose={() => setAlertsOpen(false)}
           />
         ) : null}
         {arrangeOpen ? (

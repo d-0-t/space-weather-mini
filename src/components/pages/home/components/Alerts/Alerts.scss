@@ -12,13 +12,15 @@
     width: 100%;
     gap: 1rem;
     margin-bottom: 0.5rem;
-    text-shadow: var(--text-stroke-black);
 
     input[type="range"] {
       flex: 1;
       min-width: 0;
       accent-color: var(--color-medium-green);
       cursor: pointer;
+    }
+    &__label {
+      font-weight: 600;
     }
 
     &__value {
@@ -33,6 +35,7 @@
     align-items: center;
     gap: 0.75rem;
     padding: 0.5rem 0;
+    margin-top: 1rem;
 
     &__body {
       margin-left: 5%;
@@ -69,9 +72,34 @@
 
   &__footnote {
     margin: 0.5rem 0;
-    font-size: var(--font-size-small);
     color: color-mix(in srgb, var(--color-white) 75%, transparent);
-    text-shadow: var(--text-stroke-black);
+  }
+
+  &__status {
+    margin: 0.5rem 0;
+    font-weight: bold;
+    color: var(--color-accent);
+  }
+
+  &__warning {
+    display: flex;
+    gap: 0.5rem;
+    align-items: flex-start;
+    margin: 0.5rem 0;
+    // Lightened toward white so small orange text keeps AA contrast on the
+    // dark card; the raw token alone falls below 4.5:1.
+    color: color-mix(in srgb, var(--color-orange) 50%, white);
+    font-weight: bold;
+
+    &__icon {
+      display: inline-flex;
+      flex-shrink: 0;
+      margin-bottom: -3px;
+    }
+  }
+
+  &__test {
+    margin: 0.5rem 0;
   }
 }
 
@@ -89,12 +117,28 @@
   background: var(--gradient-card);
   color: var(--color-text-primary);
 
+  // The Alerts heading is the dialog's accessible name (aria-labelledby);
+  // keep room for the pinned X like the Time modal.
+  .alerts__header h3 {
+    margin: 0 2.5rem 0.75rem 0;
+    font-weight: 600;
+  }
+
   &__actions {
     display: flex;
     justify-content: flex-end;
+    gap: 0.5rem;
     margin-top: 0.85rem;
     border-top: 1px solid var(--color-border-muted-transparent);
     padding-top: 0.75rem;
+  }
+
+  &__close {
+    position: absolute;
+    top: 0.6rem;
+    right: 0.6rem;
+    padding: 0.35rem;
+    line-height: 0;
   }
 
   &::backdrop {

@@ -3,7 +3,7 @@
 process.env.TZ = "Europe/Stockholm";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -69,6 +69,20 @@ const forecastCraftFeed = JSON.stringify([
   { time_tag: nowIso(6), kp: 6, observed: "predicted", noaa_scale: null },
   { time_tag: nowIso(30), kp: 7, observed: "predicted", noaa_scale: null },
 ]);
+
+/** Forecast feed with predicted points at +hours offsets, for the
+ * edge-trigger tests (each call re-bases the slots on the current time). */
+const forecastPoints = (shifts: Array<[number, number]>) =>
+  JSON.stringify(
+    shifts.map(([hours, kp]) => ({
+      time_tag: new Date(Date.now() + hours * 3600 * 1000)
+        .toISOString()
+        .slice(0, 19),
+      kp,
+      observed: "predicted",
+      noaa_scale: null,
+    })),
+  );
 
 class MockNotification {
   static permission: NotificationPermission = "default";
@@ -225,7 +239,7 @@ describe("Alerts (ticket 02)", () => {
     );
     expect(document.querySelector(".alerts__strip")).not.toBeInTheDocument();
     expect(
-      screen.getByText(/Alerts while this tab is open\./),
+      screen.getByText(/Notifications can appear while this tab is open/),
     ).toBeInTheDocument();
   });
 
@@ -246,7 +260,7 @@ describe("Alerts (ticket 02)", () => {
     );
   });
 
-  it("polls the alerts feed every 5 minutes without background refresh", async () => {
+  it("polls the alerts feed every 5 minutes with background refresh", async () => {
     const client = queryClient();
     renderAlerts(client);
     await waitFor(() =>
@@ -255,14 +269,14 @@ describe("Alerts (ticket 02)", () => {
     const query = client.getQueryCache().find({ queryKey: ["alerts", "live"] });
     const options = query?.observers[0]?.options;
     expect(options?.refetchInterval).toBe(5 * 60 * 1000);
-    expect(options?.refetchIntervalInBackground).toBe(false);
+    expect(options?.refetchIntervalInBackground).toBe(true);
   });
 
   it("asks for permission on tap and notifies for unseen matches", async () => {
     const user = userEvent.setup();
     renderAlerts();
     const enable = await screen.findByRole("button", {
-      name: /Enable browser alerts/,
+      name: "Enable browser alerts",
     });
     expect(MockNotification.instances).toHaveLength(0);
     await user.click(enable);
@@ -273,8 +287,122 @@ describe("Alerts (ticket 02)", () => {
     const titles = MockNotification.instances.map((n) => n.title);
     expect(titles).toContain("Geomagnetic K-index of 6 expected");
     expect(
-      screen.getByRole("button", { name: /Browser alerts enabled/ }),
+      screen.getByText("Browser alerts enabled."),
     ).toBeInTheDocument();
+    expect(screen.getByText("Browser alerts enabled.")).toHaveFocus();
+  });
+
+  it("notifies a live match via the Notification API when no worker is registered (dev servers register none)", async () => {
+    MockNotification.permission = "granted";
+    // Dev servers register no worker: .ready pends forever, so the code
+    // must resolve through getRegistration instead of waiting on .ready.
+    Object.defineProperty(window.navigator, "serviceWorker", {
+      value: {
+        getRegistration: vi.fn(async () => undefined),
+        ready: new Promise(() => {}),
+      },
+      configurable: true,
+    });
+    try {
+      renderAlerts();
+      await waitFor(() =>
+        expect(
+          MockNotification.instances.map((n) => n.title),
+        ).toContain("Geomagnetic K-index of 6 expected"),
+      );
+    } finally {
+      Reflect.deleteProperty(window.navigator, "serviceWorker");
+    }
+  });
+
+  it("prefers the service worker when one is registered (preview/PWA)", async () => {
+    MockNotification.permission = "granted";
+    const showNotification = vi.fn();
+    Object.defineProperty(window.navigator, "serviceWorker", {
+      value: { getRegistration: async () => ({ showNotification }) },
+      configurable: true,
+    });
+    try {
+      renderAlerts();
+      await waitFor(() =>
+        expect(showNotification).toHaveBeenCalledWith(
+          "Geomagnetic K-index of 6 expected",
+          { body: expect.stringContaining("WARNING") },
+        ),
+      );
+      expect(MockNotification.instances).toHaveLength(0);
+    } finally {
+      Reflect.deleteProperty(window.navigator, "serviceWorker");
+    }
+  });
+
+  it("pings a new 24h forecast breach once, then stays silent on same-Kp refreshes", async () => {
+    const serveForecast = (body: string) =>
+      mockFetch.mockImplementation((url: string) => {
+        const u = typeof url === "string" ? url : "";
+        if (u.includes("alerts.json"))
+          return Promise.resolve({ ok: true, text: async () => "[]" });
+        if (u.includes("noaa-scales.json"))
+          return Promise.resolve({ ok: true, text: async () => scalesFixture });
+        if (u.includes("noaa-planetary-k-index-forecast.json"))
+          return Promise.resolve({ ok: true, text: async () => body });
+        return Promise.resolve({ ok: true, text: async () => "" });
+      });
+    MockNotification.permission = "granted";
+    const client = queryClient();
+    serveForecast(forecastPoints([[6, 6]]));
+    renderAlerts(client);
+    await waitFor(() =>
+      expect(
+        MockNotification.instances.map((n) => n.title),
+      ).toContain("Kp 6 predicted within 24h"),
+    );
+    // Same Kp in a slid window (a new dedup key): the strip moves on, but no
+    // second ping fires.
+    serveForecast(forecastPoints([[7, 6]]));
+    await client.refetchQueries({
+      queryKey: ["planetary-k-index-forecast", "live"],
+    });
+    await act(async () => {});
+    expect(MockNotification.instances).toHaveLength(1);
+  });
+
+  it("pings again when the forecast Kp rises", async () => {
+    const serveForecast = (body: string) =>
+      mockFetch.mockImplementation((url: string) => {
+        const u = typeof url === "string" ? url : "";
+        if (u.includes("alerts.json"))
+          return Promise.resolve({ ok: true, text: async () => "[]" });
+        if (u.includes("noaa-scales.json"))
+          return Promise.resolve({ ok: true, text: async () => scalesFixture });
+        if (u.includes("noaa-planetary-k-index-forecast.json"))
+          return Promise.resolve({ ok: true, text: async () => body });
+        return Promise.resolve({ ok: true, text: async () => "" });
+      });
+    MockNotification.permission = "granted";
+    const client = queryClient();
+    serveForecast(forecastPoints([[6, 6]]));
+    renderAlerts(client);
+    await waitFor(() =>
+      expect(
+        MockNotification.instances.map((n) => n.title),
+      ).toContain("Kp 6 predicted within 24h"),
+    );
+    serveForecast(
+      forecastPoints([
+        [6, 6],
+        [7, 7],
+      ]),
+    );
+    await client.refetchQueries({
+      queryKey: ["planetary-k-index-forecast", "live"],
+    });
+    await waitFor(() =>
+      expect(
+        MockNotification.instances.map((n) => n.title),
+      ).toContain("Kp 7 predicted within 24h"),
+    );
+    expect(MockNotification.instances).toHaveLength(2);
   });
 
   it("does not re-notify for matches already seen", async () => {
@@ -294,26 +422,40 @@ describe("Alerts (ticket 02)", () => {
     expect(MockNotification.instances).toHaveLength(0);
   });
 
-  it("fires no notifications when permission is denied", async () => {
-    MockNotification.requestPermission.mockResolvedValue("denied");
+  it("offers Try again with a warning after denial, picking up a re-allowed permission", async () => {
+    MockNotification.requestPermission.mockResolvedValueOnce("denied");
     const user = userEvent.setup();
     renderAlerts();
     await user.click(
-      await screen.findByRole("button", { name: /Enable browser alerts/ }),
+      await screen.findByRole("button", { name: "Enable browser alerts" }),
     );
-    await waitFor(() =>
-      expect(
-        screen.getByRole("button", { name: /Browser alerts blocked/ }),
-      ).toBeInTheDocument(),
+    const retry = await screen.findByRole("button", { name: "Try again" });
+    const warning = screen
+      .getByText(/blocked for this site/)
+      .closest("p");
+    expect(warning).toHaveClass("alerts__warning");
+    expect(retry.getAttribute("aria-describedby")).toBe(
+      warning!.getAttribute("id"),
     );
+    expect(retry).toHaveFocus();
     expect(MockNotification.instances).toHaveLength(0);
+    // The chaser re-allows notifications in the browser's site settings;
+    // Try again picks the granted permission up without a new prompt.
+    await user.click(retry);
+    await waitFor(() =>
+      expect(screen.getByText("Browser alerts enabled.")).toBeInTheDocument(),
+    );
+    expect(screen.getByText("Browser alerts enabled.")).toHaveFocus();
+    expect(
+      MockNotification.instances.map((n) => n.title),
+    ).toContain("Geomagnetic K-index of 6 expected");
   });
 
   it("hides the enable button when the Notification API is absent", async () => {
     vi.stubGlobal("Notification", undefined);
     renderAlerts();
     await waitFor(() =>
-      expect(screen.getByText(/Alerts while this tab is open\./)).toBeInTheDocument(),
+      expect(screen.getByText(/Notifications can appear while this tab is open/)).toBeInTheDocument(),
     );
     expect(
       screen.queryByRole("button", { name: /Enable browser alerts/ }),

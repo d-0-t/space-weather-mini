@@ -1,3 +1,6 @@
+import { useEffect, useId, useRef } from "react";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+
 import { formatAge, formatShort } from "../../../../../products/display-time";
 import { useDisplayTimezone } from "../../../../DisplayTimezone/DisplayTimezoneContext";
 import { gLabelForThreshold } from "../../../../../products/thresholds";
@@ -7,49 +10,102 @@ import { useAlerts } from "./AlertsContext";
 import "./Alerts.scss";
 
 /**
- * The alert strip on the Aurora Now panel – a single strip for the newest
- * match at the chaser's threshold. All polling, filtering and notification
- * logic lives in AlertsProvider, so the strip can unmount (panel collapsed)
- * without stopping alerts.
+ * The alert settings inside the alert settings modal – a threshold slider,
+ * the browser-alerts permission and a single strip for the newest match at
+ * the chaser's threshold. All polling, filtering and notification logic
+ * lives in AlertsProvider, so the modal can unmount (closed) without
+ * stopping alerts. The visible heading carries the dialog's accessible name
+ * via headingId (the Time modal pattern). The dialog drives the slider from
+ * a discardable draft; standalone use binds it straight to storage. A denied
+ * permission offers Try again (browsers only re-prompt once site settings
+ * allow it) with an orange warning explaining the settings path.
  */
-const Alerts: React.FC = () => {
+const Alerts: React.FC<{
+  headingId?: string;
+  threshold?: number;
+  setThreshold?: (kp: number) => void;
+}> = ({
+  headingId,
+  threshold: thresholdProp,
+  setThreshold: setThresholdProp,
+}) => {
   const { displayTimezone } = useDisplayTimezone();
   const {
     match,
-    threshold,
-    setThreshold,
+    threshold: storedThreshold,
+    setThreshold: saveThreshold,
     notificationState,
     enableBrowserAlerts,
+    simulateTestAlert,
     bannerPending,
     bannerError,
     staleAge,
     staleWarning,
   } = useAlerts();
+  const threshold = thresholdProp ?? storedThreshold;
+  const setThreshold = setThresholdProp ?? saveThreshold;
 
   const gLabel = gLabelForThreshold(threshold);
   const notificationsSupported = typeof Notification !== "undefined";
+  const blockedWarningId = useId();
+
+  // Resolving permission swaps the button for status copy; move focus to
+  // what replaced it so keyboard users are not dropped to <body>.
+  const grantedStatusRef = useRef<HTMLParagraphElement>(null);
+  const retryRef = useRef<HTMLButtonElement>(null);
+  const prevPermissionRef = useRef(notificationState);
+  useEffect(() => {
+    if (prevPermissionRef.current !== notificationState) {
+      if (notificationState === "granted") grantedStatusRef.current?.focus();
+      if (notificationState === "denied") retryRef.current?.focus();
+    }
+    prevPermissionRef.current = notificationState;
+  }, [notificationState]);
 
   return (
     <section className="alerts">
       <div className="alerts__header">
-        <h3>Alerts</h3>
-        {notificationsSupported ? (
+        <h3 id={headingId}>Alerts</h3>
+      </div>
+
+      {notificationsSupported ? (
+        notificationState === "granted" ? (
+          <p ref={grantedStatusRef} tabIndex={-1} className="alerts__status">
+            Browser alerts enabled.
+          </p>
+        ) : notificationState === "denied" ? (
+          <>
+            <button
+              ref={retryRef}
+              type="button"
+              className="btn--secondary"
+              onClick={enableBrowserAlerts}
+              aria-describedby={blockedWarningId}
+            >
+              Try again
+            </button>
+            <p id={blockedWarningId} className="alerts__warning">
+              <span>
+                <WarningAmberIcon
+                  fontSize="small"
+                  className="alerts__warning__icon"
+                  aria-hidden="true"
+                />{" "}
+                Browser alerts are blocked for this site. Allow notifications in
+                your browser settings, then try again.
+              </span>
+            </p>
+          </>
+        ) : (
           <button
             type="button"
             className="btn--secondary"
             onClick={enableBrowserAlerts}
-            disabled={
-              notificationState === "granted" || notificationState === "denied"
-            }
           >
-            {notificationState === "granted"
-              ? "Browser alerts enabled"
-              : notificationState === "denied"
-                ? "Browser alerts blocked"
-                : "Enable browser alerts"}
+            Enable browser alerts
           </button>
-        ) : null}
-      </div>
+        )
+      ) : null}
 
       <label className="alerts__threshold">
         <span className="alerts__threshold__label">Kp alert threshold</span>
@@ -68,7 +124,24 @@ const Alerts: React.FC = () => {
         </output>
       </label>
 
-      <p className="alerts__footnote">Alerts while this tab is open.</p>
+      <p className="alerts__footnote">
+        Alerts are currently supported on desktop only. <br />
+        Notifications can appear while this tab is open, even in the background.
+      </p>
+
+      {/* Dev-only manual hook (hidden from production builds): fires the
+          canned test notification through the same path as live matches. 
+          Commented out, but don't delete. */}
+      {/* {import.meta.env.DEV && notificationsSupported ? (
+        <button
+          type="button"
+          className="btn--secondary alerts__test"
+          onClick={simulateTestAlert}
+          disabled={notificationState !== "granted"}
+        >
+          Send test alert
+        </button>
+      ) : null} */}
 
       <div className="alerts__banner" aria-live="polite">
         {bannerPending ? (

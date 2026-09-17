@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, waitFor, within, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
@@ -243,12 +243,14 @@ describe("Home Live Now dashboard (ticket 01)", () => {
 
   it("opens the alert settings modal from the Dashboard header with matches from the fixture feed", async () => {
     const user = userEvent.setup();
+    localStorage.clear();
     const { container } = renderHome();
     // The Alerts icon button lives in the Dashboard header (the legacy
     // global Compact view toggle is gone in ticket 05), and the settings
-    // stay out of sight until it opens.
+    // stay unmounted until it opens (the Time modal pattern).
     const trigger = screen.getByRole("button", { name: "Alerts" });
     expect(trigger.closest(".home__header")).not.toBeNull();
+    expect(document.querySelector("dialog.alerts-dialog")).toBeNull();
     expect(screen.queryByRole("slider", { name: /Kp alert threshold/ })).toBeNull();
 
     await user.click(trigger);
@@ -264,9 +266,9 @@ describe("Home Live Now dashboard (ticket 01)", () => {
       expect(dialog.querySelector(".alerts__strip")).toBeInTheDocument(),
     );
 
-    // Close hands focus back to the header trigger
-    await user.click(within(dialog).getByRole("button", { name: "Close" }));
-    expect(dialog.open).toBe(false);
+    // Cancel discards the modal (unmounts) and hands focus back to the trigger
+    await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    expect(document.querySelector("dialog.alerts-dialog")).toBeNull();
     expect(trigger).toHaveFocus();
   });
 
@@ -280,7 +282,60 @@ describe("Home Live Now dashboard (ticket 01)", () => {
     ) as HTMLDialogElement;
     expect(dialog.open).toBe(true);
     await user.keyboard("{Escape}");
-    expect(dialog.open).toBe(false);
+    expect(document.querySelector("dialog.alerts-dialog")).toBeNull();
+    expect(trigger).toHaveFocus();
+  });
+
+  it("Apply persists a threshold change while Cancel and X discard the draft", async () => {
+    const user = userEvent.setup();
+    localStorage.clear();
+    renderHome();
+    const trigger = screen.getByRole("button", { name: "Alerts" });
+
+    await user.click(trigger);
+    let dialog = document.querySelector(
+      "dialog.alerts-dialog",
+    ) as HTMLDialogElement;
+    fireEvent.change(
+      within(dialog).getByRole("slider", { name: /Kp alert threshold/ }),
+      { target: { value: "7" } },
+    );
+    // Nothing persists until Apply (the Time modal draft pattern).
+    expect(localStorage.getItem("sw:thresholds:v1")).toBeNull();
+    await user.click(within(dialog).getByRole("button", { name: "Apply" }));
+    expect(localStorage.getItem("sw:thresholds:v1")).toBe(
+      JSON.stringify({ kp: 7, v: 1 }),
+    );
+    expect(document.querySelector("dialog.alerts-dialog")).toBeNull();
+    expect(trigger).toHaveFocus();
+
+    // Reopening seeds the draft from the stored value …
+    await user.click(trigger);
+    dialog = document.querySelector(
+      "dialog.alerts-dialog",
+    ) as HTMLDialogElement;
+    expect(
+      within(dialog).getByRole("slider", { name: /Kp alert threshold/ }),
+    ).toHaveValue("7");
+
+    // … and Cancel (like X) leaves the stored value untouched.
+    fireEvent.change(
+      within(dialog).getByRole("slider", { name: /Kp alert threshold/ }),
+      { target: { value: "3" } },
+    );
+    await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    expect(localStorage.getItem("sw:thresholds:v1")).toBe(
+      JSON.stringify({ kp: 7, v: 1 }),
+    );
+    await user.click(trigger);
+    dialog = document.querySelector(
+      "dialog.alerts-dialog",
+    ) as HTMLDialogElement;
+    expect(
+      within(dialog).getByRole("slider", { name: /Kp alert threshold/ }),
+    ).toHaveValue("7");
+    await user.click(within(dialog).getByRole("button", { name: "Close" }));
+    expect(document.querySelector("dialog.alerts-dialog")).toBeNull();
     expect(trigger).toHaveFocus();
   });
 

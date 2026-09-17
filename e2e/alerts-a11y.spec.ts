@@ -27,7 +27,7 @@ test("alert settings modal filters the fixture feed to the threshold and passes 
 
   await page.goto("/");
   const dialog = page.locator("dialog.alerts-dialog");
-  await expect(dialog).toBeHidden();
+  await expect(dialog).toHaveCount(0);
   await page.getByRole("button", { name: "Alerts" }).click();
   await expect(dialog).toBeVisible({ timeout: dataTimeout });
   await expect(
@@ -39,11 +39,20 @@ test("alert settings modal filters the fixture feed to the threshold and passes 
   await expect(dialog.locator(".alerts__strip")).toBeVisible();
   await expect(dialog.locator(".alerts__strip")).toHaveCount(1);
   await expect(dialog.locator(".alerts__strip__color")).toHaveCount(1);
+  await expect(dialog.getByRole("button", { name: "Cancel" })).toBeVisible();
+  await expect(dialog.getByRole("button", { name: "Apply" })).toBeVisible();
   await expect(
-    dialog.getByRole("button", { name: /browser alerts/i }),
+    dialog.getByText(/Notifications can appear while this tab is open/),
   ).toBeVisible();
+  // Headless Chromium reports Notification.permission as denied, so the
+  // dialog opens directly in the blocked state: Try again plus the orange
+  // warning naming the site-settings path (the Enable-to-denied click
+  // transition rides the unit suite, where permission is stubbed).
+  await expect(dialog.getByText(/blocked for this site/)).toBeVisible({
+    timeout: dataTimeout,
+  });
   await expect(
-    dialog.getByText(/Alerts while this tab is open\./),
+    dialog.getByRole("button", { name: "Try again" }),
   ).toBeVisible();
 
   const results = await new AxeBuilder({ page }).analyze();

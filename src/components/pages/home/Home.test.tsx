@@ -11,6 +11,10 @@ import { ovationJson } from "../../../test/ovation-test-utils";
 import { DisplayTimezoneProvider } from "../../DisplayTimezone/DisplayTimezoneContext";
 import Home from "./Home";
 
+// Alerts ship enabled by default (src/features.ts); this suite pins the flag
+// off to cover the kill-switch.
+vi.mock("../../../features", () => ({ ALERTS_ENABLED: false }));
+
 const queryClient = () =>
   new QueryClient({ defaultOptions: { queries: { retry: false } } });
 
