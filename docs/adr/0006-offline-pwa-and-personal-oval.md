@@ -9,7 +9,7 @@ Why: the app currently does not load without internet (`vite.config.ts:1` has no
 **Considered Options**:
 
 - No worker / AppCache — rejected, breaks on reload offline.
-- `vite-plugin-pwa` `generateSW` with Workbox `StaleWhileRevalidate` for `services.swpc.noaa.gov`, `CacheFirst` for Stadia tiles + OVATION JPGs — picked, static Netlify/gh-pages build stays zero-ops, one `manifest.json:1` `display:standalone` already exists.
+- `vite-plugin-pwa` `generateSW` with Workbox `StaleWhileRevalidate` for `services.swpc.noaa.gov`, `CacheFirst` for Stadia tiles + OVATION JPGs — picked, static Netlify build stays zero-ops, one `manifest.json:1` `display:standalone` already exists.
 - Per-page stale hiding (`Never show stale`) — rejected, chaser would be blind; we keep stale with `As of` + `⚠ Showing saved data`.
 - Separate place pickers for Home and `/conditions` — rejected, duplicates `geocoded place` (`CONTEXT.md:167` single `localStorage["sw:local-conditions:place:v1"]`). Reuse one `PlaceFinder` modal next to the short name on both pages, icon-only on narrow with `sr-only`.
 - Full pannable world map at zoom 6+ — rejected, burns Stadia tiles (64→256). Locked `minZoom 1` / `maxZoom 2-3` world view (2→4 tiles, horizontal wrap) shows both caps via `North | South` toggle (OVATION has north + south payloads), ~8 tiles total, well within Stadia free.

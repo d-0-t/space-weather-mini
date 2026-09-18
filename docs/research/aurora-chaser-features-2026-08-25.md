@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-25
 **Audience:** Aurora chasers (field use, mobile, dark sky, low signal)
-**Constraint:** Stay client-side only per ADR-0001 — static SPA on Netlify/gh-pages, direct `fetch` from `services.swpc.noaa.gov` (CORS `*`), preferences in `localStorage`. No backend. Features needing a server are flagged and deferred.
+**Constraint:** Stay client-side only per ADR-0001 — static SPA on Netlify, direct `fetch` from `services.swpc.noaa.gov` (CORS `*`), preferences in `localStorage`. No backend. Features needing a server are flagged and deferred.
 **Scope:** Broad sweep — data sources + user-facing features + visualizations + tech/platform — filtered for aurora relevance.
 
 > Research against primary sources only: NOAA SWPC directory listings and `services.swpc.noaa.gov` live endpoints (verified 2026-08-25), competitor sites (SpaceWeatherLive, My Aurora Forecast, AuroraWatch UK, Soft Serve / Aurora Alerts, NOAA Aurora Dashboard), and web platform specs (MDN, W3C/WICG, web.dev, caniuse). Each claim cites its owner.
@@ -138,7 +138,7 @@ All argue for polling 60–300 s given `Cache-Control: max-age=60` [NOAA track].
 
 ### 3.2 Ranked recommendations for static SPA (most ROI first)
 
-1. **PWA shell + data caching (Vite PWA)** — highest ROI for field. `VitePWA({ strategies:'generateSW', workbox:{ globPatterns:['**/*.{js,css,html,woff2}'], runtimeCaching:[{urlPattern:/services\.swpc\.noaa\.gov/, handler:'StaleWhileRevalidate', options:{cacheName:'swpc', expiration:{maxEntries:50, maxAgeSeconds:3600}}}]}, manifest:{display:'standalone'} })` on Netlify/gh-pages static. Offline shell + fresh data without backend. Add `skipWaiting`+`clientsClaim` for iOS race.
+1. **PWA shell + data caching (Vite PWA)** — highest ROI for field. `VitePWA({ strategies:'generateSW', workbox:{ globPatterns:['**/*.{js,css,html,woff2}'], runtimeCaching:[{urlPattern:/services\.swpc\.noaa\.gov/, handler:'StaleWhileRevalidate', options:{cacheName:'swpc', expiration:{maxEntries:50, maxAgeSeconds:3600}}}]}, manifest:{display:'standalone'} })` on Netlify static. Offline shell + fresh data without backend. Add `skipWaiting`+`clientsClaim` for iOS race.
 2. **Geolocation + viewline distance** — single-shot button "Where am I vs oval?" with permission nudge, haversine math client-side; fallback manual lat/lon; display `coords.accuracy` ±10–50 m warning.
 3. **Wake Lock opt-in toggle** — "Keep screen on". `await navigator.wakeLock.request('screen')` + `visibilitychange` re-acquire + release on toggle off; explain battery cost.
 4. **Storage split** — keep prefs in `localStorage` (<5 KiB); add `IndexedDB` via `idb` wrapper for 30-day history if charting; call `navigator.storage.persist()` on first save; handle `QuotaExceededError`.

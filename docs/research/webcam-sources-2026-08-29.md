@@ -2,7 +2,7 @@
 
 **Date:** 2026-08-29
 **Audience:** Builders of the planned "webcams" page — a curated gallery of live sky/aurora webcams displayed via plain `<img src>` tags.
-**Constraint:** Client-side-only static SPA per ADR-0001 (Netlify/gh-pages, HTTPS). No backend, no proxy. Key nuance: `<img>` does **not** need CORS; what matters is (a) hotlink policy (403/Referer checks), (b) licensing/attribution, (c) URL stability, (d) update cadence. For any feed that needs a *fresh filename* resolved from JSON, CORS *does* matter — flagged per source.
+**Constraint:** Client-side-only static SPA per ADR-0001 (Netlify, HTTPS). No backend, no proxy. Key nuance: `<img>` does **not** need CORS; what matters is (a) hotlink policy (403/Referer checks), (b) licensing/attribution, (c) URL stability, (d) update cadence. For any feed that needs a *fresh filename* resolved from JSON, CORS *does* matter — flagged per source.
 **Scope:** Candidate cams from AuroraWatch UK, IRF Kiruna, Tromsø/Norway, Iceland, Finland, North America, plus aggregators. Every candidate verified with live HTTP requests 2026-08-29 UTC (browser-like UA; status/content-type/size/Last-Modified; one foreign-Referer hotlink probe per working source). Where a page is bot-blocked, that is itself a finding. **Two sweeps:** the morning sweep (§1–§5, appendix) and an afternoon sweep (§6: user-suggested candidates, SpaceWeatherLive sweep, geography hunt, Twitch/EarthCam verdicts).
 
 > Primary sources only: each operator's own page/feed, fetched live. Nothing below is from a secondary write-up.

@@ -15,6 +15,6 @@ The app is a client-side-only display (ADR-0001) of NOAA SWPC products plus a fe
 **Consequences**:
 
 - `src/data/webcams.ts` is the single source of truth: entry shape (id, name, region, latitude, operator, imageUrl, cadence, `refreshable`, license, note) plus link entries. A cam that dies or changes license is removed from the config, not the code.
-- The Twitch embed needs a `parent` param per deploy target (localhost, Netlify, gh-pages); the config records the channel, the component builds the player URL.
+- The Twitch embed needs a `parent` param per deploy target (localhost, Netlify); the config records the channel, the component builds the player URL.
 - ADR-0003's polling rules apply by analogy to auto-refresh: pause on hidden tab, never poll faster than the operator's own cadence.
 - Alt text, operator credit, and license notes are part of every card — WCAG 2.1 AA and attribution are not optional chrome.

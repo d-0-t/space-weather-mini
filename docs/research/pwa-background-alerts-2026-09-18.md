@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-18
 **Audience:** Maintainers of Space Weather Mini (mobile chasers, field use, installable PWA)
-**Constraint:** Stay client-side only per [ADR-0001](../adr/0001-client-side-only-architecture.md) — static SPA on Netlify/gh-pages, direct `fetch` from `services.swpc.noaa.gov` (CORS `*`), preferences in `localStorage`. No backend. Anything needing a server is flagged with an explicit ADR-0001 tension note and an amendment proposal (§6.5).
+**Constraint:** Stay client-side only per [ADR-0001](../adr/0001-client-side-only-architecture.md) — static SPA on Netlify, direct `fetch` from `services.swpc.noaa.gov` (CORS `*`), preferences in `localStorage`. No backend. Anything needing a server is flagged with an explicit ADR-0001 tension note and an amendment proposal (§6.5).
 **Scope:** Can the app's Alert threshold + Alerts feed alerts reach a phone that is closed / in a pocket? Covers Web Push on mobile in 2026, serverless-without-backend senders, pure-client background alternatives, Notification Triggers status, iOS gotchas, and a ranked recommendation with a technical sketch for this repo.
 
 > Research against primary sources only: W3C Push API, IETF RFC 8291/8292 family via web.dev, WHATWG Notifications, WICG Periodic Background Sync, MDN, web.dev, Chrome developer docs, WebKit blog + Apple developer docs + WWDC22, vite-plugin-pwa and Workbox docs, Firebase/ntfy/OneSignal/Supabase/Netlify first-party docs, caniuse, Playwright docs. Each claim cites its owner. Secondary write-ups were used only to locate the primary source and are not cited for facts.

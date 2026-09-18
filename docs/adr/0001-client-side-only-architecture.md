@@ -2,7 +2,7 @@
 
 The app is a static SPA that fetches NOAA SWPC products directly from `services.swpc.noaa.gov` — no backend, no proxy, no database. Preferences stay in `localStorage`.
 
-Why: a backend buys caching, rate-limit control, and push-capable alerting, but it costs a server, an API contract, CORS handling, and the static deploy (Netlify/gh-pages) that keeps this app zero-ops and free. The data is public, read-only, and already CORS-enabled; the app is informational, not decision-critical, so stale-while-revalidate plus manual refresh is enough.
+Why: a backend buys caching, rate-limit control, and push-capable alerting, but it costs a server, an API contract, CORS handling, and the static deploy (Netlify) that keeps this app zero-ops and free. The data is public, read-only, and already CORS-enabled; the app is informational, not decision-critical, so stale-while-revalidate plus manual refresh is enough.
 
 **Status**: accepted
 
