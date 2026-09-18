@@ -39,6 +39,15 @@ import {
   loadKpThreshold,
   saveKpThreshold,
 } from "../../../../../products/thresholds";
+import {
+  browserPushDeps,
+  disablePush,
+  enablePush,
+  fireTestPoke,
+  resendPushSettings,
+  subscriptionToPushJSON,
+} from "../../../../../push/subscribe-client";
+import type { PushSubscriptionJSON } from "../../../../../push/subscription-settings";
 
 const fetchAlerts = async () => {
   const response = await fetch(ALERTS_URL);
@@ -107,6 +116,14 @@ interface AlertsContextValue {
   notificationState: NotificationState;
   /** Asks for Notification permission on user gesture (iOS-safe). */
   enableBrowserAlerts: () => Promise<void>;
+  /** The stored push subscription, or null while background alerts are off. */
+  pushSubscription: PushSubscriptionJSON | null;
+  /** Forgets the push subscription entirely: the sender deletes it. */
+  disablePushAlerts: () => Promise<void>;
+  /** Fires one canned poke end to end (manual real-phone check). */
+  sendTestPoke: () => Promise<void>;
+  /** The manual test poke's honest state for the settings UI. */
+  testPokeState: "idle" | "sent" | "failed";
   /** Fires a canned test notification (manual PWA check, no feed needed). */
   simulateTestAlert: () => void;
   /** True while the alerts feed is loading without cached data. */
@@ -140,6 +157,27 @@ export const AlertsProvider: React.FC<{ children: ReactNode }> = ({
         ? Notification.permission
         : "unsupported",
   );
+  const [pushSubscription, setPushSubscription] =
+    useState<PushSubscriptionJSON | null>(null);
+  const [testPokeState, setTestPokeState] = useState<
+    "idle" | "sent" | "failed"
+  >("idle");
+
+  // The browser's own subscription is the source of truth: an already
+  // subscribed chaser sees the background controls without re-enabling.
+  useEffect(() => {
+    let cancelled = false;
+    void (async () => {
+      const registration = await navigator.serviceWorker?.getRegistration();
+      const subscription = await registration?.pushManager?.getSubscription();
+      if (!cancelled && subscription) {
+        setPushSubscription(subscriptionToPushJSON(subscription));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const alertsQuery = useQuery({
     queryKey: ["alerts", "live"],
@@ -259,15 +297,51 @@ export const AlertsProvider: React.FC<{ children: ReactNode }> = ({
   const setThreshold = (next: number) => {
     setThresholdState(next);
     saveKpThreshold(localStorage, next);
+    // Every settings change re-sends and overwrites the stored settings
+    // object (a quiet no-op while nothing is subscribed).
+    resendPushSettings();
   };
 
   const enableBrowserAlerts = async () => {
     if (typeof Notification === "undefined") return;
     try {
-      setNotificationState(await Notification.requestPermission());
+      const permission = await Notification.requestPermission();
+      setNotificationState(permission);
+      if (permission === "granted") {
+        try {
+          setPushSubscription(await enablePush(browserPushDeps(), localStorage));
+        } catch {
+          // Background alerts stay off (no application server key, no
+          // registered worker, or the sender rejected) – the in-app strip
+          // and local notifications keep working.
+        }
+      }
     } catch {
       // iOS Safari throws on requestPermission for non-standalone pages
       setNotificationState("default");
+    }
+  };
+
+  const disablePushAlerts = async () => {
+    try {
+      await disablePush(
+        browserPushDeps(),
+        pushSubscription ? [pushSubscription.endpoint] : undefined,
+      );
+    } finally {
+      // Silence is one tap away: the sender forgets the chaser entirely.
+      setPushSubscription(null);
+      setTestPokeState("idle");
+    }
+  };
+
+  const sendTestPoke = async () => {
+    if (!pushSubscription) return;
+    try {
+      const ok = await fireTestPoke(pushSubscription.endpoint);
+      setTestPokeState(ok ? "sent" : "failed");
+    } catch {
+      setTestPokeState("failed");
     }
   };
 
@@ -287,6 +361,10 @@ export const AlertsProvider: React.FC<{ children: ReactNode }> = ({
     setThreshold,
     notificationState,
     enableBrowserAlerts,
+    pushSubscription,
+    disablePushAlerts,
+    sendTestPoke,
+    testPokeState,
     simulateTestAlert,
     bannerPending: alertsQuery.isPending && !alertsQuery.data,
     bannerError: alertsQuery.isError && !alertsQuery.data,

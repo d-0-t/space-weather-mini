@@ -98,6 +98,23 @@
     }
   }
 
+  &__background {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    margin: 0.5rem 0;
+
+    .btn--secondary {
+      margin: 0;
+    }
+  }
+
+  &__test-poke-state {
+    margin: 0;
+    color: color-mix(in srgb, var(--color-white) 75%, transparent);
+  }
+
   &__test {
     margin: 0.5rem 0;
   }

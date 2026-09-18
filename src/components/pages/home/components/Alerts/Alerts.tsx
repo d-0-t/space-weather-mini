@@ -36,6 +36,10 @@ const Alerts: React.FC<{
     setThreshold: saveThreshold,
     notificationState,
     enableBrowserAlerts,
+    pushSubscription,
+    disablePushAlerts,
+    sendTestPoke,
+    testPokeState,
     simulateTestAlert,
     bannerPending,
     bannerError,
@@ -107,6 +111,34 @@ const Alerts: React.FC<{
         )
       ) : null}
 
+      {pushSubscription ? (
+        <div className="alerts__background">
+          <p className="alerts__status">Background alerts on.</p>
+          <button
+            type="button"
+            className="btn--secondary"
+            onClick={() => {
+              void sendTestPoke();
+            }}
+          >
+            Send test poke
+          </button>
+          <button
+            type="button"
+            className="btn--secondary"
+            onClick={() => {
+              void disablePushAlerts();
+            }}
+          >
+            Disable background alerts
+          </button>
+          <p className="alerts__test-poke-state" aria-live="polite">
+            {testPokeState === "sent" ? "Test poke sent." : null}
+            {testPokeState === "failed" ? "Test poke failed: check back later." : null}
+          </p>
+        </div>
+      ) : null}
+
       <label className="alerts__threshold">
         <span className="alerts__threshold__label">Kp alert threshold</span>
         <input
@@ -125,8 +157,8 @@ const Alerts: React.FC<{
       </label>
 
       <p className="alerts__footnote">
-        Alerts are currently supported on desktop only. <br />
-        Notifications can appear while this tab is open, even in the background.
+        Notifications can appear while this tab is open, even in the
+        background.
       </p>
 
       {/* Dev-only manual hook (hidden from production builds): fires the

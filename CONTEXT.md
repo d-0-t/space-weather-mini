@@ -50,6 +50,14 @@ _Avoid_: kp notification (as the alert's name)
 A background push from the Summary's shared verdict word at the stored geocoded place, gated by the chaser's per-hindrance settings (cloud, precipitation, darkness). A distinct alert type from the Kp alert; speaks in verdict words, never in Kp numbers.
 _Avoid_: live notification (when the alert is meant), summary alert
 
+**Push sender**:
+The tiny backend beside the SPA (ticket 02 of the background-alerts effort): a scheduled function that polls the same NOAA products the app already reads, evaluates every stored push subscription against the chaser's own alert settings, and fans out Web Push over Netlify's built-in key-value store behind the 3-method seam (save / load-all / remove). No accounts: the push subscription endpoint is the identity, and every settings change overwrites blindly.
+_Avoid_: backend (when the sender is meant), server, pusher
+
+**Poke**:
+One Web Push message the push sender fans out for an alert event, VAPID-signed with the app-server key and shown as a visible notification inside the service worker's wait-until chain (silent pushes risk platform revocation, so every push ends visible). Repeats of the same event collapse by their dedupe key rather than stack. A test poke is the manual canned poke the maintainer fires end to end on a real installed phone.
+_Avoid_: notification (when the poke is meant), silent push (this app never sends one)
+
 ### Phenomena
 
 **Geospace**:

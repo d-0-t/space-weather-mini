@@ -594,15 +594,15 @@ describe("OvalGlow", () => {
     }
   });
 
-  it("keeps no gibs route and precaches the land asset in vite.config", async () => {
-    const { PWA_OPTIONS } = await import("../../../../../../vite.config");
-    const routes = PWA_OPTIONS.workbox.runtimeCaching.map((entry) =>
-      String(entry.urlPattern),
+  it("keeps no gibs route and precaches the land asset in the owned worker", async () => {
+    const { SW_RUNTIME_ROUTES, SW_GLOB_PATTERNS } = await import(
+      "../../../../../../src/push/sw-config"
     );
+    const routes = SW_RUNTIME_ROUTES.map((entry) => entry.patternSource);
     expect(routes.join(" ")).not.toContain("gibs");
     expect(routes.find((route) => route.includes("swpc"))).toBeTruthy();
     expect(routes.find((route) => route.includes("ovation"))).toBeTruthy();
-    expect(PWA_OPTIONS.workbox.globPatterns.join(",")).toContain("geojson");
+    expect(SW_GLOB_PATTERNS.join(",")).toContain("geojson");
   });
 
   it("keeps the user-picked #444444 land fill on the deep-space background", () => {

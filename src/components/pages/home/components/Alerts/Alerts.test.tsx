@@ -504,3 +504,164 @@ describe("Alerts (ticket 02)", () => {
     );
   });
 });
+
+describe("background alerts (push foundation, ticket 02)", () => {
+  /** The fake Web Push subscription the service worker's pushManager returns. */
+  const fakeSubscription = () => ({
+    endpoint: "https://push.example/subscriptions/a",
+    getKey: (name: string) =>
+      name === "p256dh"
+        ? new Uint8Array([1, 2, 3, 4]).buffer
+        : new Uint8Array([251, 255, 190]).buffer,
+    unsubscribe: vi.fn(async () => true),
+  });
+
+  /** The subscribe options the context must pass (userVisibleOnly + key). */
+  type SubscribeFn = (options: {
+    userVisibleOnly: boolean;
+    applicationServerKey: unknown;
+  }) => Promise<ReturnType<typeof fakeSubscription>>;
+
+  const installWorker = () => {
+    const registration = {
+      pushManager: {
+        subscribe: vi.fn<SubscribeFn>(async () => fakeSubscription()),
+        getSubscription: vi.fn(async () => fakeSubscription()),
+      },
+    };
+    Object.defineProperty(window.navigator, "serviceWorker", {
+      value: { getRegistration: vi.fn(async () => registration) },
+      configurable: true,
+    });
+    return registration;
+  };
+
+  const senderCalls = (urlFragment: string) =>
+    mockFetch.mock.calls.filter(
+      (call) => typeof call[0] === "string" && call[0].includes(urlFragment),
+    );
+
+  afterEach(() => {
+    Reflect.deleteProperty(window.navigator, "serviceWorker");
+    vi.unstubAllEnvs();
+  });
+
+  it("enabling requests permission, subscribes with the app-server key and stores the settings object", async () => {
+    vi.stubEnv("VITE_VAPID_PUBLIC_KEY", "AQIDBA");
+    const user = userEvent.setup();
+    const registration = installWorker();
+    renderAlerts();
+    await user.click(
+      await screen.findByRole("button", { name: "Enable browser alerts" }),
+    );
+    await waitFor(() =>
+      expect(senderCalls("/.netlify/functions/subscribe")).toHaveLength(1),
+    );
+    const subscribeCall = registration.pushManager.subscribe.mock.calls[0];
+    expect(subscribeCall).toBeDefined();
+    expect(subscribeCall[0].userVisibleOnly).toBe(true);
+    expect([...(subscribeCall[0].applicationServerKey as Uint8Array)]).toEqual([
+      1, 2, 3, 4,
+    ]);
+    const postCall = senderCalls("/.netlify/functions/subscribe")[0];
+    expect(postCall[1].method).toBe("POST");
+    const body = JSON.parse(postCall[1].body);
+    expect(body.subscription.endpoint).toBe(
+      "https://push.example/subscriptions/a",
+    );
+    expect(body.alertThreshold).toBe(5);
+    expect(screen.getByText("Background alerts on.")).toBeInTheDocument();
+  });
+
+  it("shows the test control and disable when the browser already holds a subscription", async () => {
+    vi.stubEnv("VITE_VAPID_PUBLIC_KEY", "AQIDBA");
+    installWorker();
+    renderAlerts();
+    expect(await screen.findByText("Background alerts on.")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Send test poke" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Disable background alerts" }),
+    ).toBeInTheDocument();
+  });
+
+  it("the test control fires one canned poke at the sender", async () => {
+    vi.stubEnv("VITE_VAPID_PUBLIC_KEY", "AQIDBA");
+    installWorker();
+    const user = userEvent.setup();
+    renderAlerts();
+    await user.click(
+      await screen.findByRole("button", { name: "Send test poke" }),
+    );
+    await waitFor(() =>
+      expect(screen.getByText("Test poke sent.")).toBeInTheDocument(),
+    );
+    const calls = senderCalls("/.netlify/functions/send-test");
+    expect(calls).toHaveLength(1);
+    expect(calls[0][0]).toBe(
+      "/.netlify/functions/send-test?endpoint=" +
+        encodeURIComponent("https://push.example/subscriptions/a"),
+    );
+  });
+
+  it("a failed test poke says so instead of staying silent", async () => {
+    vi.stubEnv("VITE_VAPID_PUBLIC_KEY", "AQIDBA");
+    installWorker();
+    mockFetch.mockImplementation((url: string) => {
+      if (typeof url === "string" && url.includes("send-test")) {
+        return Promise.resolve({ ok: false, status: 503, text: async () => "" });
+      }
+      return Promise.resolve({ ok: true, text: async () => "" });
+    });
+    const user = userEvent.setup();
+    renderAlerts();
+    await user.click(
+      await screen.findByRole("button", { name: "Send test poke" }),
+    );
+    await waitFor(() =>
+      expect(screen.getByText(/Test poke failed/)).toBeInTheDocument(),
+    );
+  });
+
+  it("disabling deletes the subscription and unsubscribes the browser", async () => {
+    vi.stubEnv("VITE_VAPID_PUBLIC_KEY", "AQIDBA");
+    const user = userEvent.setup();
+    installWorker();
+    renderAlerts();
+    await user.click(
+      await screen.findByRole("button", {
+        name: "Disable background alerts",
+      }),
+    );
+    await waitFor(() =>
+      expect(senderCalls("/.netlify/functions/unsubscribe")).toHaveLength(1),
+    );
+    const call = senderCalls("/.netlify/functions/unsubscribe")[0];
+    expect(call[1].method).toBe("DELETE");
+    expect(call[0]).toBe(
+      "/.netlify/functions/unsubscribe?endpoint=" +
+        encodeURIComponent("https://push.example/subscriptions/a"),
+    );
+    expect(
+      await screen.findByRole("button", { name: "Enable browser alerts" }),
+    ).toBeInTheDocument();
+  });
+
+  it("a threshold change re-sends and overwrites the stored settings", async () => {
+    vi.stubEnv("VITE_VAPID_PUBLIC_KEY", "AQIDBA");
+    installWorker();
+    const user = userEvent.setup();
+    renderAlerts();
+    await screen.findByText("Background alerts on.");
+    fireEvent.change(
+      screen.getByRole("slider", { name: /Kp alert threshold/i }),
+      { target: { value: "7" } },
+    );
+    await waitFor(() =>
+      expect(senderCalls("/.netlify/functions/subscribe")).toHaveLength(1),
+    );
+    const postCalls = senderCalls("/.netlify/functions/subscribe");
+    expect(JSON.parse(postCalls[0][1].body).alertThreshold).toBe(7);
+  });
+});

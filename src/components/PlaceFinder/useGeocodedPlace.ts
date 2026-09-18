@@ -6,6 +6,7 @@ import {
   type GeocodedPlace,
 } from "../../data/place-storage";
 import type { GeocodeMatch } from "../../data/geocoding";
+import { resendPushSettings } from "../../push/subscribe-client";
 
 /**
  * The single stored geocoded place shared by Home and Local conditions:
@@ -36,6 +37,10 @@ export function useGeocodedPlace(): {
     };
     saveGeocodedPlace(localStorage, picked);
     setPlace(picked);
+    // Background alerts follow the same place the Dashboard shows: every
+    // pick re-sends the settings object (a quiet no-op while nothing is
+    // subscribed).
+    resendPushSettings();
   }, []);
   return { place, pick };
 }

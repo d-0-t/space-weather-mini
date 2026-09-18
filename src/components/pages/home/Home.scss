@@ -47,15 +47,11 @@
     gap: 0.5rem;
   }
 
-  // Alerts are desktop-only (see Alerts footnote): hide the Dashboard
-  // header's Alerts toggle on mobile. Narrow is the default (mobile-first,
-  // ADR-0009); respond-to(md) restores it alongside the 2-column bucket.
+  // The Alerts toggle shows at every width: background alerts are the
+  // phone-in-pocket feature (background-alerts ticket 02), so narrow is
+  // where the chaser enables them, not a place to hide the control.
   &__alerts-toggle {
-    display: none;
-
-    @include respond-to(md) {
-      display: inline-flex;
-    }
+    display: inline-flex;
   }
 
   // Dashboard buckets (ticket 04, ADR-0011): 1-column below md,

@@ -1,4 +1,4 @@
-import { existsSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
@@ -85,12 +85,15 @@ const warmLiveCache = async (page: Page) => {
   }, REQUIRED_CACHED_URLS);
 };
 
-test("the production build emits sw.js plus a workbox runtime chunk", () => {
+test("the production build emits the owned worker with the push handlers", () => {
+  // The push-foundation migration (ticket 02): the repo owns src/sw.ts
+  // (injectManifest). Workbox is bundled inline, so there are no separate
+  // workbox-* runtime chunks; the push and notification-tap handlers are
+  // the distinctive literals that survive minification.
   expect(existsSync("dist/sw.js")).toBe(true);
-  const workboxChunks = readdirSync("dist").filter((name) =>
-    name.startsWith("workbox-"),
-  );
-  expect(workboxChunks.length).toBeGreaterThan(0);
+  const sw = readFileSync("dist/sw.js", "utf8");
+  expect(sw).toContain("push:generic");
+  expect(sw).toContain("notificationclick");
 });
 
 test("after one online visit the shell opens offline with honest stale data", async ({
