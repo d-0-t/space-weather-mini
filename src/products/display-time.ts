@@ -135,6 +135,16 @@ export function formatClockTick(
 }
 
 /**
+ * The HH:MM clock label for an instant in an explicit IANA zone – the
+ * push sender's place-local rendering (the stored place's own wall clock),
+ * where the Display timezone does not apply. 2-digit, 24-hour, h23 so
+ * midnight reads 00:00, never 24:00.
+ */
+export function formatClockInZone(date: Date, timeZone: string): string {
+  return clockFormatter(timeZone).format(date);
+}
+
+/**
  * The hover-tooltip timestamp for a SWPC time tag in the Display timezone,
  * keeping the compact "26 Aug 2026 22:04" shape the charts have always
  * shown; UTC mode appends " UTC", Local mode stays quiet about zones.
@@ -260,6 +270,37 @@ export function dayKeyOf(
   const get = (type: Intl.DateTimeFormatPartTypes): number =>
     Number(parts.find((part) => part.type === type)?.value);
   return { year: get("year"), month: get("month"), day: get("day") };
+}
+
+/**
+ * The calendar day an instant falls on in an explicit IANA zone – the
+ * push sender's place-local day bucketing, where the Display timezone
+ * does not apply (the stored place's own 00:00–24:00 day).
+ */
+export function dayKeyInZone(date: Date, timeZone: string): DayKey {
+  const parts = dayKeyFormatter(timeZone).formatToParts(date);
+  const get = (type: Intl.DateTimeFormatPartTypes): number =>
+    Number(parts.find((part) => part.type === type)?.value);
+  return { year: get("year"), month: get("month"), day: get("day") };
+}
+
+const hourFormatters = new Map<string, Intl.DateTimeFormat>();
+
+/**
+ * The instant's clock hour (0–23) in an explicit IANA zone – the push
+ * sender's place-local send-window check.
+ */
+export function hourOfDayInZone(date: Date, timeZone: string): number {
+  let formatter = hourFormatters.get(timeZone);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat("en-US", {
+      hour: "2-digit",
+      hourCycle: "h23",
+      timeZone,
+    });
+    hourFormatters.set(timeZone, formatter);
+  }
+  return Number(formatter.formatToParts(date).find((part) => part.type === "hour")?.value);
 }
 
 /** The day `days` away from the given day (calendar-true, month- and year-safe). */

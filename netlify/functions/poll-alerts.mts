@@ -1,10 +1,10 @@
 /**
- * The scheduled NOAA poll (tickets 02-03): runs every few minutes on the
+ * The scheduled NOAA poll (tickets 02-04): runs every few minutes on the
  * published deploy, reads the observed planetary K-index and the Kp
  * forecast (the same products the app already parses) and fans out the Kp
- * alert's pokes per stored subscription. Tickets 04-05 add the daily
- * outlook and live alert legs. The VAPID credentials come from the Netlify
- * dashboard's env vars.
+ * alert's pokes plus the Daily outlook's once-per-place-local-day poke per
+ * stored subscription. Ticket 05 adds the live alert leg. The VAPID
+ * credentials come from the Netlify dashboard's env vars.
  */
 
 import {

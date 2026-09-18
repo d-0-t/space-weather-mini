@@ -13,6 +13,45 @@
 
 import { getTimes } from "suncalc";
 
+/** The calendar day (1-based month) an instant falls on in a zone. */
+interface ZonedDayKey {
+  year: number;
+  month: number;
+  day: number;
+}
+
+/** The Y/M/D the zone's clock shows for an instant (month 1-based). */
+const zonedDayKey = (date: Date, timeZone: string): ZonedDayKey => {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    timeZone,
+  }).formatToParts(date);
+  const get = (type: Intl.DateTimeFormatPartTypes): number =>
+    Number(parts.find((part) => part.type === type)?.value);
+  return { year: get("year"), month: get("month"), day: get("day") };
+};
+
+/**
+ * The midnight instant of the zoned calendar day `date` falls on – the
+ * same wall-clock-to-instant resolution the app's device-local day picks
+ * gets, resolved through the zone's own offset (two passes, so a DST
+ * boundary between the guess and the day settles). Noon-anchored callers
+ * are never inside a DST gap, so the two passes always converge.
+ */
+const zonedMidnight = (date: Date, timeZone: string): Date => {
+  const day = zonedDayKey(date, timeZone);
+  const asUTC = (key: ZonedDayKey): number =>
+    Date.UTC(key.year, key.month - 1, key.day);
+  let utc = asUTC(day);
+  for (let pass = 0; pass < 2; pass += 1) {
+    const shown = zonedDayKey(new Date(utc), timeZone);
+    utc += asUTC(day) - asUTC(shown);
+  }
+  return new Date(utc);
+};
+
 const DEG = Math.PI / 180;
 
 /** Milliseconds in one day – the step between today and tomorrow. */
@@ -225,18 +264,23 @@ const dayTimes = (
  * Daylight for today and tomorrow at a place, derived on device with suncalc
  * (ADR 0005): sunrise, sunset, solar noon, the three twilight intervals and
  * the Night interval between astronomical dusk and the next astronomical
- * dawn. The reference day is the device-local calendar day of `now`, so the
- * returned events belong to the same 00:00–24:00 day the Local conditions
- * timeline renders. During polar day and polar night the affected events
- * are null so the view can render the short polar copy instead of blank or
- * invalid dates.
+ * dawn. The reference day is the calendar day `now` falls on – the
+ * device-local day by default, or the `referenceZone` calendar day when one
+ * is given (the push sender keys the Daily outlook to the stored place's
+ * own day, not the poll runtime's UTC day) – so the returned events belong
+ * to the same 00:00–24:00 day the Local conditions timeline renders.
+ * During polar day and polar night the affected events are null so the view
+ * can render the short polar copy instead of blank or invalid dates.
  */
 export function daylightTimes(
   latitudeDeg: number,
   longitudeDeg: number,
   now: Date,
+  referenceZone?: string,
 ): DaylightTimes {
-  const day = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const day = referenceZone
+    ? zonedMidnight(now, referenceZone)
+    : new Date(now.getFullYear(), now.getMonth(), now.getDate());
   return {
     today: dayTimes(latitudeDeg, longitudeDeg, day),
     tomorrow: dayTimes(latitudeDeg, longitudeDeg, new Date(day.getTime() + DAY_MS)),

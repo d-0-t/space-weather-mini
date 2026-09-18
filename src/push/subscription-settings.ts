@@ -85,6 +85,21 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const isNonEmptyString = (value: unknown): value is string =>
   typeof value === "string" && value.length > 0;
 
+/**
+ * True when Intl knows the value as an IANA time zone – a garbage zone
+ * would otherwise silently break every place-local computation the sender
+ * runs (the poll's daily outlook, future live-alert gates).
+ */
+const isTimeZone = (value: unknown): value is string => {
+  if (!isNonEmptyString(value)) return false;
+  try {
+    new Intl.DateTimeFormat("en", { timeZone: value });
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 const isFiniteNumber = (value: unknown): value is number =>
   typeof value === "number" && Number.isFinite(value);
 
@@ -160,7 +175,7 @@ export function parseSubscriptionSettings(
   }
   const parsedPlace = parsePlace(place);
   if (!parsedPlace) return null;
-  if (!isNonEmptyString(placeTimezone)) return null;
+  if (!isTimeZone(placeTimezone)) return null;
   if (
     !isRecord(alertTypes) ||
     typeof alertTypes.daily !== "boolean" ||

@@ -81,9 +81,15 @@ describe("subscription settings (ticket 02)", () => {
     ).toBeNull();
   });
 
-  it("rejects an empty place timezone", () => {
+  it("rejects a place timezone Intl does not know", () => {
     expect(
       parseSubscriptionSettings({ ...validSettings, placeTimezone: "" }),
+    ).toBeNull();
+    expect(
+      parseSubscriptionSettings({ ...validSettings, placeTimezone: "Not/AZone" }),
+    ).toBeNull();
+    expect(
+      parseSubscriptionSettings({ ...validSettings, placeTimezone: 26 }),
     ).toBeNull();
   });
 

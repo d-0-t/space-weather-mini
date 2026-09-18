@@ -39,7 +39,7 @@ NOAA's JSON feed of current alerts, watches, and warnings (`alerts.json`), each 
 _Avoid_: alert feed, warning feed, alerts (without feed)
 
 **Daily outlook alert**:
-One background push per day naming tonight's (or tomorrow night's, past dawn) expected Kp and the darkest window at the stored geocoded place; silent on quiet days.
+One background push per place-local day, inside the morning–lunch send window (06:00–12:00 in the stored place's own timezone), naming tonight's expected Kp and the darkest window at the stored geocoded place (e.g. "Tonight Kp 5.33 expected. Darkest at Luleå 22:01–02:50."). Threshold-gated like the Kp alert: it pokes only when the next-24h Kp forecast breaches the chaser's own Alert threshold, so quiet days and midnight-sun days (no dark stretch to plan) stay silent. Describes the coming night, never the one just past; deduped once per place-local day by the `daily-outlook|{date}` key, with the daily kind's ~12h time-to-live carrying the newest outlook to a phone that reconnects after the send. Speaks in Kp numbers, never in verdict words.
 _Avoid_: daily notification (without outlook qualifier)
 
 **Kp alert**:

@@ -282,4 +282,29 @@ describe("daylightTimes (suncalc) for Local conditions", () => {
     expectNearMinutes(today.astronomicalDawn, "2026-12-21T05:16:40Z");
     expectNearMinutes(today.astronomicalDusk, "2026-12-21T15:57:36Z");
   });
+
+  it("keys the reference day to a referenceZone's calendar day when one is given", () => {
+    // 2026-09-18T22:30Z is already 2026-09-19 00:30 in Stockholm: the
+    // zoned call must file the events under the 19th, while the device
+    // (UTC) day of the same instant is still the 18th.
+    const zoned = daylightTimes(
+      OSLO.latitude,
+      OSLO.longitude,
+      new Date("2026-09-18T22:30:00Z"),
+      "Europe/Stockholm",
+    );
+    const device = daylightTimes(
+      OSLO.latitude,
+      OSLO.longitude,
+      new Date("2026-09-18T22:30:00Z"),
+    );
+    // suncalc's Sep-19 sunrise at Oslo reads ~2 min later than Sep 18's
+    expectNearMinutes(zoned.today.sunrise, "2026-09-19T04:54:02Z");
+    expect(zoned.today.sunrise!.getTime()).not.toBe(
+      device.today.sunrise!.getTime(),
+    );
+    expect(zoned.tomorrow.date.getTime() - zoned.today.date.getTime()).toBe(
+      86_400_000,
+    );
+  });
 });

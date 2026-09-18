@@ -1,11 +1,11 @@
 /**
- * The sender's endpoint and poll logic (ticket 02, fan-out in ticket 03),
+ * The sender's endpoint and poll logic (ticket 02, fan-out since ticket 03),
  * written as pure-ish functions over injected dependencies so the Netlify
  * function files stay thin adapters and the contracts are testable without
  * the platform: subscribe-overwrite, disable-forget, the manual test poke
  * with gone-subscription pruning, and the scheduled NOAA poll whose Kp
- * matching, dedupe and fan-out run here (tickets 04-05 add the other
- * alert types).
+ * matching, dedupe and fan-out run here, alongside the Daily outlook's
+ * once-per-place-local-day leg (ticket 04; ticket 05 adds the live alert).
  */
 
 import {
@@ -16,9 +16,11 @@ import type { StoredSubscription, SubscriptionStore } from "./subscription-store
 import {
   buildPushPayload,
   isGoneStatus,
+  type PushKind,
   type PushPayload,
 } from "./push-payload";
 import { matchKpEvents } from "./kp-events";
+import { matchDailyOutlook } from "./daily-outlook";
 import type {
   PlanetaryKPoint,
   PlanetaryKForecastPoint,
@@ -97,10 +99,10 @@ export interface PollSummary {
 
 /**
  * The scheduled poll: loads every stored subscription, polls the parsed
- * NOAA Kp legs and fans out one poke per breaching event, deduped and
- * escalation-gated by the chaser's own seen keys. Feeds are read once and
- * shared; a failed leg throws before the store is touched, so the next
- * poll retries cleanly.
+ * NOAA Kp legs and fans out the Kp alert's pokes plus the once-per-day
+ * Daily outlook, deduped and gated by the chaser's own seen keys and
+ * toggles. Feeds are read once and shared; a failed leg throws before the
+ * store is touched, so the next poll retries cleanly.
  */
 export async function runPoll(deps: {
   store: SubscriptionStore;
@@ -113,16 +115,84 @@ export async function runPoll(deps: {
   const records = await deps.store.loadAll();
   let sent = 0;
   for (const record of records) {
-    sent += await fanOutKp(record, { ...deps, feeds, now });
+    const kp = await fanOutKp(record, { ...deps, feeds, now });
+    sent += kp.sent;
+    if (kp.pruned) continue;
+    const daily = await fanOutDaily(record, { ...deps, feeds, now });
+    sent += daily.sent;
   }
   return { subscriptions: records.length, feeds, sent };
 }
 
 /**
+ * One fan-out leg's outcome: pokes the push service accepted, and whether
+ * it reported the subscription gone (404/410) – a pruned record's remaining
+ * legs are skipped.
+ */
+interface LegOutcome {
+  sent: number;
+  pruned: boolean;
+}
+
+/** One poke a matcher produced, ready to send. `poke: false` marks a
+ *  silent chain marker the fan-out records without sending. */
+interface OutgoingPoke {
+  key: string;
+  title: string;
+  body: string;
+  kind: PushKind;
+  poke: boolean;
+}
+
+/**
+ * One record's fan-out over the matched events: send the poke-worthy ones
+ * and record every newly evaluated key (poked or silent) through the
+ * store. A gone response prunes the record; a transient send failure
+ * records nothing so the next poll retries. The record's seenKeys stay
+ * current in memory so a following leg composes with this one's
+ * bookkeeping.
+ */
+async function fanOutEvents(
+  record: StoredSubscription,
+  deps: { store: SubscriptionStore; send: PushSend },
+  pokes: OutgoingPoke[],
+): Promise<LegOutcome> {
+  const seenKeys = [...record.seenKeys];
+  let sent = 0;
+  for (const poke of pokes) {
+    if (!poke.poke) {
+      seenKeys.push(poke.key);
+      continue;
+    }
+    const payload = buildPushPayload(poke.kind, {
+      title: poke.title,
+      body: poke.body,
+      key: poke.key,
+      url: "/",
+    });
+    const result = await deps.send(record, payload);
+    if (isGoneStatus(result.status)) {
+      await deps.store.remove(record.settings.subscription.endpoint);
+      return { sent, pruned: true };
+    }
+    if (result.status >= 200 && result.status < 300) {
+      seenKeys.push(poke.key);
+      sent += 1;
+    } else {
+      break;
+    }
+  }
+  if (seenKeys.length > record.seenKeys.length) {
+    await deps.store.save(record.settings, record.savedAt, seenKeys);
+    record.seenKeys = seenKeys;
+  }
+  return { sent, pruned: false };
+}
+
+/**
  * One record's Kp fan-out: match the chaser's threshold against the parsed
- * legs, send the poke-worthy events, and record every newly evaluated key
- * (poked or silent) through the store. A gone response prunes the record;
- * a transient send failure records nothing so the next poll retries.
+ * legs, mapping each leg to its honest payload kind (Observed → the live
+ * kind's hour-scale TTL, Predicted → the forecast kind's day-scale TTL).
  */
 async function fanOutKp(
   record: StoredSubscription,
@@ -132,45 +202,46 @@ async function fanOutKp(
     feeds: PollFeeds;
     now: number;
   },
-): Promise<number> {
-  if (!record.settings.alertTypes.kp) return 0;
-  const events = matchKpEvents({
+): Promise<LegOutcome> {
+  if (!record.settings.alertTypes.kp) return { sent: 0, pruned: false };
+  const pokes = matchKpEvents({
     observed: deps.feeds.observed,
     forecast: deps.feeds.forecast,
     alertThreshold: record.settings.alertThreshold,
     seenKeys: record.seenKeys,
     now: deps.now,
-  });
-  const seenKeys = [...record.seenKeys];
-  let sent = 0;
-  for (const event of events) {
-    if (!event.poke) {
-      seenKeys.push(event.key);
-      continue;
-    }
-    const payload = buildPushPayload(
-      event.leg === "observed" ? "live" : "forecast",
-      {
-        title: event.title,
-        body: event.body,
-        key: event.key,
-        url: "/",
-      },
-    );
-    const result = await deps.send(record, payload);
-    if (isGoneStatus(result.status)) {
-      await deps.store.remove(record.settings.subscription.endpoint);
-      return sent;
-    }
-    if (result.status >= 200 && result.status < 300) {
-      seenKeys.push(event.key);
-      sent += 1;
-    } else {
-      break;
-    }
-  }
-  if (seenKeys.length > record.seenKeys.length) {
-    await deps.store.save(record.settings, record.savedAt, seenKeys);
-  }
-  return sent;
+  }).map((event) => ({
+    key: event.key,
+    title: event.title,
+    body: event.body,
+    kind: event.leg === "observed" ? ("live" as const) : ("forecast" as const),
+    poke: event.poke,
+  }));
+  return fanOutEvents(record, deps, pokes);
+}
+
+/**
+ * One record's Daily outlook fan-out (ticket 04): at most one poke per
+ * place-local day, in the morning–lunch window, when tonight's forecast
+ * breaches the chaser's own Alert threshold.
+ */
+async function fanOutDaily(
+  record: StoredSubscription,
+  deps: {
+    store: SubscriptionStore;
+    send: PushSend;
+    feeds: PollFeeds;
+    now: number;
+  },
+): Promise<LegOutcome> {
+  if (!record.settings.alertTypes.daily) return { sent: 0, pruned: false };
+  const events = matchDailyOutlook({
+    forecast: deps.feeds.forecast,
+    place: record.settings.place,
+    placeTimezone: record.settings.placeTimezone,
+    alertThreshold: record.settings.alertThreshold,
+    seenKeys: record.seenKeys,
+    now: deps.now,
+  }).map((event) => ({ ...event, kind: "daily" as const }));
+  return fanOutEvents(record, deps, events);
 }

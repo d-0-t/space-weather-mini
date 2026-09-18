@@ -6,9 +6,11 @@ import { describe, expect, it } from "vitest";
 
 import {
   addDays,
+  dayKeyInZone,
   dayKeyOf,
   formatAge,
   formatClock,
+  formatClockInZone,
   formatClockTick,
   formatDayLabel,
   formatIssued,
@@ -18,6 +20,7 @@ import {
   formatSlot,
   formatSlotTick,
   formatTooltipTimestamp,
+  hourOfDayInZone,
   MONTHS_SHORT,
   parseTimeTag,
   utcSuffix,
@@ -323,5 +326,35 @@ describe("formatAge (ticket 03)", () => {
     expect(formatAge("2026-08-25T17:59:30Z", now)).toBe("just now");
     expect(formatAge("2026-08-25T18:05:00Z", now)).toBe("just now");
     expect(formatAge("not a time", now)).toBe("just now");
+  });
+});
+
+describe("explicit-IANA-zone helpers (ticket 04)", () => {
+  // The push sender renders the stored geocoded place's own wall clock,
+  // where the Display timezone does not apply. The device zone here is
+  // pinned to Stockholm, so a different zone proves the override.
+  it("renders the clock and hour in the named zone, not the device zone", () => {
+    const instant = new Date("2026-09-18T07:00:00Z");
+    // The same instant reads 09:00 in the pinned device zone (Stockholm)
+    // and 16:00 in Tokyo: the named zone wins in both directions.
+    expect(formatClockInZone(instant, "Asia/Tokyo")).toBe("16:00");
+    expect(hourOfDayInZone(instant, "Asia/Tokyo")).toBe(16);
+    expect(formatClockInZone(instant, "Europe/Stockholm")).toBe("09:00");
+    expect(hourOfDayInZone(instant, "Europe/Stockholm")).toBe(9);
+  });
+
+  it("keys the place-local calendar day in the named zone, crossing the device day", () => {
+    // 22:30 UTC is 00:30 the next day in Stockholm: the zoned day key
+    // files the instant under the 19th while the UTC day is the 18th.
+    expect(dayKeyInZone(new Date("2026-09-18T22:30:00Z"), "Europe/Stockholm")).toEqual({
+      year: 2026,
+      month: 9,
+      day: 19,
+    });
+    expect(dayKeyInZone(new Date("2026-09-18T22:30:00Z"), "UTC")).toEqual({
+      year: 2026,
+      month: 9,
+      day: 18,
+    });
   });
 });
