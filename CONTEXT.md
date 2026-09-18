@@ -38,6 +38,18 @@ _Avoid_: GeoAlert, wwv (internal names only)
 NOAA's JSON feed of current alerts, watches, and warnings (`alerts.json`), each item carrying a product code — `WARK05` (Kp 5 warning), `ALTK04` (Kp 4 alert), `WATA30` (A-index 30 watch) — and a message text. Distinct from the geophysical alert text product; the alert threshold drives which items surface.
 _Avoid_: alert feed, warning feed, alerts (without feed)
 
+**Daily outlook alert**:
+One background push per day naming tonight's (or tomorrow night's, past dawn) expected Kp and the darkest window at the stored geocoded place; silent on quiet days.
+_Avoid_: daily notification (without outlook qualifier)
+
+**Kp alert**:
+A background push when the official 3-hour Kp value or the Kp forecast breaches the chaser's alert threshold, honestly labeled observed vs predicted, re-poking on escalation only. Speaks in Kp numbers, never in verdict words.
+_Avoid_: kp notification (as the alert's name)
+
+**Live alert**:
+A background push from the Summary's shared verdict word at the stored geocoded place, gated by the chaser's per-hindrance settings (cloud, precipitation, darkness). A distinct alert type from the Kp alert; speaks in verdict words, never in Kp numbers.
+_Avoid_: live notification (when the alert is meant), summary alert
+
 ### Phenomena
 
 **Geospace**:
