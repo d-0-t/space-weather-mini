@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   SUBSCRIBE_URL,
@@ -133,6 +133,10 @@ describe("collecting the settings object from app storage (ticket 02)", () => {
 describe("the enable and disable flows (ticket 02)", () => {
   const vapidKey = urlBase64ToUint8Array("AQIDBA");
 
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   const fakeSubscription = {
     endpoint: "https://push.example/subscriptions/a",
     getKey: (name: string) =>
@@ -183,6 +187,9 @@ describe("the enable and disable flows (ticket 02)", () => {
   });
 
   it("refuses to subscribe without the app-server key", async () => {
+    // A developer's local .env (the maintainer's manual VAPID step) must not
+    // leak into this contract: the missing-key rule is pinned, env aside.
+    vi.stubEnv("VITE_VAPID_PUBLIC_KEY", "");
     const deps = depsWith({} as ServiceWorkerRegistration, new Map(), null);
     await expect(enablePush(deps, storageWith({}))).rejects.toThrow(
       /application server key/i,

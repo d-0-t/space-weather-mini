@@ -24,6 +24,25 @@ const settings = (endpoint: string, threshold: number): SubscriptionSettings => 
 const endpointA = "https://push.example/subscriptions/a";
 const endpointB = "https://push.example/subscriptions/b";
 
+/** The in-memory KV fake standing in for Netlify Blobs. */
+const fakeKV = (): BlobsKV => {
+  const map = new Map<string, string>();
+  return {
+    async get(key) {
+      return map.get(key) ?? null;
+    },
+    async set(key, value) {
+      map.set(key, value);
+    },
+    async delete(key) {
+      map.delete(key);
+    },
+    async list() {
+      return { blobs: [...map.keys()].map((key) => ({ key })) };
+    },
+  };
+};
+
 describe("the 3-method subscription store seam (ticket 02)", () => {
   it("starts empty", async () => {
     const store = createMemorySubscriptionStore();
@@ -52,6 +71,25 @@ describe("the 3-method subscription store seam (ticket 02)", () => {
     expect(all[0].seenKeys).toEqual(first.seenKeys);
   });
 
+  it("replaces the dedupe keys when a save supplies them (the poll's bookkeeping, ticket 03)", async () => {
+    for (const store of [
+      createMemorySubscriptionStore(),
+      createBlobsSubscriptionStore(fakeKV()),
+    ]) {
+      await store.save(settings(endpointA, 5), "2026-09-18T10:00:00Z");
+      const keys = ["noaa-planetary-k-index|2026-09-18T18:00:00|Kp5"];
+      await store.save(
+        settings(endpointA, 5),
+        "2026-09-18T10:00:00Z",
+        keys,
+      );
+      const all = await store.loadAll();
+      expect(all).toHaveLength(1);
+      expect(all[0].seenKeys).toEqual(keys);
+      expect(all[0].savedAt).toBe("2026-09-18T10:00:00Z");
+    }
+  });
+
   it("removes a subscription and tolerates removing an unknown one", async () => {
     const store = createMemorySubscriptionStore();
     await store.save(settings(endpointA, 5), "2026-09-18T10:00:00Z");
@@ -76,24 +114,6 @@ describe("the Netlify Blobs backend over the same seam (ticket 02)", () => {
   /** The endpoint's stable storage key: its SHA-256 hex digest. */
   const keyFor = (endpoint: string): string =>
     createHash("sha256").update(endpoint).digest("hex");
-
-  const fakeKV = (): BlobsKV => {
-    const map = new Map<string, string>();
-    return {
-      async get(key) {
-        return map.get(key) ?? null;
-      },
-      async set(key, value) {
-        map.set(key, value);
-      },
-      async delete(key) {
-        map.delete(key);
-      },
-      async list() {
-        return { blobs: [...map.keys()].map((key) => ({ key })) };
-      },
-    };
-  };
 
   it("round-trips a saved subscription through the KV store", async () => {
     const kv = fakeKV();

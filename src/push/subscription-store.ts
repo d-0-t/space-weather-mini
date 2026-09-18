@@ -21,8 +21,16 @@ export interface StoredSubscription {
 
 /** The 3-method seam every storage backend implements. */
 export interface SubscriptionStore {
-  /** Stores (or blindly overwrites) the settings for its endpoint. */
-  save(settings: SubscriptionSettings, savedAt: string): Promise<void>;
+  /**
+   * Stores (or blindly overwrites) the settings for its endpoint. Omitting
+   * `seenKeys` keeps the record's dedupe state (the every-change overwrite
+   * path); supplying it replaces the state (the poll's bookkeeping).
+   */
+  save(
+    settings: SubscriptionSettings,
+    savedAt: string,
+    seenKeys?: string[],
+  ): Promise<void>;
   /** Every stored subscription in a deterministic order. */
   loadAll(): Promise<StoredSubscription[]>;
   /** Forgets the subscription entirely (the disable path). */
@@ -45,12 +53,13 @@ export function createMemorySubscriptionStore(): MemorySubscriptionStore {
   const records = new Map<string, StoredSubscription>();
   return {
     records,
-    async save(settings, savedAt) {
+    async save(settings, savedAt, seenKeys) {
       const endpoint = settings.subscription.endpoint;
       const existing = records.get(endpoint);
       records.set(endpoint, {
         settings,
-        seenKeys: existing?.seenKeys ?? [],
+        seenKeys:
+          seenKeys !== undefined ? seenKeys : (existing?.seenKeys ?? []),
         savedAt,
       });
     },
@@ -89,7 +98,7 @@ const keyFor = (endpoint: string): string =>
  */
 export function createBlobsSubscriptionStore(kv: BlobsKV): SubscriptionStore {
   return {
-    async save(settings, savedAt) {
+    async save(settings, savedAt, seenKeys) {
       const existingRaw = await kv.get(keyFor(settings.subscription.endpoint));
       const existing =
         existingRaw !== null ? safeParseRecord(existingRaw) : null;
@@ -97,7 +106,8 @@ export function createBlobsSubscriptionStore(kv: BlobsKV): SubscriptionStore {
         keyFor(settings.subscription.endpoint),
         JSON.stringify({
           settings,
-          seenKeys: existing?.seenKeys ?? [],
+          seenKeys:
+            seenKeys !== undefined ? seenKeys : (existing?.seenKeys ?? []),
           savedAt,
         }),
       );

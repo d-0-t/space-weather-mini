@@ -1,10 +1,11 @@
 /**
- * The sender's endpoint and poll logic (ticket 02), written as pure-ish
- * functions over injected dependencies so the Netlify function files stay
- * thin adapters and the contracts are testable without the platform:
- * subscribe-overwrite, disable-forget, the manual test poke with
- * gone-subscription pruning, and the scheduled NOAA poll skeleton whose
- * matching/dedupe lands in tickets 03-05.
+ * The sender's endpoint and poll logic (ticket 02, fan-out in ticket 03),
+ * written as pure-ish functions over injected dependencies so the Netlify
+ * function files stay thin adapters and the contracts are testable without
+ * the platform: subscribe-overwrite, disable-forget, the manual test poke
+ * with gone-subscription pruning, and the scheduled NOAA poll whose Kp
+ * matching, dedupe and fan-out run here (tickets 04-05 add the other
+ * alert types).
  */
 
 import {
@@ -17,6 +18,11 @@ import {
   isGoneStatus,
   type PushPayload,
 } from "./push-payload";
+import { matchKpEvents } from "./kp-events";
+import type {
+  PlanetaryKPoint,
+  PlanetaryKForecastPoint,
+} from "../products/noaa-planetary-k-index";
 
 /** What the endpoints answer with: just the HTTP status. */
 export interface HandlerResponse {
@@ -75,33 +81,96 @@ export async function handleSendTest(
   return { status: 200 };
 }
 
-/** The parsed counts of the three NOAA legs the poll reads. */
+/** The parsed NOAA legs the poll reads for the Kp alert. */
 export interface PollFeeds {
-  alerts: number;
-  forecast: number;
-  scales: number;
+  observed: PlanetaryKPoint[];
+  forecast: PlanetaryKForecastPoint[];
 }
 
 /** The poll's summary, logged per run. */
 export interface PollSummary {
   subscriptions: number;
   feeds: PollFeeds;
-  /** Matching/dedupe land in tickets 03-05; the skeleton sends nothing. */
+  /** Pokes the push service accepted (2xx), per the send call boundary. */
   sent: number;
 }
 
 /**
- * The scheduled poll skeleton: loads every stored subscription and polls
- * the three NOAA feeds the app already reads. The matching, dedupe and
- * fan-out per alert type arrive in tickets 03-05; until then the poll
- * touches nothing but the feeds.
+ * The scheduled poll: loads every stored subscription, polls the parsed
+ * NOAA Kp legs and fans out one poke per breaching event, deduped and
+ * escalation-gated by the chaser's own seen keys. Feeds are read once and
+ * shared; a failed leg throws before the store is touched, so the next
+ * poll retries cleanly.
  */
 export async function runPoll(deps: {
   store: SubscriptionStore;
   send: PushSend;
   fetchFeeds: () => Promise<PollFeeds>;
+  now?: number;
 }): Promise<PollSummary> {
   const feeds = await deps.fetchFeeds();
-  const subscriptions = await deps.store.loadAll();
-  return { subscriptions: subscriptions.length, feeds, sent: 0 };
+  const now = deps.now ?? Date.now();
+  const records = await deps.store.loadAll();
+  let sent = 0;
+  for (const record of records) {
+    sent += await fanOutKp(record, { ...deps, feeds, now });
+  }
+  return { subscriptions: records.length, feeds, sent };
+}
+
+/**
+ * One record's Kp fan-out: match the chaser's threshold against the parsed
+ * legs, send the poke-worthy events, and record every newly evaluated key
+ * (poked or silent) through the store. A gone response prunes the record;
+ * a transient send failure records nothing so the next poll retries.
+ */
+async function fanOutKp(
+  record: StoredSubscription,
+  deps: {
+    store: SubscriptionStore;
+    send: PushSend;
+    feeds: PollFeeds;
+    now: number;
+  },
+): Promise<number> {
+  if (!record.settings.alertTypes.kp) return 0;
+  const events = matchKpEvents({
+    observed: deps.feeds.observed,
+    forecast: deps.feeds.forecast,
+    alertThreshold: record.settings.alertThreshold,
+    seenKeys: record.seenKeys,
+    now: deps.now,
+  });
+  const seenKeys = [...record.seenKeys];
+  let sent = 0;
+  for (const event of events) {
+    if (!event.poke) {
+      seenKeys.push(event.key);
+      continue;
+    }
+    const payload = buildPushPayload(
+      event.leg === "observed" ? "live" : "forecast",
+      {
+        title: event.title,
+        body: event.body,
+        key: event.key,
+        url: "/",
+      },
+    );
+    const result = await deps.send(record, payload);
+    if (isGoneStatus(result.status)) {
+      await deps.store.remove(record.settings.subscription.endpoint);
+      return sent;
+    }
+    if (result.status >= 200 && result.status < 300) {
+      seenKeys.push(event.key);
+      sent += 1;
+    } else {
+      break;
+    }
+  }
+  if (seenKeys.length > record.seenKeys.length) {
+    await deps.store.save(record.settings, record.savedAt, seenKeys);
+  }
+  return sent;
 }

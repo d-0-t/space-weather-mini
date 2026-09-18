@@ -43,7 +43,7 @@ One background push per day naming tonight's (or tomorrow night's, past dawn) ex
 _Avoid_: daily notification (without outlook qualifier)
 
 **Kp alert**:
-A background push when the official 3-hour Kp value or the Kp forecast breaches the chaser's alert threshold, honestly labeled observed vs predicted, re-poking on escalation only. Speaks in Kp numbers, never in verdict words.
+A background push when the official 3-hour Kp value or the Kp forecast breaches the chaser's alert threshold, honestly labeled observed vs predicted, re-poking on escalation only. An escalation is a step up the integer Kp scale (5.33 to 6.33 re-pokes; 5.33 to 5.67 does not). Events are deduped by the product|slot|Kp-step keys the sender stores per chaser, so a storm carrying across 3-hour slots at one level stays silent. Speaks in Kp numbers, never in verdict words.
 _Avoid_: kp notification (as the alert's name)
 
 **Live alert**:

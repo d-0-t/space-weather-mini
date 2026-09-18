@@ -1,9 +1,10 @@
 /**
- * The scheduled NOAA poll (ticket 02): runs every few minutes on the
- * published deploy, polls the three NOAA products the app already reads and
- * iterates the stored subscriptions. The matching, dedupe and fan-out per
- * alert type land in tickets 03-05; until then the poll sends nothing.
- * The VAPID credentials come from the Netlify dashboard's env vars.
+ * The scheduled NOAA poll (tickets 02-03): runs every few minutes on the
+ * published deploy, reads the observed planetary K-index and the Kp
+ * forecast (the same products the app already parses) and fans out the Kp
+ * alert's pokes per stored subscription. Tickets 04-05 add the daily
+ * outlook and live alert legs. The VAPID credentials come from the Netlify
+ * dashboard's env vars.
  */
 
 import {
@@ -15,29 +16,22 @@ import { runPoll } from "../../src/push/handlers";
 import { subscriptionStore } from "./lib/push-store";
 import { createWebPushSender } from "../../src/push/web-push-sender";
 import {
-  ALERTS_URL,
-  parseAlerts,
-} from "../../src/products/alerts";
-import {
+  NOAA_PLANETARY_K_INDEX_URL,
+  parsePlanetaryKIndex,
   NOAA_PLANETARY_K_INDEX_FORECAST_URL,
   parsePlanetaryKIndexForecast,
 } from "../../src/products/noaa-planetary-k-index";
-import {
-  NOAA_SCALES_URL,
-  parseNoaaScales,
-} from "../../src/products/noaa-scales";
 
-/** Polls one NOAA product and counts its parsed entries; failures surface. */
-async function fetchLeg(
+/** Polls one NOAA product and parses it; failures surface to the caller. */
+async function fetchLeg<T>(
   url: string,
-  parse: (text: string) => unknown,
-): Promise<number> {
+  parse: (text: string) => T,
+): Promise<T> {
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`The NOAA poll could not read ${url} (${response.status})`);
   }
-  const parsed = parse(await response.text());
-  return Array.isArray(parsed) ? parsed.length : 1;
+  return parse(await response.text());
 }
 
 export default schedule(
@@ -50,19 +44,21 @@ export default schedule(
     };
     const summary = await runPoll({
       store: subscriptionStore(),
-      // The fan-out boundary: tickets 03-05 call the sender from here.
+      // The send call boundary: the tested fan-out calls the sender here.
       send: createWebPushSender(vapid),
       fetchFeeds: async () => ({
-        alerts: await fetchLeg(ALERTS_URL, parseAlerts),
+        observed: await fetchLeg(
+          NOAA_PLANETARY_K_INDEX_URL,
+          parsePlanetaryKIndex,
+        ),
         forecast: await fetchLeg(
           NOAA_PLANETARY_K_INDEX_FORECAST_URL,
           parsePlanetaryKIndexForecast,
         ),
-        scales: await fetchLeg(NOAA_SCALES_URL, parseNoaaScales),
       }),
     });
     console.log(
-      `[poll-alerts] subscriptions=${summary.subscriptions} alerts=${summary.feeds.alerts} forecast=${summary.feeds.forecast} scales=${summary.feeds.scales} sent=${summary.sent}`,
+      `[poll-alerts] subscriptions=${summary.subscriptions} observed=${summary.feeds.observed.length} forecast=${summary.feeds.forecast.length} sent=${summary.sent}`,
     );
     // The scheduled runtime ignores the response; the shape satisfies the
     // platform's Handler type without inventing semantics.
