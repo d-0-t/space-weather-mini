@@ -5,6 +5,7 @@ process.env.TZ = "Europe/Stockholm";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { fireEvent, render, screen, waitFor, act, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import scalesFixture from "../../../../../products/fixtures/noaa-scales.json?raw";
@@ -130,13 +131,15 @@ afterEach(() => {
 
 const renderAlerts = (client = queryClient()) =>
   render(
-    <QueryClientProvider client={client}>
-      <DisplayTimezoneProvider>
-        <AlertsProvider>
-          <Alerts />
-        </AlertsProvider>
-      </DisplayTimezoneProvider>
-    </QueryClientProvider>,
+    <MemoryRouter>
+      <QueryClientProvider client={client}>
+        <DisplayTimezoneProvider>
+          <AlertsProvider>
+            <Alerts />
+          </AlertsProvider>
+        </DisplayTimezoneProvider>
+      </QueryClientProvider>
+    </MemoryRouter>,
   );
 
 describe("Alerts (ticket 02)", () => {
@@ -886,11 +889,17 @@ describe("alert settings UI (ticket 06)", () => {
       await screen.findByRole("button", { name: "Enable browser alerts" }),
     );
     // The granted permission still could not subscribe (no application
-    // server key): the panel says so and offers Try again, the same
-    // affordance the denied-permission path carries.
+    // server key): the panel says so, offers Try again (the same
+    // affordance the denied-permission path carries) and links to the
+    // install heading of the Install & Alerts section.
     expect(
       await screen.findByText(/Background alerts could not be enabled/),
     ).toBeInTheDocument();
+    const guideLink = screen.getByRole("link", { name: "Install & Alerts" });
+    expect(guideLink).toHaveAttribute(
+      "href",
+      "/about/install-alerts#install",
+    );
     // A later successful retry clears the panel.
     vi.stubEnv("VITE_VAPID_PUBLIC_KEY", "AQIDBA");
     await user.click(screen.getByRole("button", { name: "Try again" }));

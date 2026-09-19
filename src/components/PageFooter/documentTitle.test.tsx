@@ -75,6 +75,9 @@ describe("Document title static map (ticket 02)", () => {
     expect(routeToDocumentTitle("/about/sources")).toBe(
       "Sources – Space Weather",
     );
+    expect(routeToDocumentTitle("/about/install-alerts")).toBe(
+      "Install & Alerts – Space Weather",
+    );
     expect(routeToDocumentTitle("/about/guide")).toBe(
       "Aurora guide – Space Weather",
     );

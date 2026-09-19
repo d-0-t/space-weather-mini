@@ -32,10 +32,17 @@ test("the app boots with navigation chrome on every page", async ({ page }) => {
   ]) {
     await expect(page.getByRole("navigation").getByRole("link", { name: label, exact: true })).toBeVisible();
   }
-  // The About entry is a submenu with This site / Sources / Explainers
+  // The About entry is a submenu with This site / Install & Alerts /
+  // Aurora guide / Explainers / Sources
   await expect(page.locator("#about-disclosure > summary")).toBeVisible();
   await page.locator("#about-disclosure > summary").click();
-  for (const label of ["This site", "Sources", "Explainers"]) {
+  for (const label of [
+    "This site",
+    "Install & Alerts",
+    "Aurora guide",
+    "Explainers",
+    "Sources",
+  ]) {
     await expect(page.getByRole("navigation").getByRole("link", { name: label, exact: true })).toBeVisible();
   }
 });
@@ -222,6 +229,12 @@ test("the sources subpage renders", async ({ page }) => {
   await expect(page.getByRole("heading", { level: 1, name: "Sources" })).toBeVisible();
   await expect(page.getByRole("link", { name: /SWPC NOAA/ }).first()).toBeVisible();
   await expect(page.getByRole("link", { name: /Open-Meteo/ })).toBeVisible();
+});
+
+test("the install-alerts subpage renders", async ({ page }) => {
+  await page.goto("/about/install-alerts");
+  await expect(page.getByRole("heading", { level: 1, name: "Install & Alerts" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Install on mobile" })).toBeVisible();
 });
 
 test("the forecasts index renders the forecast discussion", async ({ page }) => {

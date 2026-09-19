@@ -167,8 +167,16 @@ _Avoid_: local time (without qualifier), place time
 ### Navigation
 
 **About submenu**:
-The header's About disclosure (ticket 01 of the display-timezone effort), a native `<details>/<summary>` disclosure sharing the Details submenu's shape and keyboard behavior: a trigger summary opening an sr-only-labelled list of This site (the biography and future-plans article at `/about`), Sources (the Data & Sources article at `/about/sources`), Explainers (`/explainers`) and Aurora guide (`/about/guide`). Explainers appears only inside this submenu, never at the top level.
+The header's About disclosure (ticket 01 of the display-timezone effort, extended by ticket 07 of the background-alerts effort), a native `<details>/<summary>` disclosure sharing the Details submenu's shape and keyboard behavior: a trigger summary opening an sr-only-labelled list of This site (the biography and future-plans article at `/about`), Install & Alerts (`/about/install-alerts`), Sources (the Data & Sources article at `/about/sources`), Explainers (`/explainers`) and Aurora guide (`/about/guide`), in that order. Explainers appears only inside this submenu, never at the top level.
 _Avoid_: about page (when the submenu is meant), sources link (without the subpage name)
+
+**Install & Alerts**:
+The About submenu's install-and-background-alerts section at `/about/install-alerts` (ticket 07 of the background-alerts effort): the mobile install steps moved here from the This-site page and extended with the Home-Screen step iOS requires for push (Safari's Share, Add to Home Screen, iOS 16.4+), the honest do/don't documentation of what background alerts do (pokes with the app closed, quiet days silent, installed-app requirement on iOS) and a My data section holding the no-accounts privacy note as what the sender receives (the push address, the Alert threshold, the alert type toggles, the live alert settings, the stored place with its short name and timezone) and what it does not receive (personal information, the device's current location). The install heading is the deep-link target (`#install`) of the alert settings' push-failed panel; the This-site page keeps a pointer line where the steps were.
+_Avoid_: install page, alerts guide (when this section is meant)
+
+**Push address**:
+The web address of the chaser's push subscription (the endpoint), the no-accounts identity the push sender keys every stored setting to: the strict unguessable-in-practice URL that stands for the subscription. Whoever obtains it can overwrite the stored settings blindly, so it is never displayed and disabling background alerts deletes it with the subscription.
+_Avoid_: push endpoint (when the chaser-facing term is meant), subscription URL
 
 ### Presentation
 

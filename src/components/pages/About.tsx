@@ -79,25 +79,11 @@ const About: React.FC = () => {
 
         <h2>Install on mobile</h2>
         <p>
-          This site can be installed from a mobile browser as an app. This
-          allows easy access and a temporary storage of the last downloaded
-          data, even offline.
+          The install steps for Android and iPhone now live in the{" "}
+          <Link to="/about/install-alerts">Install &amp; Alerts</Link>{" "}
+          section, together with what the background alerts do and how your
+          data is handled.
         </p>
-        <ol>
-          <li>
-            Go to this website using your{" "}
-            <strong>smart phone's browser.</strong>
-          </li>
-          <li>
-            Tap the <strong>three vertical dots</strong> in the top-right
-            corner.
-          </li>
-          <li>
-            Tap <strong>Install</strong> and <strong>Create shortcut</strong> or{" "}
-            <strong>Add to Home screen</strong>, then <strong>confirm</strong>.
-          </li>
-          <li>Run the app.</li>
-        </ol>
       </article>
     </div>
   );

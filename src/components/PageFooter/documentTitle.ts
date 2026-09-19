@@ -21,6 +21,7 @@ const ROUTE_TITLES: Record<string, string> = {
   "/forecasts/geoalert": "Geophysical Observations and Predictions",
   "/about": "This site",
   "/about/sources": "Sources",
+  "/about/install-alerts": "Install & Alerts",
   "/about/guide": "Aurora guide",
   "/explainers": "Explainers",
 };

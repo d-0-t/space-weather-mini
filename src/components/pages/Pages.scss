@@ -44,6 +44,10 @@ article {
   &:last-of-type {
     margin-bottom: 0;
   }
+
+  strong {
+    color: var(--color-accent);
+  }
 }
 
 .aboutDataLinks {

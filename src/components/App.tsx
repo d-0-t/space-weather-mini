@@ -14,6 +14,7 @@ import Webcams from "./pages/webcams/webcams";
 import Explainers from "./pages/explainers";
 import Sources from "./pages/Sources";
 import Guide from "./pages/Guide";
+import InstallAlerts from "./pages/InstallAlerts";
 
 const LocalConditions = lazy(() => import("./pages/conditions/conditions"));
 
@@ -42,6 +43,7 @@ const App: React.FC = () => {
       </Route>
       <Route path={"about"} element={<About />} />
       <Route path={"about/sources"} element={<Sources />} />
+      <Route path={"about/install-alerts"} element={<InstallAlerts />} />
       <Route path={"about/guide"} element={<Guide />} />
       <Route path={"explainers"} element={<Explainers />} />
     </Routes>

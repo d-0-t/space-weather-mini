@@ -1,19 +1,10 @@
-import { useEffect } from "react";
-import { useLocation } from "react-router-dom";
 import { GLOSSARY_ENTRIES } from "../explainers/glossary";
+import { useHashScroll } from "./useHashScroll";
 import "./Pages.scss";
 import "./explainers.scss";
 
 const Explainers: React.FC = () => {
-  const location = useLocation();
-
-  useEffect(() => {
-    const hash = location.hash || window.location.hash;
-    if (hash) {
-      const id = hash.slice(1);
-      document.getElementById(id)?.scrollIntoView();
-    }
-  }, [location.hash]);
+  useHashScroll();
 
   return (
     <div className="container explainers" id="explainers">

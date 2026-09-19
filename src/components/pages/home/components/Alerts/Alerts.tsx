@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef } from "react";
+import { Link } from "react-router-dom";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 
 import { formatAge, formatShort } from "../../../../../products/display-time";
@@ -198,8 +199,12 @@ const Alerts: React.FC<{
                 aria-hidden="true"
               />{" "}
               Background alerts could not be enabled. They need the app
-              installed on your phone&apos;s Home Screen; the install steps
-              are in the About section.
+              installed on your phone&apos;s Home Screen. Read the install steps
+              here:{" "}
+              <Link to="/about/install-alerts#install">
+                Install &amp; Alerts
+              </Link>
+              .
             </span>
           </p>
         </>
@@ -230,7 +235,9 @@ const Alerts: React.FC<{
           </button>
           <p className="alerts__test-poke-state" aria-live="polite">
             {testPokeState === "sent" ? "Test poke sent." : null}
-            {testPokeState === "failed" ? "Test poke failed: check back later." : null}
+            {testPokeState === "failed"
+              ? "Test poke failed: check back later."
+              : null}
           </p>
         </div>
       ) : null}
@@ -273,9 +280,7 @@ const Alerts: React.FC<{
           <input
             type="checkbox"
             checked={alertTypes.daily}
-            onChange={(event) =>
-              toggleAlertType("daily", event.target.checked)
-            }
+            onChange={(event) => toggleAlertType("daily", event.target.checked)}
           />
           Daily outlook alert
         </label>
@@ -291,9 +296,7 @@ const Alerts: React.FC<{
           <input
             type="checkbox"
             checked={alertTypes.live}
-            onChange={(event) =>
-              toggleAlertType("live", event.target.checked)
-            }
+            onChange={(event) => toggleAlertType("live", event.target.checked)}
           />
           Live alert
         </label>
@@ -360,8 +363,7 @@ const Alerts: React.FC<{
       </p>
 
       <p className="alerts__footnote">
-        Notifications can appear while this tab is open, even in the
-        background.
+        Notifications can appear while this tab is open, even in the background.
       </p>
 
       {/* Dev-only manual hook (hidden from production builds): fires the

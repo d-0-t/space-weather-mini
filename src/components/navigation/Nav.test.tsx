@@ -99,22 +99,24 @@ describe("Nav keyboard accessibility", () => {
 });
 
 describe("About submenu", () => {
-  it("exposes the About submenu as a native disclosure with the four destinations", () => {
+  it("exposes the About submenu as a native disclosure with the five destinations", () => {
     renderNav();
     const details = disclosureFor("About");
     expect(details.open).toBe(false);
     const links = Array.from(details.querySelectorAll(".dropdown-content a"));
     expect(links.map((l) => l.textContent)).toEqual([
       "This site",
-      "Sources",
-      "Explainers",
+      "Install & Alerts",
       "Aurora guide",
+      "Explainers",
+      "Sources",
     ]);
     expect(links.map((l) => l.getAttribute("href"))).toEqual([
       "/about",
-      "/about/sources",
-      "/explainers",
+      "/about/install-alerts",
       "/about/guide",
+      "/explainers",
+      "/about/sources",
     ]);
   });
 
@@ -127,7 +129,13 @@ describe("About submenu", () => {
     summary.focus();
     await user.keyboard("{Enter}");
     expect(details.open).toBe(true);
-    for (const name of ["This site", "Sources", "Explainers", "Aurora guide"]) {
+    for (const name of [
+      "This site",
+      "Install & Alerts",
+      "Aurora guide",
+      "Explainers",
+      "Sources",
+    ]) {
       expect(screen.getByRole("link", { name })).toBeVisible();
     }
     await user.tab();
