@@ -31,7 +31,7 @@ const record: StoredSubscription = {
     place: { latitude: 65.5848, longitude: 22.1546, shortName: "Luleå" },
     placeTimezone: "Europe/Stockholm",
     alertTypes: { daily: true, kp: true, live: true },
-    gates: { cloudMaxPercent: 50, noPrecipitation: true, darknessBand: "astronomical" },
+    gates: { cloudMaxPercent: 100, noPrecipitation: false, darknessBand: "any" },
   },
   seenKeys: [],
   savedAt: "2026-09-18T10:00:00.000Z",

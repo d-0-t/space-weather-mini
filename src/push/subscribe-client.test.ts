@@ -11,6 +11,7 @@ import {
   type PushClientDeps,
 } from "./subscribe-client";
 import { DEFAULT_GATES } from "./subscription-settings";
+import { ALERT_SETTINGS_STORAGE_KEY } from "./alert-settings";
 import { KP_THRESHOLD_STORAGE_KEY, DEFAULT_KP_THRESHOLD } from "../products/thresholds";
 import { PLACE_STORAGE_KEY } from "../data/place-storage";
 import { WEATHER_STORAGE_KEY } from "../data/weather-storage";
@@ -127,6 +128,35 @@ describe("collecting the settings object from app storage (ticket 02)", () => {
     expect(settings.placeTimezone).toBe(
       Intl.DateTimeFormat().resolvedOptions().timeZone,
     );
+  });
+
+  it("sends the stored alert type toggles and hindrance gates (ticket 06)", () => {
+    const settings = collectSettings(
+      {
+        endpoint: "https://push.example/subscriptions/a",
+        keys: { p256dh: "k", auth: "a" },
+      },
+      storageWith({
+        [PLACE_STORAGE_KEY]: placeJson,
+        [ALERT_SETTINGS_STORAGE_KEY]: JSON.stringify({
+          v: 1,
+          settings: {
+            alertTypes: { daily: false, kp: true, live: false },
+            gates: {
+              cloudMaxPercent: 70,
+              noPrecipitation: false,
+              darknessBand: "any",
+            },
+          },
+        }),
+      }),
+    );
+    expect(settings.alertTypes).toEqual({ daily: false, kp: true, live: false });
+    expect(settings.gates).toEqual({
+      cloudMaxPercent: 70,
+      noPrecipitation: false,
+      darknessBand: "any",
+    });
   });
 });
 

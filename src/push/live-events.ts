@@ -291,7 +291,9 @@ function gatesPass(
   weather: LiveWeather,
   elevationDegrees: number,
 ): boolean {
-  if (weather.cloudCoverPercent >= gates.cloudMaxPercent) return false;
+  if (weather.cloudCoverPercent >= gates.cloudMaxPercent) {
+    return false;
+  }
   if (gates.noPrecipitation) {
     // An unknown precipitation reading cannot verify "no precipitation",
     // so it withholds – never a guessed sky.

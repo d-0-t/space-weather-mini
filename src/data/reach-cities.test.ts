@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { REACH_CITIES } from "./reach-cities";
+import { REACH_CITIES, approxGeomagneticLatitude } from "./reach-cities";
 
 /**
  * Independent IGRF-14 values from WDC for Geomagnetism, Kyoto's
@@ -42,5 +42,34 @@ describe("reach city data", () => {
       expect(entry, `missing ${city}`).toBeDefined();
       expect(Math.abs(entry!.mlat - expected), city).toBeLessThan(0.5);
     }
+  });
+});
+
+describe("approxGeomagneticLatitude (ticket 06)", () => {
+  it("reproduces every table row's precomputed value within half a degree", () => {
+    for (const city of REACH_CITIES) {
+      const computed = approxGeomagneticLatitude(city.lat, city.lon);
+      expect(
+        Math.abs(computed - city.mlat),
+        `${city.city}: computed ${computed}, stored ${city.mlat}`,
+      ).toBeLessThan(0.5);
+    }
+  });
+
+  it("matches the IGRF-14 dipole spot checks within half a degree", () => {
+    for (const [city, expected] of Object.entries(IGRF_SPOT_CHECKS)) {
+      const entry = REACH_CITIES.find((candidate) => candidate.city === city);
+      expect(entry, `missing ${city}`).toBeDefined();
+      expect(
+        Math.abs(
+          approxGeomagneticLatitude(entry!.lat, entry!.lon) - expected,
+        ),
+        city,
+      ).toBeLessThan(0.5);
+    }
+  });
+
+  it("keeps the southern hemisphere negative", () => {
+    expect(approxGeomagneticLatitude(-42.8794, 147.3294)).toBeLessThan(0);
   });
 });

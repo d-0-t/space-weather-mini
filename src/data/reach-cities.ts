@@ -43,6 +43,33 @@ export interface ReachCity {
   mlat: number;
 }
 
+/** The centered-dipole geomagnetic north pole this file's MLAT uses. */
+const POLE_LATITUDE_DEG = 80.8;
+const POLE_LONGITUDE_DEG = -72.8;
+
+/**
+ * The signed approximate geomagnetic latitude (MLAT) of any coordinate by
+ * the same centered-dipole method the table's precomputed `mlat` values
+ * use (see the file header for the pole, method, error note and source).
+ * The one runtime computation of the formula – the stored places' tip in
+ * the alert settings (ticket 06) reads it; nothing re-derives a fork.
+ */
+export function approxGeomagneticLatitude(
+  latitude: number,
+  longitude: number,
+): number {
+  const degreesToRadians = Math.PI / 180;
+  const sinMlat =
+    Math.sin(latitude * degreesToRadians) *
+      Math.sin(POLE_LATITUDE_DEG * degreesToRadians) +
+    Math.cos(latitude * degreesToRadians) *
+      Math.cos(POLE_LATITUDE_DEG * degreesToRadians) *
+      Math.cos(
+        (longitude - POLE_LONGITUDE_DEG) * degreesToRadians,
+      );
+  return Math.asin(sinMlat) / degreesToRadians;
+}
+
 /** Every reachable town, grouped by country. */
 export const REACH_CITIES: readonly ReachCity[] = [
   { city: "Rovaniemi", country: "Finland", countryCode: "fi", lat: 66.499, lon: 25.6887, mlat: 63.62 },

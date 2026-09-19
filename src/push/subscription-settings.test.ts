@@ -19,7 +19,11 @@ const validSettings = {
   place: { latitude: 65.5848, longitude: 22.1546, shortName: "Luleå" },
   placeTimezone: "Europe/Stockholm",
   alertTypes: { daily: true, kp: true, live: true },
-  gates: { cloudMaxPercent: 50, noPrecipitation: true, darknessBand: "astronomical" },
+  gates: {
+    cloudMaxPercent: 100,
+    noPrecipitation: false,
+    darknessBand: "any",
+  },
 };
 
 describe("subscription settings (ticket 02)", () => {
@@ -117,11 +121,23 @@ describe("subscription settings (ticket 02)", () => {
     ).toBeNull();
   });
 
-  it("defaults every hindrance gate on, under 50% cloud, Astronomical Twilight", () => {
+  it("accepts a gates object that carries a foreign extra field (ticket 06 review)", () => {
+    // The pre-review gates shape carried a cloud-gate toggle; a stored
+    // record holding it must still parse (unknown fields ignored), not
+    // vanish from every poll.
+    expect(
+      parseSubscriptionSettings({
+        ...validSettings,
+        gates: { ...validSettings.gates, cloudGate: true },
+      }),
+    ).toEqual(validSettings);
+  });
+
+  it("defaults to the permissive gates the review specified (ticket 06)", () => {
     expect(DEFAULT_GATES).toEqual({
-      cloudMaxPercent: 50,
-      noPrecipitation: true,
-      darknessBand: "astronomical",
+      cloudMaxPercent: 100,
+      noPrecipitation: false,
+      darknessBand: "any",
     });
   });
 });

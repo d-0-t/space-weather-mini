@@ -8,7 +8,10 @@
 
 import { createHash } from "node:crypto";
 
-import { parseSubscriptionSettings, type SubscriptionSettings } from "./subscription-settings";
+import {
+  parseSubscriptionSettings,
+  type SubscriptionSettings,
+} from "./subscription-settings";
 
 /** One stored chaser: settings plus the sender's bookkeeping. */
 export interface StoredSubscription {

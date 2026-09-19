@@ -51,7 +51,7 @@ const validBody = {
   place: { latitude: 65.5848, longitude: 22.1546, shortName: "Luleå" },
   placeTimezone: "Europe/Stockholm",
   alertTypes: { daily: true, kp: true, live: true },
-  gates: { cloudMaxPercent: 50, noPrecipitation: true, darknessBand: "astronomical" },
+  gates: { cloudMaxPercent: 100, noPrecipitation: false, darknessBand: "any" },
 };
 
 const memoryDeps = () => {
@@ -627,11 +627,12 @@ describe("the scheduled poll's Live fan-out (ticket 05)", () => {
     mag: magRows(-15),
   });
 
-  /** A live-only subscriber with daytime-permissive darkness. */
+  /** A live-only subscriber with daytime-permissive darkness and a 50%
+   * cloud limit the gates-withhold test can close the sky against. */
   const liveBody = {
     ...validBody,
     place: { ...LULEÅ },
-    gates: { cloudMaxPercent: 50, noPrecipitation: true, darknessBand: "any" },
+    gates: { cloudMaxPercent: 50, noPrecipitation: false, darknessBand: "any" },
   };
 
   const freshLivePoll = async (

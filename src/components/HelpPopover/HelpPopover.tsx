@@ -33,12 +33,17 @@ const VIEWPORT_GUTTER_PX = 8;
 const TRIGGER_GAP_PX = 6;
 
 /**
- * Where the popover body mounts: inside the <main> landmark when the shell
- * provides one (so every panel stays within a landmark for axe's region
- * rule), else the document body (unit tests render the component bare).
+ * Where the popover body mounts: inside the trigger's dialog ancestor when
+ * one exists (a body- or main-portalled body would paint behind a modal
+ * dialog's top layer and never be seen – the alerts settings modal hosts
+ * one), else inside the <main> landmark when the shell provides one (so
+ * every panel stays within a landmark for axe's region rule), else the
+ * document body (unit tests render the component bare).
  */
-const portalContainer = (): Element =>
-  document.getElementById("main-content") ?? document.body;
+const portalContainer = (from?: Element | null): Element =>
+  from?.closest("dialog") ??
+  document.getElementById("main-content") ??
+  document.body;
 
 /** Elements that can receive keyboard focus inside the popover body. */
 const FOCUSABLE_SELECTOR =
@@ -266,7 +271,7 @@ const HelpPopover: React.FC<{
                 <p className="help-popover__footnote">{content.footnote}</p>
               ) : null}
             </div>,
-            portalContainer(),
+            portalContainer(rootRef.current),
           )
         : null}
     </span>

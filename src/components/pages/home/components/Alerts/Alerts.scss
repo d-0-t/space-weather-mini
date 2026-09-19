@@ -1,3 +1,29 @@
+// The two settings fieldsets share their chrome; each block below adds
+// only its own rows' deltas.
+%alerts-fieldset {
+  margin: 0 0 0.75rem;
+  padding: 0;
+  border: 0;
+
+  legend {
+    font-weight: 600;
+    margin-bottom: 0.35rem;
+  }
+}
+
+// One settings row: label (or span) beside its control.
+%alerts-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+  cursor: pointer;
+
+  input[type="checkbox"] {
+    accent-color: var(--color-medium-green);
+  }
+}
+
 .alerts {
   &__header {
     display: flex;
@@ -11,7 +37,6 @@
     justify-content: space-between;
     width: 100%;
     gap: 1rem;
-    margin-bottom: 0.5rem;
 
     input[type="range"] {
       flex: 1;
@@ -26,6 +51,86 @@
     &__value {
       font-weight: 600;
       color: var(--color-accent-strong);
+    }
+  }
+
+  &__threshold-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  &__tip {
+    margin: 0 0 0.75rem;
+    font-size: var(--font-size-small);
+    line-height: var(--line-height-small);
+    color: color-mix(in srgb, var(--color-white) 75%, transparent);
+  }
+
+  &__types {
+    @extend %alerts-fieldset;
+
+    &__type {
+      @extend %alerts-row;
+    }
+  }
+
+  &__divider {
+    width: 100%;
+    margin: 0.35rem 0 0.75rem;
+    border: 0;
+    border-top: 1px solid var(--color-border-muted);
+  }
+
+  &__gates {
+    @extend %alerts-fieldset;
+
+    &__gate {
+      @extend %alerts-row;
+
+      input[type="range"] {
+        flex: 1;
+        min-width: 0;
+        accent-color: var(--color-medium-green);
+        cursor: pointer;
+      }
+
+      select {
+        flex: 1;
+        min-width: 0;
+      }
+
+      output {
+        white-space: nowrap;
+      }
+    }
+
+    // The "Only show alerts when..." rows: the question sits on its own
+    // line, the control on the line below.
+    &__gate--stacked {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 0.25rem;
+    }
+
+    &__control {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+  }
+
+  &__install-hint {
+    margin: 0.5rem 0;
+    font-size: var(--font-size-small);
+    line-height: var(--line-height-small);
+    color: color-mix(in srgb, var(--color-white) 75%, transparent);
+
+    // Visible to every mobile visitor; hidden on fine-pointer, hover-capable
+    // desktops where the tap-gated permission flow is already enough.
+    @media (hover: hover) and (pointer: fine) {
+      display: none;
     }
   }
 

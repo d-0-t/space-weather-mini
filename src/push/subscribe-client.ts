@@ -6,13 +6,15 @@
  * disable deletes the stored subscription and unsubscribes the browser.
  */
 
-import { loadKpThreshold } from "../products/thresholds";
+import {
+  loadKpThreshold
+} from "../products/thresholds";
 import {
   loadGeocodedPlace,
 } from "../data/place-storage";
 import { loadWeather } from "../data/weather-storage";
+import { loadAlertSettings } from "./alert-settings";
 import {
-  DEFAULT_GATES,
   type PushSubscriptionJSON,
   type SubscriptionSettings,
 } from "./subscription-settings";
@@ -94,9 +96,10 @@ export function subscriptionToPushJSON(subscription: {
 
 /**
  * Collects the full settings object from app storage: the chaser's Alert
- * threshold, the stored geocoded place, and the place timezone (the stored
- * weather's IANA zone, or the device zone when no weather is saved yet).
- * Toggles and gates ride their defaults until ticket 06 wires the controls.
+ * threshold, the stored geocoded place, the place timezone (the stored
+ * weather's IANA zone, or the device zone when no weather is saved yet),
+ * and the stored alert type toggles + hindrance gates (ticket 06's
+ * settings storage; the defaults when nothing is stored yet).
  */
 export function collectSettings(
   subscription: PushSubscriptionJSON,
@@ -106,6 +109,7 @@ export function collectSettings(
   const savedWeather = loadWeather(storage, place.latitude, place.longitude);
   const placeTimezone =
     savedWeather?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const { alertTypes, gates } = loadAlertSettings(storage);
   return {
     subscription,
     alertThreshold: loadKpThreshold(storage),
@@ -115,8 +119,8 @@ export function collectSettings(
       shortName: place.shortName,
     },
     placeTimezone,
-    alertTypes: { daily: true, kp: true, live: true },
-    gates: DEFAULT_GATES,
+    alertTypes,
+    gates,
   };
 }
 

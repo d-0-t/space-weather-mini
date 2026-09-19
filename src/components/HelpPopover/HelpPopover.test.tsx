@@ -255,4 +255,25 @@ describe("HelpPopover", () => {
     expect(popover.querySelectorAll("p")).toHaveLength(3);
     expect(popover.querySelector(".help-popover__close")).not.toBeNull();
   });
+
+  it("mounts the body inside a dialog ancestor so a modal dialog can host it", async () => {
+    const user = userEvent.setup();
+    render(
+      <dialog open>
+        <HelpPopover
+          content={{ label: "About the Kp alert threshold", text: "The scale." }}
+        />
+      </dialog>,
+    );
+    await user.click(
+      screen.getByRole("button", { name: "About the Kp alert threshold" }),
+    );
+    const dialog = document.querySelector("dialog")!;
+    // A body-portalled popover would paint behind the modal dialog's
+    // top layer, so the body mounts inside the dialog element instead.
+    expect(dialog.querySelector(".help-popover")).not.toBeNull();
+    expect(
+      document.body.querySelector(":scope > .help-popover"),
+    ).toBeNull();
+  });
 });

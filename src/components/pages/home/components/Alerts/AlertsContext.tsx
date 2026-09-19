@@ -47,7 +47,17 @@ import {
   resendPushSettings,
   subscriptionToPushJSON,
 } from "../../../../../push/subscribe-client";
-import type { PushSubscriptionJSON } from "../../../../../push/subscription-settings";
+import {
+  DEFAULT_ALERT_SETTINGS,
+  loadAlertSettings,
+  saveAlertSettings,
+  type AlertSettings,
+} from "../../../../../push/alert-settings";
+import type {
+  AlertTypeToggles,
+  HindranceGates,
+  PushSubscriptionJSON,
+} from "../../../../../push/subscription-settings";
 
 const fetchAlerts = async () => {
   const response = await fetch(ALERTS_URL);
@@ -118,8 +128,22 @@ interface AlertsContextValue {
   enableBrowserAlerts: () => Promise<void>;
   /** The stored push subscription, or null while background alerts are off. */
   pushSubscription: PushSubscriptionJSON | null;
+  /** The chaser's background alert type toggles (persisted). */
+  alertTypes: AlertTypeToggles;
+  /** Toggles one background alert type independently of the others. */
+  setAlertType: (type: keyof AlertTypeToggles, on: boolean) => void;
+  /** The chaser's hindrance gates at the stored place (persisted). */
+  gates: HindranceGates;
+  /** Replaces the hindrance gates wholesale. */
+  setGates: (next: HindranceGates) => void;
+  /** The dialog's Apply: commits threshold, toggles and gates together as
+   * one change (one store, one sender overwrite). */
+  applySettings: (next: AlertSettings & { threshold: number }) => void;
   /** Forgets the push subscription entirely: the sender deletes it. */
   disablePushAlerts: () => Promise<void>;
+  /** True when a granted permission still could not subscribe or store –
+   * the settings panel speaks instead of staying silent. */
+  pushFailed: boolean;
   /** Fires one canned poke end to end (manual real-phone check). */
   sendTestPoke: () => Promise<void>;
   /** The manual test poke's honest state for the settings UI. */
@@ -159,6 +183,10 @@ export const AlertsProvider: React.FC<{ children: ReactNode }> = ({
   );
   const [pushSubscription, setPushSubscription] =
     useState<PushSubscriptionJSON | null>(null);
+  const [alertSettings, setAlertSettings] = useState(() =>
+    loadAlertSettings(localStorage),
+  );
+  const [pushFailed, setPushFailed] = useState(false);
   const [testPokeState, setTestPokeState] = useState<
     "idle" | "sent" | "failed"
   >("idle");
@@ -302,6 +330,31 @@ export const AlertsProvider: React.FC<{ children: ReactNode }> = ({
     resendPushSettings();
   };
 
+  /** One persisted settings change: store it, then re-send the full
+   * settings object so the sender overwrites (the every-change path). */
+  const commitAlertSettings = (next: typeof alertSettings) => {
+    setAlertSettings(next);
+    saveAlertSettings(localStorage, next);
+    resendPushSettings();
+  };
+
+  const setAlertType = (type: keyof AlertTypeToggles, on: boolean) => {
+    commitAlertSettings({
+      ...alertSettings,
+      alertTypes: { ...alertSettings.alertTypes, [type]: on },
+    });
+  };
+
+  const setGates = (gates: HindranceGates) => {
+    commitAlertSettings({ ...alertSettings, gates });
+  };
+
+  const applySettings = (next: AlertSettings & { threshold: number }) => {
+    setThresholdState(next.threshold);
+    saveKpThreshold(localStorage, next.threshold);
+    commitAlertSettings({ alertTypes: next.alertTypes, gates: next.gates });
+  };
+
   const enableBrowserAlerts = async () => {
     if (typeof Notification === "undefined") return;
     try {
@@ -310,10 +363,13 @@ export const AlertsProvider: React.FC<{ children: ReactNode }> = ({
       if (permission === "granted") {
         try {
           setPushSubscription(await enablePush(browserPushDeps(), localStorage));
+          setPushFailed(false);
         } catch {
-          // Background alerts stay off (no application server key, no
-          // registered worker, or the sender rejected) – the in-app strip
-          // and local notifications keep working.
+          // The granted permission still could not subscribe or store
+          // (no application server key, no registered worker, or the
+          // sender rejected) – the settings panel speaks honestly while
+          // the in-app strip and local notifications keep working.
+          setPushFailed(true);
         }
       }
     } catch {
@@ -331,6 +387,7 @@ export const AlertsProvider: React.FC<{ children: ReactNode }> = ({
     } finally {
       // Silence is one tap away: the sender forgets the chaser entirely.
       setPushSubscription(null);
+      setPushFailed(false);
       setTestPokeState("idle");
     }
   };
@@ -362,7 +419,13 @@ export const AlertsProvider: React.FC<{ children: ReactNode }> = ({
     notificationState,
     enableBrowserAlerts,
     pushSubscription,
+    alertTypes: alertSettings.alertTypes,
+    setAlertType,
+    gates: alertSettings.gates,
+    setGates,
+    applySettings,
     disablePushAlerts,
+    pushFailed,
     sendTestPoke,
     testPokeState,
     simulateTestAlert,

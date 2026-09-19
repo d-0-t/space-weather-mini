@@ -18,7 +18,7 @@ const settings = (endpoint: string, threshold: number): SubscriptionSettings => 
   place: { latitude: 65.5848, longitude: 22.1546, shortName: "Luleå" },
   placeTimezone: "Europe/Stockholm",
   alertTypes: { daily: true, kp: true, live: true },
-  gates: { cloudMaxPercent: 50, noPrecipitation: true, darknessBand: "astronomical" },
+  gates: { cloudMaxPercent: 100, noPrecipitation: false, darknessBand: "any" },
 });
 
 const endpointA = "https://push.example/subscriptions/a";

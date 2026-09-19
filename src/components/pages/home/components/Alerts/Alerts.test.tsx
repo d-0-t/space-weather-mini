@@ -3,7 +3,7 @@
 process.env.TZ = "Europe/Stockholm";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor, act } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, act, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -505,42 +505,55 @@ describe("Alerts (ticket 02)", () => {
   });
 });
 
-describe("background alerts (push foundation, ticket 02)", () => {
-  /** The fake Web Push subscription the service worker's pushManager returns. */
-  const fakeSubscription = () => ({
-    endpoint: "https://push.example/subscriptions/a",
-    getKey: (name: string) =>
-      name === "p256dh"
-        ? new Uint8Array([1, 2, 3, 4]).buffer
-        : new Uint8Array([251, 255, 190]).buffer,
-    unsubscribe: vi.fn(async () => true),
-  });
+/** The fake Web Push subscription the service worker's pushManager returns. */
+const fakeSubscription = () => ({
+  endpoint: "https://push.example/subscriptions/a",
+  getKey: (name: string) =>
+    name === "p256dh"
+      ? new Uint8Array([1, 2, 3, 4]).buffer
+      : new Uint8Array([251, 255, 190]).buffer,
+  unsubscribe: vi.fn(async () => true),
+});
 
-  /** The subscribe options the context must pass (userVisibleOnly + key). */
-  type SubscribeFn = (options: {
-    userVisibleOnly: boolean;
-    applicationServerKey: unknown;
-  }) => Promise<ReturnType<typeof fakeSubscription>>;
+/** The subscribe options the context must pass (userVisibleOnly + key). */
+type SubscribeFn = (options: {
+  userVisibleOnly: boolean;
+  applicationServerKey: unknown;
+}) => Promise<ReturnType<typeof fakeSubscription>>;
 
-  const installWorker = () => {
-    const registration = {
-      pushManager: {
-        subscribe: vi.fn<SubscribeFn>(async () => fakeSubscription()),
-        getSubscription: vi.fn(async () => fakeSubscription()),
-      },
-    };
-    Object.defineProperty(window.navigator, "serviceWorker", {
-      value: { getRegistration: vi.fn(async () => registration) },
-      configurable: true,
-    });
-    return registration;
+const installWorker = () => {
+  const registration = {
+    pushManager: {
+      subscribe: vi.fn<SubscribeFn>(async () => fakeSubscription()),
+      getSubscription: vi.fn(async () => fakeSubscription()),
+    },
   };
+  Object.defineProperty(window.navigator, "serviceWorker", {
+    value: { getRegistration: vi.fn(async () => registration) },
+    configurable: true,
+  });
+  return registration;
+};
 
-  const senderCalls = (urlFragment: string) =>
-    mockFetch.mock.calls.filter(
-      (call) => typeof call[0] === "string" && call[0].includes(urlFragment),
-    );
+const senderCalls = (urlFragment: string) =>
+  mockFetch.mock.calls.filter(
+    (call) => typeof call[0] === "string" && call[0].includes(urlFragment),
+  );
 
+const storedPlace = JSON.stringify({
+  v: 1,
+  place: {
+    displayName: "Luleå, Norrbotten County, Sweden",
+    shortName: "Luleå",
+    latitude: 65.5848,
+    longitude: 22.1546,
+    fetchedAt: "2026-09-18T10:00:00.000Z",
+    country: "Sweden",
+    countryCode: "se",
+  },
+});
+
+describe("background alerts (push foundation, ticket 02)", () => {
   afterEach(() => {
     Reflect.deleteProperty(window.navigator, "serviceWorker");
     vi.unstubAllEnvs();
@@ -663,5 +676,228 @@ describe("background alerts (push foundation, ticket 02)", () => {
     );
     const postCalls = senderCalls("/.netlify/functions/subscribe");
     expect(JSON.parse(postCalls[0][1].body).alertThreshold).toBe(7);
+  });
+});
+
+describe("alert settings UI (ticket 06)", () => {
+  afterEach(() => {
+    Reflect.deleteProperty(window.navigator, "serviceWorker");
+    vi.unstubAllEnvs();
+  });
+
+  it("renders the three background alert types as independent toggles", async () => {
+    const user = userEvent.setup();
+    renderAlerts();
+    const daily = screen.getByRole("checkbox", { name: "Daily outlook alert" });
+    const kp = screen.getByRole("checkbox", { name: "Kp alert" });
+    const live = screen.getByRole("checkbox", { name: "Live alert" });
+    expect(daily).toBeChecked();
+    expect(kp).toBeChecked();
+    expect(live).toBeChecked();
+    await user.click(daily);
+    expect(daily).not.toBeChecked();
+    expect(kp).toBeChecked();
+    expect(live).toBeChecked();
+    expect(localStorage.getItem("sw:alert-settings:v1")).toBe(
+      JSON.stringify({
+        v: 1,
+        settings: {
+          alertTypes: { daily: false, kp: true, live: true },
+          gates: {
+            cloudMaxPercent: 100,
+            noPrecipitation: false,
+            darknessBand: "any",
+          },
+        },
+      }),
+    );
+  });
+
+  it("re-sends the settings when an alert type toggles", async () => {
+    vi.stubEnv("VITE_VAPID_PUBLIC_KEY", "AQIDBA");
+    installWorker();
+    const user = userEvent.setup();
+    renderAlerts();
+    await screen.findByText("Background alerts on.");
+    await user.click(screen.getByRole("checkbox", { name: "Live alert" }));
+    await waitFor(() =>
+      expect(senderCalls("/.netlify/functions/subscribe")).toHaveLength(1),
+    );
+    const body = JSON.parse(
+      senderCalls("/.netlify/functions/subscribe")[0][1].body,
+    );
+    expect(body.alertTypes).toEqual({ daily: true, kp: true, live: false });
+  });
+
+  it("names every hindrance control after the stored place (review UX)", async () => {
+    localStorage.setItem("sw:local-conditions:place:v1", storedPlace);
+    renderAlerts();
+    expect(
+      screen.getByRole("group", {
+        name: "Live alert settings at Luleå",
+      }),
+    ).toBeInTheDocument();
+    // The rain checkbox leads the group; the cloud gate is the percentage
+    // alone - no on/off checkbox.
+    const rain = screen.getByRole("checkbox", {
+      name: "Show aurora alerts when it's raining or snowing",
+    });
+    expect(rain).toBeChecked();
+    // The label wraps the control and its "N%" output, so the slider's
+    // accessible name carries both; the copy asks with a colon and the
+    // control sits below the label (the --stacked modifier), not beside it.
+    const cloudLimit = screen.getByRole("slider", {
+      name: /Only show alerts when cloud coverage is below:/,
+    }).closest("label")!;
+    expect(cloudLimit).toHaveClass("alerts__gates__gate--stacked");
+    expect(cloudLimit.textContent).toMatch(/below:\s*100%/);
+    const slider = cloudLimit.querySelector("input[type=range]")!;
+    expect(slider).toHaveValue("100");
+    expect(slider).toHaveAttribute("max", "100");
+    expect(slider).toHaveAttribute("step", "5");
+    const darkness = screen.getByRole("combobox", {
+      name: /Only show alerts when it's at least this dark:/,
+    }).closest("label")!;
+    expect(darkness).toHaveClass("alerts__gates__gate--stacked");
+    expect(darkness.textContent).toMatch(/this dark:/);
+    expect(
+      within(darkness).getAllByRole("option").map((option) => option.textContent),
+    ).toEqual([
+      "Night",
+      "Astronomical Twilight",
+      "Nautical Twilight",
+      "Any (including daytime)",
+    ]);
+    expect(within(darkness).getByRole("combobox")).toHaveValue("any");
+    // DOM order inside the group: rain checkbox, then the cloud row, then
+    // the darkness row.
+    const cloudSlider = screen.getByRole("slider", {
+      name: /Only show alerts when cloud coverage is below/,
+    });
+    const darknessSelect = screen.getByRole("combobox", {
+      name: /Only show alerts when it's at least this dark/,
+    });
+    expect(
+      rain.compareDocumentPosition(cloudSlider) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    expect(
+      cloudSlider.compareDocumentPosition(darknessSelect) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+    // A horizontal divider separates the type toggles from the Live
+    // alert's settings group.
+    const divider = screen.getByRole("separator");
+    expect(divider).toHaveClass("alerts__divider");
+    expect(
+      divider.compareDocumentPosition(
+        screen.getByRole("group", { name: /Live alert settings/ }),
+      ) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("persists a gates change and re-sends it to the sender", async () => {
+    vi.stubEnv("VITE_VAPID_PUBLIC_KEY", "AQIDBA");
+    localStorage.setItem("sw:local-conditions:place:v1", storedPlace);
+    installWorker();
+    const user = userEvent.setup();
+    renderAlerts();
+    await screen.findByText("Background alerts on.");
+    fireEvent.change(
+      screen.getByRole("combobox", {
+        name: /Only show alerts when it's at least this dark/,
+      }),
+      { target: { value: "nautical" } },
+    );
+    await waitFor(() =>
+      expect(senderCalls("/.netlify/functions/subscribe")).toHaveLength(1),
+    );
+    const body = JSON.parse(
+      senderCalls("/.netlify/functions/subscribe")[0][1].body,
+    );
+    expect(body.gates.darknessBand).toBe("nautical");
+    // Unticking the rain checkbox tightens the gate: precipitation then
+    // withholds again.
+    await user.click(
+      screen.getByRole("checkbox", {
+        name: "Show aurora alerts when it's raining or snowing",
+      }),
+    );
+    await waitFor(() => {
+      const stored = JSON.parse(
+        localStorage.getItem("sw:alert-settings:v1") ?? "",
+      );
+      expect(stored.settings.gates.noPrecipitation).toBe(true);
+    });
+  });
+
+  it("explains the Kp scale and its G mapping beside the slider", async () => {
+    const user = userEvent.setup();
+    renderAlerts();
+    await user.click(
+      screen.getByRole("button", { name: "About the Kp alert threshold" }),
+    );
+    const line = screen.getByText(/0–9 scale/).closest("p");
+    expect(line).toHaveTextContent(/G1/);
+    expect(line).toHaveTextContent(/G5/);
+  });
+
+  it("shows the tip naming the stored place", () => {
+    localStorage.setItem("sw:local-conditions:place:v1", storedPlace);
+    renderAlerts();
+    expect(
+      screen.getByText("Kp 2 typically brings the oval to Luleå."),
+    ).toBeInTheDocument();
+  });
+
+  it("falls back to the generic tip without a stored place", () => {
+    renderAlerts();
+    expect(
+      screen.getByText(/Possible locations panel/),
+    ).toBeInTheDocument();
+  });
+
+  it("shows the install hint to every mobile visitor, never a disabled button", () => {
+    renderAlerts();
+    const hint = screen.getByText(/Home Screen/).closest("p");
+    expect(hint).toHaveClass("alerts__install-hint");
+  });
+
+  it("speaks honestly when background alerts fail after permission", async () => {
+    // A developer's local .env may hold the manual VAPID key from ticket
+    // 02; stub it off so the contract stays hermetic (the ticket-03
+    // precedent) and the enable attempt honestly fails.
+    vi.stubEnv("VITE_VAPID_PUBLIC_KEY", "");
+    // A fresh device: the browser holds no subscription yet, so the mount
+    // detection finds nothing and the enable attempt is the first one.
+    const registration = {
+      pushManager: {
+        subscribe: vi.fn(async () => fakeSubscription()),
+        getSubscription: vi.fn(async () => null),
+      },
+    };
+    Object.defineProperty(window.navigator, "serviceWorker", {
+      value: { getRegistration: vi.fn(async () => registration) },
+      configurable: true,
+    });
+    const user = userEvent.setup();
+    renderAlerts();
+    await user.click(
+      await screen.findByRole("button", { name: "Enable browser alerts" }),
+    );
+    // The granted permission still could not subscribe (no application
+    // server key): the panel says so and offers Try again, the same
+    // affordance the denied-permission path carries.
+    expect(
+      await screen.findByText(/Background alerts could not be enabled/),
+    ).toBeInTheDocument();
+    // A later successful retry clears the panel.
+    vi.stubEnv("VITE_VAPID_PUBLIC_KEY", "AQIDBA");
+    await user.click(screen.getByRole("button", { name: "Try again" }));
+    const status = await screen.findByText("Background alerts on.");
+    expect(status).toHaveFocus();
+    expect(
+      screen.queryByText(/Background alerts could not be enabled/),
+    ).not.toBeInTheDocument();
   });
 });

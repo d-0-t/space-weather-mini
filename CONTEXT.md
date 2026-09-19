@@ -51,7 +51,7 @@ A background push from the Summary's shared verdict word at the stored geocoded 
 _Avoid_: live notification (when the alert is meant), summary alert
 
 **Hindrance gate**:
-One of the Live alert's three per-hindrance conditions at the stored geocoded place: cloud cover under the chaser's own percentage (default under 50%), no precipitation, and darkness at or darker than the chosen band — Night, Astronomical Twilight, Nautical Twilight, or Any including daytime (Twilight always spelled out). Cloud and precipitation ride the same Open-Meteo contract the Local conditions weather card maps; darkness judges the instant's solar elevation from the same solar model the darkest-window computation cuts its windows from (Night ≤ −18°, Astronomical Twilight ≤ −12°, Nautical Twilight ≤ −6°, Any at every elevation). Every gate label names the stored place short name ("Cloud at Piteå"). An unknown reading withholds — an unknown sky never guesses.
+One of the Live alert's three per-hindrance conditions at the stored geocoded place, controlled inside the alert settings modal's "Live alert settings at {shortName}" group: cloud cover below the chaser's own percentage (a slider alone, no toggle — 100% by default, so only a fully overcast sky withholds), precipitation (the positive checkbox "Show aurora alerts when it's raining or snowing", on by default, so rain and snow never withhold until it is unticked), and darkness at or darker than the chosen band — Night, Astronomical Twilight, Nautical Twilight, or Any including daytime (Twilight always spelled out; Any by default, never blocking). The defaults are permissive (2026-09-19 review): the Live alert is word-driven until the chaser tightens a gate. Cloud and precipitation ride the same Open-Meteo contract the Local conditions weather card maps; darkness judges the instant's solar elevation from the same solar model the darkest-window computation cuts its windows from (Night ≤ −18°, Astronomical Twilight ≤ −12°, Nautical Twilight ≤ −6°, Any at every elevation). An unknown reading withholds — an unknown sky never guesses.
 _Avoid_: gate (alone, when the hindrance gate is meant), weather filter
 
 **Push sender**:
@@ -111,8 +111,12 @@ The hourly disturbance storm time index of equatorial magnetic disturbance; nega
 _Avoid_: Dst value, storm index (without Dst)
 
 **Alert threshold**:
-The chaser-set Kp value (1–9, default 5) that the alerts banner and opt-in browser notifications trigger on; G1 maps to Kp 5.
+The chaser-set Kp value (1–9, default 5) that the alerts banner and opt-in browser notifications trigger on; G1 maps to Kp 5. The alert settings modal explains the 0–9 scale and its G1–G5 mapping in a one-line popover beside the slider, and tips the Kp that typically brings the oval to the stored place (the smallest Kp whose Tips reach edge reaches the place's approximate geomagnetic latitude, never a promise).
 _Avoid_: alert level, trigger (without Kp)
+
+**Alerts modal**:
+The Dashboard header's native dialog for the alert settings, opened by the header's Alerts button and mounted only while open; named by its visible Alerts heading (aria-labelledby, the Time modal pattern). Holds the Kp alert threshold slider with its Kp-scale explainer popover and place tip, the three background alert types (Daily outlook alert, Kp alert, Live alert) as independent checkboxes, the Live alert's hindrance settings at the stored place (its named group carries the cloud-percentage slider, the show-when-raining-or-snowing checkbox and the darkness-band select), the browser-alerts permission flow (Enable always attempts; a granted permission that still cannot subscribe or store gets an honest panel with Try again and the install pointer), the background-alerts controls when the browser holds a subscription (test poke, disable), and the install hint shown to mobile visitors. Apply persists the threshold, the type toggles and the gates as one change (one store, one sender overwrite); Cancel, X, Escape and the backdrop discard the drafts; a closed dialog returns focus to the trigger. The type toggles gate only the sender's background pokes; the in-app strip and local notifications keep running regardless.
+_Avoid_: alerts settings (as the modal's name), notifications modal
 
 **Radio flux**:
 Solar radio flux at 10.7 cm wavelength, a solar activity proxy.

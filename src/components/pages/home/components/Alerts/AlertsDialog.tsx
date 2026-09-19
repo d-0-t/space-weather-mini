@@ -4,19 +4,24 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useDialogModal } from "../../../../Dialog/useDialogModal";
 import Alerts from "./Alerts";
 import { useAlerts } from "./AlertsContext";
+import type {
+  AlertTypeToggles,
+  HindranceGates,
+} from "../../../../../push/subscription-settings";
 
 import "./Alerts.scss";
 
 /**
- * Alert settings modal – the Alerts threshold, browser-alerts permission
- * and newest-match strip live in a native <dialog> opened from the
- * Dashboard header's Alerts button. Mounted only while open (the Time modal
- * pattern), so the threshold draft reseeds from storage on every open:
- * Apply persists it, while Cancel, X, Escape and the backdrop discard it.
- * A closed dialog hands focus back to the trigger. Polling and
- * notifications run in AlertsProvider, so closing the modal never stops
- * them. The dialog is named by its visible heading (aria-labelledby), never
- * aria-label.
+ * Alert settings modal – the Kp threshold, the three background alert
+ * types, the Live alert's hindrance gates, the browser-alerts permission
+ * and the newest-match strip live in a native <dialog> opened from the
+ * Dashboard header's Alerts button. Mounted only while open (the Time
+ * modal pattern), so every setting draft reseeds from storage on each
+ * open: Apply persists them all, while Cancel, X, Escape and the backdrop
+ * discard the drafts. A closed dialog hands focus back to the trigger.
+ * Polling and notifications run in AlertsProvider, so closing the modal
+ * never stops them. The dialog is named by its visible heading
+ * (aria-labelledby), never aria-label.
  */
 const AlertsDialog: React.FC<{
   triggerRef: RefObject<HTMLButtonElement | null>;
@@ -24,8 +29,15 @@ const AlertsDialog: React.FC<{
 }> = ({ triggerRef, onClose }) => {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const dialogLabelId = useId();
-  const { threshold, setThreshold } = useAlerts();
+  const {
+    threshold,
+    alertTypes,
+    gates,
+    applySettings,
+  } = useAlerts();
   const [draftThreshold, setDraftThreshold] = useState(threshold);
+  const [draftAlertTypes, setDraftAlertTypes] = useState(alertTypes);
+  const [draftGates, setDraftGates] = useState(gates);
 
   useDialogModal({
     dialogRef,
@@ -38,7 +50,11 @@ const AlertsDialog: React.FC<{
   const dismiss = () => dialogRef.current?.close();
 
   const apply = () => {
-    setThreshold(draftThreshold);
+    applySettings({
+      threshold: draftThreshold,
+      alertTypes: draftAlertTypes,
+      gates: draftGates,
+    });
     dialogRef.current?.close();
   };
 
@@ -52,6 +68,12 @@ const AlertsDialog: React.FC<{
         headingId={dialogLabelId}
         threshold={draftThreshold}
         setThreshold={setDraftThreshold}
+        alertTypes={draftAlertTypes}
+        toggleAlertType={(type, on) =>
+          setDraftAlertTypes({ ...draftAlertTypes, [type]: on })
+        }
+        gates={draftGates}
+        setGates={setDraftGates}
       />
       <div className="alerts-dialog__actions">
         <button type="button" className="btn--secondary" onClick={dismiss}>

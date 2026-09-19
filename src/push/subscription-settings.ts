@@ -23,7 +23,7 @@ export interface AlertTypeToggles {
  */
 export type DarknessBand = "night" | "astronomical" | "nautical" | "any";
 
-/** The chaser's per-hindrance gates at the stored place (ticket 05 UI). */
+/** The chaser's per-hindrance gates at the stored place. */
 export interface HindranceGates {
   /** Withhold the Live alert while cloud cover is at or above this percent. */
   cloudMaxPercent: number;
@@ -65,14 +65,17 @@ export interface SubscriptionSettings {
   gates: HindranceGates;
 }
 
-/** Every hindrance gate on by default (spec decision). */
+/** The permissive gates the alert settings open with (2026-09-19 review:
+ * cloud blocks only a fully overcast sky; precipitation and darkness
+ * never block until the chaser tightens them). */
 export const DEFAULT_GATES: HindranceGates = {
-  cloudMaxPercent: 50,
-  noPrecipitation: true,
-  darknessBand: "astronomical",
+  cloudMaxPercent: 100,
+  noPrecipitation: false,
+  darknessBand: "any",
 };
 
-const DARKNESS_BANDS: readonly DarknessBand[] = [
+/** The darkness bands the validator accepts, darkest first. */
+export const DARKNESS_BANDS: readonly DarknessBand[] = [
   "night",
   "astronomical",
   "nautical",
@@ -113,7 +116,25 @@ const isPlausibleLongitude = (value: unknown): value is number =>
 const isCloudMaxPercent = (value: unknown): value is number =>
   isFiniteNumber(value) && value >= 0 && value <= 100;
 
-const parseGates = (value: unknown): HindranceGates | null => {
+/**
+ * Validates the three alert type toggles, or null when malformed. Shared
+ * by the sender's strict validator and the client's settings loader, so
+ * the two never drift.
+ */
+export function parseAlertTypes(value: unknown): AlertTypeToggles | null {
+  if (
+    !isRecord(value) ||
+    typeof value.daily !== "boolean" ||
+    typeof value.kp !== "boolean" ||
+    typeof value.live !== "boolean"
+  ) {
+    return null;
+  }
+  return { daily: value.daily, kp: value.kp, live: value.live };
+}
+
+/** Validates the hindrance gates, or null (the same shared shape). */
+export function parseHindranceGates(value: unknown): HindranceGates | null {
   if (!isRecord(value)) return null;
   const { cloudMaxPercent, noPrecipitation, darknessBand } = value;
   if (!isCloudMaxPercent(cloudMaxPercent)) return null;
@@ -129,7 +150,7 @@ const parseGates = (value: unknown): HindranceGates | null => {
     noPrecipitation,
     darknessBand: darknessBand as DarknessBand,
   };
-};
+}
 
 const parseSubscription = (value: unknown): PushSubscriptionJSON | null => {
   if (!isRecord(value)) return null;
@@ -176,26 +197,16 @@ export function parseSubscriptionSettings(
   const parsedPlace = parsePlace(place);
   if (!parsedPlace) return null;
   if (!isTimeZone(placeTimezone)) return null;
-  if (
-    !isRecord(alertTypes) ||
-    typeof alertTypes.daily !== "boolean" ||
-    typeof alertTypes.kp !== "boolean" ||
-    typeof alertTypes.live !== "boolean"
-  ) {
-    return null;
-  }
-  const parsedGates = parseGates(gates);
+  const parsedTypes = parseAlertTypes(alertTypes);
+  if (!parsedTypes) return null;
+  const parsedGates = parseHindranceGates(gates);
   if (!parsedGates) return null;
   return {
     subscription: parsedSubscription,
     alertThreshold,
     place: parsedPlace,
     placeTimezone,
-    alertTypes: {
-      daily: alertTypes.daily,
-      kp: alertTypes.kp,
-      live: alertTypes.live,
-    },
+    alertTypes: parsedTypes,
     gates: parsedGates,
   };
 }

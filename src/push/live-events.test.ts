@@ -178,31 +178,39 @@ describe("the Live alert matcher – the hindrance gates (ticket 05)", () => {
     seenKeys: [] as string[],
   };
 
-  it("withholds while cloud cover is at the chaser's own limit, recording nothing", () => {
-    const events = matchLiveEvents({
+  it("withholds at the chaser's own cloud limit and passes below it (ticket 06 review)", () => {
+    // The gate is the percentage alone: 100 means only a fully overcast
+    // sky withholds, so the review's default never blocks short of that.
+    const blocked = matchLiveEvents({
       ...favorableInput,
       place: LULEÅ,
-      gates: { ...DEFAULT_GATES, cloudMaxPercent: 50, darknessBand: "any" },
+      gates: { ...DEFAULT_GATES, cloudMaxPercent: 50 },
       weather: { cloudCoverPercent: 50, precipitationMm: 0 },
       now: NOW,
     });
-    expect(events).toEqual([]);
-  });
-
-  it("passes when cloud cover sits under the chaser's own limit", () => {
-    const events = matchLiveEvents({
+    expect(blocked).toEqual([]);
+    const below = matchLiveEvents({
       ...favorableInput,
       place: LULEÅ,
+      gates: { ...DEFAULT_GATES, cloudMaxPercent: 50 },
       weather: { cloudCoverPercent: 49.9, precipitationMm: 0 },
       now: NOW,
     });
-    expect(events).toHaveLength(1);
+    expect(below).toHaveLength(1);
+    const defaultPass = matchLiveEvents({
+      ...favorableInput,
+      place: LULEÅ,
+      weather: { cloudCoverPercent: 99, precipitationMm: 0 },
+      now: NOW,
+    });
+    expect(defaultPass).toHaveLength(1);
   });
 
-  it("withholds while it precipitates at the place", () => {
+  it("withholds while it precipitates at the place and the gate is on", () => {
     const events = matchLiveEvents({
       ...favorableInput,
       place: LULEÅ,
+      gates: { ...DEFAULT_GATES, noPrecipitation: true },
       weather: { cloudCoverPercent: 10, precipitationMm: 0.2 },
       now: NOW,
     });
@@ -224,10 +232,21 @@ describe("the Live alert matcher – the hindrance gates (ticket 05)", () => {
     const events = matchLiveEvents({
       ...favorableInput,
       place: LULEÅ,
+      gates: { ...DEFAULT_GATES, noPrecipitation: true },
       weather: { cloudCoverPercent: 10, precipitationMm: null },
       now: NOW,
     });
     expect(events).toEqual([]);
+  });
+
+  it("passes at the permissive defaults: no precip gate, no darkness gate (ticket 06 review)", () => {
+    const events = matchLiveEvents({
+      ...favorableInput,
+      place: LULEÅ,
+      weather: { cloudCoverPercent: 99, precipitationMm: 5 },
+      now: NOW,
+    });
+    expect(events).toHaveLength(1);
   });
 
   it("stays silent when no weather reading arrived", () => {
