@@ -2,7 +2,9 @@
 
 **Date:** 2026-08-25
 **Audience:** Aurora chasers (field use, mobile, dark sky, low signal)
-**Constraint:** Stay client-side only per ADR-0001 — static SPA on Netlify, direct `fetch` from `services.swpc.noaa.gov` (CORS `*`), preferences in `localStorage`. No backend. Features needing a server are flagged and deferred.
+**Constraint:** Stay client-side only per ADR-0001 — static SPA on Netlify, direct `fetch` from `services.swpc.noaa.gov` (CORS `*`), preferences in `localStorage`, plus the push sender exception (amended ADR-0001, storage in ADR-0012). Features needing anything beyond the sender are flagged and deferred.
+
+**Note 2026-09-19 (background-alerts ticket 08):** this brief predates the push sender; its "no new infrastructure" framing is superseded for alerts by the ADR-0001 amendment and ADR-0012.
 **Scope:** Broad sweep — data sources + user-facing features + visualizations + tech/platform — filtered for aurora relevance.
 
 > Research against primary sources only: NOAA SWPC directory listings and `services.swpc.noaa.gov` live endpoints (verified 2026-08-25), competitor sites (SpaceWeatherLive, My Aurora Forecast, AuroraWatch UK, Soft Serve / Aurora Alerts, NOAA Aurora Dashboard), and web platform specs (MDN, W3C/WICG, web.dev, caniuse). Each claim cites its owner.
@@ -103,7 +105,7 @@ All argue for polling 60–300 s given `Cache-Control: max-age=60` [NOAA track].
 | **Archive / history** | SWL 1996→yesterday + Top 50 | ✅ NOAA NCEI `fetch` | `https://spark.mwm.ai/en/apps/spaceweatherlive/1435501021` |
 | **Dark mode / field usability** | SWL dark mode; MyAF dark design | ✅ CSS only | `https://spark.mwm.ai/en/apps/spaceweatherlive/1435501021`; `https://www.jrustonapps.com/apps/my-aurora-forecast` |
 
-### 2.3 Gaps where Space Weather Mini can win *without* a backend
+### 2.3 Gaps where Space Weather Mini can win *without* a sender (2026-08-25 framing; item 4 superseded for alerts 2026-09-19 by the sender)
 
 1. **Explainability is thin everywhere.** No one explains *why* Kp 5 ≠ guarantee (Bz coupling, solar-wind speed). OVATION = Newell et al. 2009 precipitation model validated vs UVI — cited on NOAA's own page `https://www.swpc.noaa.gov/products/aurora-30-minute-forecast` — but hidden. None meets WCAG 2.1 AA (store entries: "accessibility features not indicated"). Chasers cite this as confusion.
 2. **Personal horizon is unsolved.** NOAA viewline was N-America-only, Kp-driven, removed May 2026 `https://www.swpc.noaa.gov/products/aurora-viewline-tonight-and-tomorrow-night-experimental`. Aurora Alerts only binary horizon/overhead `https://aurora-alerts.com/`. Mini can own **client-side horizon**: for `navigator.geolocation` lat/lon, sample OVATION grid cells within ~1000 km (`https://www.swpc.noaa.gov/products/aurora-30-minute-forecast` "visible 1000 km away"), compute magnetic latitude, solar elevation (night check), predicted elevation angle → "low on northern horizon / overhead / below horizon".
@@ -117,7 +119,7 @@ All argue for polling 60–300 s given `Cache-Control: max-age=60` [NOAA track].
 
 ## 3. Web Platform — What a Static SPA Can Actually Do in 2026
 
-> All status from primary specs/docs 2026-08-25. Constraint: no backend.
+> All status from primary specs/docs 2026-08-25. Constraint at the time: static SPA only (superseded for alerts 2026-09-19 by the ADR-0001 push-sender amendment and ADR-0012).
 
 ### 3.1 Capability matrix
 
@@ -147,7 +149,7 @@ All argue for polling 60–300 s given `Cache-Control: max-age=60` [NOAA track].
 7. **Local Notifications (foreground only)** — polling + `showNotification()` as degraded enhancement with honest UX: "Alerts while app open". Requires `Notification.requestPermission()` on tap; document iOS Home-Screen prerequisite; never promise background.
 8. **Vibration** — `navigator.vibrate?.(200)` on alert, gated on `canVibrate` + user gesture; Android-only, low priority.
 
-**Defer without backend:** Push API (needs VAPID + endpoint DB — ADR-0001 says "backend is added at that point" if decision-critical) and Periodic Background Sync (0% iOS, so not viable for field audience) [Platform track, ADR-0001].
+**Deferred at the time (landed 2026-09-19):** Push API needed VAPID + endpoint storage — ADR-0001 said a sender is added at that point if decision-critical, and background alerts were that point (amendment + ADR-0012). Periodic Background Sync stays deferred (0% iOS, not viable for field audience) [Platform track, ADR-0001].
 
 ---
 
@@ -178,9 +180,9 @@ Ranked by aurora-chaser value vs. static-SPA effort. Effort estimates assume exi
 | 12 | **Wake Lock + Share + Vibration polish** | Toggle "Keep screen on" (§3) + Web Share `Kp 6 overhead — 45 km away` + Android haptic buzz on alert (§3 #7–8). | Wake Lock / Web Share / Vibration APIs (§3) | XS (0.5 d) | 6 field polish |
 | 13 | **Explainability pass (WCAG AA + provenance)** | Inline glossary links (`Kp index`, `hemispheric power`, `Bz GSM`) with NOAA provenance (e.g. "OVATION Newell 2009 validated vs UVI" `https://www.swpc.noaa.gov/products/aurora-30-minute-forecast` + doi:10.1029/2011SW000746), `aria-label` for oval intensity, focus Light Lime (§ ADR-0002), add `product-header.ts` reuse for `3-day-geomag-forecast.txt` + `advisory-outlook.txt`. | Existing `explainers/` + new text products `text/3-day-geomag-forecast.txt` etc. (§1.3) | S (1 d) | 8 — unclaimed (§2.3) |
 
-### Deferred (needs backend — flag for future ADR)
+### Deferred at the time (first item landed 2026-09-19)
 
-- True background push alerts when app closed (Push API + VAPID + endpoint DB) — asked for by every competitor's paid tier `https://www.softservenews.com/members/aurora-alerts-north-america.html` vs `https://www.spaceweatherlive.com/en/aurora-alerts.html` but explicitly deferred by ADR-0001 "no user accounts; alerting beyond browser locally is out of scope" and Platform §3.2.
+- True background push alerts when app closed (Push API + VAPID + endpoint storage) — asked for by every competitor's paid tier `https://www.softservenews.com/members/aurora-alerts-north-america.html` vs `https://www.spaceweatherlive.com/en/aurora-alerts.html` but explicitly deferred by ADR-0001 at the time ("no user accounts; alerting beyond browser locally is out of scope") and Platform §3.2. Landed via the ADR-0001 push-sender amendment and ADR-0012.
 - Community observations / photo upload / webcam aggregation with user storage.
 - Periodic Background Sync auto-refresh (0% iOS, 12 h clamp even on Chrome) — not viable for hill use (§3.1).
 - NetCDF solar-wind models that need server-side parse.
@@ -201,7 +203,7 @@ Each slice reuses the same TanStack Query key-per-URL data layer so a future bac
 
 ## 5. Risks & Constraints to Carry Forward
 
-- **iOS field reality:** Notifications and Wake Lock both need iOS 16.4+ Home Screen PWA (and EU 17.4+ removed standalone) [§3.1]. PWA storage evictable if not launched in 7 days [MDN quotas]. Never promise "you'll be woken at 3am" without a backend — honest copy is the product choice.
+- **iOS field reality:** Notifications and Wake Lock both need iOS 16.4+ Home Screen PWA (and EU 17.4+ removed standalone) [§3.1]. PWA storage evictable if not launched in 7 days [MDN quotas]. Before the sender, the honest copy was never to promise "you'll be woken at 3am" — background pokes now come from the push sender (ADR-0001 amendment).
 - **Polling cost:** SWPC `max-age=60` means 1-min poll is generous but 20–40 min is the physical Bz→oval lead time `https://cdn.softservenews.com/Aurora.htm` ("inbound train 20-40 min"). No need for 5 s polling; 60–300 s respects cache and battery.
 - **OVATION JSON size:** 900 KB every 5 min on poor signal needs decimation + `requestIdleCallback` parse + Cache `StaleWhileRevalidate`; show `Forecast Time` not `Observation Time` or chasers chase stale [§1.3 doc].
 - **CORS assumption:** Verified 2026-08-25 for JSON/TXT/JPG; if SWPC moves to auth or non-CORS model, ADR-0001 fallback is a proxy ADR — flagged in `0001-client-side-only-architecture.md:13`.

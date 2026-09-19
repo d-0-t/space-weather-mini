@@ -2,7 +2,9 @@
 
 **Date:** 2026-09-18
 **Audience:** Maintainers of Space Weather Mini (mobile chasers, field use, installable PWA)
-**Constraint:** Stay client-side only per [ADR-0001](../adr/0001-client-side-only-architecture.md) — static SPA on Netlify, direct `fetch` from `services.swpc.noaa.gov` (CORS `*`), preferences in `localStorage`. No backend. Anything needing a server is flagged with an explicit ADR-0001 tension note and an amendment proposal (§6.5).
+**Constraint:** Stay client-side only per [ADR-0001](../adr/0001-client-side-only-architecture.md) — static SPA on Netlify, direct `fetch` from `services.swpc.noaa.gov` (CORS `*`), preferences in `localStorage`, plus the push sender exception (amended ADR-0001, storage in [ADR-0012](../adr/0012-push-sender-storage.md)). The tension notes below are the pre-decision record; §6.5 is the landed amendment.
+
+**Implemented 2026-09-19 (background-alerts ticket 08):** Option B chosen — the scheduled push sender beside the SPA with the 3-method subscription seam starting on Netlify Blobs. The "violates as written" verdicts below are superseded by the ADR-0001 amendment and ADR-0012.
 **Scope:** Can the app's Alert threshold + Alerts feed alerts reach a phone that is closed / in a pocket? Covers Web Push on mobile in 2026, serverless-without-backend senders, pure-client background alternatives, Notification Triggers status, iOS gotchas, and a ranked recommendation with a technical sketch for this repo.
 
 > Research against primary sources only: W3C Push API, IETF RFC 8291/8292 family via web.dev, WHATWG Notifications, WICG Periodic Background Sync, MDN, web.dev, Chrome developer docs, WebKit blog + Apple developer docs + WWDC22, vite-plugin-pwa and Workbox docs, Firebase/ntfy/OneSignal/Supabase/Netlify first-party docs, caniuse, Playwright docs. Each claim cites its owner. Secondary write-ups were used only to locate the primary source and are not cited for facts.
@@ -143,7 +145,7 @@ No — not reliably, and never while closed:
 - **iOS evicts idle site data.** Script-created storage (including Cache/IndexedDB and registrations) for an origin with no interaction in the last 7 days of browser use is deleted under tracking prevention ([MDN: storage quotas & eviction](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria)); WebKit is additionally moving time-based eviction to a throttled weekly pass plus a 180-day default for ITP-disabled accumulation ([WebKit PR #64432](https://github.com/WebKit/WebKit/pull/64432), [WebKit commit 4fb2a09](https://github.com/WebKit/WebKit/commit/4fb2a0985cf0d6956111bf749feaf75118b7f6de)). A push subscription can therefore silently die on an unused device — the sender must already handle 404/410 pruning ([web.dev: sending with web-push libraries](https://web.dev/articles/sending-messages-with-web-push-libraries)), and the client must re-subscribe on launch.
 - **Storage pressure eviction is whole-origin.** When evicted, *all* of an origin's stored data goes together, not piecemeal ([MDN: storage quotas & eviction](https://developer.mozilla.org/en-US/docs/Web/API/Storage_API/Storage_quotas_and_eviction_criteria)) — another reason the threshold/subscription read path must tolerate "everything is gone" and re-onboard cleanly.
 
-### 3.3 What UX is honestly achievable with no backend?
+### 3.3 What UX was honestly achievable with no sender? (foreground era; item 3 superseded 2026-09-19 by the sender)
 
 1. **While the PWA/tab is open (including recently hidden on desktop):** today's behavior — poll every 5 min, in-app strip + `showNotification()` when granted. Keep.
 2. **On Android Chrome with the PWA installed + engaged:** Periodic Sync refreshes the cached Alerts feed so the *next launch* shows fresh data instantly; the notification itself still fires on launch, not in the background. Ship as progressive enhancement, never as a promise.
@@ -223,14 +225,14 @@ No SW-strategy change. The `push` event is never handled, so `generateSW` stays.
 - Sender: one scheduled function (Netlify cron `*/5 * * * *` within its 30 s limit, or Supabase `pg_cron` + Edge Function) fetching the three NOAA legs, evaluating `alertMatchesThreshold`-equivalent logic per subscription, sending VAPID-signed pushes with `tag = alertKey`, pruning 404/410 endpoints.
 - TTL short (storm traffic: minutes), `aud`/`exp`/`sub` per Apple's strict validation (§5.7).
 
-### 6.4 Honest copy (ships with A)
+### 6.4 Honest copy (shipped with A; superseded for background alerts 2026-09-19 by the sender)
 
-- Alerts modal footnote: *"Browser alerts fire while the app is open. On Android, install the app for the most reliable alerts. On iPhone, add it to the Home Screen first (Share → Add to Home Screen), open it from the icon, then enable alerts here. Nothing can wake a closed app without a server — this app has none."*
+- Alerts modal footnote (foreground era): *"Browser alerts fire while the app is open. On Android, install the app for the most reliable alerts. On iPhone, add it to the Home Screen first (Share → Add to Home Screen), open it from the icon, then enable alerts here. Nothing can wake a closed app without a sender."* The trailing "this app has none" is superseded — the app now has exactly one sender (ADR-0001 amendment).
 - Empty/no-match state keeps "No alerts at Kp {threshold} or higher right now." plus "As of / Updated" age — never imply overnight coverage.
 
-### 6.5 ADR-0001 amendment proposal (only if B or C is chosen)
+### 6.5 ADR-0001 amendment (landed 2026-09-19, ticket 08)
 
-> **ADR-0001 amendment (draft):** background alerts are promoted to decision-critical. The app gains one narrowly-scoped backend: a scheduled push sender that (a) stores only `PushSubscription` + Alert threshold + seen `alertKey`s, (b) polls only the public CORS-open NOAA legs, (c) holds no accounts, no location, no analytics. The static contract holds — parsers and query keys are unchanged; the sender reuses `alertKey`/`alertMatchesThreshold` semantics. Data-freshness and "As of" consequences are unchanged; a subscription-lifecycle consequence is added (re-subscribe on launch, prune dead endpoints).
+> **ADR-0001 amendment (landed):** background alerts are promoted to decision-critical. The app gains one narrowly-scoped exception — the scheduled push sender that (a) stores only the push address + Alert threshold + stored place + timezone + gates + seen event keys, (b) polls only the public CORS-open NOAA legs, (c) holds no accounts, no names, no location tracking. The static contract holds — parsers and query keys are unchanged; the sender reuses the app's grading, darkest-window and reach-edge seams. Data-freshness and "As of" consequences are unchanged; a subscription-lifecycle consequence is added (re-send on every change, re-subscribe on launch, prune dead endpoints). Recorded in [ADR-0001](../adr/0001-client-side-only-architecture.md) with storage in [ADR-0012](../adr/0012-push-sender-storage.md).
 
 ### 6.6 Testing plan (dev vs prod SW, Vitest/Playwright limits)
 

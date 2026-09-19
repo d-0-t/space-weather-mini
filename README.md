@@ -4,7 +4,7 @@ A client-side web app that presents NOAA SWPC space weather products — forecas
 
 ## Stack
 
-Vite + React 19, TypeScript (strict), React Router v7 (library mode), TanStack Query (planned), SCSS + BEM, Vitest, Playwright. No backend — data is fetched directly from [NOAA SWPC](https://services.swpc.noaa.gov/text/).
+Vite + React 19, TypeScript (strict), React Router v7 (library mode), TanStack Query (planned), SCSS + BEM, Vitest, Playwright. Static SPA reading [NOAA SWPC](https://services.swpc.noaa.gov/text/) directly, plus one push sender beside it (scheduled Netlify functions storing subscriptions in Netlify Blobs behind the 3-method seam — the ADR-0001 exception, storage decided in ADR-0012) that fans out background pokes.
 
 ## Development
 

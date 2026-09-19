@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-01
 **Audience:** Builders of the new "conditions in my area" panel
-**Constraint:** Free APIs only, client side only per ADR-0001. No key, no proxy, no backend. Everything through `fetch` with CORS.
+**Constraint:** Free APIs only, client side only per ADR-0001 plus the push sender exception (amended ADR-0001, storage in ADR-0012). No key, no proxy for the page itself. Everything through `fetch` with CORS.
 **Source discipline:** Every claim below traces to its owner. No summary blog stood in for the docs.
 
 This is not a wish list. I checked each endpoint live on 2026-09-01 and read the policy pages that govern it.
