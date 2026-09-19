@@ -40,11 +40,14 @@ export interface KpEvent {
 export const KP_OBSERVED_PRODUCT = "noaa-planetary-k-index";
 export const KP_FORECAST_PRODUCT = "noaa-planetary-k-index-forecast";
 
-const SLOT_MS = 3 * 60 * 60 * 1000;
+/** One NOAA Kp slot in milliseconds – shared with the Live alert's keys,
+ * which ride the same slot spine (ticket 05). */
+export const SLOT_MS = 3 * 60 * 60 * 1000;
 const KP_SCALE_MAX = 9;
 
-/** The canonical UTC slot string, e.g. "2026-09-18T18:00:00". */
-const slotString = (slotMs: number): string => {
+/** The canonical UTC slot string, e.g. "2026-09-18T18:00:00". Shared with
+ * the Live alert's keys, which ride the same slot spine (ticket 05). */
+export const slotString = (slotMs: number): string => {
   const date = new Date(slotMs);
   const pad = (value: number): string => String(value).padStart(2, "0");
   return `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(
@@ -131,8 +134,10 @@ const evaluateSlot = (input: {
   };
 };
 
-/** The newest observed point (the current official 3-hour slot), or null. */
-const newestObservedPoint = (
+/** The newest observed point (the current official 3-hour slot), or null.
+ * Shared with the Live alert matcher, whose word rides the same newest
+ * observed value the Summary displays (ticket 05). */
+export const newestObservedPoint = (
   points: PlanetaryKPoint[],
 ): PlanetaryKPoint | null => {
   let newest: PlanetaryKPoint | null = null;

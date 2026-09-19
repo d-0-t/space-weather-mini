@@ -27,6 +27,8 @@ describe("Open-Meteo response mapping (ticket 03)", () => {
       cloudHighPercent: 2,
       weatherCode: 0,
       windSpeedKmh: 9,
+      // The captured fixture predates the precipitation variable.
+      precipitationMm: null,
     });
   });
 
@@ -71,6 +73,18 @@ describe("Open-Meteo response mapping (ticket 03)", () => {
     const mapped = mapWeatherResponse(kirunaFixture);
     expect(mapped.utcOffsetSeconds).toBe(7200);
     expect(mapped.timezone).toBe("Europe/Stockholm");
+  });
+
+  it("maps the current precipitation when the payload carries it, else reads null", () => {
+    // The captured fixture predates the precipitation variable (added with
+    // the Live alert's hindrance gates); a payload shaped like the live
+    // contract carries current.precipitation in mm.
+    const withPrecip = {
+      ...kirunaFixture,
+      current: { ...kirunaFixture.current, precipitation: 0.3 },
+    };
+    expect(mapWeatherResponse(withPrecip).current.precipitationMm).toBe(0.3);
+    expect(mapWeatherResponse(kirunaFixture).current.precipitationMm).toBeNull();
   });
 
   it("fails loudly when the offset or timezone is missing", () => {
@@ -161,7 +175,7 @@ describe("Open-Meteo weather fetch (ticket 03)", () => {
     expect(url.searchParams.get("latitude")).toBe("67.8558");
     expect(url.searchParams.get("longitude")).toBe("20.2253");
     expect(url.searchParams.get("current")).toBe(
-      "temperature_2m,relative_humidity_2m,cloud_cover,weather_code,wind_speed_10m",
+      "temperature_2m,relative_humidity_2m,cloud_cover,precipitation,weather_code,wind_speed_10m",
     );
     expect(url.searchParams.get("hourly")).toBe(
       "temperature_2m,relative_humidity_2m,cloud_cover,cloud_cover_low,cloud_cover_mid,cloud_cover_high,weather_code",

@@ -65,6 +65,7 @@ const savedWeather = (): WeatherData => ({
     cloudHighPercent: 2,
     weatherCode: 1,
     windSpeedKmh: 11,
+    precipitationMm: 0,
   },
   hourly: [
     {

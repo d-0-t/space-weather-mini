@@ -21,10 +21,21 @@ import {
 } from "./push-payload";
 import { matchKpEvents } from "./kp-events";
 import { matchDailyOutlook } from "./daily-outlook";
+import {
+  isFavorableWord,
+  matchLiveEvents,
+  sharedVerdictWord,
+  type LiveWeather,
+} from "./live-events";
 import type {
   PlanetaryKPoint,
   PlanetaryKForecastPoint,
 } from "../products/noaa-planetary-k-index";
+import type {
+  RtswWindPoint,
+  RtswMagFieldPoint,
+} from "../products/solar-wind";
+import type { PushPlace } from "./subscription-settings";
 
 /** What the endpoints answer with: just the HTTP status. */
 export interface HandlerResponse {
@@ -83,10 +94,15 @@ export async function handleSendTest(
   return { status: 200 };
 }
 
-/** The parsed NOAA legs the poll reads for the Kp alert. */
+/** The parsed NOAA legs the poll reads: the two Kp legs (the Kp alert) and
+ * the two L1 legs (the Live alert's shared verdict word, ticket 05). */
 export interface PollFeeds {
   observed: PlanetaryKPoint[];
   forecast: PlanetaryKForecastPoint[];
+  /** The 1-minute real-time solar wind rows (speed + density). */
+  wind: RtswWindPoint[];
+  /** The 1-minute real-time magnetic field rows (Bt, Bz GSM). */
+  mag: RtswMagFieldPoint[];
 }
 
 /** The poll's summary, logged per run. */
@@ -99,15 +115,20 @@ export interface PollSummary {
 
 /**
  * The scheduled poll: loads every stored subscription, polls the parsed
- * NOAA Kp legs and fans out the Kp alert's pokes plus the once-per-day
- * Daily outlook, deduped and gated by the chaser's own seen keys and
- * toggles. Feeds are read once and shared; a failed leg throws before the
- * store is touched, so the next poll retries cleanly.
+ * NOAA legs (the two Kp legs, and since ticket 05 the two L1 legs), fans
+ * out the Kp alert's pokes, the once-per-place-local-day Daily outlook and
+ * the Live alert's shared-word pokes, deduped and gated by the chaser's own
+ * seen keys and toggles. Feeds are read once and shared; a failed leg
+ * throws before the store is touched, so the next poll retries cleanly.
  */
 export async function runPoll(deps: {
   store: SubscriptionStore;
   send: PushSend;
   fetchFeeds: () => Promise<PollFeeds>;
+  /** The Open-Meteo weather at one chaser's stored place (the Live alert's
+   * gates). Read per live-enabled record with a favorable word, only when
+   * that leg can fire. */
+  fetchWeather: (place: PushPlace) => Promise<LiveWeather>;
   now?: number;
 }): Promise<PollSummary> {
   const feeds = await deps.fetchFeeds();
@@ -120,6 +141,8 @@ export async function runPoll(deps: {
     if (kp.pruned) continue;
     const daily = await fanOutDaily(record, { ...deps, feeds, now });
     sent += daily.sent;
+    const live = await fanOutLive(record, { ...deps, feeds, now });
+    sent += live.sent;
   }
   return { subscriptions: records.length, feeds, sent };
 }
@@ -244,4 +267,48 @@ async function fanOutDaily(
     now: deps.now,
   }).map((event) => ({ ...event, kind: "daily" as const }));
   return fanOutEvents(record, deps, events);
+}
+
+/**
+ * One record's Live alert fan-out (ticket 05): the shared verdict word is
+ * graded first, so a chaser whose word is not favorable is never weather-
+ * fetched; then the Open-Meteo weather at the chaser's own stored place
+ * feeds the gates, and the matcher decides against the seen keys. A failed
+ * weather fetch withholds the leg quietly – an unknown sky never pokes –
+ * and a live-toggled-off chaser is never fetched for at all.
+ */
+async function fanOutLive(
+  record: StoredSubscription,
+  deps: {
+    store: SubscriptionStore;
+    send: PushSend;
+    feeds: PollFeeds;
+    fetchWeather: (place: PushPlace) => Promise<LiveWeather>;
+    now: number;
+  },
+): Promise<LegOutcome> {
+  if (!record.settings.alertTypes.live) return { sent: 0, pruned: false };
+  const word = sharedVerdictWord({
+    observed: deps.feeds.observed,
+    wind: deps.feeds.wind,
+    mag: deps.feeds.mag,
+  });
+  if (!word || !isFavorableWord(word)) return { sent: 0, pruned: false };
+  let weather: LiveWeather | null = null;
+  try {
+    weather = await deps.fetchWeather(record.settings.place);
+  } catch {
+    weather = null;
+  }
+  const pokes = matchLiveEvents({
+    observed: deps.feeds.observed,
+    wind: deps.feeds.wind,
+    mag: deps.feeds.mag,
+    place: record.settings.place,
+    gates: record.settings.gates,
+    weather,
+    seenKeys: record.seenKeys,
+    now: deps.now,
+  }).map((event) => ({ ...event, kind: "live" as const }));
+  return fanOutEvents(record, deps, pokes);
 }

@@ -324,8 +324,11 @@ export function l1Word(
   return OVERALL_WORDS[rank];
 }
 
-/** The ladder in ascending order – the rank lookup for the max rule. */
-const OVERALL_WORDS: OverallWord[] = [
+/**
+ * The ladder in ascending order – the rank lookup for the max rule, shared
+ * with the Live alert's favorable-word comparison (ticket 05).
+ */
+export const OVERALL_WORDS: OverallWord[] = [
   "inactive",
   "faint",
   "moderate",

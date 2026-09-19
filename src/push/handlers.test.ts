@@ -18,6 +18,10 @@ import type {
   PlanetaryKPoint,
   PlanetaryKForecastPoint,
 } from "../products/noaa-planetary-k-index";
+import type { RtswWindPoint, RtswMagFieldPoint } from "../products/solar-wind";
+import { transitMinutes, addMinutes } from "../products/l1-readings";
+import type { LiveWeather } from "./live-events";
+import type { PushPlace } from "./subscription-settings";
 
 /** The send call boundary, typed so mock calls destructure without casts. */
 type SendFn = (
@@ -26,6 +30,17 @@ type SendFn = (
 ) => Promise<{ status: number }>;
 
 const send = vi.fn<SendFn>(async () => ({ status: 201 }));
+
+/**
+ * The weather dep the Live leg reads. The Kp and Daily scenarios carry no
+ * L1 rows, so the leg cannot form a favorable word and never reaches the
+ * weather fetch; a live leg that somehow did would surface as a surprise
+ * extra poke the exact seenKeys assertions catch.
+ */
+const fetchWeather = vi.fn(async () => ({
+  cloudCoverPercent: 10,
+  precipitationMm: 0,
+}));
 
 const validBody = {
   subscription: {
@@ -180,6 +195,8 @@ describe("the scheduled poll's Kp fan-out (ticket 03)", () => {
   const feeds = (observed: PlanetaryKPoint[], forecast: PlanetaryKForecastPoint[]): PollFeeds => ({
     observed,
     forecast,
+    wind: [],
+    mag: [],
   });
 
   const currentFeeds = () =>
@@ -188,7 +205,7 @@ describe("the scheduled poll's Kp fan-out (ticket 03)", () => {
       [forecastPoint("2026-09-19T03:00:00", 5.67)],
     );
 
-  const send = vi.fn<SendFn>(async () => ({ status: 201 }));
+const send = vi.fn<SendFn>(async () => ({ status: 201 }));
 
   /** A second poll reusing an already-subscribed store. */
   const repeatPoll = async (
@@ -202,6 +219,7 @@ describe("the scheduled poll's Kp fan-out (ticket 03)", () => {
       summary: await runPoll({
         store,
         send,
+        fetchWeather,
         fetchFeeds: vi.fn(async () => feeds),
         now,
       }),
@@ -218,6 +236,7 @@ describe("the scheduled poll's Kp fan-out (ticket 03)", () => {
       summary: await runPoll({
         store,
         send,
+        fetchWeather,
         fetchFeeds: vi.fn(async () => feeds),
         now,
       }),
@@ -305,6 +324,7 @@ describe("the scheduled poll's Kp fan-out (ticket 03)", () => {
     const summary = await runPoll({
       store,
       send,
+      fetchWeather,
       fetchFeeds: vi.fn(async () => currentFeeds()),
       now: NOW,
     });
@@ -320,6 +340,7 @@ describe("the scheduled poll's Kp fan-out (ticket 03)", () => {
     const summary = await runPoll({
       store,
       send: gone,
+      fetchWeather,
       fetchFeeds: vi.fn(async () => currentFeeds()),
       now: NOW,
     });
@@ -336,6 +357,7 @@ describe("the scheduled poll's Kp fan-out (ticket 03)", () => {
     await runPoll({
       store,
       send: failing,
+      fetchWeather,
       fetchFeeds: vi.fn(async () => currentFeeds()),
       now: NOW,
     });
@@ -368,7 +390,7 @@ describe("the scheduled poll's Daily outlook fan-out (ticket 04)", () => {
   const feeds = (
     observed: PlanetaryKPoint[],
     forecast: PlanetaryKForecastPoint[],
-  ): PollFeeds => ({ observed, forecast });
+  ): PollFeeds => ({ observed, forecast, wind: [], mag: [] });
 
   /** Quiet observed leg; the forecast breaches tonight at Luleå. */
   const tonightFeeds = () =>
@@ -397,6 +419,7 @@ describe("the scheduled poll's Daily outlook fan-out (ticket 04)", () => {
       summary: await runPoll({
         store,
         send,
+        fetchWeather,
         fetchFeeds: vi.fn(async () => pollFeeds),
         now,
       }),
@@ -428,6 +451,7 @@ describe("the scheduled poll's Daily outlook fan-out (ticket 04)", () => {
     const summary = await runPoll({
       store: first.store,
       send,
+      fetchWeather,
       fetchFeeds: vi.fn(async () => tonightFeeds()),
       now: Date.parse("2026-09-18T08:00:00Z"),
     });
@@ -485,6 +509,7 @@ describe("the scheduled poll's Daily outlook fan-out (ticket 04)", () => {
     await runPoll({
       store,
       send: failing,
+      fetchWeather,
       fetchFeeds: vi.fn(async () => tonightFeeds()),
       now: MORNING,
     });
@@ -492,6 +517,7 @@ describe("the scheduled poll's Daily outlook fan-out (ticket 04)", () => {
     const retried = await runPoll({
       store,
       send,
+      fetchWeather,
       fetchFeeds: vi.fn(async () => tonightFeeds()),
       now: Date.parse("2026-09-18T08:00:00Z"),
     });
@@ -509,6 +535,7 @@ describe("the scheduled poll's Daily outlook fan-out (ticket 04)", () => {
     const summary = await runPoll({
       store,
       send: gone,
+      fetchWeather,
       fetchFeeds: vi.fn(async () => tonightFeeds()),
       now: MORNING,
     });
@@ -536,6 +563,247 @@ describe("the scheduled poll's Daily outlook fan-out (ticket 04)", () => {
     expect(stored.seenKeys).toEqual([
       "noaa-planetary-k-index-forecast|2026-09-18T21:00:00|Kp5",
       "daily-outlook|2026-09-18",
+    ]);
+  });
+});
+
+describe("the scheduled poll's Live fan-out (ticket 05)", () => {
+  const NOW = Date.parse("2026-09-18T18:30:00Z");
+
+  const observedPoint = (timeTag: string, kp: number): PlanetaryKPoint => ({
+    time_tag: timeTag,
+    Kp: kp,
+    a_running: 0,
+    station_count: 8,
+  });
+
+  const forecastPoint = (timeTag: string, kp: number): PlanetaryKForecastPoint => ({
+    time_tag: timeTag,
+    kp,
+    observed: "predicted",
+    noaa_scale: null,
+  });
+
+  /**
+   * The reading arriving at Earth now: the freshest 1-min measurement at
+   * 18:20 UTC, the averaged anchor `transit` minutes behind it – a row on
+   * both instants keeps the 5-minute average alive.
+   */
+  const windRows = (speed = 500, density = 5): RtswWindPoint[] => {
+    const freshest = "2026-09-18T18:20:00";
+    const anchor = `${addMinutes(freshest, -transitMinutes(speed))}:00`;
+    return [
+      { time_tag: anchor, speed, density, source: "IMAP" },
+      { time_tag: freshest, speed, density, source: "IMAP" },
+    ];
+  };
+
+  const magRows = (bz: number, speed = 500): RtswMagFieldPoint[] => {
+    const freshest = "2026-09-18T18:20:00";
+    const anchor = `${addMinutes(freshest, -transitMinutes(speed))}:00`;
+    return [
+      { time_tag: anchor, bt: 18, bz_gsm: bz },
+      { time_tag: freshest, bt: 18, bz_gsm: bz },
+    ];
+  };
+
+  const LULEÅ: PushPlace = {
+    latitude: 65.5848,
+    longitude: 22.1546,
+    shortName: "Luleå",
+  };
+
+  /** Clear, dry weather the gates pass. */
+  const clearWeather = (): LiveWeather => ({
+    cloudCoverPercent: 10,
+    precipitationMm: 0,
+  });
+
+  /** Live-only feeds: quiet Kp legs, favorable L1 (southward, fast). */
+  const liveFeeds = (): PollFeeds => ({
+    observed: [observedPoint("2026-09-18T18:00:00", 4.33)],
+    forecast: [],
+    wind: windRows(),
+    mag: magRows(-15),
+  });
+
+  /** A live-only subscriber with daytime-permissive darkness. */
+  const liveBody = {
+    ...validBody,
+    place: { ...LULEÅ },
+    gates: { cloudMaxPercent: 50, noPrecipitation: true, darknessBand: "any" },
+  };
+
+  const freshLivePoll = async (
+    body: object = liveBody,
+    pollFeeds: PollFeeds = liveFeeds(),
+    now: number = NOW,
+  ) => {
+    const { store } = memoryDeps();
+    await handleSubscribe(body, { store, now: 1000 });
+    send.mockClear();
+    const fetchWeather = vi.fn(async () => clearWeather());
+    const summary = await runPoll({
+      store,
+      send,
+      fetchWeather,
+      fetchFeeds: vi.fn(async () => pollFeeds),
+      now,
+    });
+    return { store, summary, fetchWeather };
+  };
+
+  it("sends the live poke at the live kind's hour TTL, keyed live|slot|word", async () => {
+    const { store, summary } = await freshLivePoll();
+    expect(summary.sent).toBe(1);
+    expect(send).toHaveBeenCalledTimes(1);
+    const [record, payload] = send.mock.calls[0];
+    expect(record.settings.subscription.endpoint).toBe(
+      "https://push.example/subscriptions/a",
+    );
+    expect(payload).toMatchObject({
+      title: "Aurora looks strong at Luleå",
+      body: "The shared verdict word turned strong; the sky at Luleå passes your gates.",
+      key: "live|2026-09-18T18:00:00|strong",
+      ttlSeconds: 60 * 60,
+    });
+    const stored = (await store.loadAll())[0];
+    expect(stored.seenKeys).toEqual(["live|2026-09-18T18:00:00|strong"]);
+  });
+
+  it("sends nothing on a repeat poll of the same conditions", async () => {
+    const first = await freshLivePoll();
+    expect(first.summary.sent).toBe(1);
+    send.mockClear();
+    const summary = await runPoll({
+      store: first.store,
+      send,
+      fetchFeeds: vi.fn(async () => liveFeeds()),
+      fetchWeather: vi.fn(async () => clearWeather()),
+      now: Date.parse("2026-09-18T18:35:00Z"),
+    });
+    expect(send).not.toHaveBeenCalled();
+    expect(summary.sent).toBe(0);
+  });
+
+  it("sends nothing for a chaser with the live alert toggled off, without fetching weather", async () => {
+    const { summary, fetchWeather } = await freshLivePoll({
+      ...liveBody,
+      alertTypes: { daily: false, kp: false, live: false },
+    });
+    expect(send).not.toHaveBeenCalled();
+    expect(summary.sent).toBe(0);
+    expect(fetchWeather).not.toHaveBeenCalled();
+  });
+
+  it("does not fetch weather for a chaser whose word stays below favorable", async () => {
+    // A northward field with a slow stream caps the word at faint.
+    const { fetchWeather } = await freshLivePoll(
+      liveBody,
+      {
+        observed: [observedPoint("2026-09-18T18:00:00", 4.33)],
+        forecast: [],
+        wind: windRows(300),
+        mag: magRows(5),
+      },
+      NOW,
+    );
+    expect(send).not.toHaveBeenCalled();
+    expect(fetchWeather).not.toHaveBeenCalled();
+  });
+
+  it("stays silent when the weather fetch fails, while the Kp leg still fires", async () => {
+    const failingWeather = vi.fn(async () => {
+      throw new Error("Open-Meteo returned 500");
+    });
+    const { store } = memoryDeps();
+    await handleSubscribe(validBody, { store, now: 1000 });
+    send.mockClear();
+    const summary = await runPoll({
+      store,
+      send,
+      fetchWeather: failingWeather,
+      fetchFeeds: vi.fn(async () => ({
+        observed: [observedPoint("2026-09-18T18:00:00", 5.33)],
+        forecast: [],
+        wind: windRows(),
+        mag: magRows(-15),
+      })),
+      now: NOW,
+    });
+    expect(summary.sent).toBe(1);
+    expect(send.mock.calls[0][1].title).toBe("Kp 5.33 Observed");
+    expect(failingWeather).toHaveBeenCalledTimes(1);
+    const stored = (await store.loadAll())[0];
+    expect(stored.seenKeys).toEqual([
+      "noaa-planetary-k-index|2026-09-18T18:00:00|Kp5",
+    ]);
+  });
+
+  it("records no live key when the gates withhold the poke", async () => {
+    const { store, summary, fetchWeather } = await freshLivePoll(
+      liveBody,
+      liveFeeds(),
+      NOW,
+    );
+    void summary;
+    expect(fetchWeather).toHaveBeenCalledTimes(1);
+    expect(send).toHaveBeenCalledTimes(1);
+    // The sky closes at the chaser's own cloud limit: nothing pokes, and the
+    // withheld moment records nothing.
+    send.mockClear();
+    await runPoll({
+      store,
+      send,
+      fetchFeeds: vi.fn(async () => liveFeeds()),
+      fetchWeather: vi.fn(async () => ({
+        cloudCoverPercent: 50,
+        precipitationMm: 0,
+      })),
+      now: Date.parse("2026-09-18T18:40:00Z"),
+    });
+    expect(send).not.toHaveBeenCalled();
+    const stored = (await store.loadAll())[0];
+    expect(stored.seenKeys).toEqual(["live|2026-09-18T18:00:00|strong"]);
+    // A fresh subscription under the closed sky never pokes nor records.
+    const fresh = memoryDeps();
+    await handleSubscribe(liveBody, { store: fresh.store, now: 1000 });
+    const blockedSend = vi.fn<SendFn>(async () => ({ status: 201 }));
+    await runPoll({
+      store: fresh.store,
+      send: blockedSend,
+      fetchFeeds: vi.fn(async () => liveFeeds()),
+      fetchWeather: vi.fn(async () => ({
+        cloudCoverPercent: 50,
+        precipitationMm: 0,
+      })),
+      now: NOW,
+    });
+    expect(blockedSend).not.toHaveBeenCalled();
+    expect((await fresh.store.loadAll())[0].seenKeys).toEqual([]);
+  });
+
+  it("fans the Kp and live pokes out of one poll and keeps both keys", async () => {
+    const { store, summary } = await freshLivePoll(
+      liveBody,
+      {
+        observed: [observedPoint("2026-09-18T18:00:00", 5.33)],
+        forecast: [],
+        wind: windRows(),
+        mag: magRows(-15),
+      },
+      NOW,
+    );
+    expect(summary.sent).toBe(2);
+    const payloads = send.mock.calls.map(([, payload]) => payload);
+    expect(payloads.map((p) => p.title).sort()).toEqual([
+      "Aurora looks strong at Luleå",
+      "Kp 5.33 Observed",
+    ]);
+    const stored = (await store.loadAll())[0];
+    expect(stored.seenKeys).toEqual([
+      "noaa-planetary-k-index|2026-09-18T18:00:00|Kp5",
+      "live|2026-09-18T18:00:00|strong",
     ]);
   });
 });

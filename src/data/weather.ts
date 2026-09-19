@@ -22,6 +22,12 @@ export interface WeatherCurrent {
   cloudHighPercent: number;
   weatherCode: number;
   windSpeedKmh: number;
+  /**
+   * Precipitation in mm over the past hour, or null when the payload
+   * predates the variable (the Live alert's hindrance gates read it; the
+   * weather card does not render it yet).
+   */
+  precipitationMm: number | null;
 }
 
 export interface WeatherHour {
@@ -75,7 +81,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 
 /** The documented `current` variables of the single-call contract. */
 const CURRENT_VARIABLES =
-  "temperature_2m,relative_humidity_2m,cloud_cover,weather_code,wind_speed_10m";
+  "temperature_2m,relative_humidity_2m,cloud_cover,precipitation,weather_code,wind_speed_10m";
 
 /** The documented `hourly` variables of the single-call contract. */
 const HOURLY_VARIABLES =
@@ -94,6 +100,19 @@ const numberField = (block: Record<string, unknown>, field: string): number => {
     throw new Error(`Open-Meteo ${field} is not a finite number`);
   }
   return value;
+};
+
+/**
+ * Number of an optional field, null when the payload predates the variable
+ * (the Live alert's gates read current precipitation; the captured fixture
+ * predates it). Unknown stays null – never zero.
+ */
+const numberFieldOrNull = (
+  block: Record<string, unknown>,
+  field: string,
+): number | null => {
+  const value = block[field];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 };
 
 /** Numeric array of a required field, throwing on a shape change. */
@@ -237,6 +256,7 @@ export function mapWeatherResponse(raw: unknown): WeatherPayload {
       cloudHighPercent: splitHour.cloudHighPercent,
       weatherCode: numberField(current, "weather_code"),
       windSpeedKmh: numberField(current, "wind_speed_10m"),
+      precipitationMm: numberFieldOrNull(current, "precipitation"),
     },
     hourly: hours,
     daily: dailyTimes.slice(0, DAYS_IN_ROW).map((date, i) => ({
