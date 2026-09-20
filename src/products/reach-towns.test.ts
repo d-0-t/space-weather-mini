@@ -147,3 +147,81 @@ describe("selectReachTowns", () => {
     ]);
   });
 });
+
+describe("selectReachTowns webcam bypass", () => {
+  const webcamTowns = new Set(["NO/Kiruna", "NO/Skibotn", "SE/Abisko"]);
+
+  it("keeps every webcam town of a country and band, not only the largest margin", () => {
+    // Kp 5 (edge 56): Skibotn's 11.02 margin beats Kiruna's 9.66 in the
+    // Norway very-likely slot; as webcam towns both survive alongside
+    // Sweden's Abisko, and guide-only Oslo keeps its likely slot.
+    const result = selectReachTowns(
+      [
+        city("Skibotn", "Norway", "NO", 67.02), // webcam, very likely 11.02
+        city("Kiruna", "Norway", "NO", 65.66), // webcam, very likely 9.66
+        city("Abisko", "Sweden", "SE", 66.32), // webcam, very likely 10.32
+        city("Oslo", "Norway", "NO", 59.67), // guide, likely 3.67
+      ],
+      5,
+      DARK,
+      webcamTowns,
+    );
+    expect(result.map((town) => town.city)).toEqual([
+      "Skibotn",
+      "Abisko",
+      "Kiruna",
+      "Oslo",
+    ]);
+  });
+
+  it("keeps the guide dedup for non-webcam towns even when a webcam town shares the country", () => {
+    // Oslo is Norway's best guide likely margin, so Alta loses its guide
+    // slot even though the webcam town rides beside them.
+    const result = selectReachTowns(
+      [
+        city("Kiruna", "Norway", "NO", 65.66), // webcam, very likely 9.66
+        city("Oslo", "Norway", "NO", 59.67), // guide, likely 3.67
+        city("Alta", "Norway", "NO", 59.17), // guide, likely 3.17 – loses to Oslo
+      ],
+      5,
+      DARK,
+      webcamTowns,
+    );
+    expect(result.map((town) => town.city)).toEqual(["Kiruna", "Oslo"]);
+  });
+
+  it("lets webcam towns ride past the 12-row guide cap", () => {
+    // 15 guide towns from distinct countries (12-row cap applies) plus 2
+    // webcam towns with the weakest margins – all 14 rows come back.
+    const many = Array.from({ length: 15 }, (_, i) =>
+      city(
+        `Town${String(i).padStart(2, "0")}`,
+        `Country${i}`,
+        "XX",
+        66 + i * 0.1,
+      ),
+    );
+    const result = selectReachTowns(
+      [...many, city("WeakCam1", "Camland", "NO", 56.2), city("WeakCam2", "Camland2", "SE", 56.1)],
+      5,
+      DARK,
+      new Set(["NO/WeakCam1", "SE/WeakCam2"]),
+    );
+    expect(result.map((town) => town.city)).toContain("WeakCam1");
+    expect(result.map((town) => town.city)).toContain("WeakCam2");
+    expect(result).toHaveLength(14);
+  });
+
+  it("still applies eligibility to webcam towns: out of reach or lit means absent", () => {
+    const result = selectReachTowns(
+      [
+        city("SouthCam", "Camland", "NO", 50), // margin −6: equatorward
+        city("LitCam", "Camland2", "SE", 60), // in reach but lit
+      ],
+      5,
+      (town) => (town.city === "LitCam" ? -11.99 : -20),
+      webcamTowns,
+    );
+    expect(result).toEqual([]);
+  });
+});

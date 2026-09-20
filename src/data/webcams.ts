@@ -69,6 +69,8 @@ export interface WebcamImageEntry {
   id: string;
   /** Station name, e.g. "Tromsø AI – Tromsø". */
   name: string;
+  /** The Reach towns town (data/reach-cities.ts) the cam belongs to – exact match against that file's `city`, e.g. "Tromsø". */
+  city: string;
   /** Filter bucket; the card tag shows `country` instead. */
   region: WebcamRegion;
   /** Display country/locale for the card tag, e.g. "Norway", "Alaska, US". */
@@ -117,6 +119,8 @@ export interface WebcamLiveEntry {
   type: "live";
   id: string;
   name: string;
+  /** The Reach towns town (data/reach-cities.ts) the cam belongs to – exact match against that file's `city`. */
+  city: string;
   region: WebcamRegion;
   /** Display country/locale for the card tag, e.g. "Alaska, US". */
   country: string;
@@ -160,6 +164,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "irf-kiruna",
     country: "Sweden",
     name: "Kiruna (IRF)", //"IRF Kiruna all-sky (KAGO)",
+    city: "Kiruna",
     region: "Nordic",
     latitude: 67.8,
     longitude: 20.42,
@@ -178,6 +183,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "uec-tromso",
     country: "Norway",
     name: "Tromsø", //"Tromsø AI – Tromsø",
+    city: "Tromsø",
     region: "Nordic",
     latitude: 69.6,
     longitude: 18.96,
@@ -196,6 +202,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "uec-abisko",
     country: "Sweden",
     name: "Abisko", //"Tromsø AI – Abisko",
+    city: "Abisko",
     region: "Nordic",
     latitude: 68.3,
     longitude: 18.83,
@@ -214,6 +221,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "uec-kiruna",
     country: "Sweden",
     name: "Kiruna (UEC)", //"Tromsø AI – Kiruna",
+    city: "Kiruna",
     region: "Nordic",
     latitude: 67.8,
     operator: "UEC - Tromsø AI", //"UEC (Univ. of Electro-Communications)",
@@ -231,6 +239,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "uec-skibotn",
     country: "Norway",
     name: "Skibotn (UEC)", //"Tromsø AI – Skibotn",
+    city: "Skibotn",
     region: "Nordic",
     latitude: 69.4,
     operator: "UEC - Tromsø AI", //"UEC (Univ. of Electro-Communications)",
@@ -248,6 +257,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "tgo-asc01",
     country: "Norway",
     name: "Skibotn (UiT)", //"TGO All-Sky ASC01",
+    city: "Skibotn",
     region: "Nordic",
     latitude: 69.4,
     operator: "UiT - Tromsø GO", //"Tromsø Geophysical Observatory (UiT)",
@@ -264,6 +274,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "tgo-bacc5",
     country: "Norway",
     name: "Skibotn (UiT) Color", //"TGO BACC colour cam",
+    city: "Skibotn",
     region: "Nordic",
     latitude: 69.4,
     operator: "UiT - Tromsø GO", //"Tromsø Geophysical Observatory (UiT)",
@@ -314,6 +325,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "jokkmokk-nr3",
     country: "Sweden",
     name: "Porjus (Jokkmokk) #3 - West",
+    city: "Porjus",
     region: "Nordic",
     latitude: 66.9,
     longitude: 19.83,
@@ -331,6 +343,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "jokkmokk-nr4",
     country: "Sweden",
     name: "Porjus (Jokkmokk) #4 - North",
+    city: "Porjus",
     region: "Nordic",
     latitude: 66.9,
     longitude: 19.83,
@@ -348,6 +361,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "jokkmokk-nr5",
     country: "Sweden",
     name: "Porjus (Jokkmokk) #5 - East",
+    city: "Porjus",
     region: "Nordic",
     latitude: 66.9,
     longitude: 19.83,
@@ -365,6 +379,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "fmi-hankasalmi",
     country: "Finland",
     name: "Hankasalmi", //"FMI AuroraSnow – Hankasalmi",
+    city: "Hankasalmi",
     region: "Nordic",
     latitude: 62.3,
     longitude: 26.43,
@@ -383,6 +398,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "fmi-nyrola",
     country: "Finland",
     name: "Nyrölä", // "FMI AuroraSnow – Nyrölä",
+    city: "Nyrölä",
     region: "Nordic",
     latitude: 62.2,
     operator: "FMI", // "Finnish Meteorological Institute (FMI)",
@@ -399,6 +415,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "fmi-kirkkonummi",
     country: "Finland",
     name: "Kirkkonummi", //"FMI AuroraSnow – Kirkkonummi",
+    city: "Kirkkonummi",
     region: "Nordic",
     latitude: 60.1,
     operator: "FMI", // "Finnish Meteorological Institute (FMI)",
@@ -415,6 +432,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "panomax-nordkapp",
     country: "Norway",
     name: "Nordkapp", // "Panomax – Nordkapp",
+    city: "Nordkapp",
     region: "Nordic",
     latitude: 71.2,
     operator: "Panomax GmbH",
@@ -433,6 +451,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "panomax-loen",
     country: "Norway",
     name: "Loen", // "Panomax – Loen",
+    city: "Loen",
     region: "Nordic",
     latitude: 61.9,
     operator: "Panomax GmbH",
@@ -451,6 +470,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "yrno-setermoen",
     country: "Norway",
     name: "Setermoen", // "yr.no – Setermoen",
+    city: "Setermoen",
     region: "Nordic",
     latitude: 68.9,
     operator: "MET Norway",
@@ -467,6 +487,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "yrno-ortneset",
     country: "Norway",
     name: "Brekke/Orneset", //"yr.no – Brekke/Orneset",
+    city: "Brekke",
     region: "Nordic",
     latitude: 61.1,
     operator: "MET Norway",
@@ -483,6 +504,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "yrno-finnsnes",
     country: "Norway",
     name: "Finnsnes", //"yr.no – Finnsnes",
+    city: "Finnsnes",
     region: "Nordic",
     latitude: 69.2,
     operator: "MET Norway",
@@ -499,6 +521,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "yrno-skjervoy",
     country: "Norway",
     name: "Skjervøy", //"yr.no – Skjervøy",
+    city: "Skjervøy",
     region: "Nordic",
     latitude: 70.0,
     operator: "MET Norway",
@@ -515,6 +538,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "yrno-risoyhamn",
     country: "Norway",
     name: "Risøyhamn", //"yr.no – Risøyhamn",
+    city: "Risøyhamn",
     region: "Nordic",
     latitude: 69.0,
     operator: "MET Norway (yr.no)",
@@ -531,6 +555,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "sgo-sodankyla",
     country: "Finland",
     name: "Sodankylä",
+    city: "Sodankylä",
     region: "Nordic",
     latitude: 67.4,
     operator: "SGO", // "Sodankylä Geophysical Observatory (SGO)",
@@ -547,6 +572,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "syrjavaara",
     country: "Finland",
     name: "Syrjävaara", // "Syrjävaara Dark Sky Park all-sky",
+    city: "Syrjävaara",
     region: "Nordic",
     latitude: 63.0,
     operator: "Syrjävaara Dark Sky Park",
@@ -565,6 +591,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "auroramax",
     country: "Canada",
     name: "Yellowknife", // "AuroraMAX – Yellowknife",
+    city: "Yellowknife",
     region: "North America",
     latitude: 62.4,
     longitude: -114.37,
@@ -582,6 +609,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "trex-gillam",
     country: "Canada",
     name: "Gillam", // "TREx RGB – Gillam",
+    city: "Gillam",
     region: "North America",
     latitude: 56.4,
     longitude: -94.71,
@@ -601,6 +629,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "trex-pinawa",
     country: "Canada",
     name: "Pinawa", // "TREx RGB – Pinawa",
+    city: "Pinawa",
     region: "North America",
     latitude: 50.2,
     longitude: -95.88,
@@ -620,6 +649,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "trex-rabbit-lake",
     country: "Canada",
     name: "Rabbit Lake, SK", //"TREx RGB – Rabbit Lake",
+    city: "Rabbit Lake",
     region: "North America",
     latitude: 58.2,
     longitude: -103.71,
@@ -639,6 +669,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "smile-kapuskasing",
     country: "Canada",
     name: "Kapuskasing", //"SMILE ASI – Kapuskasing",
+    city: "Kapuskasing",
     region: "North America",
     latitude: 49.4,
     longitude: -82.4,
@@ -658,6 +689,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "smile-rankin-inlet",
     country: "Canada",
     name: "Rankin Inlet", // "SMILE ASI – Rankin Inlet",
+    city: "Rankin Inlet",
     region: "North America",
     latitude: 62.8,
     operator: "UCalgary AIG", // "UCalgary Auroral Imaging Group",
@@ -695,6 +727,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "nps-isle-royale",
     country: "US",
     name: "Isle Royale - North Shore", // "NPS Isle Royale – Northshore",
+    city: "Isle Royale",
     region: "North America",
     latitude: 48.0,
     longitude: -88.6,
@@ -750,6 +783,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "starvisor-kaliningrad",
     country: "Russia",
     name: "Kaliningrad", // "Starvisor – Kaliningrad",
+    city: "Kaliningrad",
     region: "Russia",
     latitude: 54.7,
     longitude: 20.5,
@@ -769,6 +803,7 @@ export const webcamRegistry: WebcamEntry[] = [
     id: "uaf-poker-flat",
     country: "Alaska, US",
     name: "Poker Flat, Alaska", // "UAF Allsky Aurora Camera – Poker Flat",
+    city: "Fairbanks",
     region: "North America",
     latitude: 65.1,
     operator: "UAF GI", //"Geophysical Institute, Univ. of Alaska Fairbanks",
@@ -1015,3 +1050,38 @@ export const CURATED_WEBCAM_IDS: readonly string[] = [
   "nps-isle-royale",
   "starvisor-kaliningrad",
 ];
+
+/**
+ * The image and live cams of one Reach towns town (data/reach-cities.ts),
+ * identified by the town's flag code + city – the pair the reach list
+ * renders with, where the cam's own country string ("Alaska, US", "UK")
+ * maps through WEBCAM_COUNTRY_CODES. Link rows and the Twitch embed never
+ * show a picture, so they stay out: the Possible locations panel's camera
+ * icon must never open a modal without an image.
+ */
+export function webcamsForTown(
+  countryCode: string,
+  city: string,
+): (WebcamImageEntry | WebcamLiveEntry)[] {
+  return webcamRegistry.filter(
+    (entry): entry is WebcamImageEntry | WebcamLiveEntry =>
+      (entry.type === "image" || entry.type === "live") &&
+      webcamCountryCode(entry.country) === countryCode &&
+      entry.city === city,
+  );
+}
+
+/**
+ * The `${countryCode}/${city}` key of every town that owns an image or live
+ * cam – the exact pair the reach selection (products/reach-towns.ts) checks
+ * so webcam towns bypass the guide's one-per-band-per-country dedup: a cam
+ * town must never be crowded out of the Possible locations list by a
+ * same-country neighbour with a bigger margin.
+ */
+export const WEBCAM_TOWN_KEYS: ReadonlySet<string> = new Set(
+  webcamRegistry.flatMap((entry) =>
+    entry.type === "image" || entry.type === "live"
+      ? [`${webcamCountryCode(entry.country)}/${entry.city}`]
+      : [],
+  ),
+);

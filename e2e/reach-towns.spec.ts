@@ -125,7 +125,7 @@ test("names the towns in reach for the current Kp in the Possible locations pane
   ).toBe(true);
 });
 
-test("renders at most one town per band per country, capped at 12 rows", async ({
+test("renders the guide deduped one per band per country, webcam towns uncapped", async ({
   page,
 }) => {
   await openHome(page, "2026-12-21T12:00:00Z");
@@ -137,11 +137,16 @@ test("renders at most one town per band per country, capped at 12 rows", async (
       band: Array.from(
         item.querySelector(".reach-towns__probability")?.classList ?? [],
       ).find((cls) => cls.startsWith("reach-towns__probability--")),
+      // A camera button marks a webcam town: those bypass the guide
+      // dedup (the icon must never be crowded out), so only the
+      // buttonless guide rows carry the one-per-band-per-country rule.
+      webcam: item.querySelector(".reach-towns__camera") !== null,
     })),
   );
   expect(rows.length).toBeGreaterThan(0);
-  expect(rows.length).toBeLessThanOrEqual(12);
-  const bandPerCountry = rows.map((row) => `${row.country}/${row.band}`);
+  const guide = rows.filter((row) => !row.webcam);
+  expect(guide.length).toBeLessThanOrEqual(12);
+  const bandPerCountry = guide.map((row) => `${row.country}/${row.band}`);
   expect(new Set(bandPerCountry).size).toBe(bandPerCountry.length);
 });
 

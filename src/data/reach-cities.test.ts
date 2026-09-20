@@ -17,10 +17,13 @@ const IGRF_SPOT_CHECKS: Record<string, number> = {
 };
 
 describe("reach city data", () => {
-  it("stays inside the 45-70 degree |geomagnetic latitude| window", () => {
+  it("stays inside the 45-72 degree |geomagnetic latitude| window", () => {
+    // The curated guide window is 45-70; Rankin Inlet (the SMILE ASI
+    // webcam station) rides just past it at 71.26, so the table's hard
+    // bound is 72.
     for (const city of REACH_CITIES) {
       expect(Math.abs(city.mlat), city.city).toBeGreaterThanOrEqual(45);
-      expect(Math.abs(city.mlat), city.city).toBeLessThanOrEqual(70);
+      expect(Math.abs(city.mlat), city.city).toBeLessThanOrEqual(72);
     }
   });
 

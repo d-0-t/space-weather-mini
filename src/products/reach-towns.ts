@@ -74,20 +74,29 @@ const PROBABILITY_ORDER: Record<ReachProbability, number> = {
 
 /**
  * The ranked Reach towns for one instant: towns at or poleward of the
- * Tips edge whose sun is at or below −12°, at most one per band per
- * country (largest margin wins, ties alphabetical), ordered by band,
- * then margin descending, then city name, and capped at
- * `REACH_TOWNS_LIMIT` rows. `sunElevationDegrees` is the injected solar
+ * Tips edge whose sun is at or below −12°, ordered by band, then margin
+ * descending, then city name. `sunElevationDegrees` is the injected solar
  * model (the component passes data/sun.ts); a town in daylight or bright
  * twilight never appears.
+ *
+ * Two tiers share that one ranking. Webcam towns (`webcamTowns`, the
+ * `${countryCode}/${city}` keys of the image/live cam owners in
+ * data/webcams.ts) bypass the guide's one-town-per-band-per-country dedup
+ * and are never cut by the cap: every webcam town in reach shows, so the
+ * panel's camera icon is never crowded out by a same-country neighbour
+ * with a larger margin. The other guide towns keep the diversity rule –
+ * at most one per band per country (largest margin wins, ties
+ * alphabetical) – and their rows carry the 12-row guide cap.
  */
 export function selectReachTowns(
   cities: readonly ReachCity[],
   kp: number,
   sunElevationDegrees: (city: ReachCity) => number,
+  webcamTowns?: ReadonlySet<string>,
 ): ReachTown[] {
   const edge = reachEdge(kp);
   const bestPerBandAndCountry = new Map<string, ReachTown>();
+  const webcamRows: ReachTown[] = [];
   for (const entry of cities) {
     const margin = Math.abs(entry.mlat) - edge;
     const probability = probabilityBand(margin);
@@ -100,6 +109,10 @@ export function selectReachTowns(
       margin,
       probability,
     };
+    if (webcamTowns?.has(`${entry.countryCode}/${entry.city}`)) {
+      webcamRows.push(town);
+      continue;
+    }
     const key = `${probability}/${entry.country}`;
     const current = bestPerBandAndCountry.get(key);
     if (
@@ -111,12 +124,12 @@ export function selectReachTowns(
       bestPerBandAndCountry.set(key, town);
     }
   }
-  return [...bestPerBandAndCountry.values()]
-    .sort(
-      (a, b) =>
-        PROBABILITY_ORDER[a.probability] - PROBABILITY_ORDER[b.probability] ||
-        b.margin - a.margin ||
-        a.city.localeCompare(b.city),
-    )
+  const rank = (a: ReachTown, b: ReachTown) =>
+    PROBABILITY_ORDER[a.probability] - PROBABILITY_ORDER[b.probability] ||
+    b.margin - a.margin ||
+    a.city.localeCompare(b.city);
+  const guide = [...bestPerBandAndCountry.values()]
+    .sort(rank)
     .slice(0, REACH_TOWNS_LIMIT);
+  return [...guide, ...webcamRows].sort(rank);
 }

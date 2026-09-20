@@ -1,7 +1,8 @@
 // Reach towns – the global town list under the Kp block in Aurora now
-// (CONTEXT.md "Reach towns"). Each row is ranked bars + flag + city; the
-// band color is redundant only (the filled-bar count is the ordinal), so
-// no red/green good-bad semantics ride on it.
+// (CONTEXT.md "Reach towns"). Each row is ranked bars + flag + city, plus
+// the camera icon button when the town owns a webcam (data/webcams.ts);
+// the band color is redundant only (the filled-bar count is the ordinal),
+// so no red/green good-bad semantics ride on it.
 .reach-towns {
   margin: 0 0 0.75rem;
 
@@ -55,24 +56,11 @@
       padding: 1px;
       line-height: 0;
     }
-
-    &--possible {
-      color: var(--color-orange);
-    }
-
-    &--likely {
-      color: var(--color-gold);
-    }
-
-    &--very-likely {
-      color: var(--color-light-lime);
-    }
   }
 
   &__town {
     border: 1px solid white;
     border-radius: 8px;
-    padding: 0 6px 0 0px;
     background-color: var(--color-black);
     background: var(--gradient-card-transparent);
     border-width: 2px;
@@ -80,14 +68,17 @@
     &--possible {
       border-color: color-mix(in srgb, var(--color-orange) 50%, transparent);
       border-style: dotted;
+      color: var(--color-orange);
     }
 
     &--likely {
       border-color: color-mix(in srgb, var(--color-gold) 60%, transparent);
       border-style: dashed;
+      color: var(--color-gold);
     }
 
     &--very-likely {
+      color: var(--color-light-lime);
       border-color: color-mix(
         in srgb,
         var(--color-light-lime) 50%,
@@ -102,5 +93,33 @@
 
   &__city {
     overflow-wrap: anywhere;
+    color: var(--color-white);
+    margin-right: 0.25rem;
+  }
+
+  // The town's webcam opener: camera glyph at the row's right end, a real
+  // button (pointer cursor) that opens the town's webcam dialog. Muted at
+  // rest, gold on hover; the global button:focus-visible outline marks
+  // keyboard focus.
+  &__camera {
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    padding: 0px;
+    line-height: 0;
+    border: 0;
+    min-height: 32px;
+    min-width: 32px;
+    margin-left: -20px;
+    padding-left: 20px;
+    padding-right: 0.25rem;
+
+    background: none;
+    color: inherit;
+    opacity: 0.75;
+
+    &:hover {
+      color: var(--color-white);
+    }
   }
 }

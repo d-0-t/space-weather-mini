@@ -4,6 +4,7 @@ import {
   CURATED_WEBCAM_IDS,
   webcamRegistry,
   webcamCountryCode,
+  webcamsForTown,
   WEBCAM_REGION_ORDER,
   type WebcamEntry,
   type WebcamImageEntry,
@@ -12,6 +13,7 @@ import {
   type WebcamRegion,
   type WebcamTwitchEntry,
 } from "./webcams";
+import { REACH_CITIES } from "./reach-cities";
 
 const isImage = (e: WebcamEntry): e is WebcamImageEntry => e.type === "image";
 const isTwitch = (e: WebcamEntry): e is WebcamTwitchEntry => e.type === "twitch";
@@ -118,6 +120,34 @@ describe("webcam registry contract", () => {
     }
   });
 
+  it("ships every image and live entry with a Reach towns city", () => {
+    for (const entry of webcamRegistry) {
+      if (isImage(entry) || isLive(entry)) {
+        expect(entry.city.trim(), entry.id).not.toBe("");
+      } else {
+        expect("city" in entry).toBe(false);
+      }
+    }
+  });
+
+  it("resolves every image and live cam's city inside the Reach towns table", () => {
+    // The camera-icon seam: the Possible locations panel can only open a
+    // town's webcams when the reach list names that town, so every cam's
+    // city must exist in data/reach-cities.ts under the same flag code.
+    const reachKeys = new Set(
+      REACH_CITIES.map((city) => `${city.countryCode}/${city.city}`),
+    );
+    for (const entry of webcamRegistry) {
+      if (isImage(entry) || isLive(entry)) {
+        const key = `${webcamCountryCode(entry.country)}/${entry.city}`;
+        expect(
+          reachKeys.has(key),
+          `${entry.id} cam town ${key} is in REACH_CITIES`,
+        ).toBe(true);
+      }
+    }
+  });
+
   it("ships the verified 2026-08-29 set with image cards for every region that has one", () => {
     // Image regions present: Nordic, North America, Russia (the live cam sits
     // inside the North America section)
@@ -182,5 +212,46 @@ describe("webcam registry contract", () => {
       expect(image.longitude).toBeGreaterThan(-180);
       expect(image.longitude).toBeLessThanOrEqual(180);
     }
+  });
+});
+
+describe("webcamsForTown (the camera-icon seam)", () => {
+  it("returns the town's image and live cams, matched by flag code + city", () => {
+    // Skibotn owns three image cards; Norway's reach flag code is "no".
+    const cams = webcamsForTown("no", "Skibotn");
+    expect(cams.map((cam) => cam.id).sort()).toEqual([
+      "tgo-asc01",
+      "tgo-bacc5",
+      "uec-skibotn",
+    ]);
+    expect(cams.every((cam) => cam.type === "image")).toBe(true);
+  });
+
+  it("stacks every cam of a multi-cam town and never mixes towns", () => {
+    expect(webcamsForTown("se", "Kiruna").map((cam) => cam.id).sort()).toEqual([
+      "irf-kiruna",
+      "uec-kiruna",
+    ]);
+    // Tromsø owns one card; the UEC Abisko and NIPR Skibotn entries must
+    // not leak into it through partial matches.
+    expect(webcamsForTown("no", "Tromsø").map((cam) => cam.id)).toEqual([
+      "uec-tromso",
+    ]);
+  });
+
+  it("maps the cam's own country string through the flag table", () => {
+    // Poker Flat's country is "Alaska, US"; the Fairbanks reach town is "us".
+    const fairbanks = webcamsForTown("us", "Fairbanks");
+    expect(fairbanks).toHaveLength(1);
+    expect(fairbanks[0].id).toBe("uaf-poker-flat");
+    expect(fairbanks[0].type).toBe("live");
+  });
+
+  it("returns nothing for a town without a webcam or an unknown town", () => {
+    // Rovaniemi is in the reach table but owns no cam.
+    expect(webcamsForTown("fi", "Rovaniemi")).toEqual([]);
+    expect(webcamsForTown("fi", "Atlantis")).toEqual([]);
+    // Link rows never become town cams (they carry no image for a modal).
+    expect(webcamsForTown("gb", "Lerwick")).toEqual([]);
   });
 });

@@ -1,0 +1,114 @@
+// The town webcams dialog (Aurora now / Possible locations): the camera
+// icon's native <dialog>. The dialog box geometry (fixed, centered, 90vw /
+// 80vh fit, backdrop) comes from the global .image-modal class; this block
+// styles the heading and the per-cam card sections.
+@use "../../../../../styles/breakpoints" as *;
+
+.reach-town-webcams {
+  // The heading names the dialog (aria-labelledby) and carries the town;
+  // the global h3 element rule sizes it. The right margin keeps clear of
+  // the close button in the dialog's own top-right corner.
+  &__heading {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.5rem 2.5rem 1.5rem 0.5rem;
+  }
+
+  // The close control anchors to the dialog surface, not the viewport: the
+  // media viewers pin their X to the viewport corner so it never covers a
+  // full-bleed still, but this dialog's surface is its own chrome, so the
+  // scoped override out-ranks .image-modal__close's viewport pin and keeps
+  // the button travelling with the dialog box.
+  .image-modal__close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+
+  // The narrow default: the town's cams stack as one scrolling column,
+  // a rule between neighbours.
+  &__cams {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  &__cam {
+    & + .reach-town-webcams__cam {
+      margin-top: 1rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--color-border-muted-transparent);
+    }
+  }
+
+  // The global h4 element rule sizes the cam title.
+  &__cam-title {
+    margin: 0 0 0.4rem;
+    font-weight: 600;
+  }
+
+  &__cam-flag {
+    display: inline-flex;
+    flex: none;
+    vertical-align: middle;
+    margin: 0 !important;
+  }
+
+  // One picture per cam: capped so a stacked column scrolls instead of
+  // eating the whole viewport per still. Nested to out-rank
+  // .image-modal img; max-width keeps a column image inside its track.
+  .reach-town-webcams__cam-img {
+    max-height: 55vh;
+    max-width: 100%;
+  }
+
+  &__cam-freshness,
+  &__cam-note {
+    margin: 0.4rem 0 0;
+    font-size: var(--font-size-small);
+  }
+
+  // The seasonal/staleness note, in the webcam card's italic.
+  &__cam-note {
+    font-style: italic;
+  }
+
+  &__cam-attribution {
+    margin: 0.4rem 0 0;
+    font-size: var(--font-size-caption);
+  }
+}
+
+// Multi-cam towns use the landscape room (sm and up – desktop, tablets and
+// rotated phones): the dialog takes a definite width and the cam sections
+// flow side by side in equal columns instead of one scrolling column, so
+// two cams are never hidden behind a scroll. The minmax floor keeps the
+// grid honest where the space is short: below two 18rem tracks it degrades
+// back to the stacked column, so a portrait phone never overflows. Column
+// images cap lower so the columns fit the 80vh dialog box without a
+// scroll; a third cam wraps to its own row when 3×18rem cannot fit.
+// Single-cam towns keep the fit-content dialog (the still at its natural
+// size) and never take this modifier.
+.reach-town-webcams--multi {
+  @include respond-to(sm) {
+    box-sizing: border-box;
+    width: min(90vw, 64rem);
+
+    .reach-town-webcams__cams {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+      gap: 1rem 1.25rem;
+      align-items: start;
+    }
+
+    .reach-town-webcams__cam + .reach-town-webcams__cam {
+      margin-top: 0;
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    .reach-town-webcams__cam-img {
+      max-height: 45vh;
+    }
+  }
+}
