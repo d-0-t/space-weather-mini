@@ -99,21 +99,21 @@ describe("Nav keyboard accessibility", () => {
 });
 
 describe("About submenu", () => {
-  it("exposes the About submenu as a native disclosure with the five destinations", () => {
+  it("exposes the About submenu as a native disclosure with the four destinations", () => {
     renderNav();
     const details = disclosureFor("About");
     expect(details.open).toBe(false);
     const links = Array.from(details.querySelectorAll(".dropdown-content a"));
     expect(links.map((l) => l.textContent)).toEqual([
       "This site",
-      "Install & Alerts",
+      // PARKED 2026-09-21 (background-push field findings): "Install & Alerts",
       "Aurora guide",
       "Explainers",
       "Sources",
     ]);
     expect(links.map((l) => l.getAttribute("href"))).toEqual([
       "/about",
-      "/about/install-alerts",
+      // PARKED 2026-09-21 (background-push field findings): "/about/install-alerts",
       "/about/guide",
       "/explainers",
       "/about/sources",
@@ -131,7 +131,7 @@ describe("About submenu", () => {
     expect(details.open).toBe(true);
     for (const name of [
       "This site",
-      "Install & Alerts",
+      // PARKED 2026-09-21 (background-push field findings): "Install & Alerts",
       "Aurora guide",
       "Explainers",
       "Sources",

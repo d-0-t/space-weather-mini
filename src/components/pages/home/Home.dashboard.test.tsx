@@ -241,6 +241,9 @@ describe("Home Live Now dashboard (ticket 01)", () => {
     ).toBe(true);
   });
 
+  /* PARKED 2026-09-21 (background-push field findings): the Alerts modal
+     trigger is hidden until background alerts are proven on real phones.
+     Restore with the button + dialog in Home.tsx.
   it("opens the alert settings modal from the Dashboard header with matches from the fixture feed", async () => {
     const user = userEvent.setup();
     localStorage.clear();
@@ -271,7 +274,9 @@ describe("Home Live Now dashboard (ticket 01)", () => {
     expect(document.querySelector("dialog.alerts-dialog")).toBeNull();
     expect(trigger).toHaveFocus();
   });
+  END PARKED */
 
+  /* PARKED 2026-09-21 (background-push field findings): see above.
   it("closes the alert settings modal on Escape and returns focus to the Alerts button", async () => {
     const user = userEvent.setup();
     renderHome();
@@ -285,7 +290,9 @@ describe("Home Live Now dashboard (ticket 01)", () => {
     expect(document.querySelector("dialog.alerts-dialog")).toBeNull();
     expect(trigger).toHaveFocus();
   });
+  END PARKED */
 
+  /* PARKED 2026-09-21 (background-push field findings): see above.
   it("Apply persists a threshold change while Cancel and X discard the draft", async () => {
     const user = userEvent.setup();
     localStorage.clear();
@@ -338,6 +345,7 @@ describe("Home Live Now dashboard (ticket 01)", () => {
     expect(document.querySelector("dialog.alerts-dialog")).toBeNull();
     expect(trigger).toHaveFocus();
   });
+  END PARKED */
 
   it("shows stale-cache warning when live fetch fails but cached data exists", async () => {
     // First render with good data to populate cache, then fail

@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
+// PARKED 2026-09-21 (background-push field findings): the Alerts modal is
+// hidden until background alerts are proven on real phones. Restore the
+// import below with the trigger + dialog further down.
+// import NotificationsActiveIcon from "@mui/icons-material/NotificationsActive";
 
 import "../Pages.scss";
 import "./Home.scss";
@@ -13,8 +16,11 @@ import SolarWind from "./components/SolarWind/SolarWind";
 import Magnetosphere from "./components/Magnetosphere/Magnetosphere";
 import PinnedWebcams from "./components/PinnedWebcams/PinnedWebcams";
 import { AlertsProvider } from "./components/Alerts/AlertsContext";
-import AlertsDialog from "./components/Alerts/AlertsDialog";
-import { ALERTS_ENABLED } from "../../../features";
+// PARKED 2026-09-21 (background-push field findings): the Alerts modal is
+// hidden until background alerts are proven on real phones. Restore the
+// imports below with the trigger + dialog further down.
+// import AlertsDialog from "./components/Alerts/AlertsDialog";
+// import { ALERTS_ENABLED } from "../../../features";
 
 import {
   getBucketColumns,
@@ -39,8 +45,10 @@ const PANEL_REGISTRY: Record<DashboardPanelId, React.FC> = {
 
 const Home: React.FC = () => {
   const location = useLocation();
-  const alertsButtonRef = useRef<HTMLButtonElement>(null);
-  const [alertsOpen, setAlertsOpen] = useState(false);
+  // PARKED 2026-09-21 (background-push field findings): the Alerts modal
+  // trigger. Restore with the button + dialog further down.
+  // const alertsButtonRef = useRef<HTMLButtonElement>(null);
+  // const [alertsOpen, setAlertsOpen] = useState(false);
   const arrangeButtonRef = useRef<HTMLButtonElement>(null);
   const [arrangeOpen, setArrangeOpen] = useState(false);
 
@@ -92,6 +100,9 @@ const Home: React.FC = () => {
               <Dashboard fontSize="small" />
               <span className="btn__label">Rearrange</span>
             </button>
+            {/* PARKED 2026-09-21 (background-push field findings): the
+                Alerts modal trigger. Restore with the imports + state above
+                and the dialog below.
             {ALERTS_ENABLED ? (
               <button
                 type="button"
@@ -103,7 +114,7 @@ const Home: React.FC = () => {
                 <NotificationsActiveIcon fontSize="small" />
                 <span className="btn__label">Alerts</span>
               </button>
-            ) : null}
+            ) : null} */}
           </div>
         </div>
         {/* Dashboard panels per Layout bucket (ticket 04): the 1-column
@@ -123,12 +134,15 @@ const Home: React.FC = () => {
             </div>
           ))}
         </div>
+        {/* PARKED 2026-09-21 (background-push field findings): the Alerts
+            modal mount. Restore with the imports + state above and the
+            trigger above.
         {ALERTS_ENABLED && alertsOpen ? (
           <AlertsDialog
             triggerRef={alertsButtonRef}
             onClose={() => setAlertsOpen(false)}
           />
-        ) : null}
+        ) : null} */}
         {arrangeOpen ? (
           <ArrangeModal
             triggerRef={arrangeButtonRef}

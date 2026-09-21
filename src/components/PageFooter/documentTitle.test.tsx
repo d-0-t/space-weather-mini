@@ -75,9 +75,11 @@ describe("Document title static map (ticket 02)", () => {
     expect(routeToDocumentTitle("/about/sources")).toBe(
       "Sources – Space Weather",
     );
-    expect(routeToDocumentTitle("/about/install-alerts")).toBe(
-      "Install & Alerts – Space Weather",
-    );
+    // PARKED 2026-09-21 (background-push field findings): restore with the
+    // title map entry, the nav entry, the route and the About pointer.
+    // expect(routeToDocumentTitle("/about/install-alerts")).toBe(
+    //   "Install & Alerts – Space Weather",
+    // );
     expect(routeToDocumentTitle("/about/guide")).toBe(
       "Aurora guide – Space Weather",
     );

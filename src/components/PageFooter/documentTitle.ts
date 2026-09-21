@@ -21,7 +21,9 @@ const ROUTE_TITLES: Record<string, string> = {
   "/forecasts/geoalert": "Geophysical Observations and Predictions",
   "/about": "This site",
   "/about/sources": "Sources",
-  "/about/install-alerts": "Install & Alerts",
+  // PARKED 2026-09-21 (background-push field findings): restore with the
+  // nav entry, the route, the About pointer and the tests.
+  // "/about/install-alerts": "Install & Alerts",
   "/about/guide": "Aurora guide",
   "/explainers": "Explainers",
 };

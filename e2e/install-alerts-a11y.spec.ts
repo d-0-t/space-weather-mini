@@ -1,6 +1,10 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
 
+/* PARKED 2026-09-21 (background-push field findings): the Install & Alerts
+   guide is hidden until background alerts are proven on real phones.
+   Restore with the route in App.tsx, the nav entry, the About pointer and
+   the title map.
 test("the Install & Alerts page renders its sections and passes the axe audit", async ({
   page,
 }) => {
@@ -78,3 +82,4 @@ test("the page fits a mobile viewport without horizontal overflow", async ({
   );
   expect(overflow).toBeLessThanOrEqual(0);
 });
+END PARKED */

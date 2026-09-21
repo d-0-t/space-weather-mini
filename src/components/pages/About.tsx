@@ -78,12 +78,16 @@ const About: React.FC = () => {
         </p>
 
         <h2>Install on mobile</h2>
+        {/* PARKED 2026-09-21 (background-push field findings): the Install &
+            Alerts section is hidden until background alerts are proven on
+            real phones. Restore with the nav entry, the route, the title
+            map and the tests.
         <p>
           The install steps for Android and iPhone now live in the{" "}
           <Link to="/about/install-alerts">Install &amp; Alerts</Link>{" "}
           section, together with what the background alerts do and how your
           data is handled.
-        </p>
+        </p> */}
       </article>
     </div>
   );

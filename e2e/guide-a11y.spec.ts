@@ -32,10 +32,10 @@ test("the About submenu reaches the guide by keyboard", async ({ page }) => {
     .getByRole("navigation")
     .getByRole("link", { name: "Aurora guide" });
   await expect(guide).toBeVisible();
-  // The guide is the third submenu entry (ticket 07 added Install & Alerts
-  // second): Tab through the two links ahead of it, land on Guide, and
-  // activate it from the keyboard
-  for (let i = 0; i < 3; i += 1) await page.keyboard.press("Tab");
+  // The guide is the second submenu entry (Install & Alerts parked
+  // 2026-09-21, see the background-push field findings): Tab through the
+  // one link ahead of it, land on Guide, and activate it from the keyboard
+  for (let i = 0; i < 2; i += 1) await page.keyboard.press("Tab");
   await expect(guide).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page).toHaveURL(/\/about\/guide$/);

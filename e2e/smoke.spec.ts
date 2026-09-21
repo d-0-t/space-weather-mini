@@ -32,13 +32,14 @@ test("the app boots with navigation chrome on every page", async ({ page }) => {
   ]) {
     await expect(page.getByRole("navigation").getByRole("link", { name: label, exact: true })).toBeVisible();
   }
-  // The About entry is a submenu with This site / Install & Alerts /
-  // Aurora guide / Explainers / Sources
+  // The About entry is a submenu with This site / Aurora guide /
+  // Explainers / Sources (Install & Alerts parked 2026-09-21, see the
+  // background-push field findings)
   await expect(page.locator("#about-disclosure > summary")).toBeVisible();
   await page.locator("#about-disclosure > summary").click();
   for (const label of [
     "This site",
-    "Install & Alerts",
+    // PARKED 2026-09-21 (background-push field findings): "Install & Alerts",
     "Aurora guide",
     "Explainers",
     "Sources",
@@ -231,11 +232,16 @@ test("the sources subpage renders", async ({ page }) => {
   await expect(page.getByRole("link", { name: /Open-Meteo/ })).toBeVisible();
 });
 
+/* PARKED 2026-09-21 (background-push field findings): the Install & Alerts
+   guide is hidden until background alerts are proven on real phones.
+   Restore with the route in App.tsx, the nav entry, the About pointer and
+   the title map.
 test("the install-alerts subpage renders", async ({ page }) => {
   await page.goto("/about/install-alerts");
   await expect(page.getByRole("heading", { level: 1, name: "Install & Alerts" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "Install on mobile" })).toBeVisible();
 });
+END PARKED */
 
 test("the forecasts index renders the forecast discussion", async ({ page }) => {
   await page.goto("/forecasts");

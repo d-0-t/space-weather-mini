@@ -28,10 +28,14 @@ const FORECAST_ITEMS: readonly DropdownItem[] = [
 ];
 
 /** The About submenu (ticket 01, extended by tickets 07 and 09): This site /
- * Install & Alerts / Aurora guide / Explainers / Sources. */
+ * Aurora guide / Explainers / Sources. Install & Alerts is parked until
+ * background alerts are proven on real phones (field findings 2026-09-21).
+ */
 const ABOUT_ITEMS: readonly DropdownItem[] = [
   { to: "/about", label: "This site" },
-  { to: "/about/install-alerts", label: "Install & Alerts" },
+  // PARKED 2026-09-21 (background-push field findings): restore with the
+  // route in App.tsx, the About pointer, the title map and the tests.
+  // { to: "/about/install-alerts", label: "Install & Alerts" },
   { to: "/about/guide", label: "Aurora guide" },
   { to: "/explainers", label: "Explainers" },
   { to: "/about/sources", label: "Sources" },
@@ -235,7 +239,7 @@ const Nav: React.FC = () => {
     <header className="header">
       <Link to="/" className="header__left">
         <img
-          src="/assets/icon-192.png"
+          src="/assets/apple-touch-icon.png"
           className="header__left__logo"
           alt="App logo with aurora bird"
         />
