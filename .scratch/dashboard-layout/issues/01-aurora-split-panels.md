@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-human
+**Status:** done
 
 - [x] Dashboard shows Aurora now, Summary, Oval glow intensity and Possible locations as separate collapsible panels with h2 headings in the agreed 1-column default order
 - [x] Summary keeps time-ahead selector, As-of line, Moon caveat, reach sentence and guide link with no copy lost

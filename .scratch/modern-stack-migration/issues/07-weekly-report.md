@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — Toolchain migration, 03 — 27-day outlook end-to-end
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] The weekly report fetch returns a typed model (issued timestamp + Highlights and Forecast sections) via a pure parser
 - [x] The page renders both sections with correct heading hierarchy

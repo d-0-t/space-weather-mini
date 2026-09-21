@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — Toolchain migration, 03 — 27-day outlook end-to-end
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] The geophysical alert fetch returns a typed model (issued timestamp + observations and predictions) via a pure parser
 - [x] The page renders with the user-facing label "Geophysical Observations and Predictions"; internal naming follows the glossary

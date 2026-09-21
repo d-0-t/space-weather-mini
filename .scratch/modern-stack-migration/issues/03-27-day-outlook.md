@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — Toolchain migration
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] Fetching the 27-day outlook returns a typed model (not HTML) via a pure parser
 - [x] The page shows a semantic table of all 27 rows with radio flux, A index, and Kp index

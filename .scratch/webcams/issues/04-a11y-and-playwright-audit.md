@@ -4,7 +4,7 @@
 
 **Blocked by:** 01
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] Every cam image carries alt text "Station, region — current sky view"; the Twitch iframe has a title; link rows expose their destination (station name as link text, kind note visible)
 - [x] All selectable chips and settings are real native elements (checkbox chips, Show all / Hide all native buttons, checkbox auto-refresh, native buttons) and the keyboard path + focus styles work end to end, including the Hidden sources dialog's focus management

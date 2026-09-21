@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — Toolchain migration, 03 — 27-day outlook end-to-end
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] The forecast discussion fetch returns a typed model (issued timestamp + four sections) via a pure parser
 - [x] The page renders all four sections with correct heading hierarchy; "Geospace" is used only for its section

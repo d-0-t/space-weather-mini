@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — Toolchain migration
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] The test page and its route wiring are deleted
 - [x] The unfinished table-builder and Kp test table files are deleted

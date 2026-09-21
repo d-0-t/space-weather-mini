@@ -6,7 +6,7 @@
 
 **Blocked by:** 01 — Toolchain migration, 03 — 27-day outlook end-to-end
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] The 3-day forecast fetch returns a typed model with three typed sections via a pure parser
 - [x] Each section renders its details, probability table, and Rationale prose

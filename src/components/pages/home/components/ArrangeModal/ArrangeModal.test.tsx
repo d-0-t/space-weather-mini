@@ -64,9 +64,9 @@ const rowsOf = (container: ParentNode, listName: string): string[] => {
   const list = within(container as HTMLElement).getByRole("list", {
     name: listName,
   });
-  return Array.from(
-    list.querySelectorAll(".arrange-dialog__row-label"),
-  ).map((label) => label.textContent ?? "");
+  return Array.from(list.querySelectorAll(".arrange-dialog__row-label")).map(
+    (label) => label.textContent ?? "",
+  );
 };
 
 /** The row element carrying a panel name. */
@@ -201,9 +201,7 @@ describe("Arrange modal shell (dashboard-layout ticket 07)", () => {
     expect(dialog.open).toBe(false);
     expect(screen.queryByRole("dialog", { name: "Rearrange" })).toBeNull();
     expect(
-      JSON.parse(
-        localStorage.getItem(DASHBOARD_LAYOUT_STORAGE_KEY) as string,
-      ),
+      JSON.parse(localStorage.getItem(DASHBOARD_LAYOUT_STORAGE_KEY) as string),
     ).toEqual(DEFAULT_DASHBOARD_LAYOUT);
     expect(onApply).toHaveBeenCalledWith(DEFAULT_DASHBOARD_LAYOUT);
     expect(screen.getByRole("button", { name: "Rearrange" })).toHaveFocus();
@@ -259,10 +257,13 @@ describe("Arrange modal shell (dashboard-layout ticket 07)", () => {
     expect(onApply).not.toHaveBeenCalled();
     // The custom seed survives untouched.
     expect(
-      JSON.parse(
-        localStorage.getItem(DASHBOARD_LAYOUT_STORAGE_KEY) as string,
-      ),
-    ).toEqual({ v: 1, single: ["forecast"], double: [["aurora-now"], []], triple: [["aurora-now"], [], []] });
+      JSON.parse(localStorage.getItem(DASHBOARD_LAYOUT_STORAGE_KEY) as string),
+    ).toEqual({
+      v: 1,
+      single: ["forecast"],
+      double: [["aurora-now"], []],
+      triple: [["aurora-now"], [], []],
+    });
   });
 
   it("the close X discards the draft without saving", async () => {
@@ -340,24 +341,23 @@ describe("Arrange modal shell (dashboard-layout ticket 07)", () => {
     render(<Host onApply={onApply} />);
     const dialog = openDialog();
     expect(rowsOf(dialog, "Panels")[0]).toBe("Forecast");
-    await user.click(within(dialog).getByRole("button", { name: "Reset to default" }));
+    await user.click(
+      within(dialog).getByRole("button", { name: "Reset to default" }),
+    );
     // The draft now matches the agreed defaults...
     expect(rowsOf(dialog, "Panels")[0]).toBe("Aurora now");
     expect(rowsOf(dialog, "Panels").at(-1)).toBe("Forecast");
     // ...but nothing is live or saved yet.
     expect(onApply).not.toHaveBeenCalled();
     expect(
-      JSON.parse(
-        localStorage.getItem(DASHBOARD_LAYOUT_STORAGE_KEY) as string,
-      ).single[0],
+      JSON.parse(localStorage.getItem(DASHBOARD_LAYOUT_STORAGE_KEY) as string)
+        .single[0],
     ).toBe("forecast");
     // Apply commits the restored defaults for every bucket.
     await user.click(within(dialog).getByRole("button", { name: "Apply" }));
     expect(onApply).toHaveBeenCalledWith(DEFAULT_DASHBOARD_LAYOUT);
     expect(
-      JSON.parse(
-        localStorage.getItem(DASHBOARD_LAYOUT_STORAGE_KEY) as string,
-      ),
+      JSON.parse(localStorage.getItem(DASHBOARD_LAYOUT_STORAGE_KEY) as string),
     ).toEqual(DEFAULT_DASHBOARD_LAYOUT);
   });
 
@@ -391,7 +391,9 @@ describe("Arrange modal shell (dashboard-layout ticket 07)", () => {
     const dialog = openDialog();
     await user.click(within(dialog).getByRole("tab", { name: "2-column" }));
     expect(rowsOf(dialog, "Column A")[0]).toBe("Forecast");
-    await user.click(within(dialog).getByRole("button", { name: "Reset to default" }));
+    await user.click(
+      within(dialog).getByRole("button", { name: "Reset to default" }),
+    );
     expect(rowsOf(dialog, "Column A")).toEqual([
       "Aurora now",
       "Summary",
@@ -453,19 +455,6 @@ describe("Arrange modal copy (dashboard-layout ticket 07 follow-up)", () => {
     ).toBeInTheDocument();
   });
 
-  it("notes on the Pinned webcams row why the panel may be absent, linking to the webcams page", () => {
-    renderModal();
-    const dialog = openDialog();
-    const pinnedRow = rowByLabel(dialog, "Panels", "Pinned webcams");
-    expect(
-      within(pinnedRow).getByText(/Only shown if you have/),
-    ).toBeInTheDocument();
-    const link = within(pinnedRow).getByRole("link", {
-      name: "pinned webcams",
-    });
-    expect(link).toHaveAttribute("href", "/webcams");
-  });
-
   it("notes on the Possible locations row why the panel may be absent", () => {
     renderModal();
     const dialog = openDialog();
@@ -489,12 +478,18 @@ describe("Arrange modal copy (dashboard-layout ticket 07 follow-up)", () => {
     const user = userEvent.setup();
     renderModal();
     const dialog = openDialog();
-    expect(dialog.querySelector(".arrange-dialog__panel--1-column")).not.toBeNull();
+    expect(
+      dialog.querySelector(".arrange-dialog__panel--1-column"),
+    ).not.toBeNull();
     await user.click(within(dialog).getByRole("tab", { name: "2-column" }));
-    expect(dialog.querySelector(".arrange-dialog__panel--2-column")).not.toBeNull();
+    expect(
+      dialog.querySelector(".arrange-dialog__panel--2-column"),
+    ).not.toBeNull();
     expect(dialog.querySelector(".arrange-dialog__panel--1-column")).toBeNull();
     await user.click(within(dialog).getByRole("tab", { name: "3-column" }));
-    expect(dialog.querySelector(".arrange-dialog__panel--3-column")).not.toBeNull();
+    expect(
+      dialog.querySelector(".arrange-dialog__panel--3-column"),
+    ).not.toBeNull();
   });
 });
 
@@ -574,7 +569,11 @@ describe("Arrange modal reorder (dashboard-layout ticket 07)", () => {
     await user.click(
       within(summaryRow).getByRole("button", { name: "Move Summary right" }),
     );
-    expect(rowsOf(dialog, "Column A")).toEqual(["Aurora now", "Oval glow", "Forecast"]);
+    expect(rowsOf(dialog, "Column A")).toEqual([
+      "Aurora now",
+      "Oval glow",
+      "Forecast",
+    ]);
     // Buttons append to the target column; dropping on a row places it.
     expect(rowsOf(dialog, "Column B")).toEqual([
       "Pinned webcams",

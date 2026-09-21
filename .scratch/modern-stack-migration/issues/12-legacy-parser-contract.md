@@ -4,7 +4,7 @@
 
 **Blocked by:** 04 — Daily geomagnetic indices end-to-end, 05 — 3-day forecast end-to-end, 06 — Forecast discussion end-to-end, 07 — Weekly report end-to-end, 08 — Geophysical alert end-to-end
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] No product fetch goes through the legacy HTML-string parser
 - [x] The legacy parser file(s) are deleted

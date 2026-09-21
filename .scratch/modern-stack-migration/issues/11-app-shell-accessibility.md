@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — Toolchain migration, 03 — 27-day outlook end-to-end
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] A skip link is the first focusable element and moves focus to main content
 - [x] All interactive elements have visible focus indicators

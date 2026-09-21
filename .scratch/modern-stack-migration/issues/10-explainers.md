@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — Toolchain migration, 03 — 27-day outlook end-to-end
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] `/explainers` lists one plain-language explanation per concept, vocabulary matching CONTEXT.md
 - [x] Each product page links to the relevant explainer entries

@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] The app builds and serves via Vite with React 19 and TypeScript `strict: true`
 - [x] Existing routes render unchanged (Home, the six product pages, About)

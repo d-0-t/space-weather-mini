@@ -69,7 +69,7 @@ const InstallAlerts: React.FC = () => {
           next-24h Kp forecast breaches your Alert threshold.
         </p>
 
-        <h2>My data</h2>
+        <h2>Your data</h2>
         <p>
           There are no accounts and your alert settings are unique to your
           device.

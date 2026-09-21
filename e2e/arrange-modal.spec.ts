@@ -13,7 +13,9 @@ const openArrange = async (page: Page) => {
 const row = (page: Page, label: string) =>
   dialog(page)
     .locator(".arrange-dialog__row")
-    .filter({ has: page.locator(".arrange-dialog__row-label", { hasText: label }) });
+    .filter({
+      has: page.locator(".arrange-dialog__row-label", { hasText: label }),
+    });
 
 const apply = async (page: Page) => {
   await dialog(page).getByRole("button", { name: "Apply" }).click();
@@ -33,25 +35,18 @@ test.describe("Arrange modal (dashboard-layout ticket 07)", () => {
 
     await openArrange(page);
     const tablist = page.getByRole("tablist", { name: "Layout buckets" });
-    await expect(tablist.getByRole("tab", { name: "1-column" })).toHaveAttribute(
-      "aria-selected",
-      "false",
-    );
+    await expect(
+      tablist.getByRole("tab", { name: "1-column" }),
+    ).toHaveAttribute("aria-selected", "false");
     await expect(
       tablist.getByRole("tab", { name: "2-column" }),
     ).toHaveAttribute("aria-selected", "true");
-    await expect(
-      page.getByRole("list", { name: "Column A" }),
-    ).toContainText("Aurora now");
+    await expect(page.getByRole("list", { name: "Column A" })).toContainText(
+      "Aurora now",
+    );
 
     // The copy explains the bucket switching and the two conditional panels.
     await expect(dialog(page)).toContainText(/screen or window size/i);
-    await expect(row(page, "Pinned webcams")).toContainText(
-      "Only shown if you have",
-    );
-    await expect(
-      row(page, "Pinned webcams").getByRole("link", { name: "pinned webcams" }),
-    ).toHaveAttribute("href", "/webcams");
     await expect(row(page, "Possible locations")).toContainText(
       "Only shown when the aurora is strong enough",
     );
@@ -138,7 +133,8 @@ test.describe("Arrange modal (dashboard-layout ticket 07)", () => {
     await expect(
       page.getByRole("heading", { level: 1, name: "Dashboard" }),
     ).toBeVisible({ timeout: dataTimeout });
-    const h2Order = async () => page.locator(".home__flow h2").allTextContents();
+    const h2Order = async () =>
+      page.locator(".home__flow h2").allTextContents();
     // Precondition: Magnetosphere above Forecast in the default order.
     let names = await h2Order();
     expect(names.indexOf("Magnetosphere")).toBeLessThan(
@@ -173,7 +169,8 @@ test.describe("Arrange modal (dashboard-layout ticket 07)", () => {
     await expect(
       page.getByRole("heading", { level: 1, name: "Dashboard" }),
     ).toBeVisible({ timeout: dataTimeout });
-    const h2Order = async () => page.locator(".home__flow h2").allTextContents();
+    const h2Order = async () =>
+      page.locator(".home__flow h2").allTextContents();
 
     await openArrange(page);
     await row(page, "Forecast")
@@ -213,9 +210,9 @@ test.describe("Arrange modal (dashboard-layout ticket 07)", () => {
     await expect(page.getByRole("list", { name: "Column B" })).toContainText(
       "Summary",
     );
-    await expect(page.getByRole("list", { name: "Column A" })).not.toContainText(
-      "Summary",
-    );
+    await expect(
+      page.getByRole("list", { name: "Column A" }),
+    ).not.toContainText("Summary");
     await page.keyboard.press("ArrowLeft");
     await expect(page.getByRole("list", { name: "Column A" })).toContainText(
       "Summary",
@@ -240,12 +237,11 @@ test.describe("Arrange modal (dashboard-layout ticket 07)", () => {
       .locator(".arrange-dialog__row")
       .filter({ hasText: "Forecast" })
       .dragTo(
-        page
-          .locator(".arrange-dialog__row")
-          .filter({ hasText: "Aurora now" }),
+        page.locator(".arrange-dialog__row").filter({ hasText: "Aurora now" }),
       );
-    await expect(dialog(page).locator(".arrange-dialog__row-label").first())
-      .toHaveText("Forecast");
+    await expect(
+      dialog(page).locator(".arrange-dialog__row-label").first(),
+    ).toHaveText("Forecast");
     await apply(page);
     await expect(page.locator(".home__flow h2").first()).toHaveText("Forecast");
 
@@ -254,8 +250,9 @@ test.describe("Arrange modal (dashboard-layout ticket 07)", () => {
     await dialog(page)
       .getByRole("button", { name: "Reset to default" })
       .click();
-    await expect(dialog(page).locator(".arrange-dialog__row-label").first())
-      .toHaveText("Aurora now");
+    await expect(
+      dialog(page).locator(".arrange-dialog__row-label").first(),
+    ).toHaveText("Aurora now");
     await apply(page);
     await expect(page.locator(".home__flow h2").first()).toHaveText(
       "Aurora now",

@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 — Toolchain migration, 03 — 27-day outlook end-to-end
 
-**Status:** ready-for-agent
+**Status:** done
 
 - [x] The daily indices fetch returns a typed per-station model via a pure parser
 - [x] The page shows the 30-day table with all stations and the estimated planetary column
