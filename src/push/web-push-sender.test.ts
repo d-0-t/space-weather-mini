@@ -4,7 +4,7 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 type SendNotificationFn = (
   subscription: unknown,
   payload: string,
-  options: { TTL: number },
+  options: { TTL: number; urgency: string },
 ) => Promise<void>;
 
 const sendNotification = vi.fn<SendNotificationFn>(async () => undefined);
@@ -64,6 +64,7 @@ describe("the web-push send boundary (ticket 02)", () => {
     });
     expect(JSON.parse(payloadJson)).toEqual(payload);
     expect(options.TTL).toBe(payload.ttlSeconds);
+    expect(options.urgency).toBe("high");
   });
 
   it("surfaces the push service's status on a rejected send", async () => {

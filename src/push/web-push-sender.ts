@@ -30,7 +30,9 @@ const subscriptionForWebPush = (json: PushSubscriptionJSON) => ({
 /**
  * The PushSend boundary: encrypts the payload into the subscription and
  * posts it to the push service, surfacing the service's HTTP status so the
- * caller can prune gone subscriptions (404/410).
+ * caller can prune gone subscriptions (404/410). Urgency is high because
+ * every poke is time-critical: normal-urgency pushes may sit deferred on a
+ * dozing phone, which is exactly when an aurora chaser needs the poke.
  */
 export function createWebPushSender(vapid: VapidCredentials): PushSend {
   webpush.setVapidDetails(vapid.subject, vapid.publicKey, vapid.privateKey);
@@ -39,7 +41,7 @@ export function createWebPushSender(vapid: VapidCredentials): PushSend {
       await webpush.sendNotification(
         subscriptionForWebPush(record.settings.subscription),
         JSON.stringify(payload),
-        { TTL: payload.ttlSeconds },
+        { TTL: payload.ttlSeconds, urgency: "high" },
       );
       return { status: 201 };
     } catch (error: unknown) {
