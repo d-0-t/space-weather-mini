@@ -202,13 +202,16 @@ export function resendPushSettings(): void {
 
 /**
  * Fires one canned test poke at the sender (the manual real-phone check).
+ * The optional delay holds the poke so the chaser can close the app first.
  * Returns false when the sender cannot poke this chaser right now.
  */
 export async function fireTestPoke(
   endpoint: string,
+  delaySeconds?: number,
 ): Promise<boolean> {
+  const delay = delaySeconds ? `&delaySeconds=${delaySeconds}` : "";
   const response = await browserPushDeps().fetch(
-    `${SEND_TEST_URL}?endpoint=${encodeURIComponent(endpoint)}`,
+    `${SEND_TEST_URL}?endpoint=${encodeURIComponent(endpoint)}${delay}`,
     { method: "POST" },
   );
   return response.ok;

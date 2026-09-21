@@ -15,7 +15,13 @@ export default async (req: Request, _context: Context) => {
   if (req.method !== "POST") {
     return new Response(null, { status: 405 });
   }
-  const endpoint = new URL(req.url).searchParams.get("endpoint") ?? "";
+  const params = new URL(req.url).searchParams;
+  const endpoint = params.get("endpoint") ?? "";
+  // Optional hold so the chaser can close the app before the poke fires.
+  const delaySeconds = Math.min(
+    Math.max(Number(params.get("delaySeconds") ?? "0") || 0, 0),
+    25,
+  );
   const vapid = {
     subject: process.env.VAPID_CONTACT ?? "",
     publicKey: process.env.VAPID_PUBLIC_KEY ?? "",
@@ -24,10 +30,14 @@ export default async (req: Request, _context: Context) => {
   if (!vapid.subject || !vapid.publicKey || !vapid.privateKey) {
     return new Response(null, { status: 503 });
   }
-  const result = await handleSendTest(endpoint, {
-    store: subscriptionStore(),
-    send: createWebPushSender(vapid),
-  });
+  const result = await handleSendTest(
+    endpoint,
+    {
+      store: subscriptionStore(),
+      send: createWebPushSender(vapid),
+    },
+    { delayMs: delaySeconds * 1000 },
+  );
   return new Response(null, { status: result.status });
 };
 

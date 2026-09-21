@@ -243,9 +243,12 @@ const Alerts: React.FC<{
               void sendTestPoke();
             }}
           >
-            Send test notification
+            Send test notification (20 s delay)
           </button>
           <p className="alerts__test-poke-state" aria-live="polite">
+            {testPokeState === "waiting"
+              ? "Sending in about 20 seconds – close the app now."
+              : null}
             {testPokeState === "sent" ? "Test notification sent." : null}
             {testPokeState === "failed"
               ? "Test notification failed: check back later."

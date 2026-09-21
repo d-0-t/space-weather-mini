@@ -170,6 +170,35 @@ describe("the test-poke endpoint contract (ticket 02)", () => {
     expect(response.status).toBe(410);
     expect(await store.loadAll()).toEqual([]);
   });
+
+  it("holds the poke for the requested delay so the chaser can close the app", async () => {
+    const { store } = memoryDeps();
+    await handleSubscribe(validBody, { store, now: 1000 });
+    send.mockClear();
+    const started = Date.now();
+    const response = await handleSendTest(
+      "https://push.example/subscriptions/a",
+      { store, send },
+      { delayMs: 50 },
+    );
+    expect(response.status).toBe(200);
+    expect(send).toHaveBeenCalledTimes(1);
+    expect(Date.now() - started).toBeGreaterThanOrEqual(40);
+  });
+
+  it("answers 404 fast for an unknown endpoint even with a delay requested", async () => {
+    const { store } = memoryDeps();
+    const neverSend = vi.fn<SendFn>(async () => ({ status: 201 }));
+    const started = Date.now();
+    const response = await handleSendTest(
+      "https://push.example/subscriptions/never",
+      { store, send: neverSend },
+      { delayMs: 5000 },
+    );
+    expect(response.status).toBe(404);
+    expect(neverSend).not.toHaveBeenCalled();
+    expect(Date.now() - started).toBeLessThan(1000);
+  });
 });
 
 describe("the scheduled poll's Kp fan-out (ticket 03)", () => {

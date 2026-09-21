@@ -70,16 +70,25 @@ export async function handleUnsubscribe(
   return { status: 200 };
 }
 
-/** Fires one canned poke end to end – the manual real-phone check. */
+/**
+ * Fires one canned poke end to end – the manual real-phone check. The
+ * optional delay holds the poke so the chaser can close the app first and
+ * prove the background path; unknown endpoints still answer 404 fast.
+ */
 export async function handleSendTest(
   endpoint: string,
   deps: { store: SubscriptionStore; send: PushSend },
+  opts?: { delayMs?: number },
 ): Promise<HandlerResponse> {
   const all = await deps.store.loadAll();
   const record = all.find(
     (candidate) => candidate.settings.subscription.endpoint === endpoint,
   );
   if (!record) return { status: 404 };
+  const delayMs = Math.min(Math.max(opts?.delayMs ?? 0, 0), 30_000);
+  if (delayMs > 0) {
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+  }
   const payload = buildPushPayload("test", {
     title: "Test alert",
     body: "A background-alert poke from the Space Weather sender.",

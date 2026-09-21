@@ -621,7 +621,7 @@ describe("background alerts (push foundation, ticket 02)", () => {
     renderAlerts();
     expect(await screen.findByText("Background alerts on.")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Send test notification" }),
+      screen.getByRole("button", { name: "Send test notification (20 s delay)" }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Disable background alerts" }),
@@ -634,7 +634,7 @@ describe("background alerts (push foundation, ticket 02)", () => {
     const user = userEvent.setup();
     renderAlerts();
     await user.click(
-      await screen.findByRole("button", { name: "Send test notification" }),
+      await screen.findByRole("button", { name: "Send test notification (20 s delay)" }),
     );
     await waitFor(() =>
       expect(screen.getByText("Test notification sent.")).toBeInTheDocument(),
@@ -643,7 +643,38 @@ describe("background alerts (push foundation, ticket 02)", () => {
     expect(calls).toHaveLength(1);
     expect(calls[0][0]).toBe(
       "/.netlify/functions/send-test?endpoint=" +
-        encodeURIComponent("https://push.example/subscriptions/a"),
+        encodeURIComponent("https://push.example/subscriptions/a") +
+        "&delaySeconds=20",
+    );
+  });
+
+  it("the held test control tells the chaser to close the app while waiting", async () => {
+    vi.stubEnv("VITE_VAPID_PUBLIC_KEY", "AQIDBA");
+    installWorker();
+    // Hold the sender's answer so the waiting state is observable.
+    let release!: (value: unknown) => void;
+    const gate = new Promise((resolve) => {
+      release = resolve;
+    });
+    mockFetch.mockImplementation((url: string) => {
+      if (typeof url === "string" && url.includes("send-test")) {
+        return gate.then(() => ({ ok: true, text: async () => "" }));
+      }
+      return Promise.resolve({ ok: true, text: async () => "" });
+    });
+    const user = userEvent.setup();
+    renderAlerts();
+    await user.click(
+      await screen.findByRole("button", { name: "Send test notification (20 s delay)" }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByText(/close the app now/),
+      ).toBeInTheDocument(),
+    );
+    release({ ok: true });
+    await waitFor(() =>
+      expect(screen.getByText("Test notification sent.")).toBeInTheDocument(),
     );
   });
 
@@ -659,7 +690,7 @@ describe("background alerts (push foundation, ticket 02)", () => {
     const user = userEvent.setup();
     renderAlerts();
     await user.click(
-      await screen.findByRole("button", { name: "Send test notification" }),
+      await screen.findByRole("button", { name: "Send test notification (20 s delay)" }),
     );
     await waitFor(() =>
       expect(screen.getByText(/Test notification failed/)).toBeInTheDocument(),

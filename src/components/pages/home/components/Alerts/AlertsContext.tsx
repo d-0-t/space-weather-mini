@@ -59,6 +59,13 @@ import type {
   PushSubscriptionJSON,
 } from "../../../../../push/subscription-settings";
 
+/**
+ * Held-poke delay in seconds: the sender waits this long so the chaser can
+ * close the app before the test notification fires. Well inside the
+ * synchronous function limit.
+ */
+export const TEST_POKE_DELAY_SECONDS = 20;
+
 const fetchAlerts = async () => {
   const response = await fetch(ALERTS_URL);
   if (!response.ok) throw new Error(`NOAA returned ${response.status}`);
@@ -147,7 +154,7 @@ interface AlertsContextValue {
   /** Fires one canned poke end to end (manual real-phone check). */
   sendTestPoke: () => Promise<void>;
   /** The manual test poke's honest state for the settings UI. */
-  testPokeState: "idle" | "sent" | "failed";
+  testPokeState: "idle" | "waiting" | "sent" | "failed";
   /** Fires a canned test notification (manual PWA check, no feed needed). */
   simulateTestAlert: () => void;
   /** True while the alerts feed is loading without cached data. */
@@ -188,7 +195,7 @@ export const AlertsProvider: React.FC<{ children: ReactNode }> = ({
   );
   const [pushFailed, setPushFailed] = useState(false);
   const [testPokeState, setTestPokeState] = useState<
-    "idle" | "sent" | "failed"
+    "idle" | "waiting" | "sent" | "failed"
   >("idle");
 
   // The browser's own subscription is the source of truth: an already
@@ -394,8 +401,14 @@ export const AlertsProvider: React.FC<{ children: ReactNode }> = ({
 
   const sendTestPoke = async () => {
     if (!pushSubscription) return;
+    // Held poke: the sender waits so the chaser can close the app first
+    // and prove the background path. Well inside the 60s function limit.
+    setTestPokeState("waiting");
     try {
-      const ok = await fireTestPoke(pushSubscription.endpoint);
+      const ok = await fireTestPoke(
+        pushSubscription.endpoint,
+        TEST_POKE_DELAY_SECONDS,
+      );
       setTestPokeState(ok ? "sent" : "failed");
     } catch {
       setTestPokeState("failed");
