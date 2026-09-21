@@ -60,6 +60,33 @@ describe("manifest.json installability", () => {
     });
   });
 
+  it("ships fully opaque icons (launchers fill transparency with white)", () => {
+    // No image deps in the test env, so read the PNG header directly:
+    // IHDR color type sits at byte 25 (2 = truecolor, no alpha channel),
+    // and opaque icons carry no tRNS transparency chunk either.
+    for (const src of [
+      "assets/icon-192.png",
+      "assets/icon-512.png",
+      "assets/icon-maskable-512.png",
+    ]) {
+      const bytes = readFileSync(
+        resolve(__dirname, "../../public", src),
+      );
+      expect(bytes.subarray(1, 4).toString("ascii")).toBe("PNG");
+      expect(bytes[25]).toBe(2);
+      const chunks: string[] = [];
+      let offset = 8;
+      while (offset + 8 <= bytes.length) {
+        const length = bytes.readUInt32BE(offset);
+        const type = bytes.subarray(offset + 4, offset + 8).toString("ascii");
+        chunks.push(type);
+        if (type === "IEND") break;
+        offset += 8 + length + 4;
+      }
+      expect(chunks).not.toContain("tRNS");
+    }
+  });
+
   it("categorises the app for store and launcher listings", () => {
     const categories = manifest().categories as string[];
     expect(categories).toContain("weather");

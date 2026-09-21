@@ -38,6 +38,11 @@ export default async (req: Request, _context: Context) => {
     },
     { delayMs: delaySeconds * 1000 },
   );
+  // Outcome only (no addresses): enough to tell found/sent/gone apart in
+  // the function logs without storing anything identifiable.
+  console.log(
+    `[send-test] status=${result.status} delaySeconds=${delaySeconds} found=${result.status !== 404}`,
+  );
   return new Response(null, { status: result.status });
 };
 
