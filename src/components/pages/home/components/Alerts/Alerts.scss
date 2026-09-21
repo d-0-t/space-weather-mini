@@ -80,7 +80,7 @@
     width: 100%;
     margin: 0.35rem 0 0.75rem;
     border: 0;
-    border-top: 1px solid var(--color-border-muted);
+    border-top: 1px solid var(--color-border-muted-transparent);
   }
 
   &__gates {
@@ -132,6 +132,12 @@
     @media (hover: hover) and (pointer: fine) {
       display: none;
     }
+  }
+
+  &__banner {
+    margin-bottom: 1rem;
+    margin-right: 1rem;
+    border-bottom: 1px solid var(--color-border-muted-transparent);
   }
 
   &__strip {
@@ -229,15 +235,29 @@
   position: fixed;
   inset: 0;
   margin: auto;
+  display: flex;
+  flex-direction: column;
   width: fit-content;
   max-width: min(90vw, 30rem);
   max-height: 80vh;
-  overflow: auto;
+  max-height: 80dvh;
+  overflow: hidden;
   padding: 1rem 1.25rem;
   border: 1px solid var(--color-border-muted);
   border-radius: 15px;
   background: var(--gradient-card);
   color: var(--color-text-primary);
+
+  // The settings content scrolls; the Cancel/Apply footer stays pinned so
+  // mobile chasers never think the buttons are missing (iOS hides
+  // scrollbars, so an off-screen footer looks absent).
+  .alerts {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding-bottom: 0.25rem;
+  }
 
   // The Alerts heading is the dialog's accessible name (aria-labelledby);
   // keep room for the pinned X like the Time modal.
@@ -247,10 +267,11 @@
   }
 
   &__actions {
+    flex-shrink: 0;
     display: flex;
     justify-content: flex-end;
     gap: 0.5rem;
-    margin-top: 0.85rem;
+    margin-top: 0.5rem;
     border-top: 1px solid var(--color-border-muted-transparent);
     padding-top: 0.75rem;
   }

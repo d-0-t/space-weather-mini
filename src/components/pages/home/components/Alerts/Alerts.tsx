@@ -210,6 +210,18 @@ const Alerts: React.FC<{
         </>
       ) : null}
 
+      {!pushSubscription && !pushFailed && notificationState === "granted" ? (
+        <div className="alerts__background">
+          <button
+            type="button"
+            className="btn--secondary"
+            onClick={enableBrowserAlerts}
+          >
+            Enable background alerts
+          </button>
+        </div>
+      ) : null}
+
       {pushSubscription ? (
         <div className="alerts__background">
           <p ref={backgroundStatusRef} tabIndex={-1} className="alerts__status">
@@ -273,6 +285,41 @@ const Alerts: React.FC<{
           ? tip
           : "The Possible locations panel names the towns inside the oval's current reach."}
       </p>
+
+      <div className="alerts__banner" aria-live="polite">
+        {bannerPending ? (
+          <p>Loading alerts…</p>
+        ) : bannerError ? (
+          <p>Couldn&apos;t load alerts. Please check back later.</p>
+        ) : match ? (
+          <div className="alerts__strip">
+            {match.kp !== null ? (
+              <span
+                className={`alerts__strip__color ${kpClass(match.kp)}`}
+                aria-hidden="true"
+              />
+            ) : null}
+            <div className="alerts__strip__body">
+              <p className="alerts__item__title">
+                {match.kind === "alert" ? match.snippet : match.title}
+              </p>
+              <p className="alerts__item__meta">
+                As of {formatShort(match.time, displayTimezone)}.
+                {match.kind !== "forecast"
+                  ? ` Updated ${formatAge(match.time)}`
+                  : ""}
+              </p>
+            </div>
+          </div>
+        ) : (
+          <p>No alerts at Kp {threshold} or higher right now.</p>
+        )}
+      </div>
+      {staleWarning && staleAge ? (
+        <p aria-live="polite">
+          ⚠ Live data unavailable – showing {formatAge(staleAge)}-old cache
+        </p>
+      ) : null}
 
       <fieldset className="alerts__types">
         <legend>Background alert types</legend>
@@ -379,41 +426,6 @@ const Alerts: React.FC<{
           Send test alert
         </button>
       ) : null} */}
-
-      <div className="alerts__banner" aria-live="polite">
-        {bannerPending ? (
-          <p>Loading alerts…</p>
-        ) : bannerError ? (
-          <p>Couldn&apos;t load alerts. Please check back later.</p>
-        ) : match ? (
-          <div className="alerts__strip">
-            {match.kp !== null ? (
-              <span
-                className={`alerts__strip__color ${kpClass(match.kp)}`}
-                aria-hidden="true"
-              />
-            ) : null}
-            <div className="alerts__strip__body">
-              <p className="alerts__item__title">
-                {match.kind === "alert" ? match.snippet : match.title}
-              </p>
-              <p className="alerts__item__meta">
-                As of {formatShort(match.time, displayTimezone)}.
-                {match.kind !== "forecast"
-                  ? ` Updated ${formatAge(match.time)}`
-                  : ""}
-              </p>
-            </div>
-          </div>
-        ) : (
-          <p>No alerts at Kp {threshold} or higher right now.</p>
-        )}
-      </div>
-      {staleWarning && staleAge ? (
-        <p aria-live="polite">
-          ⚠ Live data unavailable – showing {formatAge(staleAge)}-old cache
-        </p>
-      ) : null}
     </section>
   );
 };

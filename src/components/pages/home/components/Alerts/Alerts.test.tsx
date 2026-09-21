@@ -589,6 +589,32 @@ describe("background alerts (push foundation, ticket 02)", () => {
     expect(screen.getByText("Background alerts on.")).toBeInTheDocument();
   });
 
+  it("offers background enable when permission is already granted but no subscription exists (pre-feature install)", async () => {
+    vi.stubEnv("VITE_VAPID_PUBLIC_KEY", "AQIDBA");
+    MockNotification.permission = "granted";
+    const registration = {
+      pushManager: {
+        subscribe: vi.fn<SubscribeFn>(async () => fakeSubscription()),
+        getSubscription: vi.fn(async () => null),
+      },
+    };
+    Object.defineProperty(window.navigator, "serviceWorker", {
+      value: { getRegistration: vi.fn(async () => registration) },
+      configurable: true,
+    });
+    const user = userEvent.setup();
+    renderAlerts();
+    expect(await screen.findByText("Browser alerts enabled.")).toBeInTheDocument();
+    const enable = await screen.findByRole("button", {
+      name: "Enable background alerts",
+    });
+    await user.click(enable);
+    await waitFor(() =>
+      expect(senderCalls("/.netlify/functions/subscribe")).toHaveLength(1),
+    );
+    expect(await screen.findByText("Background alerts on.")).toBeInTheDocument();
+  });
+
   it("shows the test control and disable when the browser already holds a subscription", async () => {
     vi.stubEnv("VITE_VAPID_PUBLIC_KEY", "AQIDBA");
     installWorker();
