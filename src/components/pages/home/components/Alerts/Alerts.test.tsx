@@ -621,7 +621,7 @@ describe("background alerts (push foundation, ticket 02)", () => {
     renderAlerts();
     expect(await screen.findByText("Background alerts on.")).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Send test poke" }),
+      screen.getByRole("button", { name: "Send test notification" }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Disable background alerts" }),
@@ -634,10 +634,10 @@ describe("background alerts (push foundation, ticket 02)", () => {
     const user = userEvent.setup();
     renderAlerts();
     await user.click(
-      await screen.findByRole("button", { name: "Send test poke" }),
+      await screen.findByRole("button", { name: "Send test notification" }),
     );
     await waitFor(() =>
-      expect(screen.getByText("Test poke sent.")).toBeInTheDocument(),
+      expect(screen.getByText("Test notification sent.")).toBeInTheDocument(),
     );
     const calls = senderCalls("/.netlify/functions/send-test");
     expect(calls).toHaveLength(1);
@@ -659,10 +659,10 @@ describe("background alerts (push foundation, ticket 02)", () => {
     const user = userEvent.setup();
     renderAlerts();
     await user.click(
-      await screen.findByRole("button", { name: "Send test poke" }),
+      await screen.findByRole("button", { name: "Send test notification" }),
     );
     await waitFor(() =>
-      expect(screen.getByText(/Test poke failed/)).toBeInTheDocument(),
+      expect(screen.getByText(/Test notification failed/)).toBeInTheDocument(),
     );
   });
 

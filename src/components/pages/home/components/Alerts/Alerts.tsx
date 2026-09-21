@@ -231,24 +231,24 @@ const Alerts: React.FC<{
             type="button"
             className="btn--secondary"
             onClick={() => {
-              void sendTestPoke();
-            }}
-          >
-            Send test poke
-          </button>
-          <button
-            type="button"
-            className="btn--secondary"
-            onClick={() => {
               void disablePushAlerts();
             }}
           >
             Disable background alerts
           </button>
+          <button
+            type="button"
+            className="btn--secondary"
+            onClick={() => {
+              void sendTestPoke();
+            }}
+          >
+            Send test notification
+          </button>
           <p className="alerts__test-poke-state" aria-live="polite">
-            {testPokeState === "sent" ? "Test poke sent." : null}
+            {testPokeState === "sent" ? "Test notification sent." : null}
             {testPokeState === "failed"
-              ? "Test poke failed: check back later."
+              ? "Test notification failed: check back later."
               : null}
           </p>
         </div>
